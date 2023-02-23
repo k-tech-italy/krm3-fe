@@ -1,17 +1,12 @@
 import React from 'react';
 
-import './App.css';
-
 
 function App() {
 	return (
-		<div className="App">
-			<header className="App-header">
-				<p>
-					Krm3 v{process.env.REACT_APP_VERSION}
-				</p>
-			</header>
-		</div>
+		<h1>
+			Krm3 v{process.env.REACT_APP_VERSION}
+			<button type="button" className="btn btn-primary">Primary</button>
+		</h1>
 	);
 }
 
