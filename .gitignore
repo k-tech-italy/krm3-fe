@@ -3,4 +3,22 @@
 
 !.gitignore
 !.nvmrc
+!.npmrc
 
+# From CRA
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
