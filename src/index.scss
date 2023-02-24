@@ -1,4 +1,4 @@
-@import "../node_modules/bootstrap/scss/bootstrap.scss";
+@import "./bootstrap/customization";
 
 body {
 	margin: 0;
@@ -7,6 +7,10 @@ body {
 	sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+}
+
+html, body, #root {
+	height: 100%;
 }
 
 code {
