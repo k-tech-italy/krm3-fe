@@ -2,6 +2,7 @@
 ~*
 
 !.gitignore
+!.env.sample
 !.nvmrc
 !.npmrc
 
