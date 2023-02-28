@@ -3,9 +3,13 @@ import React from 'react';
 
 export function Navbar() {
 	return (
-		<nav className="navbar bg-white text-body shadow">
+		<nav className="navbar sticky-top bg-white text-body shadow" >
 			<div className="container-fluid">
-				<div className="sidebar-toggle">≡</div>
+				<div className="sidebar-toggle">
+					<button className="btn btn-primary" type="button" data-bs-toggle="offcanvas"
+							data-bs-target="#offcanvasSidebar" >
+						≡
+					</button></div>
 				<div className="dropdown">
 					<a href="#" className="d-flex align-items-center text-decoration-none dropdown-toggle"
 					   data-bs-toggle="dropdown" aria-expanded="false">
