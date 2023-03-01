@@ -15,8 +15,10 @@ const useMediaQuery = (query:string) => {
       setMatches(media.matches);
     }
     const listener = () => setMatches(media.matches);
-    media.addEventListener("resize", listener);
-  }, [query]);
+    window.addEventListener("resize", listener);
+    return () => window.removeEventListener("resize", listener);
+
+  }, [matches,query]);
 
   return matches;
 }

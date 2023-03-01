@@ -6,7 +6,7 @@ import "../../index.scss"
 export function Sidebar() {
     return (
         <div className="d-flex flex-column flex-shrink-0 p-3 text-bg-dark offcanvas offcanvas-start sidebar"
-             data-bs-scroll="true" data-bs-backdrop="false" id="offcanvasSidebar">
+             data-bs-scroll="true" data-bs-backdrop="true" id="offcanvasSidebar">
             <div className="sidebar-content sticky-top">
 
                 <a href="/"
