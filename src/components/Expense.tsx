@@ -3,10 +3,9 @@ import useMediaQuery from "../Utilities";
 
 
 export function Expense() {
+    const isSmallScreen = useMediaQuery("(max-width: 767.98px)");
 
-    const result = useMediaQuery("(max-width: 767.98px)");
-
-    if (result) {
+    if (isSmallScreen) {
         return (
             <div className="card mb-3">
                 <div className="card-body mt-2">
@@ -36,8 +35,7 @@ export function Expense() {
                     </div>
                 </div>
             </div>
-        )
-            ;
+        );
     }
     return (
         <table className="table">

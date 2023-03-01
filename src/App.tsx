@@ -11,9 +11,8 @@ export function App() {
 			<Sidebar/>
 			<div className="main">
 				<Navbar/>
-				<div className="content">
+				<div className="content p-3 pt-4">
 					<div className="container-fluid">
-						Router here
 						<Mission/>
 					</div>
 				</div>

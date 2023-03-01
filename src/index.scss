@@ -17,35 +17,3 @@ code {
 	font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
 	monospace;
 }
-
-/*SIDEBAR*/
-
-.offcanvas.show{
-	position: relative;
-	width: 280px;
-}
-
-/*Responsive*/
-
-// Small devices (landscape phones, less than 768px)
-@media (max-width: 767.98px) {
-
-	.offcanvas.show{
-    width: auto;
-}
-	.content {
-    width: 100vw;
-    max-width: 100vw;
-}
-	.navbar {
-    width: 100vw;
-    max-width: 100vw;
-}
-
-}
-
-// Medium devices (tablets, less than 992px)
-@media (max-width: 991.98px) {  }
-
-// Large devices (desktops, less than 1200px)
-@media (min-width: 1199.98px) {  }

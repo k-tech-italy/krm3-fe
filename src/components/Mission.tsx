@@ -10,8 +10,6 @@ export function Mission() {
                 <button className="btn btn-primary" type="button">Add Expense</button>
             </div>
             <Expense/>
-
         </div>
-
     );
 }

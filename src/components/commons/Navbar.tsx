@@ -7,8 +7,8 @@ export function Navbar() {
 			<div className="container-fluid">
 				<div className="sidebar-toggle">
 					<button className="btn btn-primary" type="button" data-bs-toggle="offcanvas"
-							data-bs-target="#offcanvasSidebar" >
-						≡
+							data-bs-target="#sidebar" >
+						<i className="icon kt-icon-menu"/>
 					</button></div>
 				<div className="dropdown">
 					<a href="#" className="d-flex align-items-center text-decoration-none dropdown-toggle"
