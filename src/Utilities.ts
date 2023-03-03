@@ -1,6 +1,28 @@
 import {useEffect, useState} from "react";
 
 
+//interface for component
+export interface ExpenseInterface {
+    id: number,
+    dataExpense: string,
+    category: string,
+    currency: string,
+    currencyAmount: number,
+    currencyEUR: number,
+    isPaid: boolean,
+    typeOfPayment: string
+}
+
+export interface MissionInterface {
+    id: number,
+    place: string,
+    dataStartMission:string,
+    dataEndMission: string,
+    costumer: string,
+    expense: ExpenseInterface[]
+}
+
+
 // Update media query
 export const useMediaQuery = (query: string) => {
     const [matches, setMatches] = useState(false);
@@ -16,17 +38,4 @@ export const useMediaQuery = (query: string) => {
     }, [matches, query]);
 
     return matches;
-}
-
-//interface for component
-
-export interface Expense {
-    id: number,
-    dataExpense: string,
-    category: string,
-    currency: string,
-    currencyAmount: number,
-    currencyEUR: number,
-    isPaid: boolean,
-    typeOfPayment: string
 }

@@ -1,9 +1,9 @@
-import React from 'react';
+import React, {useState} from 'react';
 
 import {ExpenseCard} from "./ExpenseCard";
-import {useMediaQuery, Expense} from "../Utilities";
+import {useMediaQuery, ExpenseInterface, MissionInterface} from "../Utilities";
 import {ExpenseTable} from "./ExpenseTable";
-
+import {ExpenseEdit} from "./ExpenseEdit";
 
 const missionDataTest = {
     id: 1,
@@ -12,6 +12,16 @@ const missionDataTest = {
     dataEndMission: '31/07/2023',
     costumer: 'World Food Program',
     expense: [
+        {
+            id: 0,
+            dataExpense: '01/07/2023',
+            category: 'Taxi',
+            currency: 'GBP',
+            currencyAmount: 14,
+            currencyEUR: 16,
+            isPaid: true,
+            typeOfPayment: 'CCA Aziendale'
+        },
         {
             id: 1,
             dataExpense: '01/07/2023',
@@ -58,27 +68,32 @@ const missionDataTest = {
             currencyEUR: 5,
             isPaid: false,
             typeOfPayment: 'CCA Aziendale'
-        },
-    ]
-}
+        },]
+};
+
+
+
 
 export function Mission() {
 
     const isSmallScreen = useMediaQuery("(max-width: 767.98px)");
     const dataMission = missionDataTest;
-
-    const dataExpense: Expense[] = dataMission.expense;
+    const dataExpense: ExpenseInterface[] = dataMission.expense;
+    const [expenseId, setExpenseId] = useState(0);
 
 
     if (isSmallScreen) {
         return (
             <div className="container-fluid p-0">
-                <h1>Trasferta {dataMission.place}</h1>
+                  <ExpenseEdit props={dataExpense[expenseId]}/>
+
+                <h2>Trasferta {dataMission.place}</h2>
                 <div className="d-grid gap-2 d-md-block mb-2">
-                    <button className="btn btn-primary" type="button">Add Expense</button>
+                    <a type="button" className="btn btn-primary" data-bs-toggle="modal"
+                       data-bs-target="#staticBackdrop" onClick={() => setExpenseId(0)} >Add Expense</a>
                 </div>
-                {dataExpense.slice(0).reverse().map((item: Expense) => (
-                    <ExpenseCard props={item} key={item.id}/>
+                {dataExpense.slice(0).reverse().map((item: ExpenseInterface) => (
+                    <ExpenseCard ShowIdCard={()=>setExpenseId(item.id)} props={item} key={item.id}/>
                 ))}
             </div>
         );
@@ -103,7 +118,7 @@ export function Mission() {
                 </tr>
                 </thead>
                 <tbody>
-                {dataExpense.map((item: Expense) => (
+                {dataExpense.map((item: ExpenseInterface) => (
                     <ExpenseTable props={item} key={item.id}/>
                 ))}
                 </tbody>

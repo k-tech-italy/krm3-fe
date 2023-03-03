@@ -1,14 +1,16 @@
 import React from 'react';
-import {Expense} from "../Utilities";
+import {ExpenseInterface} from "../Utilities";
 
 interface Props {
-    props: Expense
+    props: ExpenseInterface
 }
 
 export function ExpenseTable({props}: Props) {
 
     return (
+
         <tr>
+
             <th scope="row">{props.id}</th>
             <td>{props.dataExpense}</td>
             <td><h5 className="card-title">{props.category}</h5>
