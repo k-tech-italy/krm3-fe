@@ -11,8 +11,7 @@ export function ExpenseEdit({props}: Props) {
 
     if (props.id != 0) {
         return (
-            <div className="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
-                 aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div className="modal fade" id="staticBackdrop" data-bs-backdrop="static" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                 <div className="modal-dialog">
                     <div className="modal-content">
                         <div className="modal-header">

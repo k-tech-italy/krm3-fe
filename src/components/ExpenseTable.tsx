@@ -2,10 +2,12 @@ import React from 'react';
 import {ExpenseInterface} from "../Utilities";
 
 interface Props {
-    props: ExpenseInterface
+    props: ExpenseInterface,
+    ShowIdCard: () => void,
+
 }
 
-export function ExpenseTable({props}: Props) {
+export function ExpenseTable({props, ShowIdCard}: Props) {
 
     return (
 
@@ -30,6 +32,9 @@ export function ExpenseTable({props}: Props) {
                 )}
                 </p>
             </td>
+            <td> <a type="button" className="btn btn-primary" data-bs-toggle="modal"
+                       data-bs-target="#staticBackdrop"
+               onClick={ShowIdCard}> Edit Expense</a></td>
         </tr>
 
     )

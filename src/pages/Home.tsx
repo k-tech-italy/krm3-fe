@@ -1,6 +1,7 @@
 import React from 'react';
 
 import {MissionInterface} from "../Utilities";
+import {Link} from "react-router-dom";
 
 
 const missionDataTest = [{
@@ -114,6 +115,7 @@ const missionDataTest = [{
         },
     ]
 }]
+
 export function Home() {
 
     const missions = missionDataTest;
@@ -122,7 +124,10 @@ export function Home() {
         <div className="container-fluid p-0">
             <h1 className="mb-5">Lista Trasferte</h1>
             {missions.map((item: MissionInterface) => (
-                <div><h1>{item.place}</h1></div>
+                <Link to={'mission/:id'}>
+                    <div><h1>{item.place}</h1></div>
+                </Link>
+
             ))}
         </div>
     );
