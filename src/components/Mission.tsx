@@ -1,39 +1,61 @@
 import React, {useState} from 'react';
 
 import {ExpenseCard} from "./ExpenseCard";
-import {useMediaQuery, ExpenseInterface, missionDataTest} from "../Utilities";
+import {useMediaQuery, ExpenseInterface, missionsDataTest, MissionInterface} from "../Utilities";
 import {ExpenseTable} from "./ExpenseTable";
 import {ExpenseEdit} from "./ExpenseEdit";
+import {useParams} from "react-router-dom";
+
+
+const missionDefault = {
+    id: 0,
+    place: 'string',
+    dataStartMission: 'string',
+    dataEndMission: 'string',
+    costumer: 'string',
+    expense: [{
+        id: 0,
+        dataExpense: '',
+        category: '',
+        currency: '',
+        currencyAmount: 0,
+        currencyEUR: 0,
+        isPaid: false,
+        typeOfPayment: ''
+    }],
+}  //for fix undefined default return value of .find method
 
 
 export function Mission() {
-
+    const missionId = Number(useParams().id);
     const isSmallScreen = useMediaQuery("(max-width: 767.98px)");
-    const dataMission = missionDataTest;
-    const dataExpense: ExpenseInterface[] = dataMission.expense;
+    const dataMission: MissionInterface = missionsDataTest.find(data => data.id === missionId) || missionDefault;
     const [expenseId, setExpenseId] = useState(0);
 
 
     if (isSmallScreen) {
         return (
             <div className="container-fluid p-0">
-                <ExpenseEdit props={dataExpense[expenseId]}/>
+                <ExpenseEdit props={dataMission.expense.find(data => data.id === expenseId) || missionDefault.expense[0]}/>
 
-                <h2>Trasferta {dataMission.place}</h2>
-                <div className="d-grid gap-2 d-md-block mb-2">
-                    <a type="button" className="btn btn-primary" data-bs-toggle="modal"
-                       data-bs-target="#staticBackdrop" onClick={() => setExpenseId(0)}>Add Expense</a>
-                </div>
-                {dataExpense.slice(0).reverse().map((item: ExpenseInterface) => (
-                    <ExpenseCard ShowIdCard={() => setExpenseId(item.id)} props={item} key={item.id}/>
-                ))}
-            </div>
-        );
+                <h2> Trasferta {dataMission.place}</h2>
+        <div className="d-grid gap-2 d-md-block mb-2">
+            <a type="button" className="btn btn-primary" data-bs-toggle="modal"
+               data-bs-target="#staticBackdrop" onClick={() => setExpenseId(0)}>Add Expense</a>
+        </div>
+        {
+            dataMission.expense.slice(0).reverse().map((item: ExpenseInterface) => (
+                <ExpenseCard ShowIdCard={() => setExpenseId(item.id)} props={item} key={item.id}/>
+            ))
+        }
+    </div>
+    )
+        ;
     }
     return (
         <div className="container-fluid p-0">
-            <ExpenseEdit props={dataExpense[expenseId]}/>
-            <h1>Trasferta{dataMission.place}</h1>
+                <ExpenseEdit props={dataMission.expense.find(data => data.id === expenseId) || missionDefault.expense[0]}/>
+            <h1>Trasferta {dataMission.place}</h1>
             <div className="d-grid gap-2 d-md-block mb-2">
                 <a type="button" className="btn btn-primary" data-bs-toggle="modal"
                    data-bs-target="#staticBackdrop" onClick={() => setExpenseId(0)}>Add Expense</a></div>
@@ -51,7 +73,7 @@ export function Mission() {
                 </tr>
                 </thead>
                 <tbody>
-                {dataExpense.map((item: ExpenseInterface) => (
+                {dataMission.expense.map((item: ExpenseInterface) => (
                     <ExpenseTable ShowIdCard={() => setExpenseId(item.id)} props={item} key={item.id}/>
                 ))}
                 </tbody>

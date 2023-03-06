@@ -1,4 +1,5 @@
 import React from 'react';
+
 import {ExpenseInterface} from "../Utilities";
 
 
@@ -107,6 +108,4 @@ export function ExpenseEdit({props}: Props) {
             </div>
         </div>
     )
-
-
 }
