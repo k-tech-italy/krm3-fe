@@ -33,15 +33,9 @@ const router = createBrowserRouter([
                 element: <Home/>
             },
             {
-                path: "mission",
-                element: <Mission/>
-            },
-            {
                 path: "mission/:id",
                 element: <Mission/>
             },
-
-
         ]
     },
 
