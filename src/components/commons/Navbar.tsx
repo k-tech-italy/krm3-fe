@@ -3,17 +3,19 @@ import React from 'react';
 
 export function Navbar() {
 	return (
-		<nav className="navbar sticky-top bg-white text-body shadow" >
+		<nav className="navbar sticky-top bg-white text-body shadow">
 			<div className="container-fluid">
 				<div className="sidebar-toggle">
 					<button className="btn btn-primary" type="button" data-bs-toggle="offcanvas"
-							data-bs-target="#sidebar" >
+							data-bs-target="#sidebar">
 						<i className="icon kt-icon-menu"/>
-					</button></div>
+					</button>
+				</div>
 				<div className="dropdown">
 					<a href="#" className="d-flex align-items-center text-decoration-none dropdown-toggle"
 					   data-bs-toggle="dropdown" aria-expanded="false">
-						<img src="https://avatars.githubusercontent.com/u/6311869?s=40&v=4" alt="" width="32" height="32"
+						<img src="https://avatars.githubusercontent.com/u/6311869?s=40&v=4" alt="" width="32"
+							 height="32"
 							 className="rounded-circle me-2"/>
 						<strong className="d-none d-sm-block">Saverio Caminiti</strong>
 					</a>
