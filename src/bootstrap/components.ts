@@ -1,5 +1,6 @@
 import { Alert, Dropdown, Tooltip } from 'bootstrap';
 
+
 const bootstrapUsedComponents = [
 	Alert, Dropdown, Tooltip,
 ];
