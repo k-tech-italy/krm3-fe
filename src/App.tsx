@@ -1,54 +1,31 @@
-import React from 'react';
+/* import logo from './logo.svg';*/
+/* import './App.css'; */
+import React from 'react'
+import {BrowserRouter, Route, Routes} from "react-router-dom";
+import Welcome from "./components/Welcome";
+import Signup from "./components/Signup";
+import Login from "./components/Login";
 
-import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "react-query";
+import Layout from "./components/Layout";
 
-import { Home } from "./pages/Home";
-import { Mission } from "./components/Mission";
-import { Sidebar } from "./components/commons/Sidebar";
-import { Navbar } from "./components/commons/Navbar";
+import Home from "./components/Home";
 
 
-const queryClient = new QueryClient();
-
-
-function Layout() {
-	return (
-		<QueryClientProvider client={queryClient}>
-			<Outlet/>
-		</QueryClientProvider>
-	);
+function App() {
+  return (
+    <div>
+      <BrowserRouter>
+        <Layout>
+        <Routes>
+          <Route exact path="/" element={<Welcome />} />
+            <Route exact path="/home" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+        </Routes>
+        </Layout>
+      </BrowserRouter>
+    </div>
+  );
 }
 
-const router = createBrowserRouter([
-	{
-		path: "/",
-		element: <Layout/>,
-		children: [
-			{
-				path: "/",
-				element: <Home/>,
-			},
-			{
-				path: "mission/:id",
-				element: <Mission/>,
-			},
-		],
-	},
-]);
-
-export function App() {
-	return (
-		<div className="wrapper">
-			<Sidebar/>
-			<div className="main">
-				<Navbar/>
-				<div className="content p-3 pt-4">
-					<div className="container-fluid">
-						<RouterProvider router={router}/>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
-}
+export default App;

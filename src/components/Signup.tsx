@@ -1,18 +1,20 @@
 import React from 'react'
 import {Link, Navigate} from 'react-router-dom'
+
 import styled from "styled-components";
 
-const Login = () => {
+const Signup = () => {
     return (
         <div className="container mt-4">
-            <h1>Sign In</h1>
-            <p>Log into your account now.</p>
+            <h1>Sign Up</h1>
+            <p>Create into your account now.</p>
 
-            <Google className="btn btn-secondary" >
+
+            <Google className="btn btn-secondary">
                 <img src="/images/google.svg" alt=""/>
                 Continue with Google.
             </Google>
-            <p className="mt-3">Don't have an account? <Link to="/signup">Register</Link></p>
+            <p className="mt-3">Have an account? <Link to="/login">Sign In</Link></p>
 
         </div>
     )
@@ -38,4 +40,4 @@ const Google = styled.button`
   }
 `
 
-export default Login
+export default Signup
