@@ -1,21 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from "react-router-dom";
 
 import { MissionInterface, missionsDataTest } from "../restapi/types";
-import { Login } from "../components/Login";
 
 
 export function Home() {
 	const missions = missionsDataTest;
-	const [isLogged, setIsLogged] = useState(false);
-
-	if (!isLogged) {
-		return (
-			<div>
-				<Login SetLogin={() => setIsLogged(true)}/>
-			</div>
-		);
-	}
 
 	return (
 		<div className="container-fluid p-0">

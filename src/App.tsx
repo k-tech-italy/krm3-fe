@@ -7,6 +7,7 @@ import { Home } from "./pages/Home";
 import { Mission } from "./components/Mission";
 import { Sidebar } from "./components/commons/Sidebar";
 import { Navbar } from "./components/commons/Navbar";
+import { Login } from './components/commons/Login';
 
 
 const queryClient = new QueryClient();
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
 			{
 				path: "/",
 				element: <Home/>,
+			},
+			{
+				path: "/login",
+				element: <Login/>,
 			},
 			{
 				path: "mission/:id",

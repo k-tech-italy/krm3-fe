@@ -7,6 +7,6 @@ const {createProxyMiddleware} = require('http-proxy-middleware');
 const djangoUrl = 'http://localhost:8000/';  // Local
 
 module.exports = function (app) {
-	app.use('/v1/api', createProxyMiddleware({target: djangoUrl, changeOrigin: true}));
+	app.use('/api', createProxyMiddleware({target: djangoUrl, changeOrigin: true}));
 };
 
