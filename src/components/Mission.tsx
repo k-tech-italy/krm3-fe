@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { useParams } from "react-router-dom";
 
 import { ExpenseCard } from "./ExpenseCard";
@@ -31,6 +31,8 @@ export function Mission() {
 	const isSmallScreen = useMediaQuery("(max-width: 767.98px)");
 	const dataMission: MissionInterface = missionsDataTest.find(data => data.id === missionId) || missionDefault;
 	const [expenseId, setExpenseId] = useState(0);
+
+
 
 
 	return (
