@@ -15,11 +15,17 @@ export async function login() {
 			currentUrl = window.location.protocol + '//' + window.location.host + '/';
 		}
 		localStorage.setItem(LS_LOGIN_NEXT_URI, currentUrl);
-		const res = await restapi.get(`/o/${oauthProvider}/?redirect_uri=${loginUrl}`);
+		const res = await restapi.get(`/o/${oauthProvider}/?redirect_uri=${encodeURIComponent(loginUrl)}`);
 		window.location.replace(res.data.authorization_url);
 	} catch (err) {
 		console.log("Error logging in", err);  // TODO show a page for errors
 	}
+}
+
+export async function logout() {
+	await restapi.post('/jwt/logout/');
+	localStorage.removeItem(LS_TOKEN_KEY);
+	window.location.replace('/');
 }
 
 export async function googleAuthenticate(state: string, code: string) {
@@ -56,4 +62,7 @@ export function refreshToken() {
 	// the token is deleted so that a new login will be required
 	localStorage.removeItem(LS_TOKEN_KEY);
 	// TODO when we get the token there is also a res.data.refresh, we store and use it
+	// POST /api/v1jwt/refresh/
+	// Authorization: Bearer eyJh....
+	// response {"refresh":"eyJh..."}
 }

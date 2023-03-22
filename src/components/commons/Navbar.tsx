@@ -1,4 +1,5 @@
 import React from 'react';
+import { logout } from '../../restapi/oauth';
 
 
 export function Navbar() {
@@ -26,7 +27,7 @@ export function Navbar() {
 						<li>
 							<hr className="dropdown-divider"/>
 						</li>
-						<li><a className="dropdown-item" href="#">Sign out</a></li>
+						<li><a className="dropdown-item" href="#" onClick={logout}>Sign out</a></li>
 					</ul>
 				</div>
 			</div>

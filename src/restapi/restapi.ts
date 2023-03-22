@@ -28,7 +28,8 @@ restapi.interceptors.response.use(response => {
 if (!djSessionId && (process.env.NODE_ENV !== "test")) {  // prevent this from being used in tests
 	restapi.interceptors.request.use(async config => {
 		const c = {...config, headers: config.headers || {}};
-		const token = await getToken();
+		const token = getToken();
+		console.log('TOKEN is ', token);
 		if (token) {
 			c.headers['Authorization'] = `Bearer ${token}`;
 		}
