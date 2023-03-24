@@ -3,6 +3,7 @@
 
 !.gitignore
 !.env.sample
+!.envrc.sample
 !.nvmrc
 !.npmrc
 
