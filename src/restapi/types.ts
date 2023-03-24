@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 
 
+export interface KrmUser {
+	id: number,
+	username: string,
+	email: string,
+	groups: string[],
+	isSuperUser: boolean,
+}
+
 // Interface for component
 export interface ExpenseInterface {
 	id: number,

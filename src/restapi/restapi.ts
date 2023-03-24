@@ -31,7 +31,7 @@ if (!djSessionId && (process.env.NODE_ENV !== "test")) {  // prevent this from b
 		const token = getToken();
 		console.log('TOKEN is ', token);
 		if (token) {
-			c.headers['Authorization'] = `Bearer ${token}`;
+			c.headers['Authorization'] = `JWT ${token}`;
 		}
 		return c;
 	});

@@ -1,6 +1,5 @@
 import React from 'react';
-
-import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "react-query";
 
 import { Home } from "./pages/Home";
@@ -10,21 +9,9 @@ import { Navbar } from "./components/commons/Navbar";
 import { Login } from './components/commons/Login';
 
 
-const queryClient = new QueryClient();
-
-
-function Layout() {
-	return (
-		<QueryClientProvider client={queryClient}>
-			<Outlet/>
-		</QueryClientProvider>
-	);
-}
-
 const router = createBrowserRouter([
 	{
 		path: "/",
-		element: <Layout/>,
 		children: [
 			{
 				path: "/",
@@ -42,18 +29,22 @@ const router = createBrowserRouter([
 	},
 ]);
 
+const queryClient = new QueryClient();
+
 export function App() {
 	return (
 		<div className="wrapper">
-			<Sidebar/>
-			<div className="main">
-				<Navbar/>
-				<div className="content p-3 pt-4">
-					<div className="container-fluid">
-						<RouterProvider router={router}/>
+			<QueryClientProvider client={queryClient}>
+				<Sidebar/>
+				<div className="main">
+					<Navbar/>
+					<div className="content p-3 pt-4">
+						<div className="container-fluid">
+							<RouterProvider router={router}/>
+						</div>
 					</div>
 				</div>
-			</div>
+			</QueryClientProvider>
 		</div>
 	);
 }
