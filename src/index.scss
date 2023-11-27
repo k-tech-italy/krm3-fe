@@ -11,9 +11,15 @@ body {
 
 html, body, #root {
 	height: 100%;
+	background-color: white;
 }
 
 code {
 	font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
 	monospace;
+}
+
+.gradient {
+	background: rgb(13,13,13);
+	background: linear-gradient(0deg, rgba(13,13,13,0.8715861344537815) 0%, rgba(255,255,255,0.3085609243697479) 61%, rgba(255,255,255,0.14329481792717091) 75%, rgba(255,255,255,0) 100%);
 }

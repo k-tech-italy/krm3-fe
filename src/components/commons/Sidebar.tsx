@@ -17,7 +17,7 @@ export function Sidebar() {
 				<hr/>
 				<ul className="nav nav-pills flex-column mb-auto">
 					<li className="nav-item">
-						<a href="#" className="nav-link active" aria-current="page">
+						<a href={`/`} className="nav-link active" aria-current="page">
 							<i className="icon kt-icon-mission"/> Trasferte
 						</a>
 					</li>
@@ -27,12 +27,11 @@ export function Sidebar() {
 						</a>
 					</li>
 					<li>
-						<a href="#" className="nav-link text-white">
+						<a href="https://krm.k-tech.it/" className="nav-link text-white">
 							<i className="icon kt-icon-timesheet"/> Foglio ore
 						</a>
 					</li>
 				</ul>
-
 				<hr/>
 				<p className="text-end small">v {process.env.REACT_APP_VERSION}</p>
 			</div>

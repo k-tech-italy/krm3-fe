@@ -1,54 +1,40 @@
 import React from 'react';
 
-import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "react-query";
+import {BrowserRouter, Route, Routes} from "react-router-dom";
+import {QueryClient, QueryClientProvider} from "react-query";
 
-import { Home } from "./pages/Home";
-import { Mission } from "./components/Mission";
-import { Sidebar } from "./components/commons/Sidebar";
-import { Navbar } from "./components/commons/Navbar";
+import {Home} from "./pages/Home";
+import {Mission} from "./components/missions/Mission";
+import {Sidebar} from "./components/commons/Sidebar";
+import {Navbar} from "./components/commons/Navbar";
+import {Login} from './components/commons/Login';
+import {User} from "./pages/User";
 
 
 const queryClient = new QueryClient();
 
-
-function Layout() {
-	return (
-		<QueryClientProvider client={queryClient}>
-			<Outlet/>
-		</QueryClientProvider>
-	);
-}
-
-const router = createBrowserRouter([
-	{
-		path: "/",
-		element: <Layout/>,
-		children: [
-			{
-				path: "/",
-				element: <Home/>,
-			},
-			{
-				path: "mission/:id",
-				element: <Mission/>,
-			},
-		],
-	},
-]);
-
 export function App() {
-	return (
-		<div className="wrapper">
-			<Sidebar/>
-			<div className="main">
-				<Navbar/>
-				<div className="content p-3 pt-4">
-					<div className="container-fluid">
-						<RouterProvider router={router}/>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+    return (
+        <QueryClientProvider client={queryClient}>
+            <div className="wrapper">
+                <Sidebar/>
+                <div className="main">
+                    <Navbar/>
+                    <div className="content p-3 pt-4">
+                        <div className="container-fluid">
+                            <BrowserRouter>
+                                <Routes>
+                                    <Route path="/" element={<Home/>}/>
+                                    <Route path="/home" element={<Home/>}/>
+                                    <Route path="/login" element={<Login/>}/>
+                                    <Route path="/user" element={<User/>}/>
+                                    <Route path="/mission/:id" element={<Mission/>}/>
+                                </Routes>
+                            </BrowserRouter>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </QueryClientProvider>
+    );
 }
