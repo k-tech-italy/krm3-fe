@@ -200,8 +200,8 @@ export function ExpenseEditForm(props: Props) {
                             value={expenseEdit.amount_currency || 0}
                         />
                     </div>
-                    <div className="col-sm-5 mx-2">
-                    <select className={`form-select ${!!error?.category ? 'is-invalid' : ''} `}
+                    <div className="col-sm-6 mx-2">
+                    <select className={`form-select ${!!error?.currency ? 'is-invalid' : ''} `}
                             onChange={handleCurrency} //TODO: change when update API
                             value={expenseEdit.currency}>
                             {[{id:0, iso3:'scegli'}, ...currencyList?.results || []].map((c) => (
