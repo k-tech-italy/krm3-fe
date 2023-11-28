@@ -21,16 +21,16 @@ interface Props {
 
 export function ExpenseEdit(props: Props) {
 
-    const { mutate, isLoading, isSuccess, isError, error } = useEditExpense();
+    const { mutate, isLoading, isError, error } = useEditExpense();
     const [expenseError, setExpenseError] = useState<ExpenseError>();
 
 
 
     function handleExpense(e: ExpenseInterface) {
-        mutate({ id: e.id, params: e })
-        if (isSuccess) {
-            props.onClose()//TODO: CHECK THIS (first call don't close)
-        }
+        mutate({ id: e.id, params: e }, {
+            onSuccess: () => props.onClose()
+        })
+    
     }
 
 
