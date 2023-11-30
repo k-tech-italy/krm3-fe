@@ -83,6 +83,7 @@ export interface ExpenseInterface {
 export interface LimitBudget {
     vitto: number,
     viaggi: number,
+    varie: number,
 }
 
 

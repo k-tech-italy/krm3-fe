@@ -36,10 +36,6 @@ export function ExpenseEdit(props: Props) {
 
 
     function saveData() {
-        if (!props.expense.day) {
-            const today = new Date()
-            props.expense.day = moment(today).format('YYYY-MM-DD')
-        }
         validateExpense(props.expense)
             .then((res) => handleExpense(res))
             .catch((err) => setExpenseError(err))

@@ -31,6 +31,7 @@ export function ExpenseEditForm(props: Props) {
     useEffect(() => {
         setExpenseEdit(prev => props.expense)
     }, [props.expense])
+
     useEffect(() => {
         setError(prev => props.error)
     }, [props.error])
@@ -86,6 +87,7 @@ export function ExpenseEditForm(props: Props) {
 
     function handleCurrency(e: any) {
         props.expense.currency = e.target.value;
+        delete error?.currency
         setExpenseEdit({ ...expenseEdit, currency: e.target.value });
         if (!!props.expense.amount_currency) {
             convertCurrencyTo('2023-08-23', e.target.value, props.expense.amount_currency, 'EUR').then(res => {
@@ -94,12 +96,6 @@ export function ExpenseEditForm(props: Props) {
                 setAmountError(false);
             }).catch(() => setAmountError(true))
         }
-    }
-
-    function handleLimitBudget() {
-        return (
-            <>ciao ciao</>
-        )
     }
 
 
@@ -134,10 +130,13 @@ export function ExpenseEditForm(props: Props) {
                         </div>
                     )}
                 </div>
+                {!!categoryList && (
                 <div className='col-sm-4 text-center'>
                     <LimitBudget amountCurrency={Number(expenseEdit.amount_currency)}
-                        category={expenseEdit.category?.title} />
+                        category={expenseEdit.category}
+                        categoryList={categoryList?.results} />
                 </div>
+                )}
             </div>
             <div className="mb-3 d-sm-flex align-items-center ">
                 <label className="col-sm-4 col-form-label fw-semibold">Tipo
@@ -193,8 +192,8 @@ export function ExpenseEditForm(props: Props) {
             <div className="mb-3 d-sm-flex align-items-center">
                 <label className="col-sm-4 col-form-label fw-semibold">Importo</label>
                 <div className="d-flex col-sm-4">
-                    <div className="col-sm-5">
-                        <input type="number" step="0.01"
+                    <div className="col-sm-6">
+                        <input type="number" step="0.01" min='0'
                             className={`form-control text-end ${!!error?.amount_currency ? 'is-invalid' : ''}`}
                             onChange={handleCurrencyAmount}
                             value={expenseEdit.amount_currency || 0}

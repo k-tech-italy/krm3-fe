@@ -9,6 +9,7 @@ import { TotalsExpense } from "../expense/TotalExpense";
 import LoadSpinner from "../commons/LoadSpinner";
 import { useGetMission } from "../../hooks/expense";
 import MissionSummary from './Summary';
+import moment from 'moment';
 
 
 export function Mission() {
@@ -16,6 +17,13 @@ export function Mission() {
     const [selectedExpense, setSelectedExpense] = useState<ExpenseInterface | null>();
     const id = Number(useParams().id);
     const { isLoading, data, isError } = useGetMission(id);
+    const today = new Date()
+
+    const defaultExpense = {
+        mission: id,
+        amount_currency: '0',
+        day: moment(today).format('YYYY-MM-DD')
+    } as ExpenseInterface
 
 
     return (
@@ -34,14 +42,14 @@ export function Mission() {
                     {isSmallScreen ? (
                         <div className="d-flex justify-content-center fixed-bottom pb-2 gradient">
                             <button type="button" className="btn btn-primary rounded-circle"
-                                onClick={() => setSelectedExpense({ mission: id } as ExpenseInterface)}>
+                                onClick={() => setSelectedExpense(defaultExpense)}>
                                 <p className='m-0 fw-bold'>+</p>
                             </button>
                         </div>
                     ) : (
                         <div className="d-grid gap-2 d-md-block mb-2">
                             <button type="button" className="btn btn-primary"
-                                onClick={() => setSelectedExpense({ mission: id } as ExpenseInterface)}>Add Expense</button>
+                                onClick={() => setSelectedExpense(defaultExpense)}>Add Expense</button>
                         </div>
                     )}
                     {selectedExpense && (
