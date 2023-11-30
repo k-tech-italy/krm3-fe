@@ -21,7 +21,7 @@ export function Mission() {
 
     const defaultExpense = {
         mission: id,
-        amount_currency: '0',
+        amountCurrency: '0',
         day: moment(today).format('YYYY-MM-DD')
     } as ExpenseInterface
 

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import {getToken} from './oauth';
-//applyCaseMiddleware
+import applyCaseMiddleware from 'axios-case-converter';
 
 
 // used to temporary bypass Google login
@@ -11,9 +11,9 @@ axios.defaults.xsrfCookieName = 'csrftoken';
 axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 const url = 'http://localhost:8000/api/v1/';
 
-export const restapi = axios.create({
+export const restapi = applyCaseMiddleware(axios.create({
     baseURL: url,  // must include '/api/v1/'
-});
+}));
 
 restapi.interceptors.response.use(response => {
     return response;

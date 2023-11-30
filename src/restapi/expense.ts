@@ -40,11 +40,11 @@ export function getTypeOfPayment() {
 }
 
 export function getTypeOfDocument() {
-    return restapi.get<Page<TypeOfDocument>>(`missions/document_type/`).then(res => res.data);
+    return restapi.get<Page<TypeOfDocument>>(`missions/documentType/`).then(res => res.data);
 }
 
 export function saveExpense(id: number, params: ExpenseInterface) {
-    const paramsRefactored = {...params, category: params.category.id, document_type: params.document_type.id, payment_type: params.payment_type.id}
+    const paramsRefactored = {...params, category: params.category.id, documentType: params.documentType.id, paymentType: params.paymentType.id}
     if (id === undefined) {
         return restapi.post<ExpenseInterface>('missions/expense/', paramsRefactored);
     }

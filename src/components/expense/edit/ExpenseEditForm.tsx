@@ -46,11 +46,11 @@ export function ExpenseEditForm(props: Props) {
             setAmountError(false);
         }).catch(() => setAmountError(true))
 
-        props.expense.amount_currency = e.target.value
-        props.expense.amount_base = amountBase
-        delete error?.amount_currency
-        setExpenseEdit({ ...expenseEdit, amount_currency: e.target.value });
-        /*if (parseInt(e.target.value) > parseInt(props.expense?.amount_reimbursement || '')) {
+        props.expense.amountCurrency = e.target.value
+        props.expense.amountBase = amountBase
+        delete error?.amountCurrency
+        setExpenseEdit({ ...expenseEdit, amountCurrency: e.target.value });
+        /*if (parseInt(e.target.value) > parseInt(props.expense?.amountReimbursement || '')) {
             setAmountError(true);
         } else {
             setAmountError(false);
@@ -60,19 +60,19 @@ export function ExpenseEditForm(props: Props) {
 
     function handleSelectTypeOfPayment(e: any) {
         if (!!typeOfPaymentList) {
-            const selected = typeOfPaymentList.results.filter(payment => payment.id === Number(e.target.value)).at(0) || props.expense.payment_type;
-            props.expense.payment_type = selected;
-            delete error?.payment_type
-            setExpenseEdit({ ...expenseEdit, payment_type: selected });
+            const selected = typeOfPaymentList.results.filter(payment => payment.id === Number(e.target.value)).at(0) || props.expense.paymentType;
+            props.expense.paymentType = selected;
+            delete error?.paymentType
+            setExpenseEdit({ ...expenseEdit, paymentType: selected });
         }
     }
 
     function handleSelectTypeOfDocument(e: any) {
         if (!!typeOfDocumentList) {
-            const selected = typeOfDocumentList.results.filter(document => document.id === Number(e.target.value)).at(0) || props.expense.document_type;
-            props.expense.document_type = selected; // { id: selected.id } as TypeOfDocument
-            delete error?.document_type
-            setExpenseEdit({ ...expenseEdit, document_type: selected });
+            const selected = typeOfDocumentList.results.filter(document => document.id === Number(e.target.value)).at(0) || props.expense.documentType;
+            props.expense.documentType = selected; // { id: selected.id } as TypeOfDocument
+            delete error?.documentType
+            setExpenseEdit({ ...expenseEdit, documentType: selected });
         }
     }
 
@@ -89,9 +89,9 @@ export function ExpenseEditForm(props: Props) {
         props.expense.currency = e.target.value;
         delete error?.currency
         setExpenseEdit({ ...expenseEdit, currency: e.target.value });
-        if (!!props.expense.amount_currency) {
-            convertCurrencyTo('2023-08-23', e.target.value, props.expense.amount_currency, 'EUR').then(res => {
-                props.expense.amount_base = res;
+        if (!!props.expense.amountCurrency) {
+            convertCurrencyTo('2023-08-23', e.target.value, props.expense.amountCurrency, 'EUR').then(res => {
+                props.expense.amountBase = res;
                 setAmountBase(prev => res);
                 setAmountError(false);
             }).catch(() => setAmountError(true))
@@ -132,7 +132,7 @@ export function ExpenseEditForm(props: Props) {
                 </div>
                 {!!categoryList && (
                 <div className='col-sm-4 text-center'>
-                    <LimitBudget amountCurrency={Number(expenseEdit.amount_currency)}
+                    <LimitBudget amountCurrency={Number(expenseEdit.amountCurrency)}
                         category={expenseEdit.category}
                         categoryList={categoryList?.results} />
                 </div>
@@ -142,18 +142,18 @@ export function ExpenseEditForm(props: Props) {
                 <label className="col-sm-4 col-form-label fw-semibold">Tipo
                     Documento</label>
                 <div className="col-sm-4">
-                    <select className={`form-select ${!!error?.document_type ? 'is-invalid' : ''} `}
+                    <select className={`form-select ${!!error?.documentType ? 'is-invalid' : ''} `}
                         onChange={handleSelectTypeOfDocument}
-                        value={expenseEdit.document_type?.id || 0}>
+                        value={expenseEdit.documentType?.id || 0}>
                         {[{ id: 0, title: "Scegli un documento" }, ...(typeOfDocumentList?.results || [])].map((doc) => (
                             <option
                                 key={doc.id}
                                 value={doc.id}>{doc?.title}</option>
                         ))}
                     </select>
-                    {!!error?.document_type && (
+                    {!!error?.documentType && (
                         <div className="invalid-feedback">
-                            {error.document_type}
+                            {error.documentType}
                         </div>
                     )}
                 </div>
@@ -173,18 +173,18 @@ export function ExpenseEditForm(props: Props) {
                 <label className="col-sm-4 col-form-label fw-semibold">Tipo di
                     Pagamento</label>
                 <div className="col-sm-5 ">
-                    <select className={`form-select ${!!error?.payment_type ? 'is-invalid' : ''} `}
+                    <select className={`form-select ${!!error?.paymentType ? 'is-invalid' : ''} `}
                         onChange={handleSelectTypeOfPayment}
-                        value={expenseEdit.payment_type?.id}>
+                        value={expenseEdit.paymentType?.id}>
                         {[{ id: 0, title: 'Scegli il tipo di pagamento' }, ...(typeOfPaymentList?.results || [])].map((c,) => (
                             <option
                                 key={c.id}
                                 value={c.id}>{c.title || ''}</option>
                         ))}
                     </select>
-                    {!!error?.payment_type && (
+                    {!!error?.paymentType && (
                         <div className="invalid-feedback">
-                            {error.payment_type}
+                            {error.paymentType}
                         </div>
                     )}
                 </div>
@@ -194,9 +194,9 @@ export function ExpenseEditForm(props: Props) {
                 <div className="d-flex col-sm-4">
                     <div className="col-sm-6">
                         <input type="number" step="0.01" min='0'
-                            className={`form-control text-end ${!!error?.amount_currency ? 'is-invalid' : ''}`}
+                            className={`form-control text-end ${!!error?.amountCurrency ? 'is-invalid' : ''}`}
                             onChange={handleCurrencyAmount}
-                            value={expenseEdit.amount_currency || 0}
+                            value={expenseEdit.amountCurrency || 0}
                         />
                     </div>
                     <div className="col-sm-6 mx-2">
@@ -236,13 +236,13 @@ export function ExpenseEditForm(props: Props) {
                     <input className="form-control text-end" id="disabledTextInput"
                         placeholder="Disabled input"
                         onChange={(e) => {
-                            setExpenseEdit({ ...expenseEdit, amount_reimbursement: e.target.value })
-                            props.expense.amount_reimbursement = e.target.value
+                            setExpenseEdit({ ...expenseEdit, amountReimbursement: e.target.value })
+                            props.expense.amountReimbursement = e.target.value
                         }}
-                        value={expenseEdit.amount_reimbursement || 0} />
+                        value={expenseEdit.amountReimbursement || 0} />
                 </div>
                 <label
-                    className={`col-sm-4 mx-2 col-form-label fw-semibold ${!!props.expense.amount_reimbursement && parseFloat(props.expense.amount_reimbursement) < 1 ? 'text-danger' : ''}`}>Azienda {!!props.expense.amount_reimbursement ? expenseEdit.amount_reimbursement : ''} €</label>
+                    className={`col-sm-4 mx-2 col-form-label fw-semibold ${!!props.expense.amountReimbursement && parseFloat(props.expense.amountReimbursement) < 1 ? 'text-danger' : ''}`}>Azienda {!!props.expense.amountReimbursement ? expenseEdit.amountReimbursement : ''} €</label>
             </div>
             <div className="mb-3 d-flex align-items-center justify-content-end">
                 <div className="col-sm-4">

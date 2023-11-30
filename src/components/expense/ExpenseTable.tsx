@@ -16,7 +16,7 @@ export function ExpenseTable(props: Props) {
     const [amountBase, setAmountBase] = useState('');
 
     useEffect(() =>{
-        convertCurrencyTo('2023-08-23', props.expense.currency, props.expense.amount_currency || '0', 'EUR').then(res => setAmountBase(prev => res))
+        convertCurrencyTo('2023-08-23', props.expense.currency, props.expense.amountCurrency || '0', 'EUR').then(res => setAmountBase(prev => res))
     },[props.expense])
 
     return (
@@ -28,19 +28,19 @@ export function ExpenseTable(props: Props) {
                 <p className='mt-3'>{props.expense.day}</p>
             </td>
             <td>
-                <p className='mt-3'>{props.expense.category.__str__}</p>
+                <p className='mt-3'>{props.expense.category.str}</p>
             </td>
             <td>
-                <p className='mt-3'>{props.expense.currency} {props.expense.amount_currency}</p>
+                <p className='mt-3'>{props.expense.currency} {props.expense.amountCurrency}</p>
             </td>
             <td><p className='mt-3'>{amountBase}</p></td>
             <td><p className='mt-3'>90</p></td>
-            <td><p className={`mt-3 ${!!props.expense.amount_reimbursement && parseFloat(props.expense.amount_reimbursement) < 1 ? 'text-danger' : ''}`}>{props.expense.amount_reimbursement}</p></td>
+            <td><p className={`mt-3 ${!!props.expense.amountReimbursement && parseFloat(props.expense.amountReimbursement) < 1 ? 'text-danger' : ''}`}>{props.expense.amountReimbursement}</p></td>
             <td>
-                <p className='mt-3'>{props.expense.payment_type.__str__}</p>
+                <p className='mt-3'>{props.expense.paymentType.str}</p>
             </td>
             <td>
-                <div>{props.expense.payment_type.active ? (
+                <div>{props.expense.paymentType.active ? (
                     <p className='mt-3 fw-bold'>PAID</p>
                 ) : (
                     <p className='mt-3 fw-bold'>NO PAID</p>
