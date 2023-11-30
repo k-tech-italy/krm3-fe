@@ -26,15 +26,15 @@ export default function MissionSummary(props: Props) {
           </div>
           <div className="col-sm-2 offset-sm-2 offset-md-0 d-flex">
             <p className='m-0 p-1 fw-bold'>Risorsa: </p>
-            <p className='m-0 p-1'>{props.data.resource.first_name} {props.data.resource.last_name}</p>
+            <p className='m-0 p-1'>{props.data.resource.firstName} {props.data.resource.lastName}</p>
           </div>
           <div className="col-sm-2 d-flex">
             <p className='m-0 p-1 fw-bold'>Dal: </p>
-            <p className='m-0 p-1'>{props.data.from_date}</p>
+            <p className='m-0 p-1'>{props.data.fromDate}</p>
           </div>
           <div className="col-sm-2 d-flex">
             <p className='m-0 p-1 fw-bold'>Al: </p>
-            <p className='m-0 p-1 '>{props.data.to_date}</p>
+            <p className='m-0 p-1 '>{props.data.toDate}</p>
           </div>
           <div className="col-sm-2 d-flex">
             <p className='m-0 p-1 fw-bold'>Numero Giorni: </p>

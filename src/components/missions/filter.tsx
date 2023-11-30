@@ -14,7 +14,7 @@ export default function FilterResource(props: Props) {
         const wordArray: string[] = e.target.value.toLowerCase().split(' ')
         const res = props.data?.results.filter((mission) => 
         wordArray.every(
-            word => mission.resource.first_name.toLowerCase().includes(word) || mission.resource.last_name.toLowerCase().includes(word)
+            word => mission.resource.firstName.toLowerCase().includes(word) || mission.resource.lastName.toLowerCase().includes(word)
         ))
         props.handleFilter(res)
 }

@@ -43,8 +43,8 @@ export function Home() {
                             </a>
                         </div>
                         <div className='d-flex'>
-                            <p className='mb-3 me-1'>{item.from_date}</p>
-                            <p className='mb-3 fw-bold'>{item.resource.first_name} {item.resource.last_name}</p>
+                            <p className='mb-3 me-1'>{item.fromDate}</p>
+                            <p className='mb-3 fw-bold'>{item.resource.firstName} {item.resource.lastName}</p>
                         </div>
                     </div>
                 ))}

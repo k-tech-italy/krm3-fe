@@ -8,7 +8,7 @@ export enum Role {
 export interface Category {
     active: boolean,
     id: number,
-    __str__: string,
+    str: string,
     parent?: Category,
     title: string,
 }
@@ -34,7 +34,7 @@ export interface Currency {
     title: string,
     symbol: string,
     decimals?: string,
-    fractional_unit: string,
+    fractionalUnit: string,
     base: number,
     active: boolean,
 }
@@ -54,10 +54,10 @@ export interface Project {
 }
 
 export interface ExpenseError {
-    amount_currency: string[] | undefined,
+    amountCurrency: string[] | undefined,
     category: string[] | undefined,
-    document_type: string[] | undefined,
-    payment_type: string[] | undefined,
+    documentType: string[] | undefined,
+    paymentType: string[] | undefined,
     currency: string[] | undefined,
 }
 
@@ -66,18 +66,18 @@ export interface ExpenseError {
 export interface ExpenseInterface {
     id: number,
     day: string,
-    amount_currency?: string,
-    amount_base?: string,
-    amount_reimbursement?: string,
+    amountCurrency?: string,
+    amountBase?: string,
+    amountReimbursement?: string,
     detail: string,
-    document_type: TypeOfDocument
+    documentType: TypeOfDocument
     image: string,
-    created_ts: string,
-    modified_ts: string,
+    createdTs: string,
+    modifiedTs: string,
     mission: number,
     currency: string,
     category: Category,
-    payment_type: TypeOfPayment,
+    paymentType: TypeOfPayment,
     reimbursement: number,
 }
 export interface LimitBudget {
@@ -89,29 +89,29 @@ export interface LimitBudget {
 
 export interface MissionInterface {
     city: City,
-    default_currency: Currency,
-    from_date: string,
+    defaultCurrency: Currency,
+    fromDate: string,
     id: number,
     number: number,
     title?: string,
     project: Project,
     resource: Resource,
-    to_date: string,
+    toDate: string,
     year: number,
     expenses: ExpenseInterface[],
 }
 
 export interface Resource {
     id: number,
-    first_name: string,
-    last_name: string,
+    firstName: string,
+    lastName: string,
     profile: ProfileInterface,
 }
 
 export interface ProfileInterface {
     id: number,
     picture: string,
-    social_profile?: string,
+    socialProfile?: string,
     user: number,
 }
 
@@ -120,7 +120,7 @@ export interface TypeOfPayment {
     id: number,
     parent?: TypeOfPayment,
     title: string,
-    __str__: string,
+    str: string,
 }
 
 export interface TypeOfDocument {
