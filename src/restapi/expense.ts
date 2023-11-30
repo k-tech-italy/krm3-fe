@@ -61,6 +61,7 @@ export function getBudgetLimit() {
         {
             vitto: 50,
             viaggi: 100,
+            varie:100,
         }
     )
 }

@@ -7,6 +7,9 @@ export function validateExpense(expense: ExpenseInterface): Promise<ExpenseInter
 
     if (!expense.amount_currency) {
         error.amount_currency =  ['this field is required'];
+    }    
+    if (Number(expense.amount_currency) === 0) {
+        error.amount_currency =  ['must be positive'];
     }
     if (!expense.category) {
         error.category =  ['this field is required'];
