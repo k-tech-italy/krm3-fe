@@ -1,16 +1,15 @@
-import {useMutation, useQuery, useQueryClient} from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
+import { AxiosError } from "axios";
 import {
     convertCurrencyTo, getBudgetLimit,
     getCategories,
     getCurrencies,
     getExpenses,
-    getMission,
     getTypeOfDocument,
     getTypeOfPayment,
     saveExpense
 } from "../restapi/expense";
-import {ExpenseInterface} from "../restapi/types";
-import { AxiosError, AxiosResponse } from "axios";
+import { ExpenseInterface } from "../restapi/types";
 
 export function useGetConvertCurrencyTo(day: string, fromCur: string, amount: string, toCur: string) {
     return useQuery('covert', () => convertCurrencyTo(day, fromCur, amount, toCur));
@@ -43,20 +42,12 @@ export function useGetExpense() {
     return expenses.data;
 }
 
-export function useGetMission(id: number) {
-    return useQuery('mission', () => getMission(id), {
-        onError: (error) => {
-            return error
-        }
-    });
-}
-
 export function useEditExpense() {
     const queryClient = useQueryClient();
     return useMutation((args: { id: number, params: ExpenseInterface }) => saveExpense(args.id, args.params),
         {
             onSuccess: (_, id) => {
-                queryClient.invalidateQueries({queryKey: 'mission'});
+                queryClient.invalidateQueries({ queryKey: 'mission' });
             },
             onError: (error: AxiosError) => {
             },
@@ -66,3 +57,4 @@ export function useEditExpense() {
 export function useGetBudgetLimit() {
     return useQuery(['budget', 'limit'], () => getBudgetLimit())
 }
+

@@ -3,21 +3,17 @@ import {
     Currency,
     ExpenseInterface,
     LimitBudget,
-    MissionInterface,
     Page,
     TypeOfDocument,
     TypeOfPayment
 } from "./types";
 import {restapi} from "./restapi";
 
-export function getMissions(): Promise<Page<MissionInterface>> {
-    return restapi.get<Page<MissionInterface>>(`missions/mission/`).then(res => res.data);
-}
 
-export function getMission(id: number): Promise<MissionInterface> {
-    return restapi.get<MissionInterface>(`missions/mission/${id}/`).then(res => res.data);
+export function convertCurrencyTo(day: string, fromCur: string, amount: string, toCur: string):  Promise<string> {
+    return Promise.resolve('10')
+   //return restapi.get(`rate/${day}/convert/${fromCur}/${amount}/${toCur}/`).then(res => res.data);
 }
-
 
 export function getExpenses() {
     return restapi.get<Page<ExpenseInterface>>(`missions/expense/`).then(res => res.data);
@@ -40,7 +36,7 @@ export function getTypeOfPayment() {
 }
 
 export function getTypeOfDocument() {
-    return restapi.get<Page<TypeOfDocument>>(`missions/documentType/`).then(res => res.data);
+    return restapi.get<Page<TypeOfDocument>>(`missions/document_type/`).then(res => res.data);
 }
 
 export function saveExpense(id: number, params: ExpenseInterface) {
@@ -51,10 +47,6 @@ export function saveExpense(id: number, params: ExpenseInterface) {
     return restapi.patch<ExpenseInterface>(`missions/expense/${id}/`, paramsRefactored);
 }
 
-export function convertCurrencyTo(day: string, fromCur: string, amount: string, toCur: string):  Promise<string> {
-     return Promise.resolve('10')
-    //return restapi.get(`rate/${day}/convert/${fromCur}/${amount}/${toCur}/`).then(res => res.data);
-}
 
 export function getBudgetLimit() {
     return Promise.resolve<LimitBudget>(

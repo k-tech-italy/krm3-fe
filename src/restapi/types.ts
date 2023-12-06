@@ -16,7 +16,7 @@ export interface Category {
 export interface City {
     id: number,
     name: string,
-    country: Country,
+    country: Country | number, //type problem?
 }
 
 export interface Country {
@@ -50,7 +50,7 @@ export interface Project {
     id: number
     name: string
     notes: string
-    client: Client
+    client: Client | number
 }
 
 export interface ExpenseError {
@@ -87,13 +87,24 @@ export interface LimitBudget {
 }
 
 
+export interface MissionError {//need to finish
+    title: string[] | undefined,
+    fromDate: string[] | undefined,
+    toDate: string[] | undefined,
+    project: string[] | undefined,
+    resource: string[] | undefined,
+    city: string[] | undefined,
+    defaultCurrency: string[] | undefined,
+}
+
+
 export interface MissionInterface {
     city: City,
     defaultCurrency: Currency,
     fromDate: string,
     id: number,
     number: number,
-    title?: string,
+    title: string,
     project: Project,
     resource: Resource,
     toDate: string,
@@ -133,6 +144,14 @@ export interface TypeOfDocument {
 export interface User {
     id: number,
     email: string,
+    firstName: string,
+    lastName: string,
+    isSuperuser: boolean,
+    isStaff: boolean,
+    isActive: boolean,
+    lastLogin: string,
+    resource: Resource,
+    profile: ProfileInterface,
 
 }
 

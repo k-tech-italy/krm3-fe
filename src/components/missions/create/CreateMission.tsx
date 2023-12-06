@@ -1,52 +1,52 @@
 import React, { useState } from 'react';
-import { Alert, Spinner } from "react-bootstrap";
-import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
-import { ExpenseError, ExpenseInterface } from "../../../restapi/types";
-import { useEditExpense } from "../../../hooks/expense";
-import { ExpenseEditForm } from "./ExpenseEditForm";
-import { validateExpense } from '../../../utils/validationExpenseForm';
+import Modal from 'react-bootstrap/Modal';
+import moment from 'moment';
+import { MissionError, MissionInterface } from "../../../restapi/types";
+import { Alert, Spinner } from "react-bootstrap";
+import { CreateMissionForm } from './CreateMissionForm';
+import { useCreateMission } from '../../../hooks/mission';
+import { validateMission } from '../../../utils/validationMissionForm';
 import "react-datepicker/dist/react-datepicker.css";
-import "../expense.scss"
+
 
 interface Props {
-    expense: ExpenseInterface,
     onClose: () => void,
-    show: boolean,
-
+    show: boolean
 }
 
+export function CreateMission(props: Props) {
 
-export function ExpenseEdit(props: Props) {
+    const { mutate, isLoading, isError, error } = useCreateMission();
+    const [missionError, setMissionError] = useState<MissionError>();
+    const today = new Date()
+    const mission = {
+        fromDate: moment(today).format('YYYY-MM-DD'),
+        toDate: moment(today).format('YYYY-MM-DD')
+    } as MissionInterface
 
-    const { mutate, isLoading, isError, error } = useEditExpense();
-    const [expenseError, setExpenseError] = useState<ExpenseError>();
-
-
-
-    function handleExpense(e: ExpenseInterface) {
-        mutate({ id: e.id, params: e }, {
+    function handleMission(mission: MissionInterface) {
+        mutate( mission , {
             onSuccess: () => props.onClose()
         })
-    
+
     }
 
-
-
     function saveData() {
-        validateExpense(props.expense)
-            .then((res) => handleExpense(res))
-            .catch((err) => setExpenseError(err))
+        console.log(mission)
+        validateMission(mission)
+            .then(res => handleMission(res))
+            .catch((err) => setMissionError(err))
     }
 
 
     return (
         <Modal show={props.show} onHide={props.onClose} dialogClassName="modal-80w">
             <Modal.Header closeButton>
-                <Modal.Title>{!props.expense?.id ? 'Add Expense' : 'Edit Expense'}</Modal.Title>
+                <Modal.Title>Create Mission</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <ExpenseEditForm expense={props.expense} error={expenseError} />
+                <CreateMissionForm mission={mission} error={missionError}/>
             </Modal.Body>
             {isError && (
                 <Alert className='m-3' variant='danger'>

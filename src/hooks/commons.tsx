@@ -1,15 +1,8 @@
-import {useQuery} from "react-query";
-import {getMissions} from "../restapi/expense";
-import {getCurrentUser} from "../restapi/user";
 import { useState, useEffect } from "react";
+import { useQuery } from "react-query";
+import { getCurrentUser } from "../restapi/user";
 
-export function useGetMissions() {
-    return useQuery('missions', () => getMissions(),{
-        onError: (error) => {
-            return 'error'
-        }
-    });
-}
+
 
 export function useGetCurrentUser() {
     const userQuery = useQuery(['user', 'current'], () => getCurrentUser(), {

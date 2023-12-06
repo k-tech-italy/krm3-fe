@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { ExpenseError, ExpenseInterface, TypeOfDocument } from "../../../restapi/types";
-import DatePicker from "react-datepicker";
-import { useGetCategories, useGetCurrencies, useGetDocumentType, useGetTypeOfPayment } from "../../../hooks/expense";
-
-import "react-datepicker/dist/react-datepicker.css";
-import "../expense.scss"
 import moment from "moment";
+import DatePicker from "react-datepicker";
+import { ExpenseError, ExpenseInterface } from "../../../restapi/types";
+import { useGetCategories, useGetCurrencies, useGetDocumentType, useGetTypeOfPayment } from "../../../hooks/expense";
 import { convertCurrencyTo } from "../../../restapi/expense";
 import LimitBudget from "./LimitBudget";
+import "react-datepicker/dist/react-datepicker.css";
+import "../expense.scss"
 
 interface Props {
     expense: ExpenseInterface,
