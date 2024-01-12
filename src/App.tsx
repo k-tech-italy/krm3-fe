@@ -20,8 +20,7 @@ export function App() {
                 <Sidebar/>
                 <div className="main">
                     <Navbar/>
-                    <div className="content p-3 pt-4">
-                        <div className="container-fluid">
+                        <div className="container-fluid  p-3 pt-4">
                             <BrowserRouter>
                                 <Routes>
                                     <Route path="/" element={<Home/>}/>
@@ -32,7 +31,6 @@ export function App() {
                                 </Routes>
                             </BrowserRouter>
                         </div>
-                    </div>
                 </div>
             </div>
         </QueryClientProvider>

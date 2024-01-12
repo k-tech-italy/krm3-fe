@@ -152,6 +152,7 @@ export interface User {
     lastLogin: string,
     resource: Resource,
     profile: ProfileInterface,
+    username: string,
 
 }
 

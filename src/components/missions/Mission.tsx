@@ -3,13 +3,15 @@ import { useParams } from "react-router-dom";
 import moment from 'moment';
 import { ExpenseCard } from "../expense/ExpenseCard";
 import { ExpenseInterface, MissionInterface } from "../../restapi/types";
-import { useMediaQuery } from "../../hooks/commons";
+import { useGetCurrentUser, useMediaQuery } from "../../hooks/commons";
 import { ExpenseTable } from "../expense/ExpenseTable";
 import { ExpenseEdit } from "../expense/edit/ExpenseEdit";
 import { TotalsExpense } from "../expense/TotalExpense";
 import LoadSpinner from "../commons/LoadSpinner";
 import { useGetMission } from "../../hooks/mission";
 import MissionSummary from './Summary';
+import BreadcrumbMission from '../commons/Breadcrumb';
+import { Table } from 'react-bootstrap';
 
 
 export function Mission() {
@@ -18,6 +20,8 @@ export function Mission() {
     const id = Number(useParams().id);
     const { isLoading, data, isError } = useGetMission(id);
     const today = new Date()
+    const user = useGetCurrentUser();
+
 
     const defaultExpense = {
         mission: id,
@@ -38,18 +42,18 @@ export function Mission() {
             )}
             {!!data && (
                 <>
-                    <MissionSummary data={data} />
-                    {isSmallScreen ? (
+                    {!isSmallScreen && (
+                            <BreadcrumbMission page={[{title:'Home', url: '/#'}, {title:'Mission', url:''}]} />
+                    )}
+                    {user?.isStaff && (
+                        <MissionSummary data={data} />
+                    )}
+                    {isSmallScreen && (
                         <div className="d-flex justify-content-center fixed-bottom pb-2 gradient">
                             <button type="button" className="btn btn-primary rounded-circle"
                                 onClick={() => setSelectedExpense(defaultExpense)}>
                                 <p className='m-0 fw-bold'>+</p>
                             </button>
-                        </div>
-                    ) : (
-                        <div className="d-grid gap-2 d-md-block mb-2">
-                            <button type="button" className="btn btn-primary"
-                                onClick={() => setSelectedExpense(defaultExpense)}>Add Expense</button>
                         </div>
                     )}
                     {selectedExpense && (
@@ -65,8 +69,12 @@ export function Mission() {
                         ))
                     ) : (
                         <>
-                            <div className='card p-3 shadow-sm '>
-                                <table className="table table-hover">
+                            <div className='card card-stats bg-white p-3 shadow-sm'>
+                                <div className="d-grid gap-2 d-md-block mb-2 text-end">
+                                    <button type="button" className="btn btn-primary"
+                                        onClick={() => setSelectedExpense(defaultExpense)}>+ Add Expense</button>
+                                </div>
+                                <Table className="table-hover">
                                     <thead>
                                         <tr>
                                             <th scope="col ">Id</th>
@@ -87,7 +95,7 @@ export function Mission() {
                                                 key={item.id} />
                                         ))}
                                     </tbody>
-                                </table>
+                                </Table>
                             </div>
                             <TotalsExpense Mission={{} as MissionInterface} />
                         </>

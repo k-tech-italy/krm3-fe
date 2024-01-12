@@ -13,9 +13,7 @@ interface Props {
     expense: ExpenseInterface,
     onClose: () => void,
     show: boolean,
-
 }
-
 
 export function ExpenseEdit(props: Props) {
 
@@ -28,10 +26,8 @@ export function ExpenseEdit(props: Props) {
         mutate({ id: e.id, params: e }, {
             onSuccess: () => props.onClose()
         })
-    
+
     }
-
-
 
     function saveData() {
         validateExpense(props.expense)
@@ -41,7 +37,7 @@ export function ExpenseEdit(props: Props) {
 
 
     return (
-        <Modal show={props.show} onHide={props.onClose} dialogClassName="modal-80w">
+        <Modal className='modal' show={props.show} onHide={props.onClose} dialogClassName="modal-80w">
             <Modal.Header closeButton>
                 <Modal.Title>{!props.expense?.id ? 'Add Expense' : 'Edit Expense'}</Modal.Title>
             </Modal.Header>

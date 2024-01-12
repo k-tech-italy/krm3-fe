@@ -22,9 +22,6 @@ export function validateMission(mission: MissionInterface): Promise<MissionInter
     if (!mission.city) {
         error.city =  ['this field is required'];
     }
-    if (!mission.defaultCurrency) {
-        error.defaultCurrency =  ['this field is required'];
-    }
    
     const isValid = Object.values(error).every(f => !f);
     return isValid ? Promise.resolve(mission) : Promise.reject(error);

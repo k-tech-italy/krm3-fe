@@ -6,10 +6,10 @@ import { useGetCurrentUser } from "./commons";
 
 export function useCreateMission() {
     const queryClient = useQueryClient();
-    return useMutation(( params: MissionInterface ) => createMission(params),
+    return useMutation((params: MissionInterface) => createMission(params),
         {
             onSuccess: () => {
-                queryClient.invalidateQueries({queryKey: 'mission'});
+                queryClient.invalidateQueries({ queryKey: 'missions' });
             },
             onError: (error: AxiosError) => {
             },
@@ -17,13 +17,11 @@ export function useCreateMission() {
 }
 
 export function useGetMissions() {
-    const id = useGetCurrentUser()?.id;
-    return useQuery(['missions', id], () => {
-        if (id) {
-            return getMissions(id);
-        }
+    const id = useGetCurrentUser()?.resource?.id;
+    const isStaff = useGetCurrentUser()?.isStaff
+    return useQuery(['missions', id, isStaff], () => {
+            return getMissions(isStaff || false, id);
     }, {
-        enabled: !!id, // enabled only with id
         onError: (error) => {
             return 'error';
         }

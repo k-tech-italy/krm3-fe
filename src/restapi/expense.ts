@@ -47,6 +47,10 @@ export function saveExpense(id: number, params: ExpenseInterface) {
     return restapi.patch<ExpenseInterface>(`missions/expense/${id}/`, paramsRefactored);
 }
 
+export function uploadImage(id: number, params: ExpenseInterface){
+    return restapi.patch<ExpenseInterface>(`missions/expense/${id}/`, params)
+}
+
 
 export function getBudgetLimit() {
     return Promise.resolve<LimitBudget>(

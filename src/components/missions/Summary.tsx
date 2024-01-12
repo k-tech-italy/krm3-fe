@@ -15,7 +15,7 @@ export default function MissionSummary(props: Props) {
   }, [props.data])
 
   return (
-    <Card border="grey" className='m-3 ms-0 w-100 shadow-sm p-3 mb-5 bg-whitesmoke'>
+    <Card border="grey" className='card-stats m-3 ms-0 w-100 shadow-sm p-3 mb-5 bg-whitesmoke'>
       <Card.Header className='bg-trasparent'>
         <div className='d-flex align-items-center'>
           <Card.Title className='m-0'>{props.data.title}</Card.Title>
@@ -24,7 +24,7 @@ export default function MissionSummary(props: Props) {
       <Card.Body>          
         <div className="row mt-2">
           <div className="col-sm-2 d-flex">
-            <p className='m-0 p-1 fw-bold'>Numero Trasferta: </p>
+            <p className='m-0 p-1'>Numero Trasferta: </p>
             <p className='m-0 p-1'>{props.data.number}</p>
           </div>
           <div className="col-sm-2 offset-sm-2 offset-md-0 d-flex">

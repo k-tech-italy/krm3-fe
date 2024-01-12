@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
-import moment from 'moment';
 import { MissionError, MissionInterface } from "../../../restapi/types";
 import { Alert, Spinner } from "react-bootstrap";
 import { CreateMissionForm } from './CreateMissionForm';
@@ -12,29 +11,26 @@ import "react-datepicker/dist/react-datepicker.css";
 
 interface Props {
     onClose: () => void,
-    show: boolean
+    show: boolean,
+    mission: MissionInterface
 }
 
 export function CreateMission(props: Props) {
 
     const { mutate, isLoading, isError, error } = useCreateMission();
     const [missionError, setMissionError] = useState<MissionError>();
-    const today = new Date()
-    const mission = {
-        fromDate: moment(today).format('YYYY-MM-DD'),
-        toDate: moment(today).format('YYYY-MM-DD')
-    } as MissionInterface
+
 
     function handleMission(mission: MissionInterface) {
-        mutate( mission , {
+        mutate(mission, {
             onSuccess: () => props.onClose()
         })
 
     }
 
     function saveData() {
-        console.log(mission)
-        validateMission(mission)
+        console.log(props.mission, 'save')
+        validateMission(props.mission)
             .then(res => handleMission(res))
             .catch((err) => setMissionError(err))
     }
@@ -46,7 +42,7 @@ export function CreateMission(props: Props) {
                 <Modal.Title>Create Mission</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <CreateMissionForm mission={mission} error={missionError}/>
+                <CreateMissionForm mission={props.mission} error={missionError} />
             </Modal.Body>
             {isError && (
                 <Alert className='m-3' variant='danger'>

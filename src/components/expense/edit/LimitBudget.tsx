@@ -1,7 +1,7 @@
 import { useGetBudgetLimit } from "../../../hooks/expense";
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "../../../hooks/commons";
-import { Category, Page } from "../../../restapi/types";
+import { Category } from "../../../restapi/types";
 
 
 interface props {
@@ -21,7 +21,7 @@ export default function LimitBudget(props: props) {
     useEffect(() => {
         setBudgetResidue(null)
         calculateBudget(props.category, props.categoryList, props.amountCurrency)
-    }, [props])
+    }, [props.amountCurrency, props.category, props.categoryList])
 
 
     function calculateBudget(category: Category, categoryList: Category[], amout: number) {
@@ -31,8 +31,7 @@ export default function LimitBudget(props: props) {
             const data = limitBudget.data
             if (category.parent === null) {
                 setBudgetResidue(Number((budget - props.amountCurrency).toFixed(2)))
-                console.log(budget, props.amountCurrency, Number((budget - props.amountCurrency).toFixed(2)))
-
+                //console.log(budget, props.amountCurrency, Number((budget - props.amountCurrency).toFixed(2)))
             }
         }
     }

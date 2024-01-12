@@ -7,6 +7,7 @@ import { convertCurrencyTo } from "../../../restapi/expense";
 import LimitBudget from "./LimitBudget";
 import "react-datepicker/dist/react-datepicker.css";
 import "../expense.scss"
+import { ProgressBar } from 'react-bootstrap';
 
 interface Props {
     expense: ExpenseInterface,
@@ -19,7 +20,9 @@ export function ExpenseEditForm(props: Props) {
     const [error, setError] = useState<ExpenseError | undefined>(props.error)
     const [amountError, setAmountError] = useState(false);
     const [amountBase, setAmountBase] = useState('');
-    const [uploadedImage, setUploadedImage] = useState<FileList | null>();
+    const [progressBar, setProgressBar] = useState({ now: 0, max: 100 });
+    const [showProgressBar, setShowProgressBar] = useState(false);
+
     const currencyList = useGetCurrencies();
     const typeOfPaymentList = useGetTypeOfPayment();
     const categoryList = useGetCategories();
@@ -38,7 +41,6 @@ export function ExpenseEditForm(props: Props) {
 
     function handleCurrencyAmount(e: any) {
         //convert currency and check error refund < amount
-        const today = new Date()
         console.log(e.target.value)
         convertCurrencyTo('2023-08-23', props.expense.currency, e.target.value, 'EUR').then(res => {
             setAmountBase(prev => res);
@@ -98,6 +100,34 @@ export function ExpenseEditForm(props: Props) {
     }
 
 
+    function handleUploadImage(e: any): void {
+        const fileReader = new FileReader();
+        fileReader.readAsDataURL(e.target.files[0])
+        fileReader.onloadstart = (pe) => {
+            setShowProgressBar(true)
+        }
+        fileReader.onprogress = (pe) => {
+            if (pe.lengthComputable) {
+                setProgressBar({ ...progressBar, now: pe.loaded, max: pe.total })
+            }
+            
+        }
+        fileReader.onloadend = (pe) => {
+            console.log("DONE", fileReader.readyState);
+            //setShowProgressBar(false)
+            //setProgressBar({ ...progressBar, now: 0, max: pe.total }) 
+            if(progressBar.now === pe.total){
+                setShowProgressBar(false)
+            }
+            props.expense.image = fileReader.result as string
+            setExpenseEdit({ ...expenseEdit, image: fileReader.result as string });
+        }
+        fileReader.onerror = () => {
+            console.log('error')
+        }
+    }
+
+
     return (
         <form>
             <div className="mb-3 d-sm-flex">
@@ -130,11 +160,11 @@ export function ExpenseEditForm(props: Props) {
                     )}
                 </div>
                 {!!categoryList && (
-                <div className='col-sm-4 text-center'>
-                    <LimitBudget amountCurrency={Number(expenseEdit.amountCurrency)}
-                        category={expenseEdit.category}
-                        categoryList={categoryList?.results} />
-                </div>
+                    <div className='col-sm-4 text-center'>
+                        <LimitBudget amountCurrency={Number(expenseEdit.amountCurrency)}
+                            category={expenseEdit.category}
+                            categoryList={categoryList?.results} />
+                    </div>
                 )}
             </div>
             <div className="mb-3 d-sm-flex align-items-center ">
@@ -199,18 +229,18 @@ export function ExpenseEditForm(props: Props) {
                         />
                     </div>
                     <div className="col-sm-6 mx-2">
-                    <select className={`form-select ${!!error?.currency ? 'is-invalid' : ''} `}
+                        <select className={`form-select ${!!error?.currency ? 'is-invalid' : ''} `}
                             onChange={handleCurrency} //TODO: change when update API
                             value={expenseEdit.currency}>
-                            {[{id:0, iso3:'scegli'}, ...currencyList?.results || []].map((c) => (
+                            {[{ id: 0, iso3: 'scegli' }, ...currencyList?.results || []].map((c) => (
                                 <option value={c.iso3} key={c.iso3}>{c.iso3}</option>
                             ))}
                         </select>
                         {!!error?.currency && (
-                        <div className="invalid-feedback">
-                            {error.currency}
-                        </div>
-                    )}
+                            <div className="invalid-feedback">
+                                {error.currency}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -253,9 +283,11 @@ export function ExpenseEditForm(props: Props) {
             </div>
             <div className="custom-file">
                 <label className="form-check-label fw-semibold mb-1" htmlFor="inputGroupFile04">Allegato</label>
-                <input type="file" className="form-control " id="inputGroupFile04" onChange={(e) => {
-                    setUploadedImage(e.target.files)
-                }}></input>
+                <input type="file" className="form-control " id="inputGroupFile04" onChange={handleUploadImage} ></input>
+                {showProgressBar && (
+                    <ProgressBar className='mt-2' variant="warning" now={progressBar.now} max={progressBar.max} />
+                )}
+
             </div>
         </form>
     );

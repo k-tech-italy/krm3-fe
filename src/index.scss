@@ -10,8 +10,7 @@ body {
 }
 
 html, body, #root {
-	height: 100%;
-	background-color: white;
+	height: 100%;	
 }
 
 code {
@@ -23,3 +22,15 @@ code {
 	background: rgb(13,13,13);
 	background: linear-gradient(0deg, rgba(13,13,13,0.8715861344537815) 0%, rgba(255,255,255,0.3085609243697479) 61%, rgba(255,255,255,0.14329481792717091) 75%, rgba(255,255,255,0) 100%);
 }
+
+h1, .h1, h2, .h2, h3, .h3, h4, .h4 {
+	font-weight: 300;
+	margin: 30px 0 15px; }
+  
+  h1, .h1 {
+	font-size: 52px; }
+  
+  h2, .h2 {
+	font-size: 36px; }
+  
+
