@@ -1,33 +1,64 @@
-import React from 'react';
-import {useGetCurrentUser} from "../../hooks/commons";
-import {clearToken} from "../../restapi/oauth";
-
+import { useState } from "react";
+import { useGetCurrentUser } from "../../hooks/commons";
+import { clearToken } from "../../restapi/oauth";
 
 export function UserMenu() {
     const user = useGetCurrentUser();
+    const [isOpen, setIsOpen] = useState(false);
 
     function handleLogout() {
         clearToken();
         window.location.replace('/login');
     }
 
+    function toggleMenu() {
+        setIsOpen((prev) => !prev);
+    }
+
     return (
-        <div className="dropdown">
-            <a href="src/components/commons/UserMenu#" className="d-flex align-items-center text-decoration-none dropdown-toggle"
-               data-bs-toggle="dropdown" aria-expanded="false">
-                <img src="https://avatars.githubusercontent.com/u/6311869?s=40&v=4" alt="" width="32"
-                     height="32"
-                     className="rounded-circle me-2"/>
-                <strong className="d-none d-sm-block">{user?.email}</strong>
-            </a>
-            <ul className="dropdown-menu dropdown-menu-end shadow">
-                <li><a className="dropdown-item" href="#">Settings</a></li>
-                <li><a className="dropdown-item" href={`user/`}>Profile</a></li>
-                <li>
-                    <hr className="dropdown-divider"/>
-                </li>
-                <li><a className="dropdown-item" onClick={handleLogout}>Sign out</a></li>
-            </ul>
+        <div className="relative inline-block text-left">
+            <button
+                onClick={toggleMenu}
+                className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none"
+            >
+                <img
+                    src="https://avatars.githubusercontent.com/u/6311869?s=40&v=4"
+                    alt=""
+                    width="32"
+                    height="32"
+                    className="rounded-full mr-2"
+                />
+                <strong className="hidden sm:block">{user?.email}</strong>
+            </button>
+
+            <div
+                className={`absolute right-0 mt-2 w-56 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 transition-all duration-200 ease-out transform ${
+                    isOpen ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+                }`}
+            >
+                <div className="py-1">
+                    <a
+                        href="#"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                        Settings
+                    </a>
+                    <a
+                        href={`user/`}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                        Profile
+                    </a>
+                </div>
+                <div className="py-1">
+                    <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                        Sign out
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }

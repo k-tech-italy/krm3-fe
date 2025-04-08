@@ -37,9 +37,15 @@ export function useGetDocumentType() {
 }
 
 
+
 export function useGetExpense() {
-    const expenses = useQuery('expenses', () => getExpenses());
-    return expenses.data;
+    return useQuery('expenses', () => {
+            return getExpenses();
+    }, {
+        onError: (error) => {
+            return 'error';
+        }
+    });
 }
 
 export function useEditExpense() {

@@ -1,34 +1,29 @@
-import React, {useState} from 'react';
-import {MissionInterface} from "../../restapi/types";
-import { Card } from 'react-bootstrap';
-
+import React from 'react';
+import { MissionInterface } from '../../restapi/types';
 
 interface Props {
-    Mission: MissionInterface,
+    mission: MissionInterface;
 }
 
-export function TotalsExpense(props: Props) {
+export function TotalsExpense({ mission }: Props) {
+    const totalRefund = 100
 
-    const [totalRefund, setTotalRefund] = useState<number>();
-    const [totalAnticipated, setTotalAnticipated] = useState<number>();
-
+    const totalAnticipated = 200
+    const totals = [
+        { title: 'Total Refund', value: totalRefund },
+        { title: 'Total Anticipated', value: totalAnticipated },
+        { title: 'Totals', value: totalRefund + totalAnticipated }
+    ]
 
     return (
-        <div className="row justify-content-around mt-5">
-            <div className="col col-sm-2 bg-white card card-stats text-center p-3 bg-light shadow-sm">
-                <h5>Total Refund</h5>
-                <p>{totalRefund}</p>
-            </div>
-            <div className="col col-sm-2 bg-white card card-stats text-center p-3 bg-light shadow-sm">
-                <h5>Total Anticipated</h5>
-                <p>{totalAnticipated}</p>
-            </div>
-            <div className="col col-sm-2 bg-white card card-stats text-center p-3 bg-light shadow-sm">
-                <h5>Totals</h5>
-                {!!totalRefund && !!totalAnticipated && (
-                    <p>{totalRefund + totalAnticipated}</p>
-                )}
-            </div>
+        <div className="flex flex-row justify-around gap-6 mt-6">
+            {totals.map((total, i) => (
+                <div key={i} className="flex flex-col items-center bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg shadow-lg p-6 w-1/3">
+                    <h5 className="text-lg font-semibold text-gray-700">{total.title}</h5>
+                    <p className="text-2xl text-gray-900">${total.value}</p>
+                </div>
+            ))}
         </div>
     );
 }
+

@@ -18,12 +18,13 @@ export const restapi = applyCaseMiddleware(axios.create({
 restapi.interceptors.response.use(response => {
     return response;
 }, (error) => {
-    if (error.response && (error.response.status === 403)) {
-        console.warn('403 Restapi connection forbidden', error);
+    if (error.response && (error.response.status >= 403)) {
+        console.warn(error);
         // TODO:
         // - store next url in localhost based on current location
         window.location.replace('/login');
     }
+
     return Promise.reject(error);
 });
 

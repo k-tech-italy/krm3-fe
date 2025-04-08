@@ -1,4 +1,26 @@
-@import "./bootstrap/customization";
+/* 
+@tailwind base;
+@tailwind components;
+@tailwind utilities; */
+
+@import "tailwindcss";
+
+.wrapper {
+	align-items: stretch;
+	display: flex;
+	width: 100%;
+}
+
+
+.main {
+	display: flex;
+	width: 100%;
+	min-height: 100vh;
+	min-width: 0;
+	transition: margin-left 0.35s ease-in-out, left 0.35s ease-in-out, margin-right 0.35s ease-in-out, right 0.35s ease-in-out;
+	flex-direction: column;
+}
+
 
 body {
 	margin: 0;
