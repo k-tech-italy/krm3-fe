@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 
 import {ExpenseInterface} from "../../restapi/types";
 import {convertCurrencyTo} from "../../restapi/expense";
-import "./expense.scss";
+import "./expense.css";
 
 
 

@@ -56,50 +56,60 @@ export function Login() {
 
 
     return (
-        <div className='d-flex h-100 justify-content-center'>
-            {showLogin ? <div className={`p-3 card ${isSmallScreen ? 'w-100' : 'w-50'}`}>
-                    <form className='d-flex flex-column'>
-                        {!!error?.detail && (
-                            <label className={'text-danger'}>{error.detail}</label>
-                        )}
-                        <label>username</label>
-                        <input
-                            className={`form-control col-sm-4  ${!!error?.username ? 'is-invalid' : ''}`}
-                            type='text'
-                            value={username}
-                            onChange={(e) => {
-                                setUsername(e.target.value);
-                                setError({...error, username: undefined, detail: undefined})
-                            }}
-                        />
-                        {!!error?.username && (
-                            <label className={'text-danger'}>{error.username}</label>
-                        )}
-                        <label>password</label>
-                        <input
-                            className={`form-control col-sm-4  ${!!error?.password ? 'is-invalid' : ''}`}
-                            type='password'
-                            value={password}
-                            onChange={(e) => {
-                                setPassword(e.target.value);
-                                setError({...error, password: undefined, detail: undefined})
-                            }}
-                        />
-                        {!!error?.password && (
-                            <label className={'text-danger'}>{error.password}</label>
-                        )}
-                    </form>
-                    <button onClick={handleLogin} className="btn btn-primary mt-3"
-                    >Login
-                    </button>
-                    <button className="btn btn-outline-warning mt-5 w-50"
-                            onClick={loginGoogle}
-                    >Login with Google
-                    </button>
+        <div className="flex mt-5 mx-2 justify-center">
+            {showLogin ? (
+            <div className={`p-3 bg-white shadow-md rounded ${isSmallScreen ? 'w-full' : 'w-1/2'}`}>
+                <form className="flex flex-col">
+                {!!error?.detail && (
+                    <label className="text-red-500">{error.detail}</label>
+                )}
+                <label className="mb-1">Username</label>
+                <input
+                    className={`form-control ${!!error?.username ? 'border-red-500' : 'border-gray-300'} border rounded px-3 py-2`}
+                    type="text"
+                    value={username}
+                    onChange={(e) => {
+                    setUsername(e.target.value);
+                    setError({...error, username: undefined, detail: undefined});
+                    }}
+                />
+                {!!error?.username && (
+                    <label className="text-red-500">{error.username}</label>
+                )}
+                <label className="mt-4 mb-1">Password</label>
+                <input
+                    className={`form-control ${!!error?.password ? 'border-red-500' : 'border-gray-300'} border rounded px-3 py-2`}
+                    type="password"
+                    value={password}
+                    onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError({...error, password: undefined, detail: undefined});
+                    }}
+                />
+                {!!error?.password && (
+                    <label className="text-red-500">{error.password}</label>
+                )}
+                </form>
+                <div className="flex justify-between">
+
+                <button
+                className="btn border border-yellow-500 text-yellow-500 mt-5 w-1/2 py-2 px-4 rounded hover:bg-yellow-100"
+                onClick={loginGoogle}
+                >
+                Login with Google
+                </button>
+                <button
+                onClick={handleLogin}
+                className="btn bg-yellow-500 text-white mt-3 py-2 px-4 rounded hover:bg-yellow-400"
+                >
+                Login
+                </button>
                 </div>
-                :
-                <p>Checking login data...</p>
-            }
+              
+            </div>
+            ) : (
+            <p>Checking login data...</p>
+            )}
         </div>
     );
 }

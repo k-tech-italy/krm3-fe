@@ -14,6 +14,7 @@
   border-radius: 4px;
   background-color: #FFFFFF !important;
   margin-bottom: 30px;
+  border-color: transparent !important;
 }
 
 .card .card-image {

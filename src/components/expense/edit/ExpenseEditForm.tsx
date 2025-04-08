@@ -6,8 +6,7 @@ import { useGetCategories, useGetCurrencies, useGetDocumentType, useGetTypeOfPay
 import { convertCurrencyTo } from "../../../restapi/expense";
 import LimitBudget from "./LimitBudget";
 import "react-datepicker/dist/react-datepicker.css";
-import "../expense.scss"
-import { ProgressBar } from 'react-bootstrap';
+import "../expense.css"
 
 interface Props {
     expense: ExpenseInterface,
@@ -27,6 +26,11 @@ export function ExpenseEditForm(props: Props) {
     const typeOfPaymentList = useGetTypeOfPayment();
     const categoryList = useGetCategories();
     const typeOfDocumentList = useGetDocumentType();
+
+
+    console.log(props.expense, 'expense')
+    console.log(categoryList?.results, 'cat')
+
 
 
 
@@ -110,13 +114,13 @@ export function ExpenseEditForm(props: Props) {
             if (pe.lengthComputable) {
                 setProgressBar({ ...progressBar, now: pe.loaded, max: pe.total })
             }
-            
+
         }
         fileReader.onloadend = (pe) => {
             console.log("DONE", fileReader.readyState);
             //setShowProgressBar(false)
             //setProgressBar({ ...progressBar, now: 0, max: pe.total }) 
-            if(progressBar.now === pe.total){
+            if (progressBar.now === pe.total) {
                 setShowProgressBar(false)
             }
             props.expense.image = fileReader.result as string
@@ -129,165 +133,181 @@ export function ExpenseEditForm(props: Props) {
 
 
     return (
-        <form>
-            <div className="mb-3 d-sm-flex">
-                <label className="col-sm-4 col-form-label fw-semibold">Data spesa</label>
-                <div className="col-sm-3">
-                    <DatePicker selected={!!expenseEdit.day ? new Date(expenseEdit.day) : new Date()}
-                        className="form-control"
-                        onChange={(date) => {
-                            setExpenseEdit({ ...expenseEdit, day: moment(date).format('YYYY-MM-DD') })
-                            props.expense.day = moment(date).format('YYYY-MM-DD')
-                        }} />
-                </div>
+        <form className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
+            <label className="font-semibold">Data spesa</label>
+            <div className="sm:col-span-2">
+                <DatePicker
+                selected={!!expenseEdit.day ? new Date(expenseEdit.day) : new Date()}
+                className="w-full border border-gray-300 rounded-md p-2"
+                onChange={(date: Date | null) => {
+                    setExpenseEdit({ ...expenseEdit, day: moment(date).format('YYYY-MM-DD') });
+                    props.expense.day = moment(date).format('YYYY-MM-DD');
+                }}
+                />
             </div>
-            <div className="mb-3 d-sm-flex align-items-center">
-                <label className="col-sm-4 col-form-label fw-semibold">Categoria</label>
-                <div className="col-sm-3">
-                    <select className={`form-select ${!!error?.category ? 'is-invalid' : ''} `}
-                        onChange={handleSelectCategory}
-                        value={expenseEdit.category?.id}>
-                        {[{ id: 0, title: "Scegli la categoria" }, ...(categoryList?.results || [])].map((category) => (
-                            <option
-                                key={category.id}
-                                value={category.id}>{category?.title}</option>
-                        ))}
-                    </select>
-                    {!!error?.category && (
-                        <div className="invalid-feedback">
-                            {error.category}
-                        </div>
-                    )}
-                </div>
-                {!!categoryList && (
-                    <div className='col-sm-4 text-center'>
-                        <LimitBudget amountCurrency={Number(expenseEdit.amountCurrency)}
-                            category={expenseEdit.category}
-                            categoryList={categoryList?.results} />
-                    </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
+            <label className="font-semibold">Categoria</label>
+            <div>
+                <select
+                className={`w-full border rounded-md p-2 ${!!error?.category ? 'border-red-500' : 'border-gray-300'}`}
+                onChange={handleSelectCategory}
+                value={expenseEdit.category?.id}
+                >
+                {[{ id: 0, title: "Scegli la categoria" }, ...(categoryList?.results || [])].map((category) => (
+                    <option key={category.id} value={category.id}>
+                    {category?.title}
+                    </option>
+                ))}
+                </select>
+                {!!error?.category && (
+                <div className="text-red-500 text-sm mt-1">{error.category}</div>
                 )}
             </div>
-            <div className="mb-3 d-sm-flex align-items-center ">
-                <label className="col-sm-4 col-form-label fw-semibold">Tipo
-                    Documento</label>
-                <div className="col-sm-4">
-                    <select className={`form-select ${!!error?.documentType ? 'is-invalid' : ''} `}
-                        onChange={handleSelectTypeOfDocument}
-                        value={expenseEdit.documentType?.id || 0}>
-                        {[{ id: 0, title: "Scegli un documento" }, ...(typeOfDocumentList?.results || [])].map((doc) => (
-                            <option
-                                key={doc.id}
-                                value={doc.id}>{doc?.title}</option>
-                        ))}
-                    </select>
-                    {!!error?.documentType && (
-                        <div className="invalid-feedback">
-                            {error.documentType}
-                        </div>
-                    )}
+            {!!categoryList && (
+                <div className="text-center">
+                <LimitBudget
+                    amountCurrency={Number(expenseEdit.amountCurrency)}
+                    category={expenseEdit.category}
+                    categoryList={categoryList?.results}
+                />
                 </div>
+            )}
             </div>
-            <div className="mb-3 d-sm-flex align-items-center">
-                <label className="col-sm-4 col-form-label fw-semibold">Dettaglio</label>
-                <div className="col-sm-8">
-                    <input className="form-control"
-                        onChange={(e) => {
-                            setExpenseEdit({ ...expenseEdit, detail: e.target.value })
-                            props.expense.detail = e.target.value
-                        }}
-                        value={expenseEdit.detail || ''} />
-                </div>
-            </div>
-            <div className="mb-3 d-sm-flex align-items-center">
-                <label className="col-sm-4 col-form-label fw-semibold">Tipo di
-                    Pagamento</label>
-                <div className="col-sm-5 ">
-                    <select className={`form-select ${!!error?.paymentType ? 'is-invalid' : ''} `}
-                        onChange={handleSelectTypeOfPayment}
-                        value={expenseEdit.paymentType?.id}>
-                        {[{ id: 0, title: 'Scegli il tipo di pagamento' }, ...(typeOfPaymentList?.results || [])].map((c,) => (
-                            <option
-                                key={c.id}
-                                value={c.id}>{c.title || ''}</option>
-                        ))}
-                    </select>
-                    {!!error?.paymentType && (
-                        <div className="invalid-feedback">
-                            {error.paymentType}
-                        </div>
-                    )}
-                </div>
-            </div>
-            <div className="mb-3 d-sm-flex align-items-center">
-                <label className="col-sm-4 col-form-label fw-semibold">Importo</label>
-                <div className="d-flex col-sm-4">
-                    <div className="col-sm-6">
-                        <input type="number" step="0.01" min='0'
-                            className={`form-control text-end ${!!error?.amountCurrency ? 'is-invalid' : ''}`}
-                            onChange={handleCurrencyAmount}
-                            value={expenseEdit.amountCurrency || 0}
-                        />
-                    </div>
-                    <div className="col-sm-6 mx-2">
-                        <select className={`form-select ${!!error?.currency ? 'is-invalid' : ''} `}
-                            onChange={handleCurrency} //TODO: change when update API
-                            value={expenseEdit.currency}>
-                            {[{ id: 0, iso3: 'scegli' }, ...currencyList?.results || []].map((c) => (
-                                <option value={c.iso3} key={c.iso3}>{c.iso3}</option>
-                            ))}
-                        </select>
-                        {!!error?.currency && (
-                            <div className="invalid-feedback">
-                                {error.currency}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-            </div>
-            <div className="mb-3 d-sm-flex align-items-center">
-                <label className="col-sm-4 col-form-label fw-semibold">Importo in €</label>
-                <div className="col-sm-3">
-                    <input disabled type="number" step="0.01" className="form-control text-end"
-                        value={amountBase || 0} />
-                </div>
-                {amountError && (
-                    <div className="d-flex col-sm-4 col-form-label align-items-center"><i
-                        className="kt-icon-warning align-middle mx-2" />Massimale superato
-                    </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
+            <label className="font-semibold">Tipo Documento</label>
+            <div className="sm:col-span-2">
+                <select
+                className={`w-full border rounded-md p-2 ${!!error?.documentType ? 'border-red-500' : 'border-gray-300'}`}
+                onChange={handleSelectTypeOfDocument}
+                value={expenseEdit.documentType?.id || 0}
+                >
+                {[{ id: 0, title: "Scegli un documento" }, ...(typeOfDocumentList?.results || [])].map((doc) => (
+                    <option key={doc.id} value={doc.id}>
+                    {doc?.title}
+                    </option>
+                ))}
+                </select>
+                {!!error?.documentType && (
+                <div className="text-red-500 text-sm mt-1">{error.documentType}</div>
                 )}
             </div>
-            <div className="mb-3 d-sm-flex align-items-center">
-                <label htmlFor="disabledTextInput"
-                    className="col-sm-4 col-form-label fw-semibold">Importo
-                    rimborso in €</label>
-                <div className="col-sm-3">
-                    <input className="form-control text-end" id="disabledTextInput"
-                        placeholder="Disabled input"
-                        onChange={(e) => {
-                            setExpenseEdit({ ...expenseEdit, amountReimbursement: e.target.value })
-                            props.expense.amountReimbursement = e.target.value
-                        }}
-                        value={expenseEdit.amountReimbursement || 0} />
-                </div>
-                <label
-                    className={`col-sm-4 mx-2 col-form-label fw-semibold ${!!props.expense.amountReimbursement && parseFloat(props.expense.amountReimbursement) < 1 ? 'text-danger' : ''}`}>Azienda {!!props.expense.amountReimbursement ? expenseEdit.amountReimbursement : ''} €</label>
             </div>
-            <div className="mb-3 d-flex align-items-center justify-content-end">
-                <div className="col-sm-4">
-                    <div className="form-check form-switch">
-                        <input className="form-check-input" type="checkbox" />
-                        <label className="form-check-label fw-semibold">Approvazione</label>
-                    </div>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
+            <label className="font-semibold">Dettaglio</label>
+            <div className="sm:col-span-2">
+                <input
+                className="w-full border border-gray-300 rounded-md p-2"
+                onChange={(e) => {
+                    setExpenseEdit({ ...expenseEdit, detail: e.target.value });
+                    props.expense.detail = e.target.value;
+                }}
+                value={expenseEdit.detail || ''}
+                />
             </div>
-            <div className="custom-file">
-                <label className="form-check-label fw-semibold mb-1" htmlFor="inputGroupFile04">Allegato</label>
-                <input type="file" className="form-control " id="inputGroupFile04" onChange={handleUploadImage} ></input>
-                {showProgressBar && (
-                    <ProgressBar className='mt-2' variant="warning" now={progressBar.now} max={progressBar.max} />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
+            <label className="font-semibold">Tipo di Pagamento</label>
+            <div className="sm:col-span-2">
+                <select
+                className={`w-full border rounded-md p-2 ${!!error?.paymentType ? 'border-red-500' : 'border-gray-300'}`}
+                onChange={handleSelectTypeOfPayment}
+                value={expenseEdit.paymentType?.id}
+                >
+                {[{ id: 0, title: 'Scegli il tipo di pagamento' }, ...(typeOfPaymentList?.results || [])].map((c) => (
+                    <option key={c.id} value={c.id}>
+                    {c.title || ''}
+                    </option>
+                ))}
+                </select>
+                {!!error?.paymentType && (
+                <div className="text-red-500 text-sm mt-1">{error.paymentType}</div>
                 )}
-
+            </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
+            <label className="font-semibold">Importo</label>
+            <div className="flex space-x-2">
+                <input
+                type="number"
+                step="0.01"
+                min="0"
+                className={`w-1/2 border rounded-md p-2 text-right ${!!error?.amountCurrency ? 'border-red-500' : 'border-gray-300'}`}
+                onChange={handleCurrencyAmount}
+                value={expenseEdit.amountCurrency || 0}
+                />
+                <select
+                className={`w-1/2 border rounded-md p-2 ${!!error?.currency ? 'border-red-500' : 'border-gray-300'}`}
+                onChange={handleCurrency}
+                value={expenseEdit.currency}
+                >
+                {[{ id: 0, iso3: 'scegli' }, ...currencyList?.results || []].map((c) => (
+                    <option value={c.iso3} key={c.iso3}>
+                    {c.iso3}
+                    </option>
+                ))}
+                </select>
+            </div>
+            {!!error?.currency && (
+                <div className="text-red-500 text-sm mt-1">{error.currency}</div>
+            )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
+            <label className="font-semibold">Importo in €</label>
+            <div>
+                <input
+                disabled
+                type="number"
+                step="0.01"
+                className="w-full border border-gray-300 rounded-md p-2 text-right"
+                value={amountBase || 0}
+                />
+            </div>
+            {amountError && (
+                <div className="text-red-500 text-sm flex items-center">
+                <i className="kt-icon-warning mr-2" />
+                Massimale superato
+                </div>
+            )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
+            <label className="font-semibold">Importo rimborso in €</label>
+            <div>
+                <input
+                className="w-full border border-gray-300 rounded-md p-2 text-right"
+                placeholder="Disabled input"
+                onChange={(e) => {
+                    setExpenseEdit({ ...expenseEdit, amountReimbursement: e.target.value });
+                    props.expense.amountReimbursement = e.target.value;
+                }}
+                value={expenseEdit.amountReimbursement || 0}
+                />
+            </div>
+            <label
+                className={`font-semibold ${!!props.expense.amountReimbursement && parseFloat(props.expense.amountReimbursement) < 1 ? 'text-red-500' : ''}`}
+            >
+                Azienda {!!props.expense.amountReimbursement ? expenseEdit.amountReimbursement : ''} €
+            </label>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
+            <div className="sm:col-span-3 flex items-center space-x-2">
+                <input type="checkbox" className="form-checkbox h-5 w-5 text-blue-600" />
+                <label className="font-semibold">Approvazione</label>
+            </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
+            <label className="font-semibold mb-2 block" htmlFor="inputGroupFile04">
+                Allegato
+            </label>
+            <div className="sm:col-span-2">
+                <input
+                type="file"
+                className="w-full border border-gray-300 rounded-md p-2"
+                id="inputGroupFile04"
+                onChange={handleUploadImage}
+                />
+            </div>
             </div>
         </form>
     );

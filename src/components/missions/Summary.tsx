@@ -1,70 +1,86 @@
-import React, { useEffect } from 'react'
-import { Card } from 'react-bootstrap'
 import { MissionInterface } from '../../restapi/types';
-import { useMediaQuery } from "../../hooks/commons";
+import { CalendarDays, MapPin, User, Briefcase, Hash } from 'lucide-react';
 
 interface Props {
-  data: MissionInterface
+  data: MissionInterface;
 }
 
 export default function MissionSummary(props: Props) {
-  const isSmallScreen = useMediaQuery("(max-width: 767.98px)");
+  const calculateDays = () => {
+    if (!props.data.fromDate || !props.data.toDate) return "N/A";
 
-  useEffect(() => {
-    console.log(props.data)
-  }, [props.data])
+    const fromDate = new Date(props.data.fromDate);
+    const toDate = new Date(props.data.toDate);
+    const diffTime = Math.abs(toDate.getTime() - fromDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end days
+
+    return diffDays;
+  };
 
   return (
-    <Card border="grey" className='card-stats m-3 ms-0 w-100 shadow-sm p-3 mb-5 bg-whitesmoke'>
-      <Card.Header className='bg-trasparent'>
-        <div className='d-flex align-items-center'>
-          <Card.Title className='m-0'>{props.data.title}</Card.Title>
+    <div className="shadow-md  border border-gray-300 rounded-lg mb-6 bg-white">
+      <div className="border-b border-gray-300 p-5">
+      <div className="flex items-center justify-between">
+        <h4 className="text-xl font-bold text-gray-800">{props.data.title}</h4>
+        <span className="bg-green-600 text-white text-xs font-medium rounded-full px-4 py-1">
+        Attesa
+        </span>
+      </div>
+      <div className="flex items-center mt-3 text-gray-600">
+        <Hash size={18} className="mr-2 text-gray-500" />
+        <small className="text-sm">Number Mission: {props.data.number}</small>
+      </div>
+      </div>
+
+      <div className="p-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="flex items-start">
+        <User size={22} className="text-yellow-500 mt-1 mr-3" />
+        <div>
+          <small className="uppercase text-gray-500 font-semibold text-xs">Resource</small>
+          <p className="font-medium text-gray-800">
+          {props.data.resource.firstName} {props.data.resource.lastName}
+          </p>
         </div>
-      </Card.Header>
-      <Card.Body>          
-        <div className="row mt-2">
-          <div className="col-sm-2 d-flex">
-            <p className='m-0 p-1'>Numero Trasferta: </p>
-            <p className='m-0 p-1'>{props.data.number}</p>
-          </div>
-          <div className="col-sm-2 offset-sm-2 offset-md-0 d-flex">
-            <p className='m-0 p-1 fw-bold'>Risorsa: </p>
-            <p className='m-0 p-1'>{props.data.resource.firstName} {props.data.resource.lastName}</p>
-          </div>
-          <div className="col-sm-2 d-flex">
-            <p className='m-0 p-1 fw-bold'>Dal: </p>
-            <p className='m-0 p-1'>{props.data.fromDate}</p>
-          </div>
-          <div className="col-sm-2 d-flex">
-            <p className='m-0 p-1 fw-bold'>Al: </p>
-            <p className='m-0 p-1 '>{props.data.toDate}</p>
-          </div>
-          <div className="col-sm-2 d-flex">
-            <p className='m-0 p-1 fw-bold'>Numero Giorni: </p>
-            <p className='m-0 p-1'>TODO </p>
-          </div>
         </div>
-        <div className={`row  ${isSmallScreen ? '' : 'mt-2'}`}>
-          <div className="col-sm-2 d-flex">
-            <p className='m-0 p-1 fw-bold'>Cliente: </p>
-          </div>
-          <div className="col-sm-2 d-flex">
-            <p className='m-0 p-1 fw-bold'>Progetto: </p>
-            <p className='m-0 p-1'>{props.data.project.name}</p>
-          </div>
-          <div className="col-sm-2 d-flex">
-            <p className='m-0 p-1 fw-bold'>Paese: </p>
-          </div>
-          <div className="col-sm-2 d-flex">
-            <p className='m-0 p-1 fw-bold'>Città: </p>
-            <p className='m-0 p-1'>{props.data.city.name}</p>
-          </div>
-          <div className="col-sm-2 d-flex">
-            <p className='m-0 p-1 fw-bold'>Stato </p>
-          </div>
+        <div className="flex items-start">
+        <Briefcase size={22} className="text-yellow-500 mt-1 mr-3" />
+        <div>
+          <small className="uppercase text-gray-500 font-semibold text-xs">Project</small>
+          <p className="font-medium text-gray-800">{props.data.project.name}</p>
         </div>
-      </Card.Body>
-    </Card>
+        </div>
+        <div className="flex items-start">
+        <MapPin size={22} className="text-yellow-500 mt-1 mr-3" />
+        <div>
+          <small className="uppercase text-gray-500 font-semibold text-xs">Location</small>
+          <p className="font-medium text-gray-800">{props.data.city.name}</p>
+        </div>
+        </div>
+      </div>
+
+      <div className="bg-gray-50 rounded-lg p-5">
+        <div className="flex items-center mb-4">
+        <CalendarDays size={20} className="text-yellow-500 mr-3" />
+        <h6 className="text-gray-700 font-semibold text-sm">Date</h6>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <small className="text-gray-500 block text-xs">Date From</small>
+          <span className="font-medium text-gray-800">{props.data.fromDate}</span>
+        </div>
+        <div>
+          <small className="text-gray-500 block text-xs">Date To</small>
+          <span className="font-medium text-gray-800">{props.data.toDate}</span>
+        </div>
+        <div>
+          <small className="text-gray-500 block text-xs">Duration</small>
+          <span className="font-medium text-gray-800">{calculateDays()} days</span>
+        </div>
+        </div>
+      </div>
+      </div>
+    </div>
   );
-  ;
 }
