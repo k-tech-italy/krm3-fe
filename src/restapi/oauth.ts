@@ -25,6 +25,7 @@ export async function loginGoogle() {
         window.location.replace(res.data.authorization_url);
     } catch (err) {
         console.log("Error logging in", err);  // TODO show a page for errors
+        window.location.replace('/login')
     }
 }
 

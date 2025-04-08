@@ -1,122 +1,120 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useGetMissions } from "../hooks/mission";
 import LoadSpinner from "../components/commons/LoadSpinner";
-import FilterResource from '../components/missions/Filter';
-import { ExpenseInterface, MissionInterface, Page } from '../restapi/types';
+import FilterResource from '../components/missions/filter';
+import { ExpenseInterface, MissionInterface } from '../restapi/types';
 import { CreateMission } from '../components/missions/create/CreateMission';
-import { useGetCurrentUser } from '../hooks/commons';
-import moment from 'moment';
-import BreadcrumbMission from '../components/commons/Breadcrumb';
-import { Table } from 'react-bootstrap';
+import { useGetCurrentUser, useMediaQuery } from '../hooks/commons';
 import { useGetExpense } from '../hooks/expense';
 import ExpenseFilter from '../components/expense/ExpenseFilter';
-
+import Tabs from '../components/commons/TopTabs';
+import Krm3Table from '../components/commons/Krm3Table';
+import { ExpenseEdit } from '../components/expense/edit/ExpenseEdit';
 
 export function Home() {
     const { isLoading, data, isError } = useGetMissions();
-    const expenseList = useGetExpense();
+    const isSmallScreen = useMediaQuery("(max-width: 767.98px)");
+    const { data: exepenses } = useGetExpense();
     const [dataFiltered, setDataFiltered] = useState<MissionInterface[] | undefined>();
     const [expenseFiltered, setExpenseFiltered] = useState<ExpenseInterface[] | undefined>();
-    const [openModal, setOpenModal] = useState(false)
+    const [selectedExpense, setSelectedExpense] = useState<ExpenseInterface | null>();
+    const [openModal, setOpenModal] = useState(false);
     const user = useGetCurrentUser();
-    const today = new Date()
-    const defaultMission = {
-        fromDate: moment(today).format('YYYY-MM-DD'),
-        toDate: moment(today).format('YYYY-MM-DD')
-    } as MissionInterface
+    const [activeTab, setActiveTab] = useState<string>('trasferte');
 
     function handleFilter(e: any) {
-        setDataFiltered(e)
+        setDataFiltered(e);
     }
 
     function handleFilterExpense(e: any): void {
-        setExpenseFiltered(e)
+        setExpenseFiltered(e);
     }
 
     return (
         <>
-            {isLoading && (
-                <LoadSpinner />
-            )}
-            {isError && (
-                <div>
-                    <p>errore</p>
-                </div>
-            )}
-            {!!data && (
-                <div className="container-fluid p-0 mb-5">
-                    <BreadcrumbMission page={[{ title: 'Home', url: '#' }]} />
-                    <div className='card p-3 shadow-sm'>
-                        <p className='h2'>Trasferte</p>
-                        {user?.isStaff && (
-                            <div className='d-flex flex-column flex-sm-row align-items-sm-end justify-content-between mb-2'>
-                                <FilterResource handleFilter={handleFilter} data={data} />
-                                <button type="button" className="btn btn-primary h-50 order-md-2 mt-2 mt-sm-0"
-                                    onClick={() => setOpenModal(true)}
-                                >+ Add mission</button>
-                            </div>
+            <Tabs activeTab={activeTab} setActiveTab={(e) => setActiveTab(e)} />
+            <div className="container mx-auto px-4">
+                {isLoading && <LoadSpinner />}
+                {isError && (
+                    <div className="text-red-500 text-center">
+                        <p>Errore</p>
+                    </div>
+                )}
+                {!!data && (
+                    <div>
+                        {activeTab === 'trasferte' && (
+                            <>
+                                {user?.isStaff && !isSmallScreen && (
+                                    <div className="flex justify-end mb-4">
+                                        <button
+                                            type="button"
+                                            className="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-400"
+                                            onClick={() => setOpenModal(true)}
+                                        >
+                                            + Add mission
+                                        </button>
+                                    </div>
+                                )}
+                                <FilterResource handleFilter={handleFilter} data={data} isAdmin={user?.isStaff} />
+                                <Krm3Table
+                                    onClickRow={(item) => window.location.replace(`/mission/${item.id}`)}
+                                    columns={[
+                                        { accessorKey: 'id', header: 'Id' },
+                                        { accessorKey: 'fromDate', header: 'From' },
+                                        { accessorKey: 'toDate', header: 'To' },
+                                        { accessorKey: 'title', header: 'Title' },
+                                        { accessorKey: 'resource', header: 'Resource' }
+                                    ]}
+                                    data={(!!dataFiltered ? dataFiltered : data.results).map((item) => ({
+                                        id: item.id,
+                                        fromDate: item.fromDate,
+                                        toDate: item.toDate,
+                                        title: item.title,
+                                        resource: `${item.resource.firstName} ${item.resource.lastName}`
+                                    }))}
+                                />
+                            </>
                         )}
-                        <Table className="table-hover">
-                            <thead>
-                                <tr>
-                                    <th scope="col ">Id</th>
-                                    <th scope="col">Dal</th>
-                                    <th scope="col">Al</th>
-                                    <th scope="col">Missione</th>
-                                    <th scope="col">Risorsa</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {(!!dataFiltered ? dataFiltered : data.results).map((item) => (
-                                    <tr className='pointer-events' onClick={() => window.location.replace(`/mission/${item.id}`)} key={item.id}>
-                                        <td>{item.id}</td>
-                                        <td>{item.fromDate}</td>
-                                        <td>{item.toDate}</td>
-                                        <td>{item.title}</td>
-                                        <td>{item.resource.firstName}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </Table>
                     </div>
-                </div>
-            )}
-            {!!expenseList && (
-                <div className='card p-3 shadow-sm'>
-                    <p className='h2'>Ultime Spese Aggiunte</p>
-                    <ExpenseFilter handleFilter={handleFilterExpense} data={expenseList.results}/>
-                    <div className='table-scroll'>
-                        <Table className="table-hover">
-                            <thead>
-                                <tr>
-                                    <th scope="col ">Id</th>
-                                    <th scope="col">Data</th>
-                                    <th scope="col">id Missione</th>
-                                    <th scope="col">Titolo Missione</th>
-                                    <th scope="col">Risorsa</th>
-                                    <th scope="col">Importo in EUR</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {(!!expenseFiltered ? expenseFiltered : expenseList.results).map((item: ExpenseInterface) => (
-                                    <tr onClick={() => window.location.replace(`/mission/${item.mission}`)} key={item.id}>
-                                        <td>{item.id}</td>
-                                        <td>{item.day}</td>
-                                        <td>{item.mission}</td>
-                                        <td>{data?.results.filter(m => m.id === item.mission).at(0)?.title || ''}</td>
-                                        <td>{data?.results.filter(m => m.id === item.mission).at(0)?.resource.firstName || ''}</td>
-                                        <td>{item.amountCurrency}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </Table>
-                    </div>
-                </div>
-            )}
-            {openModal && (
-                <CreateMission show={openModal} onClose={() => setOpenModal(false)} mission={defaultMission}
-                />
-            )}
+                )}
+                {!!exepenses && activeTab === 'spese' && (
+                    <>
+                        <div className="bg-white p-4 shadow rounded mb-4">
+                            <p className="text-2xl font-semibold mb-4">Ultime Spese Aggiunte</p>
+                            <ExpenseFilter handleFilter={handleFilterExpense} data={exepenses.results} />
+                        </div>
+                        <Krm3Table
+                            onClickRow={(item) => {
+                                console.log(item);
+                                setSelectedExpense(item);
+                            }}
+                            columns={[
+                                { accessorKey: 'id', header: 'Id' },
+                                { accessorKey: 'day', header: 'Data' },
+                                { accessorKey: 'mission', header: 'id Missione' },
+                                { accessorKey: 'mission_title', header: 'Titolo Missione' },
+                                { accessorKey: 'resource', header: 'Risorsa' },
+                                { accessorKey: 'amountCurrency', header: 'Importo in EUR' }
+                            ]}
+                            data={(!!expenseFiltered ? expenseFiltered : exepenses.results).map((item: ExpenseInterface) => ({
+                                ...item,
+                                mission_title: data?.results.filter(m => m.id === item.mission).at(0)?.title || '',
+                                resource: data?.results.filter(m => m.id === item.mission).at(0)?.resource.firstName || '',
+                            }))}
+                        />
+                    </>
+                )}
+                {openModal && (
+                    <CreateMission show={openModal} onClose={() => setOpenModal(false)} />
+                )}
+                {!!selectedExpense && (
+                    <ExpenseEdit
+                        expense={selectedExpense}
+                        onClose={() => setSelectedExpense(null)}
+                        show={!!selectedExpense}
+                    />
+                )}
+            </div>
         </>
     );
 }
