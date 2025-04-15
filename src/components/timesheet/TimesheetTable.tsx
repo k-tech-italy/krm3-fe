@@ -8,7 +8,7 @@ import { Martini } from "lucide-react";
 import React from "react";
 import { Droppable } from "./Droppable";
 import { formatDate } from "./Krm3Calendar";
-import { totalHourCell } from "./totalHour";
+import { totalHourCell } from "./TotalHour";
 
 interface Props {
     setOpenTimeEntryModal: (open: boolean) => void;
