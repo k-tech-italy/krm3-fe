@@ -156,3 +156,35 @@ export interface User {
 
 }
 
+
+export interface Task {
+    id: number;
+    title: string;
+    basketTitle?: string;
+    color?: string;
+    startDate: Date;
+    endDate?: Date;
+    workPrice?: number;
+    onCallPrice?: number;
+    travelPrice?: number;
+    timeEntries: TimeEntry[];
+    projectName?: string;
+};
+
+export interface TimeEntry {
+    id: number;
+    date: string;
+    taskId: number;
+    lastModified?: string;
+    workHours?: number;
+    sickHours?: number;
+    holidayHours?: number;
+    leaveHours?: number;
+    overtimeHours?: number;
+    travelHours?: number;
+    onCallHours?: number;
+    restHours?: number;
+    state?: string;
+    comment?: string;
+    metaData?: JSON;
+};

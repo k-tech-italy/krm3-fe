@@ -13,6 +13,7 @@ const url = 'http://localhost:8000/api/v1/';
 
 export const restapi = applyCaseMiddleware(axios.create({
     baseURL: url,  // must include '/api/v1/'
+    withCredentials: true,
 }));
 
 restapi.interceptors.response.use(response => {
