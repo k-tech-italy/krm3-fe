@@ -63,7 +63,7 @@ export function Sidebar({ isSidebarOpen, setIsSidebarOpen }: Props) {
 						</li>
 						<li>
 							<a
-								href="https://krm.k-tech.it/"
+								href="/timesheet"
 								className="flex items-center p-2 rounded hover:bg-gray-700"
 							>
 								<i className="icon kt-icon-timesheet mr-2" /> Foglio ore

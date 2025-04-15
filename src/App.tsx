@@ -7,6 +7,7 @@ import { Login } from './components/commons/Login';
 import { User } from "./pages/User";
 import { useMediaQuery } from './hooks/commons';
 import BottomTabNavigation from './components/commons/MobileTab';
+import Timesheet from "./pages/Timesheet";
 
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ export function App() {
                                     <Route path="/home" element={<Home />} />
                                     <Route path="/user" element={<User />} />
                                     <Route path="/mission/:id" element={<Mission />} />
+                                    <Route path="/timesheet" element={<Timesheet />} />
                                 </Routes>
                             </BrowserRouter>
                         </div>
