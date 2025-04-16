@@ -100,7 +100,7 @@ export default function Krm3Calendar() {
                 <Krm3Modal
                     open={openTimeEntryModal}
                     onClose={() => { setOpenTimeEntryModal(false); setSelectedCells(undefined) }}
-                    children={<EditTimeEntry selectedDate={selectedCells} task={selectedTask} />}
+                    children={<EditTimeEntry selectedDate={selectedCells} task={selectedTask} closeModal={() => {setOpenTimeEntryModal(false)}}/>}
                     title="Time Entry"
                 />
             )}
