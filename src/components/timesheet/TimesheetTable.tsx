@@ -16,6 +16,7 @@ interface Props {
     setSelectedCells: (cells: Date[] | undefined) => void;
     setSkippedDays: (days: Date[]) => void;
     setIsDayEntry: (isDayEntry: boolean) => void;
+    setStartDate: (date: Date) => void;
     weekDays: Date[];
 }
 export function TimeSheetTable(props: Props) {
@@ -99,6 +100,7 @@ export function TimeSheetTable(props: Props) {
             setActiveId(active.id);
             setDraggedColumnIndex(dayIndex);
             setHighlightedColumnIndexes([dayIndex]);
+            props.setStartDate(new Date(date));
             return;
         }
         // Check if this is a timeEntry drag or an empty cell drag
@@ -127,7 +129,7 @@ export function TimeSheetTable(props: Props) {
                 // It's an empty cell drag: date-taskId-empty
                 date = parts[0];
                 taskId = Number(parts[1]);
-
+                props.setStartDate(new Date(date));
                 setActiveDragData({
                     taskId,
                     startDate: date
@@ -358,7 +360,7 @@ export function TimeSheetTable(props: Props) {
                                     // Check if the cell is outside the task's date range   
                                     const currentDay = new Date(day);
                                     currentDay.setHours(0, 0, 0, 0);
-                                    if (currentDay.getTime() < new Date(task.startDate).getTime() || (task.endDate && currentDay.getTime() > new Date(task.endDate).getTime())) {
+                                    if (isTaskFinished(currentDay, task)) {
                                         return (
                                             <div key={dayIndex} className="border border-gray-200 p-2 min-h-16">
                                                 <div className="bg-gradient-to-r from-gray-100 to-gray-300 p-2 h-full rounded flex justify-center items-center">
@@ -441,4 +443,8 @@ const renderEmptyCell = (day: Date, task: Task) => {
         </Draggable>
     );
 };
+
+function isTaskFinished(currentDay: Date, task: Task) {
+    return currentDay.getTime() < new Date(task.startDate).getTime() || (task.endDate && currentDay.getTime() > new Date(task.endDate).getTime());
+}
 

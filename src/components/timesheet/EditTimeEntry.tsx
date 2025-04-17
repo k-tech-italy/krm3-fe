@@ -6,6 +6,7 @@ import { formatDate } from "./Krm3Calendar";
 interface Props {
     selectedDate: Date[]
     task: Task
+    startDate: Date
     closeModal: () => void
 }
 
@@ -13,6 +14,7 @@ export default function EditTimeEntry({ selectedDate, task, closeModal }: Props)
     // const timeEntries = task.timeEntries.filter((entry) =>
     //     selectedDate.includes(entry.date)
     // );
+
 
     const [timeEntries, setTimeEntries] = useState(
         {

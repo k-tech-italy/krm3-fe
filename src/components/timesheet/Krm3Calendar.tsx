@@ -20,6 +20,7 @@ export default function Krm3Calendar() {
     const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
     const [openTimeEntryModal, setOpenTimeEntryModal] = useState<boolean>(false);
     const [isDayEntry, setIsDayEntry] = useState<boolean>(false);
+    const [startDate, setStartDate] = useState<Date | undefined>(undefined);
 
     const [currentWeekStart, setCurrentWeekStart] = useState(() => {
         const today = new Date();
@@ -98,9 +99,10 @@ export default function Krm3Calendar() {
                 setSelectedCells={setSelectedCells}
                 setSkippedDays={setSkippedDays}
                 setIsDayEntry={setIsDayEntry}
+                setStartDate={setStartDate}
                 weekDays={weekDays}
             />
-            {openTimeEntryModal && selectedCells && selectedTask && (
+            {openTimeEntryModal && selectedCells && selectedTask && startDate && (
                 <Krm3Modal
                     open={openTimeEntryModal}
                     onClose={() => { setOpenTimeEntryModal(false); setSelectedCells(undefined) }}
@@ -110,7 +112,7 @@ export default function Krm3Calendar() {
                                 isDayEntry ? (
                                     <EditDayEntry selectedDays={selectedCells} skippedDays={skippedDays} onClose={() => { setOpenTimeEntryModal(false); setSelectedCells(undefined) }} />
                                 ) : (
-                                    <EditTimeEntry selectedDate={selectedCells} task={selectedTask} closeModal={() => { setOpenTimeEntryModal(false) }} />
+                                    <EditTimeEntry selectedDate={selectedCells} startDate={startDate} task={selectedTask} closeModal={() => { setOpenTimeEntryModal(false) }} />
                                 )}
                         </>
                     }
