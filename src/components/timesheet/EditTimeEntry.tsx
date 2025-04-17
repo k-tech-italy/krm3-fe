@@ -14,14 +14,22 @@ export default function EditTimeEntry({ selectedDate, task, closeModal, startDat
     // const timeEntries = task.timeEntries.filter((entry) =>
     //     selectedDate.includes(entry.date)
     // );
+    // console.log(startDate);
+    const formattedStartDate = startDate.getFullYear() + "-" +
+        String(startDate.getMonth() + 1).padStart(2, '0') + "-" +
+        String(startDate.getDate()).padStart(2, '0');
+
+    const startEntry = task.timeEntries.find(item => item.date === formattedStartDate);
+
+
 
     const [timeEntries, setTimeEntries] = useState(
         {
-            workHours: '8',
-            overtimeHours: '0',
-            travelHours: '0',
-            onCallHours: '0',
-            restHours: '0'
+            workHours: startEntry ? startEntry.workHours : '8',
+            overtimeHours: startEntry ? startEntry.overtimeHours : '0',
+            travelHours: startEntry ? startEntry.travelHours : '0',
+            onCallHours: startEntry ? startEntry.onCallHours : '0',
+            restHours: startEntry ? startEntry.restHours : '0'
         })
     const hoursLabel: Record<keyof typeof timeEntries, string> = {
         workHours: 'Worked hours',
@@ -32,16 +40,19 @@ export default function EditTimeEntry({ selectedDate, task, closeModal, startDat
     }
 
     const [comment, setComment] = React.useState('')
-
-
-    const [isDetailedViewOpened, setIsDetailedViewOpened] = React.useState(false)
-
     const times = [1, 2, 4, 8];
+
+
+    const shouldDetailedViewBeOpenedOnFormLoad = (!!startEntry && (!times.includes(Number(startEntry.workHours)) ||
+    startEntry.restHours != 0 || startEntry.onCallHours != 0 || startEntry.travelHours != 0 || startEntry.overtimeHours != 0))
+
+
+    const [isDetailedViewOpened, setIsDetailedViewOpened] = useState<boolean>(shouldDetailedViewBeOpenedOnFormLoad)
+
 
 
     const [invalidTimeFormat, setInvalidTimeFormat] = useState<string[]>([]);
     const [invalidTimeRange, setInvalidTimeRange] = useState<string[]>([]);
-
 
     const [totalHoursExceeded, setTotalHoursExceeded] = useState(false);
 
@@ -79,7 +90,7 @@ export default function EditTimeEntry({ selectedDate, task, closeModal, startDat
             setInvalidTimeRange(invalidTimeRange.filter((item) => item !== key))
         }
 
-        const totalHours = Object.values({ ...timeEntries, [key]: value }).reduce((acc, curr) => acc + Number(curr), 0)
+        const totalHours = Number(Object.values({ ...timeEntries, [key]: value }).reduce((acc, curr) => Number(acc) + Number(curr), 0))
         if (totalHours > 24) {
             setTotalHoursExceeded(true)
         }
