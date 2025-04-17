@@ -1,0 +1,6 @@
+nvmrc=~/.nvm/nvm.sh
+source $nvmrc
+nvm use
+PATH_add node_modules/.bin
+
+

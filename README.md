@@ -4,11 +4,23 @@ This project is now built using [Vite](https://vitejs.dev/).
 
 ## Prerequisites
 
-yanr globally installed
 Make sure you have [Node.js](https://nodejs.org/) installed and use the correct version specified in the `.nvmrc` file. You can use [nvm](https://github.com/nvm-sh/nvm) to manage Node.js versions:
 
+Activate venv
+
+If you have direvn:
+```bash
+direnv allow
+```
+else
 ```bash
 nvm use
+```
+
+Install dependencies
+
+```bash
+yarn install
 ```
 
 ## Available Scripts
