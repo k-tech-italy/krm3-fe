@@ -1,5 +1,5 @@
 import { Task, TimeEntry } from "../../restapi/types";
-import React, {useRef, useState} from "react";
+import React, { useRef, useState } from "react";
 import { ChevronDown } from 'lucide-react';
 import { formatDate } from "./Krm3Calendar";
 
@@ -10,11 +10,10 @@ interface Props {
     closeModal: () => void
 }
 
-export default function EditTimeEntry({ selectedDate, task, closeModal }: Props) {
+export default function EditTimeEntry({ selectedDate, task, closeModal, startDate }: Props) {
     // const timeEntries = task.timeEntries.filter((entry) =>
     //     selectedDate.includes(entry.date)
     // );
-
 
     const [timeEntries, setTimeEntries] = useState(
         {
@@ -47,65 +46,54 @@ export default function EditTimeEntry({ selectedDate, task, closeModal }: Props)
     const [totalHoursExceeded, setTotalHoursExceeded] = useState(false);
 
 
-    const validateHoursFormat = (numberOfHours: string): boolean =>
-    {
+    const validateHoursFormat = (numberOfHours: string): boolean => {
         const value = parseFloat(numberOfHours);
 
-        for(const character of numberOfHours)
-        {
-            if(!'1234567890.'.includes(character))
-            {
+        for (const character of numberOfHours) {
+            if (!'1234567890.'.includes(character)) {
                 return false;
             }
         }
-        if(isNaN(value)) return false;
+        if (isNaN(value)) return false;
 
         return Number.isInteger(value * 4);
     }
-    const validateHoursRange = (numberOfHours: string) : boolean =>
-    {
+    const validateHoursRange = (numberOfHours: string): boolean => {
         const value = parseFloat(numberOfHours);
 
-        if(value < 0 || value > 24)
+        if (value < 0 || value > 24)
             return false;
         else
             return true
     }
 
-    const handleChangeHourInput = (value: string, key: keyof typeof timeEntries) =>
-    {
-        setTimeEntries({...timeEntries, [key]: value})
+    const handleChangeHourInput = (value: string, key: keyof typeof timeEntries) => {
+        setTimeEntries({ ...timeEntries, [key]: value })
 
         setTotalHoursExceeded(false)
 
-        if(invalidTimeFormat.includes(key))
-        {
+        if (invalidTimeFormat.includes(key)) {
             setInvalidTimeFormat(invalidTimeFormat.filter((item) => item !== key))
         }
-        if(invalidTimeRange.includes(key))
-        {
+        if (invalidTimeRange.includes(key)) {
             setInvalidTimeRange(invalidTimeRange.filter((item) => item !== key))
         }
 
-        const totalHours = Object.values({...timeEntries, [key]: value}).reduce((acc, curr) => acc + Number(curr), 0)
-        if(totalHours > 24)
-        {
+        const totalHours = Object.values({ ...timeEntries, [key]: value }).reduce((acc, curr) => acc + Number(curr), 0)
+        if (totalHours > 24) {
             setTotalHoursExceeded(true)
         }
 
-        if(!validateHoursFormat(value))
-        {
+        if (!validateHoursFormat(value)) {
             setInvalidTimeFormat([...invalidTimeFormat, key])
         }
-        else if(!validateHoursRange(value))
-        {
+        else if (!validateHoursRange(value)) {
             setInvalidTimeRange([...invalidTimeRange, key])
         }
 
     }
 
-    const submit = async () =>
-    {
+    const submit = async () => {
         //TODO add api call when be is ready
     }
 
@@ -129,7 +117,7 @@ export default function EditTimeEntry({ selectedDate, task, closeModal }: Props)
                             className={`border rounded-md py-2 w-[24%] cursor-pointer mr-[1%] border-gray-300
                             ${Number(timeEntries.workHours) == time ? "bg-yellow-100 border-yellow-500 text-yellow-700" : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}`}
                             onClick={() => {
-                                setTimeEntries({...timeEntries, workHours: String(time)})
+                                setTimeEntries({ ...timeEntries, workHours: String(time) })
                             }}>
                             {time}
                         </button>
@@ -144,13 +132,13 @@ export default function EditTimeEntry({ selectedDate, task, closeModal }: Props)
                 <div className="sm:w-2/4 p-2 border mt-3 rounded-md opacity-80 border-gray-300 ">
                     <div className="flex flex-column">
                         <button className="h-full hover:cursor-pointer ml-auto px-4 w-full flex"
-                                onClick={() => {
-                                    setIsDetailedViewOpened(!isDetailedViewOpened)
-                                }}>
+                            onClick={() => {
+                                setIsDetailedViewOpened(!isDetailedViewOpened)
+                            }}>
                             {!isDetailedViewOpened && (
                                 <p>Open for details...</p>
                             )}
-                            <ChevronDown className="ml-auto"/>
+                            <ChevronDown className="ml-auto" />
                         </button>
                     </div>
                     {isDetailedViewOpened && (
@@ -160,17 +148,16 @@ export default function EditTimeEntry({ selectedDate, task, closeModal }: Props)
                                     <p className="font-bold mt-1">{hoursLabel[key]}</p>
                                     <input
                                         className={`border rounded-md p-2 cursor-pointer w-[100%]
-                                        ${(invalidTimeFormat.includes(key) || invalidTimeRange.includes(key))? 'border border-red-500' : ''}`}
+                                        ${(invalidTimeFormat.includes(key) || invalidTimeRange.includes(key)) ? 'border border-red-500' : ''}`}
                                         type="text"
                                         value={timeEntries[key]}
-                                        onChange={(e) =>
-                                        {
+                                        onChange={(e) => {
                                             handleChangeHourInput(e.target.value, key)
                                         }
-                                    }
+                                        }
                                         onBlur={(e) => {
                                             if (e.target.value === '') {
-                                                setTimeEntries({...timeEntries, [key]: '0'})
+                                                setTimeEntries({ ...timeEntries, [key]: '0' })
                                                 handleChangeHourInput('0', key)
                                             }
                                         }}
@@ -179,7 +166,7 @@ export default function EditTimeEntry({ selectedDate, task, closeModal }: Props)
                                         <p className='text-red-500 mt-2'>
                                             Invalid value (must be 0-0.25 ecc..)
                                         </p>)}
-                                    {invalidTimeRange.includes(key)&& (
+                                    {invalidTimeRange.includes(key) && (
                                         <p className='text-red-500 mt-2'>
                                             Invalid value (must be &gt;= 0 and &lt;= 24)
                                         </p>)}
@@ -202,11 +189,11 @@ export default function EditTimeEntry({ selectedDate, task, closeModal }: Props)
                 <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">Comment</label>
                 <div className="sm:w-2/4 w-full">
                     <textarea className=" w-full border rounded-md p-2 border-gray-300"
-                              value={comment}
-                              onChange={(e) => {
-                                  setComment(e.target.value)
-                              }}>
-            </textarea>
+                        value={comment}
+                        onChange={(e) => {
+                            setComment(e.target.value)
+                        }}>
+                    </textarea>
 
                 </div>
             </div>
@@ -222,7 +209,7 @@ export default function EditTimeEntry({ selectedDate, task, closeModal }: Props)
                 <button
                     className={`px-4 py-2 text-white rounded-lg focus:outline-none
                     ${(invalidTimeFormat.length > 0) ? 'bg-gray-300 cursor-not-allowed' :
-                        'bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500'}`}
+                            'bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500'}`}
 
                     onClick={async () => {
                         await submit()

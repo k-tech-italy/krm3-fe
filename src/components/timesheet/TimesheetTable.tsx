@@ -101,6 +101,7 @@ export function TimeSheetTable(props: Props) {
             setDraggedColumnIndex(dayIndex);
             setHighlightedColumnIndexes([dayIndex]);
             props.setStartDate(new Date(date));
+         
             return;
         }
         // Check if this is a timeEntry drag or an empty cell drag
@@ -119,7 +120,8 @@ export function TimeSheetTable(props: Props) {
                 if (!timeEntry) return;
 
                 date = timeEntry.date;
-
+                
+                props.setStartDate(new Date(date));
                 setActiveDragData({
                     timeEntry,
                     taskId,
