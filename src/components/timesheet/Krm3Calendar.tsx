@@ -4,6 +4,7 @@ import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import Krm3Modal from "../commons/krm3Modal";
 import EditTimeEntry from "./EditTimeEntry";
 import { TimeSheetTable } from "./TimesheetTable";
+import EditDayEntry from "./edit-day/EditDayEntry";
 
 export const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -14,10 +15,11 @@ export const formatDate = (date: Date) => {
 };
 
 export default function Krm3Calendar() {
-    const [tasks, setTasks] = useState<Task[]>([]); //TODO fix
-    const [selectedCells, setSelectedCells] = useState<string[] | undefined>();
+    const [selectedCells, setSelectedCells] = useState<Date[] | undefined>();
+    const [skippedDays, setSkippedDays] = useState<Date[]>([]);
     const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
     const [openTimeEntryModal, setOpenTimeEntryModal] = useState<boolean>(false);
+    const [isDayEntry, setIsDayEntry] = useState<boolean>(false);
 
     const [currentWeekStart, setCurrentWeekStart] = useState(() => {
         const today = new Date();
@@ -94,14 +96,25 @@ export default function Krm3Calendar() {
                 setOpenTimeEntryModal={setOpenTimeEntryModal}
                 setSelectedTask={setSelectedTask}
                 setSelectedCells={setSelectedCells}
+                setSkippedDays={setSkippedDays}
+                setIsDayEntry={setIsDayEntry}
                 weekDays={weekDays}
             />
             {openTimeEntryModal && selectedCells && selectedTask && (
                 <Krm3Modal
                     open={openTimeEntryModal}
                     onClose={() => { setOpenTimeEntryModal(false); setSelectedCells(undefined) }}
-                    children={<EditTimeEntry selectedDate={selectedCells} task={selectedTask} closeModal={() => {setOpenTimeEntryModal(false)}}/>}
-                    title="Time Entry"
+                    children={
+                        <>
+                            {
+                                isDayEntry ? (
+                                    <EditDayEntry selectedDays={selectedCells} skippedDays={skippedDays} onClose={() => { setOpenTimeEntryModal(false); setSelectedCells(undefined) }} />
+                                ) : (
+                                    <EditTimeEntry selectedDate={selectedCells} task={selectedTask} closeModal={() => { setOpenTimeEntryModal(false) }} />
+                                )}
+                        </>
+                    }
+                    title={isDayEntry ? "Day Entry" : "Time Entry"}
                 />
             )}
         </div>

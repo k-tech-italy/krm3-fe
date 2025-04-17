@@ -1,9 +1,10 @@
 import { Task, TimeEntry } from "../../restapi/types";
 import React, {useRef, useState} from "react";
 import { ChevronDown } from 'lucide-react';
+import { formatDate } from "./Krm3Calendar";
 
 interface Props {
-    selectedDate: string[]
+    selectedDate: Date[]
     task: Task
     closeModal: () => void
 }
@@ -113,7 +114,7 @@ export default function EditTimeEntry({ selectedDate, task, closeModal }: Props)
                 <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">Selected days</label>
                 <div className="sm:w-2/4 w-full flex flex-wrap">
                     {selectedDate.map((date, idx) => (
-                        <p key={idx} className='mr-3'>{date}{idx !== selectedDate.length - 1 ? ',' : ''}</p>))}
+                        <p key={idx} className='mr-3'>{formatDate(date)}{idx !== selectedDate.length - 1 ? ',' : ''}</p>))}
                 </div>
             </div>
 
