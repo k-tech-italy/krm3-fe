@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMediaQuery } from "../../hooks/commons";
 import { DndContext, DragOverlay, closestCenter } from "@dnd-kit/core";
 import { TimeEntry, Task } from "../../restapi/types";
@@ -8,18 +8,21 @@ import { Martini } from "lucide-react";
 import React from "react";
 import { Droppable } from "./Droppable";
 import { formatDate } from "./Krm3Calendar";
-import { totalHourCell } from "./TotalHour";
+import { TotalHourCell } from "./TotalHour";
 
 interface Props {
     setOpenTimeEntryModal: (open: boolean) => void;
     setSelectedTask: (task: Task) => void;
-    setSelectedCells: (cells: string[] | undefined) => void;
+    setSelectedCells: (cells: Date[] | undefined) => void;
+    setSkippedDays: (days: Date[]) => void;
+    setIsDayEntry: (isDayEntry: boolean) => void;
+    setStartDate: (date: Date) => void;
     weekDays: Date[];
 }
 export function TimeSheetTable(props: Props) {
     const defaultView = localStorage.getItem("isColumnView");
     const isSmallScreen = useMediaQuery('(max-width: 768px)');
-    const [isColumnView, setIsColumnView] = useState(defaultView === "true" || false);
+    const [isColumnView, setIsColumnView] = useState((defaultView === "true") || false);
 
     const startDate = props.weekDays[0].toISOString().split('T')[0]; // Start date
     const endDate = props.weekDays[props.weekDays.length - 1].toISOString().split('T')[0]; // End date
@@ -33,14 +36,21 @@ export function TimeSheetTable(props: Props) {
         columnDay?: Date,
         draggedOverColumns?: string[]
     } | null>(null);
-    const [draggedOverCells, setDraggedOverCells] = useState<string[]>([]);
+    const [draggedOverCells, setDraggedOverCells] = useState<Date[]>([]);
     const [dragType, setDragType] = useState<'cell' | 'column' | null>(null);
     const [highlightedColumnIndexes, setHighlightedColumnIndexes] = useState<number[]>([]);
     const [draggedColumnIndex, setDraggedColumnIndex] = useState<number | null>(null);
 
     //IMPLEMENT HOLIDAY FUNCTIONALITY
-    const [holidayDays, setHolidayDays] = useState<string[]>([new Date(new Date().getTime() + 1000 * 60 * 60 * 24).toDateString()]) //TODO: implement this
+    const [holidayDays, setHolidayDays] = useState<Date[]>([]) //TODO: implement this
 
+    useEffect(() => {
+        if (isSmallScreen) {
+            setIsColumnView(true);
+        } else {
+            setIsColumnView(false);
+        }
+    }, [isSmallScreen]);
 
     if (isLoadingTasks) {
         return <div>Loading...</div>;
@@ -51,14 +61,14 @@ export function TimeSheetTable(props: Props) {
         setIsColumnView(!isColumnView);
     };
 
-    const getDaysBetween = (startDate: string, endDate: string): string[] => {
+    const getDaysBetween = (startDate: string, endDate: string): Date[] => {
         const start = new Date(startDate);
         const end = new Date(endDate);
-        const days: string[] = [];
+        const days: Date[] = [];
 
         let currentDate = new Date(start);
         while (currentDate <= end) {
-            days.push(currentDate.toDateString());
+            days.push(new Date(currentDate));
             currentDate.setDate(currentDate.getDate() + 1);
         }
         return days;
@@ -67,13 +77,16 @@ export function TimeSheetTable(props: Props) {
 
     const isHoliday = (task: Task, day: Date) => {
         if (!task.timeEntries) return false;
-        return holidayDays.includes(day.toDateString());
+        return holidayDays.includes(day);
     };
 
 
     //DRAG AND DROP IMPLEMENTATION
     function handleDragStart(event: any) {
         const { active } = event;
+        let taskId: number;
+        let date: string = '';
+        setDragType('cell');
 
         // Check if this is a column header drag
         if (active.id.startsWith('column-')) {
@@ -87,14 +100,9 @@ export function TimeSheetTable(props: Props) {
             setActiveId(active.id);
             setDraggedColumnIndex(dayIndex);
             setHighlightedColumnIndexes([dayIndex]);
+            props.setStartDate(new Date(date));
             return;
         }
-
-        // Handle existing cell drag logic
-        let taskId: number;
-        let date: string = '';
-        setDragType('cell');
-
         // Check if this is a timeEntry drag or an empty cell drag
         if (active.id.includes('-')) {
             const parts = active.id.split('-');
@@ -121,7 +129,7 @@ export function TimeSheetTable(props: Props) {
                 // It's an empty cell drag: date-taskId-empty
                 date = parts[0];
                 taskId = Number(parts[1]);
-
+                props.setStartDate(new Date(date));
                 setActiveDragData({
                     taskId,
                     startDate: date
@@ -130,7 +138,7 @@ export function TimeSheetTable(props: Props) {
         }
 
         setActiveId(active.id);
-        setDraggedOverCells([date]);
+        setDraggedOverCells([...draggedOverCells, new Date(date)]);
     }
 
     function handleDragEnd(event: any) {
@@ -144,21 +152,34 @@ export function TimeSheetTable(props: Props) {
                     const targetDay = props.weekDays[targetDayIndex].toISOString().split('T')[0];
 
                     if (activeDragData.columnDay && targetDay) {
-                        // Select all tasks for the column day
-                        const selectedDays = [activeDragData.columnDay.toDateString()];
-                        console.log(selectedDays);
-
-                        // Get all tasks (since we're selecting the whole column)
                         if (tasks && tasks.length > 0) {
                             // Select the first task as representative (modal will apply to all)
                             props.setSelectedTask(tasks[0]);
-                            props.setSelectedCells(draggedOverCells.filter(day => !holidayDays.includes(day)));
+                            // TODO LOGIC FOR AVOID HOLIDAY COLUMNS?
+                            props.setSkippedDays(
+                                draggedOverCells.filter(day => {
+                                    const hasTimeEntry = tasks.some(task =>
+                                        task.timeEntries.some(entry => new Date(entry.date).toDateString() === day.toDateString())
+                                    );
+                                    return holidayDays.includes(day) || hasTimeEntry;
+                                })
+                            );                            
+                            props.setSelectedCells(
+                                draggedOverCells.filter(day => {
+                                    const hasTimeEntry = tasks.some(task =>
+                                        task.timeEntries.some(entry => new Date(entry.date).toDateString() === day.toDateString())
+                                    );
+                                    return !holidayDays.includes(day) && !hasTimeEntry;
+                                })
+                            );
+
+
                             props.setOpenTimeEntryModal(true);
+                            props.setIsDayEntry(true);
                         }
                     }
                 }
             } else {
-
                 const [targetDate, targetTaskId] = over.id.split('-');
                 // Only open modal if taskId matches
                 if (activeDragData.taskId && Number(targetTaskId) === activeDragData.taskId) {
@@ -168,6 +189,7 @@ export function TimeSheetTable(props: Props) {
                             props.setSelectedTask(task);
                             props.setSelectedCells(draggedOverCells.filter(day => !holidayDays.includes(day)));
                             props.setOpenTimeEntryModal(true);
+                            props.setIsDayEntry(false);
                         }
                     }
                 }
@@ -196,14 +218,12 @@ export function TimeSheetTable(props: Props) {
                         const start = Math.min(draggedColumnIndex, targetIndex);
                         const end = Math.max(draggedColumnIndex, targetIndex);
 
-                        // Get all days between the start and end columns
-                        const startDate = props.weekDays[start].toISOString().split('T')[0];
-                        const endDate = props.weekDays[end].toISOString().split('T')[0];
-                        const daysToHighlight = getDaysBetween(startDate, endDate);
-
-                        // Highlight all columns between the original and current target
+                        // Highlight all columns between the start and end indexes
+                        const daysToHighlight = [];
                         const columnsToHighlight = [];
                         for (let i = start; i <= end; i++) {
+                            // TODO LOGIC FOR AVOID HOLIDAY COLUMNS?
+                            daysToHighlight.push(props.weekDays[i]);
                             columnsToHighlight.push(i);
                         }
 
@@ -220,10 +240,9 @@ export function TimeSheetTable(props: Props) {
             // Only track if dragging over the same task
             if (activeDragData.taskId && Number(targetTaskId) === activeDragData.taskId) {
                 const startDate = activeDragData.startDate;
-
                 if (startDate) {
                     // Sort dates to ensure they're in chronological order
-                    let allDays: string[];
+                    let allDays: Date[];
                     if (new Date(startDate) <= new Date(targetDate)) {
                         allDays = getDaysBetween(startDate, targetDate);
                     } else {
@@ -237,9 +256,12 @@ export function TimeSheetTable(props: Props) {
     }
 
     const isCellInDragRange = (day: Date, taskId: number) => {
+        // Check if the cell is in the dragged range, only for date because the time can
         return (
             activeDragData?.taskId === taskId &&
-            draggedOverCells.includes(day.toDateString())
+            draggedOverCells.some((draggedDay) => {
+                return draggedDay.toDateString() === day.toDateString();
+            })
         );
     };
 
@@ -254,7 +276,7 @@ export function TimeSheetTable(props: Props) {
 
     const openTimeEntryModalHandler = (task: Task, day: Date) => {
         props.setSelectedTask(task);
-        props.setSelectedCells([day.toDateString()]);
+        props.setSelectedCells([day]);
         props.setOpenTimeEntryModal(true);
     }
 
@@ -297,7 +319,7 @@ export function TimeSheetTable(props: Props) {
                         {props.weekDays.map((day, index) => (
                             <Droppable key={index} id={`column-${index}`}>
                                 <Draggable id={`column-${index}`}>
-                                    <div className={`bg-gray-100 p-2 font-semibold 
+                                    <div className={`bg-gray-100 p-2 font-semibold
                                     ${isColumnActive(index) ? 'bg-blue-200' : ''}
                                     ${isColumnHighlighted(index) ? 'bg-blue-100 border-t-1 border-x-1 border-blue-400' : ''}`}>
                                         {formatDate(day)}
@@ -305,7 +327,7 @@ export function TimeSheetTable(props: Props) {
                                     <div className={`bg-gray-100 p-2 font-semibold 
                                     ${isColumnActive(index) ? 'bg-blue-200' : ''}
                                     ${isColumnHighlighted(index) ? 'bg-blue-100 border-b-1 border-x-1 border-blue-400' : ''}`}>
-                                        {totalHourCell(day, tasks)}
+                                        <TotalHourCell day={day} tasks={tasks} />
                                     </div>
                                 </Draggable>
                             </Droppable>
@@ -335,9 +357,21 @@ export function TimeSheetTable(props: Props) {
                                             </div>
                                         );
                                     }
+                                    // Check if the cell is outside the task's date range   
+                                    const currentDay = new Date(day);
+                                    currentDay.setHours(0, 0, 0, 0);
+                                    if (isTaskFinished(currentDay, task)) {
+                                        return (
+                                            <div key={dayIndex} className="border border-gray-200 p-2 min-h-16">
+                                                <div className="bg-gradient-to-r from-gray-100 to-gray-300 p-2 h-full rounded flex justify-center items-center">
+                                                    <span className="text-xs text-gray-400">Task Finished</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    }
 
                                     const timeEntries = task.timeEntries.filter(
-                                        entry => entry.date === day.toISOString().split('T')[0] && entry.taskId === task.id
+                                        entry => entry.date === day.toISOString().split('T')[0]
                                     );
                                     return (
                                         <Droppable key={dayIndex} id={cellId}>
@@ -409,4 +443,8 @@ const renderEmptyCell = (day: Date, task: Task) => {
         </Draggable>
     );
 };
+
+function isTaskFinished(currentDay: Date, task: Task) {
+    return currentDay.getTime() < new Date(task.startDate).getTime() || (task.endDate && currentDay.getTime() > new Date(task.endDate).getTime());
+}
 
