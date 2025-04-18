@@ -1,5 +1,5 @@
-import { Task, TimeEntry } from "../../restapi/types";
-import React, { useRef, useState } from "react";
+import { Task } from "../../restapi/types";
+import React, { useState } from "react";
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { formatDate } from "./Krm3Calendar";
 import ConfirmationModal from "../commons/ConfirmationModal.tsx";
@@ -54,7 +54,9 @@ export default function EditTimeEntry({ selectedDates, task, closeModal, startDa
     )
 
     const isClearButtonVisible = (
-        daysWithTimeEntries.filter(day => day.toLocaleDateString('sv-SE') != startDate.toLocaleDateString('sv-SE')).length > 0)
+        daysWithTimeEntries.filter(day => day.toLocaleDateString('sv-SE') != startDate.toLocaleDateString('sv-SE')).length > 0 ||
+        daysWithTimeEntries.length == 1 && daysWithTimeEntries[0].toLocaleDateString('sv-SE') == startDate.toLocaleDateString('sv-SE')
+    )
 
     const [isClearModalOpened, setIsClearModalOpened] = useState(false)
 
@@ -185,7 +187,7 @@ export default function EditTimeEntry({ selectedDates, task, closeModal, startDa
                                 <div className="px-3" key={key}>
                                     <p className="font-bold mt-1">{hoursLabel[key]}</p>
                                     <input
-                                        className={`border rounded-md p-2 cursor-pointer w-[100%]
+                                        className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300
                                         ${(invalidTimeFormat.includes(key) || invalidTimeRange.includes(key)) ? 'border border-red-500' : ''}`}
                                         type="text"
                                         value={timeEntries[key]}
@@ -234,7 +236,8 @@ export default function EditTimeEntry({ selectedDates, task, closeModal, startDa
 
                 </div>
             </div>
-            {isClearButtonVisible && <p className='text-red-500 mt-2'>
+            {isClearButtonVisible && !(daysWithTimeEntries.length == 1 && daysWithTimeEntries[0].toLocaleDateString('sv-SE') == startDate.toLocaleDateString('sv-SE'))
+                && <p className='text-red-500 mt-2'>
                 Please clear time entries first
             </p>}
 
@@ -247,13 +250,17 @@ export default function EditTimeEntry({ selectedDates, task, closeModal, startDa
 
                 <button
                     className={`px-4 py-2 text-white rounded-lg focus:outline-none
-                    ${(invalidTimeFormat.length > 0 || isClearButtonVisible) ? 'bg-gray-300 cursor-not-allowed' :
+                    ${(invalidTimeFormat.length > 0 ||
+                    (isClearButtonVisible &&
+                        !(daysWithTimeEntries.length == 1 && daysWithTimeEntries[0].toLocaleDateString('sv-SE') == startDate.toLocaleDateString('sv-SE')))) 
+                        ? 'bg-gray-300 cursor-not-allowed' :
                         'bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500'}`}
 
                     onClick={async () => {
                         await submit()
                     }}
-                    disabled={invalidTimeFormat.length > 0 || isClearButtonVisible}
+                    disabled={invalidTimeFormat.length > 0 || (isClearButtonVisible
+                && daysWithTimeEntries.length == 1 && daysWithTimeEntries[0].toLocaleDateString('sv-SE') == startDate.toLocaleDateString('sv-SE'))}
                 >Save
                 </button>
             </div>
