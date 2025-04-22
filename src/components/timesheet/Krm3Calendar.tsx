@@ -112,7 +112,7 @@ export default function Krm3Calendar() {
                                 isDayEntry ? (
                                     <EditDayEntry selectedDays={selectedCells} skippedDays={skippedDays} onClose={() => { setOpenTimeEntryModal(false); setSelectedCells(undefined) }} />
                                 ) : (
-                                    <EditTimeEntry selectedDate={selectedCells} startDate={startDate} task={selectedTask} closeModal={() => { setOpenTimeEntryModal(false) }} />
+                                    <EditTimeEntry selectedDates={selectedCells} startDate={startDate} task={selectedTask} closeModal={() => { setOpenTimeEntryModal(false) }} />
                                 )}
                         </>
                     }
