@@ -15,7 +15,29 @@ export function getTask(params: { resourceId: number, startDate: string, endDate
             startDate: new Date('2025-01-01'),
             endDate: new Date('2025-05-31'),
         }] as Task[],
-        timeEntries: []
+        timeEntries: [
+            {
+                id: 1,
+                date: '2025-04-01',
+                taskId: 1,
+                workHours: 8,
+            }, {
+                id: 2,
+                date: '2025-04-05',
+                taskId: 1,
+                workHours: 4,
+            }, {
+                id: 3,
+                date: '2025-04-20',
+                taskId: 2,
+                workHours: 6,
+            },
+            {
+                id: 4,
+                date: '2025-04-21',
+                holidayHours: 8,
+            }
+        ]
     } as Timesheet);
 }
 

@@ -16,8 +16,19 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isColumnView }: P
         return <div className="bg-gray-100">0h</div>;
     }
 
+    // Normalize date for comparison to ensure we match correctly
+    const normalizeDate = (date: Date | string): string => {
+        const d = typeof date === 'string' ? new Date(date) : date;
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+
+    const formattedDay = normalizeDate(day);
+
+    // Calculate total hours for the current day
     const totalHour = timeEntries.reduce((acc: number, timeEntry: TimeEntry) => {
-        if (timeEntry.date === day.toISOString().split('T')[0]) {
+        const entryDate = normalizeDate(timeEntry.date);
+        
+        if (entryDate === formattedDay) {
             return acc
                 + (Number(timeEntry.workHours) || 0)
                 + (Number(timeEntry.overtimeHours) || 0)
@@ -26,13 +37,14 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isColumnView }: P
         return acc;
     }, 0);
 
+    // Get entries for this day for tooltip display
+    const dayEntries = timeEntries.filter(entry => normalizeDate(entry.date) === formattedDay);
+
     function handleShowTooltip() {
         if (totalHour > 0) {
             setShowTooltip(!showTooltip);
         }
-
     }
-
 
     return (
         <div
@@ -40,8 +52,7 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isColumnView }: P
             onMouseLeave={handleShowTooltip}
             className="relative bg-gray-100 justify-center flex flex-col h-full w-full"
         >
-            <div className={`bg-gray-100 font-semibold ${isMonthView ? 'text-xs' : 'text-sm'} flex  justify-center items-center h-full w-full`}>
-            
+            <div className={`bg-gray-100 font-semibold ${isMonthView ? 'text-xs' : 'text-sm'} flex justify-center items-center h-full w-full`}>
                 {totalHour} h
                 {totalHour > 0 && !isMonthView && (
                     <Info size={isMonthView ? 8 : 20} color="blue"
@@ -49,21 +60,18 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isColumnView }: P
                     />
                 )}
             </div>
-            {showTooltip && (
+            {showTooltip && dayEntries.length > 0 && (
                 <div className="absolute left-0 bottom-full mt-2 w-64 bg-white border border-gray-300 shadow-lg rounded z-10">
-                    {timeEntries.map((timeEntry: TimeEntry, index: number) => {
-                        if (timeEntry.date === day.toISOString().split('T')[0]) {
-                            return (
-                                <div key={index} className="mb-2">
-                                    <div className="font-semibold">Task</div>
-                                    <div className="text-sm">
-                                        Work: {timeEntry.workHours || 0}h, Overtime: {timeEntry.overtimeHours || 0}h, On Call: {timeEntry.onCallHours || 0}h
-                                    </div>
-                                </div>
-                            );
-                        }
-                        return null;
-                    })}
+                    {dayEntries.map((timeEntry: TimeEntry, index: number) => (
+                        <div key={index} className="mb-2 p-2">
+                            <div className="font-semibold">Task {timeEntry.taskId}</div>
+                            <div className="text-sm">
+                                Work: {timeEntry.workHours || 0}h, 
+                                Overtime: {timeEntry.overtimeHours || 0}h, 
+                                On Call: {timeEntry.onCallHours || 0}h
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
         </div>
