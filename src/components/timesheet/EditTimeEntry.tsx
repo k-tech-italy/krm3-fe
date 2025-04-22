@@ -44,7 +44,6 @@ export default function EditTimeEntry({ selectedDates, task, closeModal, startDa
     const [isDetailedViewOpened, setIsDetailedViewOpened] = useState<boolean>(shouldDetailedViewBeOpenedOnFormLoad)
 
     const [invalidTimeFormat, setInvalidTimeFormat] = useState<string[]>([]);
-    const [invalidTimeRange, setInvalidTimeRange] = useState<string[]>([]);
 
     const [totalHoursExceeded, setTotalHoursExceeded] = useState(false);
 
@@ -60,25 +59,35 @@ export default function EditTimeEntry({ selectedDates, task, closeModal, startDa
 
     const [isClearModalOpened, setIsClearModalOpened] = useState(false)
 
-    const validateHoursFormat = (numberOfHours: string): boolean => {
-        const value = parseFloat(numberOfHours);
 
-        for (const character of numberOfHours) {
-            if (!'1234567890.'.includes(character)) {
-                return false;
+    const validateInput = (numberOfHours: string, key: keyof typeof timeEntries) =>
+    {
+        if (invalidTimeFormat.includes(key)) {
+            setInvalidTimeFormat(invalidTimeFormat.filter((item) => item !== key))
+        }
+
+        const value = parseFloat(numberOfHours);
+        let isFormatValid = true;
+
+        for (const character of numberOfHours)
+        {
+            if (!'1234567890.'.includes(character))
+            {
+                isFormatValid = false;
             }
         }
-        if (isNaN(value)) return false;
+        if (isNaN(value)) isFormatValid = false;
 
-        return Number.isInteger(value * 4);
-    }
-    const validateHoursRange = (numberOfHours: string): boolean => {
-        const value = parseFloat(numberOfHours);
+        if(!Number.isInteger(value * 4))
+        {
+            isFormatValid = false;
+        }
 
-        if (value < 0 || value > 24)
-            return false;
-        else
-            return true
+        if (!isFormatValid)
+        {
+            setInvalidTimeFormat([...invalidTimeFormat, key])
+        }
+
     }
 
     const handleChangeHourInput = (value: string, key: keyof typeof timeEntries) => {
@@ -86,23 +95,11 @@ export default function EditTimeEntry({ selectedDates, task, closeModal, startDa
 
         setTotalHoursExceeded(false)
 
-        if (invalidTimeFormat.includes(key)) {
-            setInvalidTimeFormat(invalidTimeFormat.filter((item) => item !== key))
-        }
-        if (invalidTimeRange.includes(key)) {
-            setInvalidTimeRange(invalidTimeRange.filter((item) => item !== key))
-        }
+        validateInput(value, key);
 
         const totalHours = Number(Object.values({ ...timeEntries, [key]: value }).reduce((acc, curr) => Number(acc) + Number(curr), 0))
         if (totalHours > 24) {
             setTotalHoursExceeded(true)
-        }
-
-        if (!validateHoursFormat(value)) {
-            setInvalidTimeFormat([...invalidTimeFormat, key])
-        }
-        else if (!validateHoursRange(value)) {
-            setInvalidTimeRange([...invalidTimeRange, key])
         }
 
     }
@@ -188,7 +185,7 @@ export default function EditTimeEntry({ selectedDates, task, closeModal, startDa
                                     <p className="font-bold mt-1">{hoursLabel[key]}</p>
                                     <input
                                         className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300
-                                        ${(invalidTimeFormat.includes(key) || invalidTimeRange.includes(key)) ? 'border border-red-500' : ''}`}
+                                        ${(invalidTimeFormat.includes(key)) ? 'border border-red-500' : ''}`}
                                         type="text"
                                         value={timeEntries[key]}
                                         onChange={(e) => {
@@ -205,10 +202,6 @@ export default function EditTimeEntry({ selectedDates, task, closeModal, startDa
                                     {invalidTimeFormat.includes(key) && (
                                         <p className='text-red-500 mt-2'>
                                             Invalid value (must be 0-0.25 ecc..)
-                                        </p>)}
-                                    {invalidTimeRange.includes(key) && (
-                                        <p className='text-red-500 mt-2'>
-                                            Invalid value (must be &gt;= 0 and &lt;= 24)
                                         </p>)}
                                 </div>
                             ))}
