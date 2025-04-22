@@ -3,12 +3,13 @@ import { useMediaQuery } from "../../hooks/commons";
 import { DndContext, DragOverlay, closestCenter } from "@dnd-kit/core";
 import { TimeEntry, Task } from "../../restapi/types";
 import { Draggable } from "./Draggable";
-import { useGetTask } from "../../hooks/timesheet";
+import { useGetTimesheet } from "../../hooks/timesheet"; // Changed hook name to match new structure
 import { Martini } from "lucide-react";
 import React from "react";
 import { Droppable } from "./Droppable";
 import { formatDate } from "./Krm3Calendar";
 import { TotalHourCell } from "./TotalHour";
+
 
 interface Props {
     setOpenTimeEntryModal: (open: boolean) => void;
@@ -17,16 +18,19 @@ interface Props {
     setSkippedDays: (days: Date[]) => void;
     setIsDayEntry: (isDayEntry: boolean) => void;
     setStartDate: (date: Date) => void;
-    weekDays: Date[];
+    setTimeEntries: (entries: TimeEntry[]) => void;
+    scheduleDays: { days: Date[], numberOfDays: number };
 }
+
 export function TimeSheetTable(props: Props) {
     const defaultView = localStorage.getItem("isColumnView");
+    const isMonthView = props.scheduleDays.numberOfDays > 7;
     const isSmallScreen = useMediaQuery('(max-width: 768px)');
     const [isColumnView, setIsColumnView] = useState((defaultView === "true") || false);
 
-    const startDate = props.weekDays[0].toISOString().split('T')[0]; // Start date
-    const endDate = props.weekDays[props.weekDays.length - 1].toISOString().split('T')[0]; // End date
-    const { data: tasks, isLoading: isLoadingTasks } = useGetTask(startDate, endDate);
+    const startDate = props.scheduleDays.days[0].toISOString().split('T')[0]; // Start date
+    const endDate = props.scheduleDays.days[props.scheduleDays.numberOfDays - 1].toISOString().split('T')[0]; // End date
+    const { data: timesheet, isLoading: isLoadingTimesheet } = useGetTimesheet(startDate, endDate);
 
     const [activeId, setActiveId] = useState<string | null>(null);
     const [activeDragData, setActiveDragData] = useState<{
@@ -52,7 +56,7 @@ export function TimeSheetTable(props: Props) {
         }
     }, [isSmallScreen]);
 
-    if (isLoadingTasks) {
+    if (isLoadingTimesheet) {
         return <div>Loading...</div>;
     }
 
@@ -66,20 +70,30 @@ export function TimeSheetTable(props: Props) {
         const end = new Date(endDate);
         const days: Date[] = [];
 
-        let currentDate = new Date(start);
-        while (currentDate <= end) {
+        start.setHours(0, 0, 0, 0);
+        end.setHours(0, 0, 0, 0);
+
+        for (let currentDate = new Date(start); currentDate <= end; currentDate.setDate(currentDate.getDate() + 1)) {
             days.push(new Date(currentDate));
-            currentDate.setDate(currentDate.getDate() + 1);
         }
         return days;
     };
 
-
-    const isHoliday = (task: Task, day: Date) => {
-        if (!task.timeEntries) return false;
-        return holidayDays.includes(day);
+    // Function to get time entries for a specific task and day
+    const getTimeEntriesForTaskAndDay = (taskId: number, day: Date): TimeEntry[] => {
+        if (!timesheet || !timesheet.timeEntries) return [];
+        
+        return timesheet.timeEntries.filter(entry => 
+            entry.taskId === taskId && 
+            normalizeDate(entry.date) === normalizeDate(day)
+        );
     };
 
+    const isHoliday = (day: Date) => {
+        return holidayDays.some(holiday => 
+            normalizeDate(holiday) === normalizeDate(day)
+        );
+    };
 
     //DRAG AND DROP IMPLEMENTATION
     function handleDragStart(event: any) {
@@ -91,7 +105,7 @@ export function TimeSheetTable(props: Props) {
         // Check if this is a column header drag
         if (active.id.startsWith('column-')) {
             const dayIndex = Number(active.id.replace('column-', ''));
-            const columnDay = props.weekDays[dayIndex];
+            const columnDay = props.scheduleDays.days[dayIndex];
 
             setActiveDragData({
                 columnDay: columnDay
@@ -100,10 +114,11 @@ export function TimeSheetTable(props: Props) {
             setActiveId(active.id);
             setDraggedColumnIndex(dayIndex);
             setHighlightedColumnIndexes([dayIndex]);
-            props.setStartDate(new Date(date));
-         
+            setDraggedOverCells([columnDay]);
+            props.setStartDate(new Date(columnDay));
             return;
         }
+        
         // Check if this is a timeEntry drag or an empty cell drag
         if (active.id.includes('-')) {
             const parts = active.id.split('-');
@@ -113,15 +128,18 @@ export function TimeSheetTable(props: Props) {
                 taskId = Number(taskIdStr);
 
                 // Find the timeEntry being dragged
-                const task = tasks?.find(t => t.id === taskId);
-                if (!task) return;
-
-                const timeEntry = task.timeEntries.find(entry => entry.id === Number(entryId));
+                if (!timesheet) return;
+                
+                const timeEntry = timesheet.timeEntries.find(entry => 
+                    entry.id === Number(entryId) && entry.taskId === taskId
+                );
+                
                 if (!timeEntry) return;
 
                 date = timeEntry.date;
-                
+
                 props.setStartDate(new Date(date));
+                console.log("startDate", date);
                 setActiveDragData({
                     timeEntry,
                     taskId,
@@ -146,35 +164,34 @@ export function TimeSheetTable(props: Props) {
     function handleDragEnd(event: any) {
         const { over } = event;
 
-        if (over && activeDragData) {
+        if (over && activeDragData && timesheet) {
             if (dragType === 'column') {
                 // Handle column drag end
                 if (over.id.startsWith('column-')) {
                     const targetDayIndex = Number(over.id.replace('column-', ''));
-                    const targetDay = props.weekDays[targetDayIndex].toISOString().split('T')[0];
+                    const targetDay = props.scheduleDays.days[targetDayIndex].toISOString().split('T')[0];
 
                     if (activeDragData.columnDay && targetDay) {
-                        if (tasks && tasks.length > 0) {
+                        if (timesheet.tasks && timesheet.tasks.length > 0) {
                             // Select the first task as representative (modal will apply to all)
-                            props.setSelectedTask(tasks[0]);
-                            // TODO LOGIC FOR AVOID HOLIDAY COLUMNS?
+                            props.setSelectedTask(timesheet.tasks[0]);
+                            // Determine which days to skip (holidays or days with existing entries)
                             props.setSkippedDays(
                                 draggedOverCells.filter(day => {
-                                    const hasTimeEntry = tasks.some(task =>
-                                        task.timeEntries.some(entry => new Date(entry.date).toDateString() === day.toDateString())
+                                    const hasTimeEntry = timesheet.timeEntries.some(entry => 
+                                        normalizeDate(entry.date) === normalizeDate(day)
                                     );
-                                    return holidayDays.includes(day) || hasTimeEntry;
-                                })
-                            );                            
-                            props.setSelectedCells(
-                                draggedOverCells.filter(day => {
-                                    const hasTimeEntry = tasks.some(task =>
-                                        task.timeEntries.some(entry => new Date(entry.date).toDateString() === day.toDateString())
-                                    );
-                                    return !holidayDays.includes(day) && !hasTimeEntry;
+                                    return isHoliday(day) || hasTimeEntry;
                                 })
                             );
-
+                            props.setSelectedCells(
+                                draggedOverCells.filter(day => {
+                                    const hasTimeEntry = timesheet.timeEntries.some(entry => 
+                                        normalizeDate(entry.date) === normalizeDate(day)
+                                    );
+                                    return !isHoliday(day) && !hasTimeEntry;
+                                })
+                            );
 
                             props.setOpenTimeEntryModal(true);
                             props.setIsDayEntry(true);
@@ -186,10 +203,11 @@ export function TimeSheetTable(props: Props) {
                 // Only open modal if taskId matches
                 if (activeDragData.taskId && Number(targetTaskId) === activeDragData.taskId) {
                     if (activeDragData.startDate) {
-                        const task = tasks?.find(t => t.id === activeDragData.taskId);
+                        const task = timesheet.tasks?.find(t => t.id === activeDragData.taskId);
                         if (task) {
                             props.setSelectedTask(task);
-                            props.setSelectedCells(draggedOverCells.filter(day => !holidayDays.includes(day)));
+                            props.setTimeEntries(timesheet.timeEntries);
+                            props.setSelectedCells(draggedOverCells.filter(day => !isHoliday(day)));
                             props.setOpenTimeEntryModal(true);
                             props.setIsDayEntry(false);
                         }
@@ -224,8 +242,7 @@ export function TimeSheetTable(props: Props) {
                         const daysToHighlight = [];
                         const columnsToHighlight = [];
                         for (let i = start; i <= end; i++) {
-                            // TODO LOGIC FOR AVOID HOLIDAY COLUMNS?
-                            daysToHighlight.push(props.weekDays[i]);
+                            daysToHighlight.push(props.scheduleDays.days[i]);
                             columnsToHighlight.push(i);
                         }
 
@@ -238,7 +255,6 @@ export function TimeSheetTable(props: Props) {
 
             // Handle existing cell drag move logic
             const [targetDate, targetTaskId] = over.id.split('-');
-
             // Only track if dragging over the same task
             if (activeDragData.taskId && Number(targetTaskId) === activeDragData.taskId) {
                 const startDate = activeDragData.startDate;
@@ -250,7 +266,6 @@ export function TimeSheetTable(props: Props) {
                     } else {
                         allDays = getDaysBetween(targetDate, startDate);
                     }
-
                     setDraggedOverCells(allDays);
                 }
             }
@@ -258,7 +273,7 @@ export function TimeSheetTable(props: Props) {
     }
 
     const isCellInDragRange = (day: Date, taskId: number) => {
-        // Check if the cell is in the dragged range, only for date because the time can
+        // Check if the cell is in the dragged range
         return (
             activeDragData?.taskId === taskId &&
             draggedOverCells.some((draggedDay) => {
@@ -278,8 +293,15 @@ export function TimeSheetTable(props: Props) {
 
     const openTimeEntryModalHandler = (task: Task, day: Date) => {
         props.setSelectedTask(task);
+        props.setTimeEntries(timesheet?.timeEntries || []);
         props.setSelectedCells([day]);
         props.setOpenTimeEntryModal(true);
+    }
+
+    const isTaskFinished = (currentDay: Date, task: Task) => {
+        // Check if the task is finished based on the current date and task dates
+        return currentDay.getTime() < new Date(task.startDate).getTime() || 
+               (task.endDate && currentDay.getTime() > new Date(task.endDate).getTime());
     }
 
     return (
@@ -316,82 +338,94 @@ export function TimeSheetTable(props: Props) {
                     </div>
                 )}
                 <div className={`grid gap-2 ${isColumnView ? "grid-flow-column" : "grid-flow-row"}`}>
-                    <div className={`grid ${isColumnView ? "grid-rows-8 grid-flow-col" : "grid-cols-8 grid-flow-row"} gap-0`}>
-                        <div className="bg-gray-100 p-2 font-semibold">Tasks</div>
-                        {props.weekDays.map((day, index) => (
+                    <div className={`grid ${isColumnView
+                        ? `grid-rows-${props.scheduleDays.numberOfDays + 1} grid-flow-col`
+                        : `grid-cols-${props.scheduleDays.numberOfDays + 1} grid-flow-row`} gap-0`}>
+                        <div className={`bg-gray-100 p-2 font-semibold border-1 border-gray-300 ${isMonthView ? 'text-xs' : 'text-sm'}`}>Tasks</div>
+                        {props.scheduleDays.days.map((day, index) => (
                             <Droppable key={index} id={`column-${index}`}>
                                 <Draggable id={`column-${index}`}>
-                                    <div className={`bg-gray-100 p-2 font-semibold
-                                    ${isColumnActive(index) ? 'bg-blue-200' : ''}
-                                    ${isColumnHighlighted(index) ? 'bg-blue-100 border-t-1 border-x-1 border-blue-400' : ''}`}>
-                                        {formatDate(day)}
-                                    </div>
-                                    <div className={`bg-gray-100 p-2 font-semibold 
-                                    ${isColumnActive(index) ? 'bg-blue-200' : ''}
-                                    ${isColumnHighlighted(index) ? 'bg-blue-100 border-b-1 border-x-1 border-blue-400' : ''}`}>
-                                        <TotalHourCell day={day} tasks={tasks} />
+                                    <div className={`bg-gray-100 font-semibold ${isMonthView ? 'text-xs p-1' : 'text-sm p-2'} text-center 
+                                        ${isColumnActive(index) ? 'bg-blue-200' : ''}
+                                        ${isColumnHighlighted(index) ? 'bg-blue-100 border-blue-400' : 'border-gray-300'} border-t-1 border-x-1`}>
+                                        <div>
+                                            {formatDate(day, isMonthView && !isColumnView)}
+                                        </div>
+                                        <div className={`bg-gray-100 font-semibold ${isMonthView ? 'text-xs pb-2' : 'text-sm'} text-center`}>
+                                            <TotalHourCell 
+                                                day={day} 
+                                                timeEntries={timesheet?.timeEntries || []} 
+                                                isMonthView={isMonthView} 
+                                                isColumnView={isColumnView}
+                                            />
+                                        </div>
                                     </div>
                                 </Draggable>
                             </Droppable>
                         ))}
-                        {tasks?.length === 0 && (
+                        {!timesheet?.tasks || timesheet.tasks.length === 0 && (
                             <div className="bg-gray-50 p-2">
                                 No tasks available
                             </div>
                         )}
-                        {tasks?.map((task) => (
+                        {timesheet?.tasks?.map((task) => (
                             <React.Fragment key={task.id}>
-                                <div className="bg-gray-50 p-2">
-                                    <div>{task.title}</div>
-                                    <div className="text-xs text-gray-500">{task.projectName}</div>
+                                <div className={`p-2 ${isMonthView ? "min-w-10 py-1" : "bg-gray-50"} border-1 border-gray-300 relative group`}>
+                                    <div className={`${isMonthView ? "text-xs font-medium truncate" : ""}`}>{task.title}</div>
+                                    <div className={`text-xs ${isMonthView ? "hidden" : "text-gray-500"}`}>{task.projectName}</div>
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block bg-white border-1 border-gray-300 text-xs rounded px-2 py-1 z-10">
+                                        {task.title} - {task.projectName}
+                                    </div>
                                 </div>
-
-                                {props.weekDays.map((day, dayIndex) => {
+                                {props.scheduleDays.days.map((day, dayIndex) => {
                                     const cellId = `${day.toDateString()}-${task.id}`;
                                     const isInDragRange = isCellInDragRange(day, task.id);
                                     const isInColumnHighlight = isColumnHighlighted(dayIndex);
-                                    if (isHoliday(task, day)) {
+                                    
+                                    if (isHoliday(day)) {
                                         return (
-                                            <div key={dayIndex} className="border border-gray-200 p-2 min-h-16">
-                                                <div className="bg-gradient-to-r from-cyan-100 to-blue-300 p-2 h-full rounded flex justify-center items-center">
-                                                    <Martini color="white" />
+                                            <div key={dayIndex} className={`border border-gray-200 ${isMonthView ? 'p-1' : 'p-2'} h-full w-full`}>
+                                                <div className={`bg-gradient-to-r from-cyan-100 to-blue-300 ${isMonthView ? 'p-1 min-h-6' : 'p-2'} h-full rounded flex justify-center items-center`}>
+                                                    <Martini color="white" size={isMonthView ? 12 : 16} />
                                                 </div>
                                             </div>
                                         );
                                     }
-                                    // Check if the cell is outside the task's date range   
+                                    
                                     const currentDay = new Date(day);
                                     currentDay.setHours(0, 0, 0, 0);
+                                    
                                     if (isTaskFinished(currentDay, task)) {
                                         return (
-                                            <div key={dayIndex} className="border border-gray-200 p-2 min-h-16">
-                                                <div className="bg-gradient-to-r from-gray-100 to-gray-300 p-2 h-full rounded flex justify-center items-center">
-                                                    <span className="text-xs text-gray-400">Task Finished</span>
+                                            <div key={dayIndex} className={`border border-gray-200 ${isMonthView ? 'p-1' : 'p-2'} h-full w-full`}>
+                                                <div className={`bg-gradient-to-r from-gray-100 to-gray-300 ${isMonthView ? 'min-h-6' : ''} h-full rounded flex justify-center items-center`}>
+                                                    <span className={`text-xs text-gray-400`}>N/A</span>
                                                 </div>
                                             </div>
                                         );
                                     }
 
-                                    const timeEntries = task.timeEntries.filter(
-                                        entry => entry.date === day.toISOString().split('T')[0]
-                                    );
+                                    const timeEntries = getTimeEntriesForTaskAndDay(task.id, day);
+                                    
                                     return (
                                         <Droppable key={dayIndex} id={cellId}>
                                             <div
                                                 onClick={() => openTimeEntryModalHandler(task, day)}
-                                                className={`border p-2 min-h-16 cursor-pointer
-                                                    ${isInDragRange ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
-                                                    ${isInColumnHighlight ? 'bg-blue-50 border-blue-300' : ''}`}
+                                                className={`border ${isMonthView ? 'p-1' : 'p-2'} h-full w-full cursor-pointer 
+                                                            ${isInDragRange ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
+                                                            ${isInColumnHighlight ? 'bg-blue-50 border-blue-300' : ''}`}
                                             >
                                                 {timeEntries.length > 0 ? (
-                                                    timeEntries.map(entry => (
-                                                        <div key={entry.id}>
-                                                            {renderTimeEntry(entry, task)}
-                                                        </div>
-                                                    ))
+                                                    <div className={`h-full w-full ${isMonthView ? 'space-y-0.5' : 'space-y-1'}`}>
+                                                        {timeEntries.map(entry => (
+                                                            <div key={entry.id}>
+                                                                {renderTimeEntry(entry, task.id, isMonthView)}
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 ) : (
                                                     <div className="h-full w-full">
-                                                        {renderEmptyCell(day, task)}
+                                                        {renderEmptyCell(day, task.id, isMonthView)}
                                                     </div>
                                                 )}
                                             </div>
@@ -411,42 +445,36 @@ export function TimeSheetTable(props: Props) {
                             </span>
                         </div>
                     )}
-                    {activeId && dragType === 'column' && (
-                        <div className=" p-2 rounded opacity-80 font-semibold">
-                            {activeDragData?.columnDay && formatDate(activeDragData.columnDay)}
-                        </div>
-                    )}
                 </DragOverlay>
             </DndContext>
         </>
     );
 }
 
-const renderTimeEntry = (entry: TimeEntry, task: Task) => {
-    const entryId = `${entry.id}-${task.id}`;
-
+const renderTimeEntry = (entry: TimeEntry, taskId: number, isMonthView = false) => {
+    const entryId = `${entry.id}-${taskId}`;
     return (
         <Draggable id={entryId}>
-            <div className="bg-blue-100 p-2 h-full rounded">
+            <div className={`bg-blue-100 ${isMonthView ? 'p-1' : 'p-2'} h-full rounded`}>
                 <span className="text-xs">{entry.workHours}h</span>
             </div>
         </Draggable>
     );
 };
 
-const renderEmptyCell = (day: Date, task: Task) => {
-    const emptyCellId = `${day.toDateString()}-${task.id}-empty`;
-
+const renderEmptyCell = (day: Date, taskId: number, isMonthView = false) => {
+    const emptyCellId = `${day.toDateString()}-${taskId}-empty`;
     return (
         <Draggable id={emptyCellId}>
-            <div className="h-full w-full border-2 border-dashed border-gray-200 rounded-md flex items-center justify-center">
+            <div className={`h-full w-full border-2 border-dashed border-gray-200 rounded-md flex items-center justify-center ${isMonthView ? 'min-h-6' : ''}`}>
                 <span className="text-gray-400 text-xs">+</span>
             </div>
         </Draggable>
     );
 };
 
-function isTaskFinished(currentDay: Date, task: Task) {
-    return currentDay.getTime() < new Date(task.startDate).getTime() || (task.endDate && currentDay.getTime() > new Date(task.endDate).getTime());
-}
-
+const normalizeDate = (date: Date | string): string => {
+    // Utility function to normalize dates by removing time components
+    const d = typeof date === 'string' ? new Date(date) : date;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};

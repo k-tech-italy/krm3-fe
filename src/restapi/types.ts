@@ -167,7 +167,6 @@ export interface Task {
     workPrice?: number;
     onCallPrice?: number;
     travelPrice?: number;
-    timeEntries: TimeEntry[];
     projectName?: string;
 };
 
@@ -188,3 +187,8 @@ export interface TimeEntry {
     comment?: string;
     metaData?: JSON;
 };
+ export interface Timesheet {
+    tasks: Task[];
+    timeEntries: TimeEntry[];
+  }
+  

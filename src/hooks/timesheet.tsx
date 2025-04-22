@@ -16,7 +16,7 @@ export function useCreateTimeEntry() {
         });
 }
 
-export function useGetTask(startDate: string, endDate: string) {
+export function useGetTimesheet(startDate: string, endDate: string) {
     const resourceId = useGetCurrentUser()?.resource.id;
     return useQuery(['task', resourceId, startDate, endDate], () => {
         if (resourceId !== undefined) {

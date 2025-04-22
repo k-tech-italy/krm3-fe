@@ -1,4 +1,4 @@
-import { Task } from "../../restapi/types";
+import { Task, TimeEntry } from "../../restapi/types";
 import React, { useState } from "react";
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { formatDate } from "./Krm3Calendar";
@@ -7,19 +7,20 @@ import ConfirmationModal from "../commons/ConfirmationModal.tsx";
 interface Props {
     selectedDates: Date[]
     task: Task
+    timeEntries: TimeEntry[]
     startDate: Date
     closeModal: () => void
 }
 
-export default function EditTimeEntry({ selectedDates, task, closeModal, startDate }: Props) {
+export default function EditTimeEntry({ selectedDates, task, timeEntries, closeModal, startDate }: Props) {
 
     const formattedStartDate = startDate.getFullYear() + "-" +
         String(startDate.getMonth() + 1).padStart(2, '0') + "-" +
         String(startDate.getDate()).padStart(2, '0');
 
-    const startEntry = task.timeEntries.find(item => item.date === formattedStartDate);
+    const startEntry = timeEntries.find(item => item.date === formattedStartDate);
 
-    const [timeEntries, setTimeEntries] = useState(
+    const [timeEntryData, setTimeEntryData] = useState(
         {
             workHours: startEntry ? startEntry.workHours : '8',
             overtimeHours: startEntry ? startEntry.overtimeHours : '0',
@@ -48,7 +49,7 @@ export default function EditTimeEntry({ selectedDates, task, closeModal, startDa
     const [totalHoursExceeded, setTotalHoursExceeded] = useState(false);
 
     const [daysWithTimeEntries, setDaysWithTimeEntries] = useState(
-        task.timeEntries ? selectedDates.filter(selectedDate => task.timeEntries.find(
+        timeEntries ? selectedDates.filter(selectedDate => timeEntries.find(
             timeEntry => timeEntry.date == selectedDate.toLocaleDateString('sv-SE').slice(0, 10))) : []
     )
 

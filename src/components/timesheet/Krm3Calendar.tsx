@@ -1,12 +1,22 @@
 import { useState, useMemo } from "react";
-import { Task } from "../../restapi/types";
+import { Task, TimeEntry } from "../../restapi/types";
 import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
 import Krm3Modal from "../commons/krm3Modal";
 import EditTimeEntry from "./EditTimeEntry";
 import { TimeSheetTable } from "./TimesheetTable";
 import EditDayEntry from "./edit-day/EditDayEntry";
 
-export const formatDate = (date: Date) => {
+export const formatDate = (date: Date, isDay?: boolean, isMonthName?: boolean) => {
+    if (isDay) {
+        return date.toLocaleDateString('en-US', {
+            day: 'numeric',
+        });
+    }
+    if (isMonthName) {
+        return date.toLocaleDateString('en-US', {
+            month: 'long',
+        });
+    }
     return date.toLocaleDateString('en-US', {
         weekday: 'short',
         month: 'short',
@@ -18,9 +28,11 @@ export default function Krm3Calendar() {
     const [selectedCells, setSelectedCells] = useState<Date[] | undefined>();
     const [skippedDays, setSkippedDays] = useState<Date[]>([]);
     const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
+    const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
     const [openTimeEntryModal, setOpenTimeEntryModal] = useState<boolean>(false);
     const [isDayEntry, setIsDayEntry] = useState<boolean>(false);
     const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+    const [isMonth, setIsMonth] = useState<boolean>(false);
 
     const [currentWeekStart, setCurrentWeekStart] = useState(() => {
         const today = new Date();
@@ -29,26 +41,46 @@ export default function Krm3Calendar() {
         return new Date(today.setDate(diff));
     });
 
-
-    const weekDays = useMemo(() => {
+    const scheduledDays = useMemo(() => {
         const days = [];
-        for (let i = 0; i < 7; i++) {
-            const day = new Date(currentWeekStart);
-            day.setDate(currentWeekStart.getDate() + i);
+        const currentMonth = currentWeekStart.getMonth();
+        const monthLength = new Date(currentWeekStart.getFullYear(), currentMonth + 1, 0).getDate();
+        let numberOfDays = 7;
+
+        if (isMonth) {
+            numberOfDays = monthLength;
+        }
+        for (let i = 0; i < numberOfDays; i++) {
+            const day = isMonth
+                ? new Date(currentWeekStart.getFullYear(), currentMonth, i + 1)
+                : new Date(currentWeekStart);
+
+            if (!isMonth) {
+                day.setDate(currentWeekStart.getDate() + i);
+            }
             days.push(day);
         }
-        return days;
-    }, [currentWeekStart]);
+        return { days, numberOfDays };
+    }, [currentWeekStart, isMonth]);
+
 
     const navigatePrev = () => {
         const newDate = new Date(currentWeekStart);
-        newDate.setDate(currentWeekStart.getDate() - 7);
+        if (isMonth) {
+            newDate.setMonth(currentWeekStart.getMonth() - 1);
+        } else {
+            newDate.setDate(currentWeekStart.getDate() - 7);
+        }
         setCurrentWeekStart(newDate);
     };
 
     const navigateNext = () => {
         const newDate = new Date(currentWeekStart);
-        newDate.setDate(currentWeekStart.getDate() + 7);
+        if (isMonth) {
+            newDate.setMonth(currentWeekStart.getMonth() + 1);
+        } else {
+            newDate.setDate(currentWeekStart.getDate() + 7);
+        }
         setCurrentWeekStart(newDate);
     };
 
@@ -65,6 +97,7 @@ export default function Krm3Calendar() {
     //     setTasks([...tasks, newTask]);
     // };
 
+
     return (
         <div className="p-4">
             <div className="flex justify-between items-center mb-4">
@@ -75,7 +108,7 @@ export default function Krm3Calendar() {
                     <ArrowBigLeft />
                 </button>
                 <span className="font-medium">
-                    {formatDate(weekDays[0])} - {formatDate(weekDays[6])}
+                    {isMonth ? formatDate(scheduledDays.days[0], false, isMonth) : `${formatDate(scheduledDays.days[0])} - ${formatDate(scheduledDays.days[6])}`}
                 </span>
                 <button
                     onClick={navigateNext}
@@ -85,22 +118,23 @@ export default function Krm3Calendar() {
                 </button>
             </div>
 
-            {/* <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-4">
                 <button
-                    onClick={addNewTask}
+                    onClick={() => { setIsMonth(!isMonth) }}
                     className="px-4 py-2 bg-yellow-500 text-white rounded"
                 >
-                    Add New Task
+                    {isMonth ? "Week" : "Month"}
                 </button>
-            </div> */}
+            </div>
             <TimeSheetTable
                 setOpenTimeEntryModal={setOpenTimeEntryModal}
                 setSelectedTask={setSelectedTask}
+                setTimeEntries={setTimeEntries}
                 setSelectedCells={setSelectedCells}
                 setSkippedDays={setSkippedDays}
                 setIsDayEntry={setIsDayEntry}
                 setStartDate={setStartDate}
-                weekDays={weekDays}
+                scheduleDays={scheduledDays}
             />
             {openTimeEntryModal && selectedCells && selectedTask && startDate && (
                 <Krm3Modal
@@ -112,7 +146,7 @@ export default function Krm3Calendar() {
                                 isDayEntry ? (
                                     <EditDayEntry selectedDays={selectedCells} skippedDays={skippedDays} onClose={() => { setOpenTimeEntryModal(false); setSelectedCells(undefined) }} />
                                 ) : (
-                                    <EditTimeEntry selectedDates={selectedCells} startDate={startDate} task={selectedTask} closeModal={() => { setOpenTimeEntryModal(false) }} />
+                                    <EditTimeEntry selectedDates={selectedCells} startDate={startDate} task={selectedTask} timeEntries={timeEntries} closeModal={() => { setOpenTimeEntryModal(false) }} />
                                 )}
                         </>
                     }
