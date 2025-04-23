@@ -1,4 +1,4 @@
-import { Task } from "../../restapi/types";
+import { Task, TimeEntry } from "../../restapi/types";
 import React, { useState } from "react";
 import { ChevronDown, Trash2 } from 'lucide-react';
 import { formatDate } from "./Krm3Calendar";
@@ -7,19 +7,22 @@ import ConfirmationModal from "../commons/ConfirmationModal.tsx";
 interface Props {
     selectedDates: Date[]
     task: Task
+    timeEntries: TimeEntry[]
     startDate: Date
     closeModal: () => void
 }
 
-export default function EditTimeEntry({ selectedDates, task, closeModal, startDate }: Props) {
+export default function EditTimeEntry({ selectedDates, task, timeEntries, closeModal, startDate }: Props) {
+    console.log(timeEntries)
 
     const formattedStartDate = startDate.getFullYear() + "-" +
         String(startDate.getMonth() + 1).padStart(2, '0') + "-" +
         String(startDate.getDate()).padStart(2, '0');
 
-    const startEntry = task.timeEntries.find(item => item.date === formattedStartDate);
+    const startEntry = timeEntries.find(
+        item => item.date === formattedStartDate && item.task == task.id);
 
-    const [timeEntries, setTimeEntries] = useState(
+    const [timeEntryData, setTimeEntryData] = useState(
         {
             workHours: startEntry ? startEntry.workHours : '8',
             overtimeHours: startEntry ? startEntry.overtimeHours : '0',
@@ -27,14 +30,14 @@ export default function EditTimeEntry({ selectedDates, task, closeModal, startDa
             onCallHours: startEntry ? startEntry.onCallHours : '0',
             restHours: startEntry ? startEntry.restHours : '0'
         })
-    const hoursLabel: Record<keyof typeof timeEntries, string> = {
+
+    const hoursLabel: Record<keyof typeof timeEntryData, string> = {
         workHours: 'Worked hours',
         overtimeHours: 'Overtime hours',
         travelHours: 'Travel hours',
         onCallHours: 'On-call hours',
         restHours: 'Rest hours'
     }
-
     const [comment, setComment] = useState(startEntry ? startEntry.comment : '')
     const times = [1, 2, 4, 8];
 
@@ -48,8 +51,9 @@ export default function EditTimeEntry({ selectedDates, task, closeModal, startDa
     const [totalHoursExceeded, setTotalHoursExceeded] = useState(false);
 
     const [daysWithTimeEntries, setDaysWithTimeEntries] = useState(
-        task.timeEntries ? selectedDates.filter(selectedDate => task.timeEntries.find(
-            timeEntry => timeEntry.date == selectedDate.toLocaleDateString('sv-SE').slice(0, 10))) : []
+        timeEntryData ? selectedDates.filter(selectedDate => timeEntries.find(
+            timeEntry => timeEntry.date == selectedDate.toLocaleDateString('sv-SE').slice(0, 10)
+        && timeEntry.task == task.id)) : []
     )
 
     const isClearButtonVisible = (
@@ -60,7 +64,7 @@ export default function EditTimeEntry({ selectedDates, task, closeModal, startDa
     const [isClearModalOpened, setIsClearModalOpened] = useState(false)
 
 
-    const validateInput = (numberOfHours: string, key: keyof typeof timeEntries) =>
+    const validateInput = (numberOfHours: string, key: keyof typeof timeEntryData) =>
     {
         if (invalidTimeFormat.includes(key)) {
             setInvalidTimeFormat(invalidTimeFormat.filter((item) => item !== key))
@@ -90,14 +94,14 @@ export default function EditTimeEntry({ selectedDates, task, closeModal, startDa
 
     }
 
-    const handleChangeHourInput = (value: string, key: keyof typeof timeEntries) => {
-        setTimeEntries({ ...timeEntries, [key]: value })
+    const handleChangeHourInput = (value: string, key: keyof typeof timeEntryData) => {
+        setTimeEntryData({ ...timeEntryData, [key]: value })
 
         setTotalHoursExceeded(false)
 
         validateInput(value, key);
 
-        const totalHours = Number(Object.values({ ...timeEntries, [key]: value }).reduce((acc, curr) => Number(acc) + Number(curr), 0))
+        const totalHours = Number(Object.values({ ...timeEntryData, [key]: value }).reduce((acc, curr) => Number(acc) + Number(curr), 0))
         if (totalHours > 24) {
             setTotalHoursExceeded(true)
         }
@@ -151,10 +155,10 @@ export default function EditTimeEntry({ selectedDates, task, closeModal, startDa
                         <button
                             key={idx}
                             className={`border rounded-md py-2 w-[24%] cursor-pointer mr-[1%] border-gray-300
-                            ${Number(timeEntries.workHours) == time ? "bg-yellow-100 border-yellow-500 text-yellow-700" : 
+                            ${Number(timeEntryData.workHours) == time ? "bg-yellow-100 border-yellow-500 text-yellow-700" : 
                                 "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"}`}
                             onClick={() => {
-                                setTimeEntries({...timeEntries, workHours: String(time)})
+                                setTimeEntryData({...timeEntryData, workHours: String(time)})
                             }}>
                             {time}
                         </button>
@@ -180,21 +184,21 @@ export default function EditTimeEntry({ selectedDates, task, closeModal, startDa
                     </div>
                     {isDetailedViewOpened && (
                         <div className="pb-5">
-                            {(Object.keys(timeEntries) as Array<keyof typeof timeEntries>).map((key) => (
+                            {(Object.keys(timeEntryData) as Array<keyof typeof timeEntryData>).map((key) => (
                                 <div className="px-3" key={key}>
                                     <p className="font-bold mt-1">{hoursLabel[key]}</p>
                                     <input
                                         className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300
                                         ${(invalidTimeFormat.includes(key)) ? 'border border-red-500' : ''}`}
                                         type="text"
-                                        value={timeEntries[key]}
+                                        value={timeEntryData[key]}
                                         onChange={(e) => {
                                             handleChangeHourInput(e.target.value, key)
                                         }
                                         }
                                         onBlur={(e) => {
                                             if (e.target.value === '') {
-                                                setTimeEntries({...timeEntries, [key]: '0'})
+                                                setTimeEntryData({...timeEntryData, [key]: '0'})
                                                 handleChangeHourInput('0', key)
                                             }
                                         }}

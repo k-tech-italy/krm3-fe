@@ -1,11 +1,24 @@
 import { restapi } from "./restapi";
-import { Task } from "./types";
+import { Timesheet } from "./types";
 
-export function getTask(params: { resourceId: number, startDate: string, endDate: string }): Promise<Task[]> {
-    return restapi.get<Task[]>(`timesheet/task/`, {params}).then(res => res.data);
+export function getTimesheet(params: { resourceId: number, startDate: string, endDate: string }): Promise<Timesheet> {
+    return restapi.get<Timesheet>(`timesheet/`, { params }).then(res => res.data);
 }
 
-export function createTimeEntry(params: { resourceId: number, task: number, dates: string[], workHours: number }) {
-    return restapi.post('timesheet/timeentry/', params).then(res => res.data);
+export function createTimeEntry(params: {
+    resourceId: number,
+    task?: number,
+    dates: string[],
+    workHours?: number,
+    sickHours?: number,
+    holidayHours?: number,
+    leaveHours?: number,
+    overtimeHours?: number,
+    travelHours?: number,
+    onCallHours?: number,
+    restHours?: number,
+}) {
+    console.log('createTimeEntry', params);
+    return restapi.post('timesheet/time-entry/', params).then(res => res.data);
 }
 

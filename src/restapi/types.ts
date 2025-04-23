@@ -167,24 +167,28 @@ export interface Task {
     workPrice?: number;
     onCallPrice?: number;
     travelPrice?: number;
-    timeEntries: TimeEntry[];
     projectName?: string;
 };
 
 export interface TimeEntry {
     id: number;
     date: string;
-    taskId: number;
+    task: number;
     lastModified?: string;
-    workHours?: number;
-    sickHours?: number;
-    holidayHours?: number;
-    leaveHours?: number;
-    overtimeHours?: number;
-    travelHours?: number;
-    onCallHours?: number;
-    restHours?: number;
+    workHours: number;
+    sickHours: number;
+    holidayHours: number;
+    leaveHours: number;
+    overtimeHours: number;
+    travelHours: number;
+    onCallHours: number;
+    restHours: number;
     state?: string;
     comment?: string;
     metaData?: JSON;
 };
+ export interface Timesheet {
+    tasks: Task[];
+    timeEntries: TimeEntry[];
+  }
+  
