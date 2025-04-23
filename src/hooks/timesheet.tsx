@@ -1,26 +1,44 @@
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { getMission, getMissions, getResources, getClients, getProjects, getCountries, getCities } from "../restapi/mission";
+import { getMission, getResources, getClients, getProjects, getCountries, getCities } from "../restapi/mission";
 import { AxiosError } from "axios";
 import { useGetCurrentUser } from "./commons";
-import { createTimeEntry, getTask } from "../restapi/timesheet";
+import { createTimeEntry, getTimesheet } from "../restapi/timesheet";
+import { on } from "events";
 
-export function useCreateTimeEntry() {
+export function useCreateTimeEntry(onSuccess: () => void) {
+    const resourceId = useGetCurrentUser()?.resource.id;
     const queryClient = useQueryClient();
-    return useMutation((params: { resourceId: number, task: number, dates: string[], workHours: number }) => createTimeEntry(params),
+    if (resourceId === undefined) {
+        throw new Error('Resource ID is undefined');
+    }
+    return useMutation((params: {
+        task?: number,
+        dates: string[],
+        workHours?: number,
+        sickHours?: number,
+        holidayHours?: number,
+        leaveHours?: number,
+        overtimeHours?: number,
+        travelHours?: number,
+        onCallHours?: number,
+        restHours?: number,
+    }) => createTimeEntry({...params, resourceId}),
         {
             onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: 'task' });
+                queryClient.invalidateQueries({ queryKey: 'timesheet' });
+                onSuccess();
             },
             onError: (error: AxiosError) => {
+            
             },
         });
 }
 
-export function useGetTask(startDate: string, endDate: string) {
+export function useGetTimesheet(startDate: string, endDate: string) {
     const resourceId = useGetCurrentUser()?.resource.id;
-    return useQuery(['task', resourceId, startDate, endDate], () => {
+    return useQuery(['timesheet', resourceId, startDate, endDate], () => {
         if (resourceId !== undefined) {
-            return getTask({
+            return getTimesheet({
                 resourceId,
                 startDate,
                 endDate
