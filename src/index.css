@@ -70,6 +70,9 @@ h2,
 }
 
 
+.grid-cols-8 {
+	grid-template-columns: repeat(8, minmax(0, 1fr));
+}
 
 .grid-cols-28 {
 	grid-template-columns: repeat(28, minmax(0, 1fr));
@@ -89,6 +92,10 @@ h2,
 
 .grid-cols-32 {
 	grid-template-columns: repeat(32, minmax(0, 1fr));
+}
+
+.grid-rows-8 {
+	grid-template-rows: repeat(8, minmax(0, 1fr));
 }
 
 .grid-rows-28 {

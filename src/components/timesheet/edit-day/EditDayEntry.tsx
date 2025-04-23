@@ -84,6 +84,7 @@ export default function EditDayEntry({
   function handleDeleteEntry(event: any): void {
     // Handle the deletion of entries TODO - DELETE API
     event.preventDefault();
+    // TODO - DELETE API with skippedTaskId
     const skippedTaskId = days.skipDays.map((day) => {
         const entry = timeEntries.find(
             (item) => item.date === normalizeDate(day)
@@ -95,7 +96,6 @@ export default function EditDayEntry({
       selDays: [...prev.selDays, ...prev.skipDays],
       skipDays: [],
     }));
-    console.log("Deleting entries for task IDs: ", skippedTaskId);
     setIsOpenConfirmModal(false);
     
   }

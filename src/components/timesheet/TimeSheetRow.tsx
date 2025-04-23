@@ -76,7 +76,7 @@ export function TimeSheetRow(props: Props) {
           borderColor: backgroundColor,
         }}
         className={`p-2 ${
-          props.isMonthView ? "min-w-10 py-1" : ""
+          props.isMonthView ? "py-1" : ""
         } border-1 border-gray-300 relative group`}
       >
         <div

@@ -392,35 +392,31 @@ export function TimeSheetTable(props: Props) {
           </div>
         )}
         <div
-          className={`grid gap-2 ${
-            isColumnView ? "grid-flow-column" : "grid-flow-row"
-          }`}
+          className={`grid gap-0`}
+          style={{
+            gridTemplateColumns: isColumnView
+              ? undefined
+              : `180px repeat(${props.scheduleDays.numberOfDays}, 1fr)`,
+            gridTemplateRows: isColumnView
+              ? `repeat(${props.scheduleDays.numberOfDays + 1}, auto)`
+              : undefined,
+            gridAutoFlow: isColumnView ? "column" : "row",
+          }}
         >
           <div
-            className={`grid ${
-              isColumnView
-                ? `grid-rows-${
-                    props.scheduleDays.numberOfDays + 1
-                  } grid-flow-col`
-                : `grid-cols-${
-                    props.scheduleDays.numberOfDays + 1
-                  } grid-flow-row`
-            } gap-0`}
+            className={` bg-gray-100 p-2 font-semibold border-1 border-gray-300 ${
+              isMonthView ? "text-xs" : "text-sm"
+            } col-span-1`}
           >
-            <div
-              className={`bg-gray-100 p-2 font-semibold border-1 border-gray-300 ${
-                isMonthView ? "text-xs" : "text-sm"
-              }`}
-            >
-              Tasks
-            </div>
-            {props.scheduleDays.days.map((day, index) => (
-              <Droppable key={index} id={`column-${index}`}>
-                <Draggable id={`column-${index}`}>
-                  <div
-                    className={`bg-gray-100 font-semibold ${
-                      isMonthView ? "text-xs p-1" : "text-sm p-2"
-                    } text-center 
+            Tasks
+          </div>
+          {props.scheduleDays.days.map((day, index) => (
+            <Droppable key={index} id={`column-${index}`}>
+              <Draggable id={`column-${index}`}>
+                <div
+                  className={`bg-gray-100 font-semibold ${
+                    isMonthView ? "text-xs p-1" : "text-sm p-2"
+                  } text-center 
                                         ${
                                           isColumnActive(index)
                                             ? "bg-blue-200"
@@ -430,46 +426,45 @@ export function TimeSheetTable(props: Props) {
                                           isColumnHighlighted(index)
                                             ? "bg-blue-100 border-blue-400"
                                             : "border-gray-300"
-                                        } border-t-1 border-x-1`}
+                                        } border-1 hover:border-blue-400 cursor-grab`}
+                >
+                  <div>{formatDate(day, isMonthView && !isColumnView)}</div>
+                  <div
+                    className={`bg-gray-100 font-semibold ${
+                      isMonthView ? "text-xs pb-2" : "text-sm"
+                    } text-center`}
                   >
-                    <div>{formatDate(day, isMonthView && !isColumnView)}</div>
-                    <div
-                      className={`bg-gray-100 font-semibold ${
-                        isMonthView ? "text-xs pb-2" : "text-sm"
-                      } text-center`}
-                    >
-                      <TotalHourCell
-                        day={day}
-                        timeEntries={timesheet?.timeEntries || []}
-                        isMonthView={isMonthView}
-                        isColumnView={isColumnView}
-                      />
-                    </div>
+                    <TotalHourCell
+                      day={day}
+                      timeEntries={timesheet?.timeEntries || []}
+                      isMonthView={isMonthView}
+                      isColumnView={isColumnView}
+                    />
                   </div>
-                </Draggable>
-              </Droppable>
+                </div>
+              </Draggable>
+            </Droppable>
+          ))}
+          {!timesheet?.tasks ||
+            (timesheet.tasks.length === 0 && (
+              <div className="bg-gray-50 p-2">No tasks available</div>
             ))}
-            {!timesheet?.tasks ||
-              (timesheet.tasks.length === 0 && (
-                <div className="bg-gray-50 p-2">No tasks available</div>
-              ))}
-            {timesheet?.tasks?.map((task) => (
-              <TimeSheetRow
-                key={task.id}
-                task={task}
-                scheduleDays={props.scheduleDays.days}
-                isMonthView={isMonthView}
-                isCellInDragRange={isCellInDragRange}
-                isColumnHighlighted={isColumnHighlighted}
-                isHoliday={isHoliday}
-                isSickDay={isSickday}
-                isTaskFinished={isTaskFinished}
-                getTimeEntriesForTaskAndDay={getTimeEntriesForTaskAndDay}
-                isColumnView={isColumnView}
-                openTimeEntryModalHandler={openTimeEntryModalHandler}
-              />
-            ))}
-          </div>
+          {timesheet?.tasks?.map((task) => (
+            <TimeSheetRow
+              key={task.id}
+              task={task}
+              scheduleDays={props.scheduleDays.days}
+              isMonthView={isMonthView}
+              isCellInDragRange={isCellInDragRange}
+              isColumnHighlighted={isColumnHighlighted}
+              isHoliday={isHoliday}
+              isSickDay={isSickday}
+              isTaskFinished={isTaskFinished}
+              getTimeEntriesForTaskAndDay={getTimeEntriesForTaskAndDay}
+              isColumnView={isColumnView}
+              openTimeEntryModalHandler={openTimeEntryModalHandler}
+            />
+          ))}
         </div>
         <DragOverlay>
           {activeId && dragType === "cell" && (
