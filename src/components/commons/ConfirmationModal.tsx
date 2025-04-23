@@ -1,10 +1,10 @@
 import {X} from "lucide-react";
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 
 interface Props {
     open: boolean;
     onClose: () => void;
-    onConfirm: () => void;
+    onConfirm: () => Promise<void>;
     content: React.ReactNode;
     title?: string;
 }
@@ -33,6 +33,7 @@ export default function ConfirmationModal({ open, onClose, onConfirm, content, t
                     <div className="p-6">
                         {content}
                     </div>
+
                     <div className="flex justify-end items-center p-6 space-x-4">
                         <button
                             className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 focus:outline-none"

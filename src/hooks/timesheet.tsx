@@ -9,36 +9,36 @@ import {
 } from "../restapi/mission";
 import { AxiosError } from "axios";
 import { useGetCurrentUser } from "./commons";
-import { createTimeEntry, getTimesheet } from "../restapi/timesheet";
+import { createTimeEntry, getTimesheet, deleteTimeEntries } from "../restapi/timesheet";
+import { on } from "events";
 
 export function useCreateTimeEntry(onSuccess: () => void) {
-  const { data } = useGetCurrentUser();
-  const resourceId = data?.resource.id;
-  const queryClient = useQueryClient();
-  if (resourceId === undefined) {
-    throw new Error("Resource ID is undefined");
-  }
-  return useMutation(
-    (params: {
-      task?: number;
-      dates: string[];
-      workHours?: number;
-      sickHours?: number;
-      holidayHours?: number;
-      leaveHours?: number;
-      overtimeHours?: number;
-      travelHours?: number;
-      onCallHours?: number;
-      restHours?: number;
-    }) => createTimeEntry({ ...params, resourceId }),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: "timesheet" });
-        onSuccess();
-      },
-      onError: (error: AxiosError) => {},
+    const resourceId = useGetCurrentUser()?.resource.id;
+    const queryClient = useQueryClient();
+    if (resourceId === undefined) {
+        throw new Error('Resource ID is undefined');
     }
-  );
+    return useMutation((params: {
+        task?: number,
+        dates: string[],
+        workHours?: number,
+        sickHours?: number,
+        holidayHours?: number,
+        leaveHours?: number,
+        overtimeHours?: number,
+        travelHours?: number,
+        onCallHours?: number,
+        restHours?: number,
+    }) => createTimeEntry({...params, resourceId}),
+        {
+            onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: 'timesheet' });
+                onSuccess();
+            },
+            onError: (error: AxiosError) => {
+            
+            },
+        });
 }
 
 export function useGetTimesheet(startDate: string, endDate: string) {
@@ -69,7 +69,12 @@ export function useGetTimesheet(startDate: string, endDate: string) {
     }
   );
 }
-
+export function useDeleteTimeEntries() {
+    return useMutation<void, AxiosError, number[]>((entryIds) => deleteTimeEntries(entryIds), {
+        onSuccess: () => {},
+        onError: (error: AxiosError) => {},
+    })
+}
 export function useGetResources() {
   const resources = useQuery("resources", () => getResources());
   return resources.data;
