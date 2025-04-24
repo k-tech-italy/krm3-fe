@@ -1,32 +1,26 @@
-# DEV STAGE
-FROM node:22-slim AS dev
+# Stage 1
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
-COPY package.json yarn.lock ./
-RUN yarn install
+COPY ../package.json ../yarn.lock ./
 
-COPY . .
-
-EXPOSE 3000
-
-CMD ["yarn", "start", "--host", "--port", "3000"]
-
-
-
-# PROD STAGE
-FROM node:22-slim AS prod
-
-WORKDIR /app
-
-COPY ./package.json ./yarn.lock ./
 RUN yarn install --frozen-lockfile
 
-COPY . .
+COPY . ./
 RUN yarn build
 
-# RUN yarn global add serve IF YOU WE WANT TO USE SERVE (INTEGRATION TEST?)
+
+# Stage 2
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Install web server
+RUN yarn global add serve
+
+# Only copy the built files
+COPY --from=build /app/dist ./dist
 
 EXPOSE 3000
-
 CMD ["serve", "-s", "dist", "-l", "3000"]

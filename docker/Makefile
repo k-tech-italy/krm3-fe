@@ -8,7 +8,7 @@ DOCKER_REGISTRY?=docker.k-tech.it
 VERSION=$(shell npm pkg get version | xargs)
 DOCKER_IMAGE_FULLNAME=${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${VERSION}
 BUILD_OPTIONS?=--squash
-
+PLATFORM?=linux/amd64
 help:
 	@echo "build: build docker image"
 	@echo "release: release to configured docker registry (${DOCKER_REGISTRY})"
@@ -16,11 +16,19 @@ help:
 build:
 	cd .. && docker build \
 			${BUILD_OPTIONS} \
-			--platform linux/amd64 \
+			--platform ${PLATFORM} \
 			-t ${DOCKER_IMAGE_FULLNAME} \
 			-f docker/Dockerfile \
-			--target prod .
-	docker image ls | grep ${DOCKER_IMAGE_FULLNAME}
+			.
+
+run:
+	@echo "Running ${DOCKER_IMAGE_FULLNAME}"
+	docker run \
+	--platform  ${PLATFORM} \
+	-d \
+	-p 3000:3000 \
+	--name $(DOCKER_IMAGE) ${DOCKER_IMAGE_FULLNAME}
+
 
 registrylogin:  ## Log in to docker
 	@echo "${DOCKER_PWD}" | docker login ${DOCKER_REGISTRY} -u ${DOCKER_USR} --password-stdin
