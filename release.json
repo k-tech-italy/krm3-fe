@@ -1,12 +1,12 @@
 {
     "v1.0.0 - 2025-04-24": {
         "features": [
+            "Initial release of the timesheet component with basic functionality.",
             "Added support for drag-and-drop functionality using @dnd-kit/core and @dnd-kit/modifiers.",
             "Implemented a new timesheet component using grid layout for better performance and flexibility."
         ],
         "fixes": [],
         "release_notes": [
-            "Initial release of the timesheet component with basic functionality.",
             "DELETE and ADD time Entries are NOT Implemented YET."
         ]
     }
