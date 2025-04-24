@@ -2,10 +2,7 @@ version: "3.8"
 
 services:
   krm3_fe:
-    build:
-      context: ../   
-      dockerfile: docker/Dockerfile 
-      target: dev
+    image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${VERSION}
     ports:
       - "3000:3000"
     volumes:

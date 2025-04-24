@@ -1,3 +1,5 @@
+dotenv
+
 nvmrc=~/.nvm/nvm.sh
 source $nvmrc
 nvm use
