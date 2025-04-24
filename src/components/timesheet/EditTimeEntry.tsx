@@ -62,6 +62,14 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
         daysWithTimeEntries.length == 1 && daysWithTimeEntries[0].toLocaleDateString('sv-SE') == startDate.toLocaleDateString('sv-SE')
     )
 
+    // const timeEntriesToDelete = timeEntries.filter((timeEntry) =>
+    // {
+    //     return selectedDates.find((selectedDate) =>
+    //         selectedDate.toLocaleDateString('sv-SE').slice(0, 10) == timeEntry.date)
+    // }).map(timeEntry => (timeEntry.id))
+    // console.log(timeEntriesToDelete)
+
+
     const [isClearModalOpened, setIsClearModalOpened] = useState(false)
 
     const { mutateAsync: deleteTimeEntries, error, isLoading, isSuccess } = useDeleteTimeEntries();

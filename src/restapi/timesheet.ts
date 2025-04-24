@@ -34,7 +34,7 @@ export function deleteTimeEntries(ids: number[]) {
         // }, 2000);
         setTimeout(() => {
             resolve();
-        }, 2000);
+        }, 5000);
     });
     // return restapi.delete('timesheet/timeentry/', {dates: ids});
 }
