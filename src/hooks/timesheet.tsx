@@ -19,7 +19,7 @@ export function useCreateTimeEntry() {
         throw new Error('Resource ID is undefined');
     }
     return useMutation((params: {
-        task?: number,
+        taskId: number,
         dates: string[],
         workHours?: number,
         sickHours?: number,
@@ -29,6 +29,7 @@ export function useCreateTimeEntry() {
         travelHours?: number,
         onCallHours?: number,
         restHours?: number,
+        comment?: string
     }) => createTimeEntry({...params, resourceId}),
         {
             onSuccess: () => {

@@ -13,7 +13,7 @@ export function getTimesheet(params: {
 
 export function createTimeEntry(params: {
   resourceId: number;
-  task?: number;
+  taskId: number;
   dates: string[];
   workHours?: number;
   sickHours?: number;
@@ -23,6 +23,7 @@ export function createTimeEntry(params: {
   travelHours?: number;
   onCallHours?: number;
   restHours?: number;
+  comment?: string;
 }) {
   return restapi.post("timesheet/time-entry/", params).then((res) => res.data);
 }

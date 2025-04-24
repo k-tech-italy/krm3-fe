@@ -3,8 +3,7 @@ import React, { useState } from "react";
 import { ChevronDown, Trash2, LoaderCircle } from 'lucide-react';
 import { formatDate } from "./Krm3Calendar";
 import ConfirmationModal from "../commons/ConfirmationModal.tsx";
-import {useDeleteTimeEntries} from "../../hooks/timesheet.tsx";
-import {useQueryClient} from "react-query";
+import {useDeleteTimeEntries, useCreateTimeEntry} from "../../hooks/timesheet.tsx";
 import {normalizeDate} from "./utils.ts";
 
 interface Props {
@@ -74,6 +73,7 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
     const [isClearModalOpened, setIsClearModalOpened] = useState(false)
 
     const { mutateAsync: deleteTimeEntries, error, isLoading, isSuccess } = useDeleteTimeEntries();
+    const { mutateAsync: createTimeEntries , error: apiError} = useCreateTimeEntry(closeModal);
 
     const validateInput = (numberOfHours: string, key: keyof typeof timeEntryData) =>
     {
@@ -120,7 +120,16 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
     }
 
     const submit = async () => {
-        //TODO add api call when be is ready
+       await createTimeEntries({
+           taskId: task.id,
+           dates: selectedDates.map((date) => normalizeDate(date)),
+           workHours: Number(timeEntryData.workHours),
+           onCallHours: Number(timeEntryData.onCallHours),
+           restHours: Number(timeEntryData.restHours),
+           travelHours: Number(timeEntryData.travelHours),
+           overtimeHours: Number(timeEntryData.overtimeHours),
+           comment: comment
+       })
     }
 
     return (
@@ -285,6 +294,12 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
                 && <p className='text-red-500 mt-2'>
                 Please clear time entries first
             </p>}
+            {apiError &&
+                <p className='text-red-500 mt-2'>
+                    {apiError.status}
+                    {apiError.message}
+                </p>
+            }
 
             <div className="flex justify-end items-center p-6 space-x-4">
                 <button
