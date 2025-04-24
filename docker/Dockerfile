@@ -1,6 +1,8 @@
 # Stage 1
 FROM node:22-alpine AS build
 
+ARG KRM3_FE_API_BASE_URL=/api/v1/
+
 WORKDIR /app
 
 COPY ../package.json ../yarn.lock ./
@@ -9,7 +11,7 @@ RUN yarn install --frozen-lockfile
 
 COPY . ./
 
-RUN KRM3_FE_API_BASE_URL=/api/v1/ yarn build
+RUN KRM3_FE_API_BASE_URL=${KRM3_FE_API_BASE_URL} yarn build
 
 
 # Stage 2

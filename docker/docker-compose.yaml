@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  nginx:
+    image: nginx
+    restart: unless-stopped
+    ports:
+      - "${KRM3_HTTP_PORT:-8888}:80"
+    volumes:
+      - "./nginx/conf.d:/etc/nginx/conf.d:ro"
+  krm3_fe:
+    image: ${DOCKER_IMAGE_FULLNAME}
+    ports:
+      - "${KRM3_FE_PORT:-3000}:3000"

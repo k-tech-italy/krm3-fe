@@ -9,6 +9,9 @@ VERSION=$(shell npm pkg get version | xargs)
 DOCKER_IMAGE_FULLNAME=${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${VERSION}
 BUILD_OPTIONS?=--squash
 PLATFORM?=linux/amd64
+KRM3_HTTP_PORT?=8888
+KRM3_FE_PORT?=3000
+
 help:
 	@echo "build: build docker image"
 	@echo "release: release to configured docker registry (${DOCKER_REGISTRY})"
@@ -42,3 +45,6 @@ save:
 
 release:  registrylogin
 	@docker push ${DOCKER_IMAGE_FULLNAME}
+
+stack:
+	KRM3_HTTP_PORT=${KRM3_HTTP_PORT} KRM3_FE_PORT=${KRM3_FE_PORT} DOCKER_IMAGE_FULLNAME=${DOCKER_IMAGE_FULLNAME} ${DOCKER_COMPOSE} up
