@@ -14,7 +14,6 @@ interface Props {
 }
 
 export default function EditTimeEntry({ selectedDates, task, timeEntries, closeModal, startDate }: Props) {
-    console.log(timeEntries)
 
     const formattedStartDate = startDate.getFullYear() + "-" +
         String(startDate.getMonth() + 1).padStart(2, '0') + "-" +
@@ -64,10 +63,10 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
 
     const timeEntriesToDelete = timeEntries.filter((timeEntry) =>
     {
-        return selectedDates.find((selectedDate) =>
+        return (selectedDates.find((selectedDate) =>
             selectedDate.toLocaleDateString('sv-SE').slice(0, 10) == timeEntry.date)
+        && timeEntry.task == task.id)
     }).map(timeEntry => (timeEntry.id))
-    console.log(timeEntriesToDelete)
 
 
     const [isClearModalOpened, setIsClearModalOpened] = useState(false)
