@@ -13,7 +13,7 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "es2015",
+    "module": "es2020",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
@@ -22,5 +22,5 @@
     "noFallthroughCasesInSwitch": true,
     "jsx": "react-jsx",
     "types": ["vite/client", "vite-plugin-svgr/client"]
-  },
+  }
 }
