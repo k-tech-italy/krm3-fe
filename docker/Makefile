@@ -23,11 +23,13 @@ build:
 
 run:
 	@echo "Running ${DOCKER_IMAGE_FULLNAME}"
-	docker run \
+	docker run --rm \
 	--platform  ${PLATFORM} \
 	-d \
 	-p 3000:3000 \
-	--name $(DOCKER_IMAGE) ${DOCKER_IMAGE_FULLNAME}
+	-e KRM3_FE_API_BASE_URL=http://192.168.1.210:8000/api/v1/ \
+	${DOCKER_IMAGE_FULLNAME}
+	
 
 
 registrylogin:  ## Log in to docker

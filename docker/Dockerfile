@@ -8,7 +8,8 @@ COPY ../package.json ../yarn.lock ./
 RUN yarn install --frozen-lockfile
 
 COPY . ./
-RUN yarn build
+
+RUN KRM3_FE_API_BASE_URL=/api/v1/ yarn build
 
 
 # Stage 2
