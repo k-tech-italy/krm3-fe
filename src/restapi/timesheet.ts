@@ -28,13 +28,6 @@ export function createTimeEntry(params: {
 }
 
 export function deleteTimeEntries(ids: number[]) {
-    return new Promise<void>((resolve, reject) => {
-        // setTimeout(() => {
-        //     reject(new Error("Could not delete time entries"));
-        // }, 2000);
-        setTimeout(() => {
-            resolve();
-        }, 5000);
-    });
-    // return restapi.delete('timesheet/timeentry/', {dates: ids});
+
+  return restapi.post('timesheet/time-entry/clear/', {ids: ids});
 }

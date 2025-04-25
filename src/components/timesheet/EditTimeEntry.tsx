@@ -4,6 +4,7 @@ import { ChevronDown, Trash2, LoaderCircle } from 'lucide-react';
 import { formatDate } from "./Krm3Calendar";
 import ConfirmationModal from "../commons/ConfirmationModal.tsx";
 import {useDeleteTimeEntries} from "../../hooks/timesheet.tsx";
+import {useQueryClient} from "react-query";
 
 interface Props {
     selectedDates: Date[]
@@ -128,6 +129,7 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
                 onConfirm={ !isSuccess ? async () =>
                     {
                         deleteTimeEntries(timeEntriesToDelete)
+
                     }
                      : async () =>
                     {

@@ -36,7 +36,7 @@ export function useCreateTimeEntry(onSuccess: () => void) {
                 onSuccess();
             },
             onError: (error: AxiosError) => {
-            
+
             },
         });
 }
@@ -70,10 +70,19 @@ export function useGetTimesheet(startDate: string, endDate: string) {
   );
 }
 export function useDeleteTimeEntries() {
-    return useMutation<void, AxiosError, number[]>((entryIds) => deleteTimeEntries(entryIds), {
-        onSuccess: () => {},
-        onError: (error: AxiosError) => {},
-    })
+    const queryClient = useQueryClient();
+
+    return useMutation<AxiosResponse, AxiosError, number[]>(
+        (entryIds) => deleteTimeEntries(entryIds),
+        {
+            onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ['timesheet'] });
+            },
+            onError: (error: AxiosError) => {
+
+            },
+        }
+    );
 }
 export function useGetResources() {
   const resources = useQuery("resources", () => getResources());
