@@ -1,17 +1,13 @@
 import { useState } from "react";
-import { useGetCurrentUser } from "../../hooks/commons";
-import { clearToken } from "../../restapi/oauth";
-import { logout } from "../../restapi/user";
+import { useGetCurrentUser, useLogout } from "../../hooks/commons";
 
 export function UserMenu() {
-  const {data: user} = useGetCurrentUser();
+  const { data: user } = useGetCurrentUser();
   const [isOpen, setIsOpen] = useState(false);
+  const { mutate: logoutUser } = useLogout();
 
   function handleLogout() {
-    logout().then(() => {
-      clearToken();
-      window.location.replace("/login");
-    });
+    logoutUser();
   }
 
   function toggleMenu() {

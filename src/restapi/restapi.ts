@@ -1,48 +1,62 @@
-import axios from 'axios';
-import {getToken} from './oauth';
-import applyCaseMiddleware from 'axios-case-converter';
-
+import axios from "axios";
+import { getToken } from "./oauth";
+import applyCaseMiddleware from "axios-case-converter";
 
 // used to temporary bypass Google login
 export const djSessionId = null;
 // export const djSessionId = 's1xslht0h0vzluoak8v3nzpriq7u2w2p';
 
-axios.defaults.xsrfCookieName = 'csrftoken';
-axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+axios.defaults.xsrfCookieName = "csrftoken";
+axios.defaults.xsrfHeaderName = "X-CSRFToken";
 const baseUrl = process.env.KRM3_FE_API_BASE_URL;
 
-
-export const restapi = applyCaseMiddleware(axios.create({
-    baseURL: baseUrl,  // must include '/api/v1/'
+export const restapi = applyCaseMiddleware(
+  axios.create({
+    baseURL: baseUrl, // must include '/api/v1/'
     withCredentials: true,
-}));
+  })
+);
+let isRedirecting = false;
 
-restapi.interceptors.response.use(response => {
+restapi.interceptors.response.use(
+  (response) => {
     return response;
-}, (error) => {
-    if (error.response && (error.response.status >= 403)) {
-        console.warn(error);
-        // TODO:
-        // - store next url in localhost based on current location
-        window.location.replace('/login');
+  },
+  (error) => {
+    if (error.response?.status === 401 && !isRedirecting) {
+      const currentPath = window.location.pathname;
+
+      // Verifica di non essere già sulla pagina di login
+      if (currentPath !== "/login") {
+        isRedirecting = true;
+        window.location.href = "/login";
+
+        setTimeout(() => {
+          isRedirecting = false;
+        }, 2000);
+      }
     }
-
     return Promise.reject(error);
-});
+  }
+);
 
-if (!djSessionId && (process.env.NODE_ENV !== "test")) {  // prevent this from being used in tests
-    restapi.interceptors.request.use(async config => {
-        const c = {...config, headers: config.headers || {}};
-        const token = await getToken();
-        if (token) {
-            c.headers['Authorization'] = `JWT ` + token;//TODO CHECK THIS(ERROR 401)
-        }
-        return c;
-    });
+if (!djSessionId && process.env.NODE_ENV !== "test") {
+  // prevent this from being used in tests
+  restapi.interceptors.request.use(async (config) => {
+    const c = { ...config, headers: config.headers || {} };
+    const token = await getToken();
+    if (token) {
+      c.headers["Authorization"] = `JWT ` + token; //TODO CHECK THIS(ERROR 401)
+    }
+    return c;
+  });
 }
 
-if (djSessionId) {  // set cookie
-    document.cookie = `sessionid=${djSessionId}; path=/;`;
-} else {  // clear cookie
-    document.cookie = "sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+if (djSessionId) {
+  // set cookie
+  document.cookie = `sessionid=${djSessionId}; path=/;`;
+} else {
+  // clear cookie
+  document.cookie =
+    "sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 }

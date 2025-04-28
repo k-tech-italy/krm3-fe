@@ -7,7 +7,7 @@ import {
   loginGoogle,
   loginUser,
 } from "../../restapi/oauth";
-import { useMediaQuery } from "../../hooks/commons";
+import { useGetCurrentUser, useMediaQuery } from "../../hooks/commons";
 
 interface LoginError {
   username?: string;
@@ -22,6 +22,7 @@ interface ValidationResult {
 
 export function Login() {
   const isSmallScreen = useMediaQuery("(max-width: 767.98px)");
+  const { isAuthenticated } = useGetCurrentUser();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -57,6 +58,12 @@ export function Login() {
       setShowLogin(true);
     }
   }, [location, navigate]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/home");
+    }
+  }, [isAuthenticated, navigate]);
 
   const validateForm = (): ValidationResult => {
     const errors: LoginError = {};

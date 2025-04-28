@@ -1,33 +1,66 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "react-query";
-import { getCurrentUser } from "../restapi/user";
-
-
+import { useMutation, useQuery, useQueryClient } from "react-query";
+import { getCurrentUser, logout } from "../restapi/user";
+import { clearToken } from "../restapi/oauth";
+import { AxiosError } from "axios";
 
 export function useGetCurrentUser() {
-    console.log("useGetCurrentUser");
-    const userQuery = useQuery(['user', 'current'], () => getCurrentUser(), {
-        staleTime: Infinity,  // never reload
-        cacheTime: Infinity,  // never reload
-        retry: false,
-        onError: () => window.location.replace('/login')
-    });
-    return userQuery;
+  const queryClient = useQueryClient();
+
+  const userQuery = useQuery(["user", "current"], () => getCurrentUser(), {
+    // Cache data for 5 minutes before considering it stale
+    staleTime: 5 * 60 * 1000,
+    // Keep data in cache for 30 minutes even when not used
+    cacheTime: 30 * 60 * 1000,
+    // Don't retry automatically on errors
+    retry: false,
+ 
+  });
+
+  // Add a utility function to refresh user data
+  const refreshUser = async () => {
+    return queryClient.invalidateQueries(["user", "current"]);
+  };
+
+  // Add a utility function to force logout
+  const clearUser = () => {
+    queryClient.setQueryData(["user", "current"], null);
+  };
+
+  return {
+    ...userQuery,
+    refreshUser,
+    clearUser,
+    isAuthenticated: !!userQuery.data && !userQuery.isError,
+  };
 }
-// Update media query
+
+export function useLogout() {
+  const queryClient = useQueryClient();
+  return useMutation(() => logout(), {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user", "current"] });
+      clearToken();
+      window.location.replace("/login");
+    },
+    onError: (error: AxiosError) => {},
+  });
+}
 
 export const useMediaQuery = (query: string) => {
-    const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
+  const [matches, setMatches] = useState(
+    () => window.matchMedia(query).matches
+  );
 
-    useEffect(() => {
-        const media = window.matchMedia(query);
-        const updateMatch = () => setMatches(media.matches);
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const updateMatch = () => setMatches(media.matches);
 
-        updateMatch();
-        media.addEventListener("change", updateMatch);
+    updateMatch();
+    media.addEventListener("change", updateMatch);
 
-        return () => media.removeEventListener("change", updateMatch);
-    }, [query]);
+    return () => media.removeEventListener("change", updateMatch);
+  }, [query]);
 
-    return matches;
+  return matches;
 };
