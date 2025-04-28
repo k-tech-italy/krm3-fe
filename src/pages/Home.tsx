@@ -24,7 +24,7 @@ export function Home() {
   const [selectedExpense, setSelectedExpense] =
     useState<ExpenseInterface | null>();
   const [openModal, setOpenModal] = useState(false);
-  const user = useGetCurrentUser();
+  const { data: user } = useGetCurrentUser();
   const [activeTab, setActiveTab] = useState<string>("trasferte");
 
   function handleFilter(e: any) {

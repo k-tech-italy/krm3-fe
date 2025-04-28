@@ -5,13 +5,14 @@ import { getCurrentUser } from "../restapi/user";
 
 
 export function useGetCurrentUser() {
+    console.log("useGetCurrentUser");
     const userQuery = useQuery(['user', 'current'], () => getCurrentUser(), {
         staleTime: Infinity,  // never reload
         cacheTime: Infinity,  // never reload
         retry: false,
         onError: () => window.location.replace('/login')
     });
-    return userQuery.data;
+    return userQuery;
 }
 // Update media query
 

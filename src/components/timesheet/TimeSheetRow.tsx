@@ -3,7 +3,7 @@ import React, { useMemo } from "react";
 import { Task, TimeEntry } from "../../restapi/types";
 import { Droppable } from "./Droppable";
 import { Draggable } from "./Draggable";
-import { generatePastelColor } from "./utils";
+import { generatePastelColor, normalizeDate } from "./utils";
 
 interface Props {
   scheduleDays: Date[];
@@ -108,7 +108,9 @@ export function TimeSheetRow(props: Props) {
             <div
               key={dayIndex}
               style={{ border: "solid 1px", borderColor: backgroundColor }}
-              className={` ${props.isMonthView ? "p-1" : "p-2"} h-full w-full`}
+              className={` ${props.isMonthView ? "p-1" : "p-2"} h-full w-full ${
+                isInColumnHighlight ? "bg-blue-50 border-blue-300" : ""
+              }`}
             >
               <div
                 className={`bg-gradient-to-r from-cyan-100 to-blue-300 ${
@@ -125,7 +127,9 @@ export function TimeSheetRow(props: Props) {
             <div
               key={dayIndex}
               style={{ border: "solid 1px", borderColor: backgroundColor }}
-              className={` ${props.isMonthView ? "p-1" : "p-2"} h-full w-full`}
+              className={` ${props.isMonthView ? "p-1" : "p-2"} h-full w-full ${
+                isInColumnHighlight ? "bg-blue-50 border-blue-300" : ""
+              }`}
             >
               <div
                 className={`bg-gradient-to-r from-red-100 to-red-300 ${
@@ -138,15 +142,14 @@ export function TimeSheetRow(props: Props) {
           );
         }
 
-        const currentDay = new Date(day);
-        currentDay.setHours(0, 0, 0, 0);
-
-        if (props.isTaskFinished(currentDay, props.task)) {
+        if (props.isTaskFinished(day, props.task)) {
           return (
             <div
               style={{ border: "solid 1px", borderColor: backgroundColor }}
               key={dayIndex}
-              className={` ${props.isMonthView ? "p-1" : "p-2"} h-full w-full`}
+              className={` ${props.isMonthView ? "p-1" : "p-2"} h-full w-full ${
+                isInColumnHighlight ? "bg-blue-50 border-blue-300" : ""
+              }`}
             >
               <div
                 className={`bg-gradient-to-r from-gray-100 to-gray-300 ${

@@ -224,6 +224,7 @@ export default function EditDayEntry({
                 onChange={handleLeaveHoursChange}
                 min="1"
                 max="24"
+                step={0.5}
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
                 placeholder="Enter hours"
               />

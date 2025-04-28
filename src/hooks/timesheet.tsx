@@ -1,86 +1,104 @@
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { getMission, getResources, getClients, getProjects, getCountries, getCities } from "../restapi/mission";
+import {
+  getMission,
+  getResources,
+  getClients,
+  getProjects,
+  getCountries,
+  getCities,
+} from "../restapi/mission";
 import { AxiosError } from "axios";
 import { useGetCurrentUser } from "./commons";
 import { createTimeEntry, getTimesheet } from "../restapi/timesheet";
-import { on } from "events";
 
 export function useCreateTimeEntry(onSuccess: () => void) {
-    const resourceId = useGetCurrentUser()?.resource.id;
-    const queryClient = useQueryClient();
-    if (resourceId === undefined) {
-        throw new Error('Resource ID is undefined');
+  const { data } = useGetCurrentUser();
+  const resourceId = data?.resource.id;
+  const queryClient = useQueryClient();
+  if (resourceId === undefined) {
+    throw new Error("Resource ID is undefined");
+  }
+  return useMutation(
+    (params: {
+      task?: number;
+      dates: string[];
+      workHours?: number;
+      sickHours?: number;
+      holidayHours?: number;
+      leaveHours?: number;
+      overtimeHours?: number;
+      travelHours?: number;
+      onCallHours?: number;
+      restHours?: number;
+    }) => createTimeEntry({ ...params, resourceId }),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: "timesheet" });
+        onSuccess();
+      },
+      onError: (error: AxiosError) => {},
     }
-    return useMutation((params: {
-        task?: number,
-        dates: string[],
-        workHours?: number,
-        sickHours?: number,
-        holidayHours?: number,
-        leaveHours?: number,
-        overtimeHours?: number,
-        travelHours?: number,
-        onCallHours?: number,
-        restHours?: number,
-    }) => createTimeEntry({...params, resourceId}),
-        {
-            onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: 'timesheet' });
-                onSuccess();
-            },
-            onError: (error: AxiosError) => {
-            
-            },
-        });
+  );
 }
 
 export function useGetTimesheet(startDate: string, endDate: string) {
-    const resourceId = useGetCurrentUser()?.resource.id;
-    return useQuery(['timesheet', resourceId, startDate, endDate], () => {
-        if (resourceId !== undefined) {
-            return getTimesheet({
-                resourceId,
-                startDate,
-                endDate
-            });
-        }
+  const { data } = useGetCurrentUser();
+  const resourceId = data?.resource?.id;
 
-    }, {
-        onError: (error) => {
-            return 'error';
-        }
-    });
+  return useQuery(
+    ["timesheet", resourceId, startDate, endDate],
+    async () => {
+      if (!resourceId) {
+        throw new Error("Resource ID is undefined");
+      }
+
+      return getTimesheet({
+        resourceId,
+        startDate,
+        endDate,
+      });
+    },
+    {
+      // Don't run the query if resourceId is undefined
+      enabled: !!resourceId,
+      useErrorBoundary: false,
+      onError: (error) => {
+        console.error("Timesheet fetch failed:", error);
+        return "error";
+      },
+    }
+  );
 }
 
 export function useGetResources() {
-    const resources = useQuery('resources', () => getResources());
-    return resources.data;
+  const resources = useQuery("resources", () => getResources());
+  return resources.data;
 }
 
 export function useGetClients() {
-    const resources = useQuery('clients', () => getClients());
-    return resources.data;
+  const resources = useQuery("clients", () => getClients());
+  return resources.data;
 }
 
 export function useGetCountries() {
-    const resources = useQuery('countries', () => getCountries());
-    return resources.data;
+  const resources = useQuery("countries", () => getCountries());
+  return resources.data;
 }
 
 export function useGetCitiess() {
-    const resources = useQuery('cities', () => getCities());
-    return resources.data;
+  const resources = useQuery("cities", () => getCities());
+  return resources.data;
 }
 
 export function useGetProjects() {
-    const resources = useQuery('projects', () => getProjects());
-    return resources.data;
+  const resources = useQuery("projects", () => getProjects());
+  return resources.data;
 }
 
 export function useGetMission(id: number) {
-    return useQuery('mission', () => getMission(id), {
-        onError: (error) => {
-            return error
-        }
-    });
+  return useQuery("mission", () => getMission(id), {
+    onError: (error) => {
+      return error;
+    },
+  });
 }
