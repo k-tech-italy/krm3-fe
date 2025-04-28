@@ -72,7 +72,7 @@ export default function EditDayEntry({
       }));
       
       mutate({
-        dates: days.selDays.map((day) => day.toISOString().split("T")[0]),
+        dates: days.selDays.map((day) => normalizeDate(day)),
         holidayHours: entryType === "holiday" ? 8 : undefined,
         sickHours: entryType === "sick" ? 8 : undefined,
         leaveHours: entryType === "leave" ? leaveHours : undefined,

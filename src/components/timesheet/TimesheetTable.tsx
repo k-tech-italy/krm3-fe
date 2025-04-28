@@ -29,10 +29,9 @@ export function TimeSheetTable(props: Props) {
     defaultView === "true" || false
   );
 
-  const startDate = props.scheduleDays.days[0].toISOString().split("T")[0]; // Start date
-  const endDate = props.scheduleDays.days[props.scheduleDays.numberOfDays - 1]
-    .toISOString()
-    .split("T")[0]; // End date
+  const startDate = normalizeDate(props.scheduleDays.days[0])
+  const endDate = normalizeDate(props.scheduleDays.days[props.scheduleDays.numberOfDays - 1])
+
   const { data: timesheet, isLoading: isLoadingTimesheet } = useGetTimesheet(
     startDate,
     endDate
