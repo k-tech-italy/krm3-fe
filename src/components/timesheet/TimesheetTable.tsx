@@ -3,12 +3,13 @@ import { useMediaQuery } from "../../hooks/commons";
 import { DndContext, DragOverlay, closestCenter } from "@dnd-kit/core";
 import { TimeEntry, Task } from "../../restapi/types";
 import { Draggable } from "./Draggable";
-import { useGetTimesheet } from "../../hooks/timesheet"; // Changed hook name to match new structure
+import { useGetTimesheet } from "../../hooks/timesheet"; 
 import { Droppable } from "./Droppable";
 import { formatDate } from "./Krm3Calendar";
 import { TotalHourCell } from "./TotalHour";
 import { TimeSheetRow } from "./TimeSheetRow";
 import { normalizeDate } from "./utils";
+import LoadSpinner from "../commons/LoadSpinner";
 
 interface Props {
   setOpenTimeEntryModal: (open: boolean) => void;
@@ -29,13 +30,15 @@ export function TimeSheetTable(props: Props) {
     defaultView === "true" || false
   );
 
-  const startDate = normalizeDate(props.scheduleDays.days[0])
-  const endDate = normalizeDate(props.scheduleDays.days[props.scheduleDays.numberOfDays - 1])
-
-  const { data: timesheet, isLoading: isLoadingTimesheet } = useGetTimesheet(
-    startDate,
-    endDate
+  const startDate = normalizeDate(props.scheduleDays.days[0]);
+  const endDate = normalizeDate(
+    props.scheduleDays.days[props.scheduleDays.numberOfDays - 1]
   );
+
+  const {
+    data: timesheet,
+    isLoading: isLoadingTimesheet,
+  } = useGetTimesheet(startDate, endDate);
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<{
@@ -61,10 +64,6 @@ export function TimeSheetTable(props: Props) {
       setIsColumnView(false);
     }
   }, [isSmallScreen]);
-
-  if (isLoadingTimesheet) {
-    return <div>Loading...</div>;
-  }
 
   const toggleView = () => {
     localStorage.setItem("isColumnView", JSON.stringify(!isColumnView));
@@ -199,9 +198,8 @@ export function TimeSheetTable(props: Props) {
         // Handle column drag end
         if (over.id.startsWith("column-")) {
           const targetDayIndex = Number(over.id.replace("column-", ""));
-          const targetDay = props.scheduleDays.days[targetDayIndex]
-            .toISOString()
-            .split("T")[0];
+          const targetDay = normalizeDate(props.scheduleDays.days[targetDayIndex])
+           
 
           if (activeDragData.columnDay && targetDay) {
             if (timesheet.tasks && timesheet.tasks.length > 0) {
@@ -235,6 +233,8 @@ export function TimeSheetTable(props: Props) {
         }
       } else {
         const [targetDate, targetTaskId] = over.id.split("-");
+        // TODO : Handle the case where the target is an n/a cell
+        // NOW IT IS NOT POSSIBLE TO DRAG AND DROP TO N/A CELLS
         if (
           activeDragData.taskId &&
           Number(targetTaskId) === activeDragData.taskId
@@ -247,7 +247,7 @@ export function TimeSheetTable(props: Props) {
               props.setSelectedTask(task);
               props.setTimeEntries(timesheet.timeEntries);
               props.setSelectedCells(
-                draggedOverCells.filter((day) => !isHoliday(day))
+                draggedOverCells.filter((day) => !isHoliday(day) && !isSickday(day))
               );
 
               props.setOpenTimeEntryModal(true);
@@ -343,13 +343,27 @@ export function TimeSheetTable(props: Props) {
     props.setOpenTimeEntryModal(true);
   };
 
-  const isTaskFinished = (currentDay: Date, task: Task) => {
-    // Check if the task is finished based on the current date and task dates
+  const isTaskNotInDate = (currentDay: Date, task: Task): boolean => {
+    const currentDateString = normalizeDate(currentDay);
+    const startDateString = normalizeDate(task.startDate);
+    const endDateString = task.endDate ? normalizeDate(task.endDate) : null;
+
     return (
-      currentDay.getTime() < new Date(task.startDate).getTime() ||
-      (task.endDate && currentDay.getTime() > new Date(task.endDate).getTime())
+      currentDateString < startDateString ||
+      (endDateString !== null && currentDateString > endDateString)
     );
   };
+
+  if (isLoadingTimesheet) {
+    return <LoadSpinner />;
+  }
+  if (!timesheet) {
+    return (
+      <div className="flex items-center justify-center w-full ">
+        <h3>No Data </h3>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -458,7 +472,7 @@ export function TimeSheetTable(props: Props) {
               isColumnHighlighted={isColumnHighlighted}
               isHoliday={isHoliday}
               isSickDay={isSickday}
-              isTaskFinished={isTaskFinished}
+              isTaskFinished={isTaskNotInDate}
               getTimeEntriesForTaskAndDay={getTimeEntriesForTaskAndDay}
               isColumnView={isColumnView}
               openTimeEntryModalHandler={openTimeEntryModalHandler}

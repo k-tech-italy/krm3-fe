@@ -10,7 +10,7 @@ import { useMediaQuery } from "../../hooks/commons";
 
 interface Props {
     columns: { accessorKey: string, header: string }[]
-    data: any[]
+    data: any[] //TODO : define a proper type for API data
     onClickRow: (item: any) => void
 }
 

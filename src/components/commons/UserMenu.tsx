@@ -1,65 +1,80 @@
 import { useState } from "react";
 import { useGetCurrentUser } from "../../hooks/commons";
 import { clearToken } from "../../restapi/oauth";
+import { logout } from "../../restapi/user";
 
 export function UserMenu() {
-    const user = useGetCurrentUser();
-    const [isOpen, setIsOpen] = useState(false);
+  const {data: user} = useGetCurrentUser();
+  const [isOpen, setIsOpen] = useState(false);
 
-    function handleLogout() {
-        clearToken();
-        window.location.replace('/login');
-    }
+  function handleLogout() {
+    logout().then(() => {
+      clearToken();
+      window.location.replace("/login");
+    });
+  }
 
-    function toggleMenu() {
-        setIsOpen((prev) => !prev);
-    }
+  function toggleMenu() {
+    setIsOpen((prev) => !prev);
+  }
 
-    return (
-        <div className="relative inline-block text-left">
-            <button
-                onClick={toggleMenu}
-                className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none"
+  const beUrl = process.env.KRM3_FE_API_BASE_URL?.replace("/api/v1/", "");
+
+  return (
+    <div className="relative inline-block text-left">
+      <button
+        onClick={toggleMenu}
+        className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none"
+      >
+        <img
+          src="https://avatars.githubusercontent.com/u/6311869?s=40&v=4"
+          alt=""
+          width="32"
+          height="32"
+          className="rounded-full mr-2"
+        />
+        <strong className="hidden sm:block">{user?.email}</strong>
+      </button>
+
+      <div
+        onMouseLeave={() => setIsOpen(false)}
+        className={`absolute right-0 mt-2 w-56 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 transition-all duration-200 ease-out transform ${
+          isOpen
+            ? "opacity-100 scale-100"
+            : "opacity-0 scale-95 pointer-events-none"
+        }`}
+      >
+        <div className="py-1">
+          <a
+            href="#"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            Settings
+          </a>
+          <a
+            href={`user/`}
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            Profile
+          </a>
+          {user?.isStaff && (
+            <a
+              href={`${beUrl}/admin/`}
+              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             >
-                <img
-                    src="https://avatars.githubusercontent.com/u/6311869?s=40&v=4"
-                    alt=""
-                    width="32"
-                    height="32"
-                    className="rounded-full mr-2"
-                />
-                <strong className="hidden sm:block">{user?.email}</strong>
-            </button>
-
-            <div
-                onMouseLeave={() => setIsOpen(false)}
-                className={`absolute right-0 mt-2 w-56 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 transition-all duration-200 ease-out transform ${
-                    isOpen ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
-                }`}
-            >
-                <div className="py-1">
-                    <a
-                        href="#"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                        Settings
-                    </a>
-                    <a
-                        href={`user/`}
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                        Profile
-                    </a>
-                </div>
-                <div className="py-1">
-                    <button
-                        onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                        Sign out
-                    </button>
-                </div>
-            </div>
+              Django Admin
+            </a>
+          )}
         </div>
-    );
+        <div className="py-1">
+          <button
+            onClick={handleLogout}
+            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            Sign out
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

@@ -18,7 +18,6 @@ export function Mission() {
     const id = Number(useParams().id);
     const { isLoading, data, isError } = useGetMission(id);
     const today = new Date()
-    const user = useGetCurrentUser();
 
 
     const defaultExpense = {

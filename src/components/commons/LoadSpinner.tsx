@@ -1,8 +1,11 @@
+
 export default function LoadSpinner() {
     return (
-        <div className="d-flex justify-content-center text-center w-100 h-100 ">
-            <div className="spinner-border" style={{width: '3rem', height: '3rem'}} role="status">
-            </div>
+        <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div>
+          <p className="mt-4">Loading...</p>
         </div>
+      </div>
     );
 }

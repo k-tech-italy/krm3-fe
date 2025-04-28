@@ -1,5 +1,7 @@
 export const normalizeDate = (date: Date | string): string => {
-  // Utility function to normalize dates by removing time components
+  // Normalize the date to YYYY-MM-DD format
+  // Take care of user Location
+
   const d = typeof date === "string" ? new Date(date) : date;
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
     2,

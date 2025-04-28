@@ -17,9 +17,11 @@ export function useCreateMission() {
 }
 
 export function useGetMissions() {
-    const id = useGetCurrentUser()?.resource?.id;
-    const isStaff = useGetCurrentUser()?.isStaff
-    return useQuery(['missions', id, isStaff], () => {
+    const {data} = useGetCurrentUser();
+    const id = data?.resource?.id;
+    const isStaff = data?.isStaff;
+
+    return useQuery(['missions', data?.id, data?.isStaff], () => {
             return getMissions(isStaff || false, id);
     }, {
         onError: (error) => {
