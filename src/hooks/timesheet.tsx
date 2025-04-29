@@ -7,13 +7,13 @@ import {
   getCountries,
   getCities,
 } from "../restapi/mission";
-import { AxiosError } from "axios";
+import { AxiosError, AxiosResponse } from "axios";
 import { useGetCurrentUser } from "./commons";
 import { createTimeEntry, getTimesheet, deleteTimeEntries } from "../restapi/timesheet";
-import { on } from "events";
 
 export function useCreateTimeEntry(onSuccess: () => void) {
-    const resourceId = useGetCurrentUser()?.resource.id;
+    const { data: currentUser } = useGetCurrentUser();
+    const resourceId = currentUser?.resource.id;
     const queryClient = useQueryClient();
     if (resourceId === undefined) {
         throw new Error('Resource ID is undefined');

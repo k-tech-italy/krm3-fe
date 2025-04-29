@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { formatDate } from "../Krm3Calendar";
-import { useCreateTimeEntry } from "../../../hooks/timesheet";
+import {
+  useCreateTimeEntry,
+  useDeleteTimeEntries,
+} from "../../../hooks/timesheet";
 import { TimeEntry } from "../../../restapi/types";
 import { normalizeDate } from "../utils";
 import { Trash } from "lucide-react";
@@ -29,6 +32,7 @@ export default function EditDayEntry({
   });
 
   const { mutate, isLoading, isError, error } = useCreateTimeEntry(onClose);
+  const { mutateAsync: deleteDays } = useDeleteTimeEntries();
 
   const startEntry = timeEntries.find(
     (item) => item.date === normalizeDate(startDate)
@@ -70,7 +74,7 @@ export default function EditDayEntry({
         type: entryType,
         hours: entryType === "leave" ? leaveHours : undefined,
       }));
-      
+
       mutate({
         dates: days.selDays.map((day) => normalizeDate(day)),
         holidayHours: entryType === "holiday" ? 8 : undefined,
@@ -82,22 +86,27 @@ export default function EditDayEntry({
   };
 
   function handleDeleteEntry(event: any): void {
-    // Handle the deletion of entries TODO - DELETE API
     event.preventDefault();
-    // TODO - DELETE API with skippedTaskId
-    const skippedTaskId = days.skipDays.map((day) => {
+    //DELETE API with skippedTaskId
+    const skippedTaskId = days.skipDays
+      .map((day) => {
         const entry = timeEntries.find(
-            (item) => item.date === normalizeDate(day)
+          (item) => item.date === normalizeDate(day)
         );
         return entry?.id;
-        }
-    );
-    setDays((prev) => ({
-      selDays: [...prev.selDays, ...prev.skipDays],
-      skipDays: [],
-    }));
-    setIsOpenConfirmModal(false);
-    
+      })
+      .filter((id): id is number => id !== undefined);
+    deleteDays(skippedTaskId)
+      .then(() => {
+        setDays((prev) => ({
+          selDays: [...prev.selDays, ...prev.skipDays],
+          skipDays: [],
+        }));
+        setIsOpenConfirmModal(false);
+      })
+      .catch((error) => {
+        console.error("Error deleting entries:", error);
+      });
   }
 
   return (
@@ -301,20 +310,19 @@ export default function EditDayEntry({
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               Confirm Deletion
             </h3>
-            <p className="text-gray-600 "/>
-              Are you sure you want to delete this entry?
-              <br />
-              <div className="flex flex-wrap gap-2 mb-4">
-                {days.skipDays.map((day, index) => (
-                  <span
-                    key={index}
-                    className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-1 rounded"
-                  >
-                    {formatDate(day)}
-                  </span>
-                ))}
-              </div>
-            
+            <p className="text-gray-600 " />
+            Are you sure you want to delete this entry?
+            <br />
+            <div className="flex flex-wrap gap-2 mb-4">
+              {days.skipDays.map((day, index) => (
+                <span
+                  key={index}
+                  className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-1 rounded"
+                >
+                  {formatDate(day)}
+                </span>
+              ))}
+            </div>
             <div className="flex justify-end">
               <button
                 type="button"
