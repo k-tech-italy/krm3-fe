@@ -129,8 +129,11 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
                 open={isClearModalOpened}
                 onConfirm={ !isSuccess ? async () =>
                     {
-                        deleteTimeEntries(timeEntriesToDelete)
+                        const response = await deleteTimeEntries(timeEntriesToDelete)
 
+                        if(response.status == 204) {
+                            setDaysWithTimeEntries([])
+                        }
                     }
                      : async () =>
                     {
