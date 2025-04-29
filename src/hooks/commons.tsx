@@ -17,12 +17,10 @@ export function useGetCurrentUser() {
  
   });
 
-  // Add a utility function to refresh user data
   const refreshUser = async () => {
     return queryClient.invalidateQueries(["user", "current"]);
   };
 
-  // Add a utility function to force logout
   const clearUser = () => {
     queryClient.setQueryData(["user", "current"], null);
   };
