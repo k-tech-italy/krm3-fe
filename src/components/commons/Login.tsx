@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import queryString from "query-string";
 import {
-  getToken,
   googleAuthenticate,
   loginGoogle,
   loginUser,
@@ -41,7 +40,6 @@ export function Login() {
       setIsLoading(true);
       googleAuthenticate(state.toString(), code.toString())
         .then(() => {
-          console.log("Login with Google successful", getToken());
           navigate("/home");
         })
         .catch((err) => {

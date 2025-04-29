@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { getCurrentUser, logout } from "../restapi/user";
-import { clearToken } from "../restapi/oauth";
 import { AxiosError } from "axios";
 
 export function useGetCurrentUser() {
@@ -38,7 +37,6 @@ export function useLogout() {
   return useMutation(() => logout(), {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user", "current"] });
-      clearToken();
       window.location.replace("/login");
     },
     onError: (error: AxiosError) => {},
