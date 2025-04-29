@@ -85,7 +85,7 @@ export function TotalHourCell({
             <div key={index} className="mb-2 p-2">
               <div className="font-semibold">
                 {" "}
-                {timeEntry.task ? `Task ${timeEntry.task}` : "Day"}
+                {timeEntry.task ? `Task id: ${timeEntry.task}` : "Day"}
               </div>
               <div className="text-sm">
                 Work: {timeEntry.workHours || 0}h, Overtime:{" "}

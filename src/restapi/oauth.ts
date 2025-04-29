@@ -5,7 +5,7 @@ const oauthProvider = "google-oauth2";
 const LS_LOGIN_NEXT_URI = "next";
 
 export function loginUser(username: string, password: string) {
-  return restapi.post("core/user/login/", { username, password });
+  return restapi.post("core/user/login/", { username, password })
 }
 
 export async function loginGoogle() {

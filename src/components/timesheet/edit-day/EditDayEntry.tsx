@@ -31,7 +31,7 @@ export default function EditDayEntry({
     skipDays: skippedDays,
   });
 
-  const { mutate, isLoading, isError, error } = useCreateTimeEntry(onClose);
+  const { mutateAsync: submitDays, isLoading, isError, error } = useCreateTimeEntry();
   const { mutateAsync: deleteDays } = useDeleteTimeEntries();
 
   const startEntry = timeEntries.find(
@@ -75,13 +75,15 @@ export default function EditDayEntry({
         hours: entryType === "leave" ? leaveHours : undefined,
       }));
 
-      mutate({
+      submitDays({
         dates: days.selDays.map((day) => normalizeDate(day)),
         holidayHours: entryType === "holiday" ? 8 : undefined,
         sickHours: entryType === "sick" ? 8 : undefined,
         leaveHours: entryType === "leave" ? leaveHours : undefined,
         workHours: 0,
-      });
+      }).then(
+        onClose
+      )
     }
   };
 

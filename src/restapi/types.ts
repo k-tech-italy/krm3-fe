@@ -153,6 +153,7 @@ export interface User {
     resource: Resource,
     profile: ProfileInterface,
     username: string,
+    cid: string
 
 }
 
