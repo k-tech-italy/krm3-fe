@@ -54,7 +54,7 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
 
     const [daysWithTimeEntries, setDaysWithTimeEntries] = useState(
         timeEntryData ? selectedDates.filter(selectedDate => timeEntries.find(
-            timeEntry => timeEntry.date == selectedDate.toLocaleDateString('sv-SE').slice(0, 10)
+            timeEntry => timeEntry.date == normalizeDate(selectedDate)
         && timeEntry.task == task.id)) : []
     )
 
