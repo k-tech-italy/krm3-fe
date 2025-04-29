@@ -33,7 +33,7 @@ export function useCreateTimeEntry() {
     }) => createTimeEntry({...params, resourceId}),
         {
             onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: 'timesheet' });
+                queryClient.invalidateQueries({ queryKey: ['timesheet'] });
             },
             onError: (error: AxiosError) => {
 
