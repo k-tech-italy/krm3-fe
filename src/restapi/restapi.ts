@@ -15,6 +15,29 @@ export const restapi = applyCaseMiddleware(
 );
 let isRedirecting = false;
 
+restapi.interceptors.request.use(
+    (config) => {
+      console.log(config);
+      const url = config.url?.split('?')[0]?.replace(/\/+$/, '');
+
+      if (
+        (config.method === "post" && url && !url.endsWith('login')) ||
+        config.method === "put" ||
+        config.method === "patch" ||
+        config.method === "delete"  
+      ) {
+        const csrfToken = localStorage.getItem("CSRF_TOKEN");
+        if (csrfToken) {
+          config.headers["X-CSRFToken"] = csrfToken;
+        }
+      }
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
+
 restapi.interceptors.response.use(
   (response) => {
     return response;
@@ -36,7 +59,6 @@ restapi.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
 
 if (djSessionId) {
   // set cookie
