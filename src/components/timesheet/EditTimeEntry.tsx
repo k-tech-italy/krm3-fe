@@ -5,6 +5,7 @@ import { formatDate } from "./Krm3Calendar";
 import ConfirmationModal from "../commons/ConfirmationModal.tsx";
 import {useDeleteTimeEntries} from "../../hooks/timesheet.tsx";
 import {useQueryClient} from "react-query";
+import {normalizeDate} from "./utils.ts";
 
 interface Props {
     selectedDates: Date[]
@@ -57,15 +58,15 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
         && timeEntry.task == task.id)) : []
     )
 
-    const isClearButtonVisible = (
-        daysWithTimeEntries.filter(day => day.toLocaleDateString('sv-SE') != startDate.toLocaleDateString('sv-SE')).length > 0 ||
-        daysWithTimeEntries.length == 1 && daysWithTimeEntries[0].toLocaleDateString('sv-SE') == startDate.toLocaleDateString('sv-SE')
-    )
+    const isClearButtonVisible = daysWithTimeEntries.filter(day =>
+            normalizeDate(day) != normalizeDate(startDate)).length > 0 ||
+        daysWithTimeEntries.length == 1 && normalizeDate(daysWithTimeEntries[0]) == normalizeDate(startDate)
+
 
     const timeEntriesToDelete = timeEntries.filter((timeEntry) =>
     {
         return (selectedDates.find((selectedDate) =>
-            selectedDate.toLocaleDateString('sv-SE').slice(0, 10) == timeEntry.date)
+            normalizeDate(selectedDate) == timeEntry.date)
         && timeEntry.task == task.id)
     }).map(timeEntry => (timeEntry.id))
 
@@ -277,7 +278,7 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
 
                 </div>
             </div>
-            {isClearButtonVisible && !(daysWithTimeEntries.length == 1 && daysWithTimeEntries[0].toLocaleDateString('sv-SE') == startDate.toLocaleDateString('sv-SE'))
+            {isClearButtonVisible && !(daysWithTimeEntries.length == 1 && normalizeDate(daysWithTimeEntries[0]) == normalizeDate(startDate))
                 && <p className='text-red-500 mt-2'>
                 Please clear time entries first
             </p>}
@@ -293,7 +294,7 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
                     className={`px-4 py-2 text-white rounded-lg focus:outline-none
                     ${(invalidTimeFormat.length > 0 ||
                     (isClearButtonVisible &&
-                        !(daysWithTimeEntries.length == 1 && daysWithTimeEntries[0].toLocaleDateString('sv-SE') == startDate.toLocaleDateString('sv-SE')))) 
+                        !(daysWithTimeEntries.length == 1 && normalizeDate(daysWithTimeEntries[0]) == normalizeDate(startDate)))) 
                         ? 'bg-gray-300 cursor-not-allowed' :
                         'bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500'}`}
 
@@ -301,7 +302,7 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
                         await submit()
                     }}
                     disabled={invalidTimeFormat.length > 0 || (isClearButtonVisible
-                && daysWithTimeEntries.length == 1 && daysWithTimeEntries[0].toLocaleDateString('sv-SE') == startDate.toLocaleDateString('sv-SE'))}
+                && daysWithTimeEntries.length == 1 && normalizeDate(daysWithTimeEntries[0]) == normalizeDate(startDate))}
                 >Save
                 </button>
             </div>
