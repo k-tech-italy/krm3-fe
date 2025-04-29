@@ -1,8 +1,11 @@
 import { Task, TimeEntry } from "../../restapi/types";
 import React, { useState } from "react";
-import { ChevronDown, Trash2 } from 'lucide-react';
+import { ChevronDown, Trash2, LoaderCircle } from 'lucide-react';
 import { formatDate } from "./Krm3Calendar";
 import ConfirmationModal from "../commons/ConfirmationModal.tsx";
+import {useDeleteTimeEntries} from "../../hooks/timesheet.tsx";
+import {useQueryClient} from "react-query";
+import {normalizeDate} from "./utils.ts";
 
 interface Props {
     selectedDates: Date[]
@@ -13,7 +16,6 @@ interface Props {
 }
 
 export default function EditTimeEntry({ selectedDates, task, timeEntries, closeModal, startDate }: Props) {
-    console.log(timeEntries)
 
     const formattedStartDate = startDate.getFullYear() + "-" +
         String(startDate.getMonth() + 1).padStart(2, '0') + "-" +
@@ -52,17 +54,26 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
 
     const [daysWithTimeEntries, setDaysWithTimeEntries] = useState(
         timeEntryData ? selectedDates.filter(selectedDate => timeEntries.find(
-            timeEntry => timeEntry.date == selectedDate.toLocaleDateString('sv-SE').slice(0, 10)
+            timeEntry => timeEntry.date == normalizeDate(selectedDate)
         && timeEntry.task == task.id)) : []
     )
 
-    const isClearButtonVisible = (
-        daysWithTimeEntries.filter(day => day.toLocaleDateString('sv-SE') != startDate.toLocaleDateString('sv-SE')).length > 0 ||
-        daysWithTimeEntries.length == 1 && daysWithTimeEntries[0].toLocaleDateString('sv-SE') == startDate.toLocaleDateString('sv-SE')
-    )
+    const isClearButtonVisible = daysWithTimeEntries.filter(day =>
+            normalizeDate(day) != normalizeDate(startDate)).length > 0 ||
+        daysWithTimeEntries.length == 1 && normalizeDate(daysWithTimeEntries[0]) == normalizeDate(startDate)
+
+
+    const timeEntriesToDelete = timeEntries.filter((timeEntry) =>
+    {
+        return (selectedDates.find((selectedDate) =>
+            normalizeDate(selectedDate) == timeEntry.date)
+        && timeEntry.task == task.id)
+    }).map(timeEntry => (timeEntry.id))
+
 
     const [isClearModalOpened, setIsClearModalOpened] = useState(false)
 
+    const { mutateAsync: deleteTimeEntries, error, isLoading, isSuccess } = useDeleteTimeEntries();
 
     const validateInput = (numberOfHours: string, key: keyof typeof timeEntryData) =>
     {
@@ -116,10 +127,45 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
         <div className="flex flex-col space-y-6">
             <ConfirmationModal
                 open={isClearModalOpened}
-                onConfirm={() => setIsClearModalOpened(false)}
-                content={`Are you sure to clear time entries for these days?:
-                ${daysWithTimeEntries.map(day => formatDate(day)).join(', ')}
-                `}
+                onConfirm={ !isSuccess ? async () =>
+                    {
+                        const response = await deleteTimeEntries(timeEntriesToDelete)
+
+                        if(response.status == 204) {
+                            setDaysWithTimeEntries([])
+                        }
+                    }
+                     : async () =>
+                    {
+                        setIsClearModalOpened(false)}
+                    }
+                content={
+                <>
+                    {!isSuccess &&
+                        <p>
+                            {`Are you sure to clear time entries for these days?:`}
+                            <div className='flex flex-wrap mt-2'>
+                                {daysWithTimeEntries.map(day =>
+                                    <p className='mr-2.5 mb-2.5 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded'>
+                                        {formatDate(day)}
+                                    </p>)}
+                            </div>
+                        </p>
+                    }
+                    {isSuccess &&
+                        <p className='text-green-600'>
+                            {`You've successfully cleared time entries`}
+                        </p>
+                    }
+
+                    <div className='flex justify-center'>
+                        {isLoading && <LoaderCircle className="animate-spin w-4 h-4" />}
+                    </div>
+                    {error && String(error) != 'null' && (
+                        <p className='mt-2 text-red-500'>{String(error)}</p>
+                    )}
+                </>}
+
                 title="Clear days"
                 onClose={() => setIsClearModalOpened(false)}/>
             <div className="flex flex-col sm:flex-row items-start sm:items-center">
@@ -127,7 +173,8 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
                 <div className="sm:w-2/4 w-full flex flex-wrap">
                     {selectedDates.map((date, idx) => (
                         <p key={idx}
-                           className='mr-3'>{formatDate(date)}{idx !== selectedDates.length - 1 ? ',' : ''}
+                           className='mr-2.5 mb-2.5 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded'>
+                            {formatDate(date)}
                         </p>))}
                 </div>
             </div>
@@ -138,7 +185,8 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
                     <div className="sm:w-2/4 w-full flex flex-wrap">
                         {daysWithTimeEntries.map((day, idx) => (
                             <p key={idx}
-                               className='mr-3'>{formatDate(day)}{idx !== selectedDates.length - 1 ? ',' : ''}
+                               className='mr-2.5 mb-2.5 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded'>
+                                {formatDate(day)}
                             </p>))}
                     </div>
                     <button className='px-4 py-2 text-white rounded-lg focus:outline-none bg-red-500 ml-auto mr-5 hover:bg-red-600'
@@ -233,7 +281,7 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
 
                 </div>
             </div>
-            {isClearButtonVisible && !(daysWithTimeEntries.length == 1 && daysWithTimeEntries[0].toLocaleDateString('sv-SE') == startDate.toLocaleDateString('sv-SE'))
+            {isClearButtonVisible && !(daysWithTimeEntries.length == 1 && normalizeDate(daysWithTimeEntries[0]) == normalizeDate(startDate))
                 && <p className='text-red-500 mt-2'>
                 Please clear time entries first
             </p>}
@@ -249,7 +297,7 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
                     className={`px-4 py-2 text-white rounded-lg focus:outline-none
                     ${(invalidTimeFormat.length > 0 ||
                     (isClearButtonVisible &&
-                        !(daysWithTimeEntries.length == 1 && daysWithTimeEntries[0].toLocaleDateString('sv-SE') == startDate.toLocaleDateString('sv-SE')))) 
+                        !(daysWithTimeEntries.length == 1 && normalizeDate(daysWithTimeEntries[0]) == normalizeDate(startDate)))) 
                         ? 'bg-gray-300 cursor-not-allowed' :
                         'bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500'}`}
 
@@ -257,7 +305,7 @@ export default function EditTimeEntry({ selectedDates, task, timeEntries, closeM
                         await submit()
                     }}
                     disabled={invalidTimeFormat.length > 0 || (isClearButtonVisible
-                && daysWithTimeEntries.length == 1 && daysWithTimeEntries[0].toLocaleDateString('sv-SE') == startDate.toLocaleDateString('sv-SE'))}
+                && daysWithTimeEntries.length == 1 && normalizeDate(daysWithTimeEntries[0]) == normalizeDate(startDate))}
                 >Save
                 </button>
             </div>
