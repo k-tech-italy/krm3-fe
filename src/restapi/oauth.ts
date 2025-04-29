@@ -6,9 +6,7 @@ const LS_TOKEN_KEY = "Token";
 const LS_LOGIN_NEXT_URI = "next";
 
 export function loginUser(username: string, password: string) {
-  return restapi.post("jwt/create/", { username, password }).then((res) => {
-    localStorage.setItem(LS_TOKEN_KEY, res.data.access);
-  });
+  return restapi.post("core/user/login/", { username, password });
 }
 
 export async function loginGoogle() {

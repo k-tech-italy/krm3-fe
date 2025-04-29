@@ -6,5 +6,5 @@ export function getCurrentUser(): Promise<User> {
 }
 
 export function logout(): Promise<void> {
-    return restapi.post(`/core/user/logout/`)
+    return restapi.get(`/core/user/logout/`)
 }
