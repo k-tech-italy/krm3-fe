@@ -11,7 +11,7 @@ import { AxiosError, AxiosResponse } from "axios";
 import { useGetCurrentUser } from "./commons";
 import { createTimeEntry, getTimesheet, deleteTimeEntries } from "../restapi/timesheet";
 
-export function useCreateTimeEntry(onSuccess: () => void) {
+export function useCreateTimeEntry() {
     const { data: currentUser } = useGetCurrentUser();
     const resourceId = currentUser?.resource.id;
     const queryClient = useQueryClient();
@@ -33,7 +33,6 @@ export function useCreateTimeEntry(onSuccess: () => void) {
         {
             onSuccess: () => {
                 queryClient.invalidateQueries({ queryKey: 'timesheet' });
-                onSuccess();
             },
             onError: (error: AxiosError) => {
 

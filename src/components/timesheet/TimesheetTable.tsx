@@ -204,10 +204,14 @@ export function TimeSheetTable(props: Props) {
           if (activeDragData.columnDay && targetDay) {
             if (timesheet.tasks && timesheet.tasks.length > 0) {
               props.setSelectedTask(timesheet.tasks[0]);
-              const dayEntries = timesheet.timeEntries.filter(
-                (entry) => entry.task === null
-              );
-              props.setTimeEntries(dayEntries);
+              // const dayEntries = timesheet.timeEntries.filter(
+              //   (entry) => entry.task === null
+              // );
+
+              // props.setTimeEntries(dayEntries);
+
+              props.setTimeEntries(timesheet.timeEntries);
+
               props.setSkippedDays(
                 draggedOverCells.filter((day) => {
                   const hasTimeEntry = timesheet.timeEntries.some(
