@@ -31,11 +31,23 @@ export default function EditDayEntry({
     skipDays: skippedDays,
   });
 
-  const { mutateAsync: submitDays, isLoading, isError, error } = useCreateTimeEntry();
+  const {
+    mutateAsync: submitDays,
+    isLoading,
+    isError,
+    error,
+  } = useCreateTimeEntry();
   const { mutateAsync: deleteDays } = useDeleteTimeEntries();
 
+  const hasDayEntries = days.skipDays.some((day) => {
+    const entry = timeEntries.find(
+      (item) => normalizeDate(item.date) === normalizeDate(day)
+    );
+    return entry && entry.task === null;
+  });
+
   const startEntry = timeEntries.find(
-    (item) => item.date === normalizeDate(startDate)
+    (item) => normalizeDate(item.date) === normalizeDate(startDate)
   );
   useEffect(() => {
     if (startEntry) {
@@ -67,37 +79,33 @@ export default function EditDayEntry({
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log(event);
     if (entryType) {
-      const entryData = days.selDays.map((day) => ({
-        day,
-        type: entryType,
-        hours: entryType === "leave" ? leaveHours : undefined,
-      }));
+      // For leave entries, we should include both selected days and skipped days with task entries
+      // For other entry types, we only use selected days (as skipped days need to be cleared first)
+      const daysToSubmit =
+        entryType === "leave"
+          ? [...days.selDays, ...days.skipDays]
+          : days.selDays;
 
       submitDays({
-        dates: days.selDays.map((day) => normalizeDate(day)),
+        dates: daysToSubmit.map((day) => normalizeDate(day)),
         holidayHours: entryType === "holiday" ? 8 : undefined,
         sickHours: entryType === "sick" ? 8 : undefined,
         leaveHours: entryType === "leave" ? leaveHours : undefined,
-        workHours: 0,
-      }).then(
-        onClose
-      )
+        workHours: 0, // Set workHours to 0 if adding leave to days with task entries
+      }).then(onClose);
     }
   };
 
   function handleDeleteEntry(event: any): void {
     event.preventDefault();
     //DELETE API with skippedTaskId
-    const skippedTaskId = days.skipDays
-      .map((day) => {
-        const entry = timeEntries.find(
-          (item) => item.date === normalizeDate(day)
-        );
-        return entry?.id;
-      })
-      .filter((id): id is number => id !== undefined);
+    const skippedTaskId = days.skipDays.flatMap((day) => {
+      return timeEntries
+        .filter((item) => normalizeDate(item.date) === normalizeDate(day))
+        .map((item) => item.id);
+    });
+
     deleteDays(skippedTaskId)
       .then(() => {
         setDays((prev) => ({
@@ -110,6 +118,17 @@ export default function EditDayEntry({
         console.error("Error deleting entries:", error);
       });
   }
+
+  // Determine if submission should be allowed
+  const canSubmit =
+    entryType &&
+    !isLoading &&
+    !isError &&
+    !isOpenConfirmModal &&
+    !hasDayEntries;
+
+  // For holiday/sick options, they should be disabled if there are existing entries
+  const isHolidaySickDisabled = days.skipDays.length > 0;
 
   return (
     <div>
@@ -138,7 +157,7 @@ export default function EditDayEntry({
             </h3>
             <button
               type="button"
-              className="text-red-500  hover:text-red-700 cursor-pointer flex items-center"
+              className="text-red-500 hover:text-red-700 cursor-pointer flex items-center"
               onClick={() => setIsOpenConfirmModal(!isOpenConfirmModal)}
             >
               <span className="mr-1">Clear Days</span>
@@ -168,17 +187,24 @@ export default function EditDayEntry({
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "holiday"
                   ? "bg-yellow-100 border-yellow-500 text-yellow-700"
+                  : isHolidaySickDisabled
+                  ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
               }`}
-              onClick={() => handleEntryTypeChange("holiday")}
+              onClick={() =>
+                !isHolidaySickDisabled && handleEntryTypeChange("holiday")
+              }
             >
               <input
                 type="radio"
                 name="entryType"
                 value="holiday"
                 checked={entryType === "holiday"}
-                onChange={() => handleEntryTypeChange("holiday")}
+                onChange={() =>
+                  !isHolidaySickDisabled && handleEntryTypeChange("holiday")
+                }
                 className="sr-only"
+                disabled={isHolidaySickDisabled}
               />
               <span className="text-sm font-medium">Holiday</span>
             </div>
@@ -187,17 +213,24 @@ export default function EditDayEntry({
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "sick"
                   ? "bg-yellow-100 border-yellow-500 text-yellow-700"
+                  : isHolidaySickDisabled
+                  ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
               }`}
-              onClick={() => handleEntryTypeChange("sick")}
+              onClick={() =>
+                !isHolidaySickDisabled && handleEntryTypeChange("sick")
+              }
             >
               <input
                 type="radio"
                 name="entryType"
                 value="sick"
                 checked={entryType === "sick"}
-                onChange={() => handleEntryTypeChange("sick")}
+                onChange={() =>
+                  !isHolidaySickDisabled && handleEntryTypeChange("sick")
+                }
                 className="sr-only"
+                disabled={isHolidaySickDisabled}
               />
               <span className="text-sm font-medium">Sick Day</span>
             </div>
@@ -206,16 +239,21 @@ export default function EditDayEntry({
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "leave"
                   ? "bg-yellow-100 border-yellow-500 text-yellow-700"
+                  : hasDayEntries
+                  ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
               }`}
-              onClick={() => handleEntryTypeChange("leave")}
+              onClick={() => !hasDayEntries && handleEntryTypeChange("leave")}
             >
               <input
                 type="radio"
                 name="entryType"
                 value="leave"
                 checked={entryType === "leave"}
-                onChange={() => handleEntryTypeChange("leave")}
+                onChange={() =>
+                  !hasDayEntries && handleEntryTypeChange("leave")
+                }
+                disabled={hasDayEntries}
                 className="sr-only"
               />
               <span className="text-sm font-medium">Leave</span>
@@ -252,12 +290,25 @@ export default function EditDayEntry({
             placeholder="Add any notes here..."
           ></textarea>
         </div>
+
         {days.skipDays.length > 0 && (
           <div className="pt-4">
-            <label className="block text-sm font-medium text-red-500 mb-2">
-              Warning: You have selected days with existing entries. Please
-              Clear it if you want to proceed.
-            </label>
+            {isHolidaySickDisabled && entryType !== "leave" ? (
+              <label className="block text-sm font-medium text-red-500 mb-2">
+                Warning: You have selected days with existing entries. You can
+                only add leave hours or clear existing entries.
+              </label>
+            ) : days.skipDays.length > 0 && entryType !== "leave" ? (
+              <label className="block text-sm font-medium text-red-500 mb-2">
+                Warning: You have selected days with existing entries. Please
+                Clear it if you want to proceed with {entryType}.
+              </label>
+            ) : entryType === "leave" ? (
+              <label className="block text-sm font-medium text-blue-500 mb-2">
+                Note: Leave hours will be added to all selected days, including
+                those with existing task entries.
+              </label>
+            ) : null}
           </div>
         )}
 
@@ -272,23 +323,13 @@ export default function EditDayEntry({
                 : "bg-gray-300 cursor-not-allowed"
             }`}
           >
-            cancel
+            Cancel
           </button>
           <button
             type="submit"
-            disabled={
-              !entryType ||
-              isLoading ||
-              isError ||
-              isOpenConfirmModal ||
-              !!days.skipDays.length
-            }
+            disabled={!canSubmit}
             className={`w-full flex justify-center py-2 px-4 ml-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-              entryType &&
-              !isLoading &&
-              !isError &&
-              !isOpenConfirmModal &&
-              !days.skipDays.length
+              canSubmit
                 ? "bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                 : "bg-gray-300 cursor-not-allowed"
             }`}

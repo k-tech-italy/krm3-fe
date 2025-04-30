@@ -413,7 +413,7 @@ export function TimeSheetTable(props: Props) {
           style={{
             gridTemplateColumns: isColumnView
               ? undefined
-              : `180px repeat(${props.scheduleDays.numberOfDays}, 1fr)`,
+              : `160px repeat(${props.scheduleDays.numberOfDays}, 1fr)`,
             gridTemplateRows: isColumnView
               ? `repeat(${props.scheduleDays.numberOfDays + 1}, auto)`
               : undefined,
