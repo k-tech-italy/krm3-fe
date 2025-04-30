@@ -1,5 +1,5 @@
 import { Task, TimeEntry } from "../../restapi/types";
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { ChevronDown, Trash2, LoaderCircle } from "lucide-react";
 import { formatDate } from "./Krm3Calendar";
 import ConfirmationModal from "../commons/ConfirmationModal.tsx";
@@ -112,10 +112,11 @@ export default function EditTimeEntry({
   const { mutateAsync: createTimeEntries, error: creationError, isSuccess: creationSuccess } =
     useCreateTimeEntry();
 
-  if(creationSuccess)
-  {
-    closeModal()
-  }
+  useEffect(() => {
+    if (creationSuccess) {
+      closeModal();
+    }
+  }, [creationSuccess]);
 
   const validateInput = (
     numberOfHours: string,
@@ -198,16 +199,17 @@ export default function EditTimeEntry({
         content={
           <>
             {!deletionIsSuccess && (
-              <p>
+              <>
                 {`Are you sure to clear time entries for these days?:`}
                 <div className="flex flex-wrap mt-2">
-                  {daysWithTimeEntries.map((day) => (
-                    <p className="mr-2.5 mb-2.5 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded">
+                  {daysWithTimeEntries.map((day, idx) => (
+                    <p className="mr-2.5 mb-2.5 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded"
+                    key={idx}>
                       {formatDate(day)}
                     </p>
                   ))}
                 </div>
-              </p>
+              </>
             )}
 
             <div className="flex justify-center">
