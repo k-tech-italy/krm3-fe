@@ -223,10 +223,16 @@ export default function EditTimeEntry({
       />
       <div className="flex flex-col sm:flex-row items-start sm:items-center">
         <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">
-          Selected days
+          Days without time entries
         </label>
         <div className="sm:w-2/4 w-full flex flex-wrap">
-          {selectedDates.map((date, idx) => (
+          {selectedDates.filter((selectedDate) => {
+            if(!(daysWithTimeEntries.includes(selectedDate)))
+              return true
+            else
+              return false;
+          }).
+          map((date, idx) => (
             <p
               key={idx}
               className="mr-2.5 mb-2.5 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded"
