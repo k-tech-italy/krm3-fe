@@ -7,7 +7,7 @@ import {
   getCountries,
   getCities,
 } from "../restapi/mission";
-import { AxiosError, AxiosResponse } from "axios";
+import {AxiosError, AxiosResponse} from "axios";
 import { useGetCurrentUser } from "./commons";
 import { createTimeEntry, getTimesheet, deleteTimeEntries } from "../restapi/timesheet";
 
@@ -19,7 +19,7 @@ export function useCreateTimeEntry() {
         throw new Error('Resource ID is undefined');
     }
     return useMutation((params: {
-        task?: number,
+        taskId?: number,
         dates: string[],
         workHours?: number,
         sickHours?: number,
@@ -29,10 +29,11 @@ export function useCreateTimeEntry() {
         travelHours?: number,
         onCallHours?: number,
         restHours?: number,
+        comment?: string
     }) => createTimeEntry({...params, resourceId}),
         {
             onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: 'timesheet' });
+                queryClient.invalidateQueries({ queryKey: ['timesheet'] });
             },
             onError: (error: AxiosError) => {
 
