@@ -80,13 +80,16 @@ export default function EditTimeEntry({
         )
       : []
   );
+  //switch to that code when api for overwriting timeentries is ready
+  // const isClearButtonVisible =
+  //   daysWithTimeEntries.filter(
+  //     (day) => normalizeDate(day) != normalizeDate(startDate)
+  //   ).length > 0 ||
+  //   (daysWithTimeEntries.length == 1 &&
+  //     normalizeDate(daysWithTimeEntries[0]) == normalizeDate(startDate));
 
   const isClearButtonVisible =
-    daysWithTimeEntries.filter(
-      (day) => normalizeDate(day) != normalizeDate(startDate)
-    ).length > 0 ||
-    (daysWithTimeEntries.length == 1 &&
-      normalizeDate(daysWithTimeEntries[0]) == normalizeDate(startDate));
+      daysWithTimeEntries.length > 0
 
   const timeEntriesToDelete = timeEntries
     .filter((timeEntry) => {
@@ -102,12 +105,17 @@ export default function EditTimeEntry({
 
   const {
     mutateAsync: deleteTimeEntries,
-    error,
+    error: deletionError,
     isLoading,
-    isSuccess,
+    isSuccess: deletionIsSuccess,
   } = useDeleteTimeEntries();
-  const { mutateAsync: createTimeEntries, error: apiError } =
+  const { mutateAsync: createTimeEntries, error: creationError, isSuccess: creationSuccess } =
     useCreateTimeEntry();
+
+  if(creationSuccess)
+  {
+    closeModal()
+  }
 
   const validateInput = (
     numberOfHours: string,
@@ -168,6 +176,7 @@ export default function EditTimeEntry({
       overtimeHours: Number(timeEntryData.overtimeHours),
       comment: comment,
     }).then(() => closeModal);
+
   };
 
   return (
@@ -175,21 +184,20 @@ export default function EditTimeEntry({
       <ConfirmationModal
         open={isClearModalOpened}
         onConfirm={
-          !isSuccess
-            ? async () => {
+            async () =>
+            {
                 const response = await deleteTimeEntries(timeEntriesToDelete);
 
-                if (response.status == 204) {
+                if (response.status == 204)
+                {
                   setDaysWithTimeEntries([]);
+                  setIsClearModalOpened(false);
                 }
-              }
-            : async () => {
-                setIsClearModalOpened(false);
-              }
+            }
         }
         content={
           <>
-            {!isSuccess && (
+            {!deletionIsSuccess && (
               <p>
                 {`Are you sure to clear time entries for these days?:`}
                 <div className="flex flex-wrap mt-2">
@@ -201,17 +209,12 @@ export default function EditTimeEntry({
                 </div>
               </p>
             )}
-            {isSuccess && (
-              <p className="text-green-600">
-                {`You've successfully cleared time entries`}
-              </p>
-            )}
 
             <div className="flex justify-center">
               {isLoading && <LoaderCircle className="animate-spin w-4 h-4" />}
             </div>
-            {error && String(error) != "null" && (
-              <p className="mt-2 text-red-500">{String(error)}</p>
+            {deletionError && String(deletionError) != "null" && (
+              <p className="mt-2 text-red-500">{String(deletionError)}</p>
             )}
           </>
         }
@@ -220,10 +223,16 @@ export default function EditTimeEntry({
       />
       <div className="flex flex-col sm:flex-row items-start sm:items-center">
         <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">
-          Selected days
+          Days without time entries
         </label>
         <div className="sm:w-2/4 w-full flex flex-wrap">
-          {selectedDates.map((date, idx) => (
+          {selectedDates.filter((selectedDate) => {
+            if(!(daysWithTimeEntries.includes(selectedDate)))
+              return true
+            else
+              return false;
+          }).
+          map((date, idx) => (
             <p
               key={idx}
               className="mr-2.5 mb-2.5 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded"
@@ -355,18 +364,27 @@ export default function EditTimeEntry({
           ></textarea>
         </div>
       </div>
-      {isClearButtonVisible &&
-        !(
-          daysWithTimeEntries.length == 1 &&
-          normalizeDate(daysWithTimeEntries[0]) == normalizeDate(startDate)
-        ) && (
+      {/*switch to that code when api for overwriting timeentries is ready*/}
+      {/*{isClearButtonVisible &&*/}
+      {/*  !(*/}
+      {/*    daysWithTimeEntries.length == 1 &&*/}
+      {/*    normalizeDate(daysWithTimeEntries[0]) == normalizeDate(startDate)*/}
+      {/*  ) && (*/}
+      {/*    <p className="text-red-500 mt-2">Please clear time entries first</p>*/}
+      {/*  )}*/}
+      {isClearButtonVisible && (
           <p className="text-red-500 mt-2">Please clear time entries first</p>
         )}
-      {apiError && (
+      {creationError && (
         <p className="text-red-500 mt-2">
-          {apiError.status}
-          {apiError.message}
+          {creationError.status}
+          {creationError.message}
         </p>
+      )}
+      {deletionIsSuccess && (
+          <p className="text-green-600">
+            {`You've successfully cleared time entries`}
+          </p>
       )}
 
       <div className="flex justify-end items-center p-6 space-x-4">
@@ -378,26 +396,42 @@ export default function EditTimeEntry({
         </button>
 
         <button
+            //switch to that code when api for overwriting timeentries is ready
+          // className={`px-4 py-2 text-white rounded-lg focus:outline-none
+          //           ${
+          //             invalidTimeFormat.length > 0 ||
+          //             (isClearButtonVisible &&
+          //               !(
+          //                 daysWithTimeEntries.length == 1 &&
+          //                 normalizeDate(daysWithTimeEntries[0]) ==
+          //                   normalizeDate(startDate)
+          //               ))
+          //               ? "bg-gray-300 cursor-not-allowed"
+          //               : "bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+          //           }`}
           className={`px-4 py-2 text-white rounded-lg focus:outline-none
                     ${
-                      invalidTimeFormat.length > 0 ||
-                      (isClearButtonVisible &&
-                        !(
-                          daysWithTimeEntries.length == 1 &&
-                          normalizeDate(daysWithTimeEntries[0]) ==
-                            normalizeDate(startDate)
-                        ))
+                        invalidTimeFormat.length > 0 ||
+                        isClearButtonVisible
                         ? "bg-gray-300 cursor-not-allowed"
                         : "bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                     }`}
           onClick={async () => {
             await submit();
           }}
+          // switch to that code when api for overwriting timeentries is ready
+          // disabled={
+          //     invalidTimeFormat.length > 0 ||
+          //     (isClearButtonVisible &&
+          //         !(
+          //             daysWithTimeEntries.length == 1 &&
+          //             normalizeDate(daysWithTimeEntries[0]) ==
+          //             normalizeDate(startDate)
+          //         ))
+          // }
           disabled={
-            invalidTimeFormat.length > 0 ||
-            (isClearButtonVisible &&
-              daysWithTimeEntries.length == 1 &&
-              normalizeDate(daysWithTimeEntries[0]) == normalizeDate(startDate))
+              invalidTimeFormat.length > 0 ||
+              isClearButtonVisible
           }
         >
           Save
