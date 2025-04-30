@@ -112,18 +112,11 @@ export default function EditTimeEntry({
   const { mutateAsync: createTimeEntries, error: creationError, isSuccess: creationSuccess } =
     useCreateTimeEntry();
 
-<<<<<<< HEAD
   useEffect(() => {
     if (creationSuccess) {
       closeModal();
     }
   }, [creationSuccess]);
-=======
-  if(creationSuccess)
-  {
-    closeModal()
-  }
->>>>>>> d17ba04 (fixes for create entry form)
 
   const validateInput = (
     numberOfHours: string,
@@ -206,11 +199,7 @@ export default function EditTimeEntry({
         content={
           <>
             {!deletionIsSuccess && (
-<<<<<<< HEAD
               <>
-=======
-              <p>
->>>>>>> d17ba04 (fixes for create entry form)
                 {`Are you sure to clear time entries for these days?:`}
                 <div className="flex flex-wrap mt-2">
                   {daysWithTimeEntries.map((day, idx) => (
@@ -220,11 +209,7 @@ export default function EditTimeEntry({
                     </p>
                   ))}
                 </div>
-<<<<<<< HEAD
               </>
-=======
-              </p>
->>>>>>> d17ba04 (fixes for create entry form)
             )}
 
             <div className="flex justify-center">
@@ -422,22 +407,14 @@ export default function EditTimeEntry({
           //                 daysWithTimeEntries.length == 1 &&
           //                 normalizeDate(daysWithTimeEntries[0]) ==
           //                   normalizeDate(startDate)
-<<<<<<< HEAD
           //               )) || totalHoursExceeded
-=======
-          //               ))
->>>>>>> d17ba04 (fixes for create entry form)
           //               ? "bg-gray-300 cursor-not-allowed"
           //               : "bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
           //           }`}
           className={`px-4 py-2 text-white rounded-lg focus:outline-none
                     ${
                         invalidTimeFormat.length > 0 ||
-<<<<<<< HEAD
                         isClearButtonVisible || totalHoursExceeded
-=======
-                        isClearButtonVisible
->>>>>>> d17ba04 (fixes for create entry form)
                         ? "bg-gray-300 cursor-not-allowed"
                         : "bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                     }`}
@@ -452,19 +429,11 @@ export default function EditTimeEntry({
           //             daysWithTimeEntries.length == 1 &&
           //             normalizeDate(daysWithTimeEntries[0]) ==
           //             normalizeDate(startDate)
-<<<<<<< HEAD
           //         )) || totalHoursExceeded
           // }
           disabled={
               invalidTimeFormat.length > 0 ||
               isClearButtonVisible || totalHoursExceeded
-=======
-          //         ))
-          // }
-          disabled={
-              invalidTimeFormat.length > 0 ||
-              isClearButtonVisible
->>>>>>> d17ba04 (fixes for create entry form)
           }
         >
           Save
