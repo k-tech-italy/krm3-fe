@@ -184,6 +184,7 @@ export default function Krm3Calendar() {
                   timeEntries={timeEntries}
                   closeModal={() => {
                     setOpenTimeEntryModal(false);
+                    setSelectedCells(undefined)
                   }}
                 />
               )}

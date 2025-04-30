@@ -13,7 +13,7 @@ export function getTimesheet(params: {
 
 export function createTimeEntry(params: {
   resourceId: number;
-  taskId: number;
+  taskId?: number;
   dates: string[];
   workHours?: number;
   sickHours?: number;
