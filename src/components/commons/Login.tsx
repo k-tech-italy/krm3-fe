@@ -132,16 +132,17 @@ export function Login() {
 
   const handleGoogleLogin = () => {
     setIsLoading(true);
-    loginGoogle()
-      .catch((err) => {
-        console.error("Failed to initiate Google login", err);
-        setError({
-          detail: "Failed to connect to Google. Please try again.",
-        });
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    window.location.href = '/oauth/login/google-oauth2/';
+    // loginGoogle()
+    //   .catch((err) => {
+    //     console.error("Failed to initiate Google login", err);
+    //     setError({
+    //       detail: "Failed to connect to Google. Please try again.",
+    //     });
+    //   })
+    //   .finally(() => {
+    //     setIsLoading(false);
+    //   });
   };
 
   if (isLoading && !showLogin) {

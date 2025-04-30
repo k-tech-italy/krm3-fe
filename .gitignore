@@ -6,6 +6,8 @@
 !.nvmrc
 !.npmrc
 
+downloaded_files
+
 # From CRA
 
 # dependencies
