@@ -10,6 +10,7 @@ interface Props {
 export default function Krm3Modal({ open, onClose, children, title }: Props) {
     return (
         <div
+            id='time-entry-modal'
             onClick={onClose}
             className={`fixed inset-0 flex justify-center items-center transition-colors duration-300 ${open ? "visible bg-black/20" : "invisible bg-transparent"
                 }`}

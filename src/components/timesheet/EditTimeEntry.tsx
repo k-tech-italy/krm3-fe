@@ -1,5 +1,5 @@
 import { Task, TimeEntry } from "../../restapi/types";
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import { ChevronDown, Trash2, LoaderCircle } from "lucide-react";
 import { formatDate } from "./Krm3Calendar";
 import ConfirmationModal from "../commons/ConfirmationModal.tsx";
@@ -88,8 +88,7 @@ export default function EditTimeEntry({
   //   (daysWithTimeEntries.length == 1 &&
   //     normalizeDate(daysWithTimeEntries[0]) == normalizeDate(startDate));
 
-  const isClearButtonVisible =
-      daysWithTimeEntries.length > 0
+  const isClearButtonVisible = daysWithTimeEntries.length > 0;
 
   const timeEntriesToDelete = timeEntries
     .filter((timeEntry) => {
@@ -109,8 +108,11 @@ export default function EditTimeEntry({
     isLoading,
     isSuccess: deletionIsSuccess,
   } = useDeleteTimeEntries();
-  const { mutateAsync: createTimeEntries, error: creationError, isSuccess: creationSuccess } =
-    useCreateTimeEntry();
+  const {
+    mutateAsync: createTimeEntries,
+    error: creationError,
+    isSuccess: creationSuccess,
+  } = useCreateTimeEntry();
 
   useEffect(() => {
     if (creationSuccess) {
@@ -177,34 +179,35 @@ export default function EditTimeEntry({
       overtimeHours: Number(timeEntryData.overtimeHours),
       comment: comment,
     }).then(() => closeModal);
-
   };
 
   return (
-    <div className="flex flex-col space-y-6">
+    <div className="flex flex-col space-y-6" id="edit-time-entry-container">
       <ConfirmationModal
         open={isClearModalOpened}
-        onConfirm={
-            async () =>
-            {
-                const response = await deleteTimeEntries(timeEntriesToDelete);
+        onConfirm={async () => {
+          const response = await deleteTimeEntries(timeEntriesToDelete);
 
-                if (response.status == 204)
-                {
-                  setDaysWithTimeEntries([]);
-                  setIsClearModalOpened(false);
-                }
-            }
-        }
+          if (response.status == 204) {
+            setDaysWithTimeEntries([]);
+            setIsClearModalOpened(false);
+          }
+        }}
         content={
           <>
             {!deletionIsSuccess && (
               <>
                 {`Are you sure to clear time entries for these days?:`}
-                <div className="flex flex-wrap mt-2">
+                <div
+                  className="flex flex-wrap mt-2"
+                  id="clear-confirmation-days"
+                >
                   {daysWithTimeEntries.map((day, idx) => (
-                    <p className="mr-2.5 mb-2.5 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded"
-                    key={idx}>
+                    <p
+                      className="mr-2.5 mb-2.5 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded"
+                      key={idx}
+                      id={`clear-day-${idx}`}
+                    >
                       {formatDate(day)}
                     </p>
                   ))}
@@ -213,47 +216,73 @@ export default function EditTimeEntry({
             )}
 
             <div className="flex justify-center">
-              {isLoading && <LoaderCircle className="animate-spin w-4 h-4" />}
+              {isLoading && (
+                <LoaderCircle
+                  className="animate-spin w-4 h-4"
+                  id="delete-loader"
+                />
+              )}
             </div>
             {deletionError && String(deletionError) != "null" && (
-              <p className="mt-2 text-red-500">{String(deletionError)}</p>
+              <p className="mt-2 text-red-500" id="deletion-error-message">
+                {String(deletionError)}
+              </p>
             )}
           </>
         }
         title="Clear days"
         onClose={() => setIsClearModalOpened(false)}
       />
-      <div className="flex flex-col sm:flex-row items-start sm:items-center">
-        <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">
+      <div
+        className="flex flex-col sm:flex-row items-start sm:items-center"
+        id="days-without-entries-section"
+      >
+        <label
+          className="sm:w-1/4 font-semibold mb-2 sm:mb-0"
+          id="days-without-entries-label"
+        >
           Days without time entries
         </label>
-        <div className="sm:w-2/4 w-full flex flex-wrap">
-          {selectedDates.filter((selectedDate) => {
-            if(!(daysWithTimeEntries.includes(selectedDate)))
-              return true
-            else
-              return false;
-          }).
-          map((date, idx) => (
-            <p
-              key={idx}
-              className="mr-2.5 mb-2.5 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded"
-            >
-              {formatDate(date)}
-            </p>
-          ))}
+        <div
+          className="sm:w-2/4 w-full flex flex-wrap"
+          id="days-without-entries-container"
+        >
+          {selectedDates
+            .filter((selectedDate) => {
+              if (!daysWithTimeEntries.includes(selectedDate)) return true;
+              else return false;
+            })
+            .map((date, idx) => (
+              <p
+                key={idx}
+                id={`day-without-entry-${idx}`}
+                className="mr-2.5 mb-2.5 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded"
+              >
+                {formatDate(date)}
+              </p>
+            ))}
         </div>
       </div>
 
       {isClearButtonVisible && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center">
-          <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">
+        <div
+          className="flex flex-col sm:flex-row items-start sm:items-center"
+          id="days-with-entries-section"
+        >
+          <label
+            className="sm:w-1/4 font-semibold mb-2 sm:mb-0"
+            id="days-with-entries-label"
+          >
             Days with time entries
           </label>
-          <div className="sm:w-2/4 w-full flex flex-wrap">
+          <div
+            className="sm:w-2/4 w-full flex flex-wrap"
+            id="days-with-entries-container"
+          >
             {daysWithTimeEntries.map((day, idx) => (
               <p
                 key={idx}
+                id={`day-with-entry-${idx}`}
                 className="mr-2.5 mb-2.5 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded"
               >
                 {formatDate(day)}
@@ -262,6 +291,7 @@ export default function EditTimeEntry({
           </div>
           <button
             className="px-4 py-2 text-white rounded-lg focus:outline-none bg-red-500 ml-auto mr-5 hover:bg-red-600"
+            id="clear-entries-button"
             onClick={() => {
               setIsClearModalOpened(true);
             }}
@@ -271,14 +301,24 @@ export default function EditTimeEntry({
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center">
-        <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">
+      <div
+        className="flex flex-col sm:flex-row items-start sm:items-center"
+        id="worked-hours-section"
+      >
+        <label
+          className="sm:w-1/4 font-semibold mb-2 sm:mb-0"
+          id="worked-hours-label"
+        >
           Worked hours
         </label>
-        <div className="sm:w-2/4 w-full justify-between gap-2">
+        <div
+          className="sm:w-2/4 w-full justify-between gap-2"
+          id="worked-hours-buttons"
+        >
           {times.map((time, idx) => (
             <button
               key={idx}
+              id={`worked-hours-${time}`}
               className={`border rounded-md py-2 w-[24%] cursor-pointer mr-[1%] border-gray-300
                             ${
                               Number(timeEntryData.workHours) == time
@@ -295,28 +335,44 @@ export default function EditTimeEntry({
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-start">
-        <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0 mt-2">More</label>
+      <div
+        className="flex flex-col sm:flex-row items-start"
+        id="details-section"
+      >
+        <label
+          className="sm:w-1/4 font-semibold mb-2 sm:mb-0 mt-2"
+          id="details-label"
+        >
+          More
+        </label>
 
-        <div className="sm:w-2/4 p-2 border mt-3 rounded-md opacity-80 border-gray-300 ">
+        <div
+          className="sm:w-2/4 p-2 border mt-3 rounded-md opacity-80 border-gray-300"
+          id="details-container"
+        >
           <div className="flex flex-column">
             <button
               className="h-full hover:cursor-pointer ml-auto px-4 w-full flex"
+              id="toggle-details-button"
               onClick={() => {
                 setIsDetailedViewOpened(!isDetailedViewOpened);
               }}
             >
-              {!isDetailedViewOpened && <p>Open for details...</p>}
+              {!isDetailedViewOpened && (
+                <p id="open-details-text">Open for details...</p>
+              )}
               <ChevronDown className="ml-auto" />
             </button>
           </div>
           {isDetailedViewOpened && (
-            <div className="pb-5">
+            <div className="pb-5" id="detailed-hours-container">
               {(
                 Object.keys(timeEntryData) as Array<keyof typeof timeEntryData>
               ).map((key) => (
-                <div className="px-3" key={key}>
-                  <p className="font-bold mt-1">{hoursLabel[key]}</p>
+                <div className="px-3" key={key} id={`${key}-container`}>
+                  <p className="font-bold mt-1" id={`${key}-label`}>
+                    {hoursLabel[key]}
+                  </p>
                   <input
                     className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300
                                         ${
@@ -325,6 +381,7 @@ export default function EditTimeEntry({
                                             : ""
                                         }`}
                     type="text"
+                    id={`${key}-input`}
                     value={timeEntryData[key]}
                     onChange={(e) => {
                       handleChangeHourInput(e.target.value, key);
@@ -337,7 +394,7 @@ export default function EditTimeEntry({
                     }}
                   />
                   {invalidTimeFormat.includes(key) && (
-                    <p className="text-red-500 mt-2">
+                    <p className="text-red-500 mt-2" id={`${key}-error`}>
                       Invalid value (must be 0-0.25 ecc..)
                     </p>
                   )}
@@ -349,16 +406,25 @@ export default function EditTimeEntry({
       </div>
 
       {totalHoursExceeded && (
-        <p className="text-red-500 mt-2">
+        <p className="text-red-500 mt-2" id="total-hours-exceeded-error">
           The total number of hours cannot exceed 24.
         </p>
       )}
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center">
-        <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">Comment</label>
+      <div
+        className="flex flex-col sm:flex-row items-start sm:items-center"
+        id="comment-section"
+      >
+        <label
+          className="sm:w-1/4 font-semibold mb-2 sm:mb-0"
+          id="comment-label"
+        >
+          Comment
+        </label>
         <div className="sm:w-2/4 w-full">
           <textarea
-            className=" w-full border rounded-md p-2 border-gray-300"
+            className="w-full border rounded-md p-2 border-gray-300"
+            id="comment-textarea"
             value={comment}
             onChange={(e) => {
               setComment(e.target.value);
@@ -375,30 +441,36 @@ export default function EditTimeEntry({
       {/*    <p className="text-red-500 mt-2">Please clear time entries first</p>*/}
       {/*  )}*/}
       {isClearButtonVisible && (
-          <p className="text-red-500 mt-2">Please clear time entries first</p>
-        )}
+        <p className="text-red-500 mt-2" id="clear-entries-warning">
+          Please clear time entries first
+        </p>
+      )}
       {creationError && (
-        <p className="text-red-500 mt-2">
+        <p className="text-red-500 mt-2" id="creation-error-message">
           {creationError.status}
           {creationError.message}
         </p>
       )}
       {deletionIsSuccess && (
-          <p className="text-green-600">
-            {`You've successfully cleared time entries`}
-          </p>
+        <p className="text-green-600" id="deletion-success-message">
+          {`You've successfully cleared time entries`}
+        </p>
       )}
 
-      <div className="flex justify-end items-center p-6 space-x-4">
+      <div
+        className="flex justify-end items-center p-6 space-x-4"
+        id="action-buttons"
+      >
         <button
           className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 focus:outline-none"
+          id="close-button"
           onClick={closeModal}
         >
           Close
         </button>
 
         <button
-            //switch to that code when api for overwriting timeentries is ready
+          //switch to that code when api for overwriting timeentries is ready
           // className={`px-4 py-2 text-white rounded-lg focus:outline-none
           //           ${
           //             invalidTimeFormat.length > 0 ||
@@ -413,11 +485,13 @@ export default function EditTimeEntry({
           //           }`}
           className={`px-4 py-2 text-white rounded-lg focus:outline-none
                     ${
-                        invalidTimeFormat.length > 0 ||
-                        isClearButtonVisible || totalHoursExceeded
+                      invalidTimeFormat.length > 0 ||
+                      isClearButtonVisible ||
+                      totalHoursExceeded
                         ? "bg-gray-300 cursor-not-allowed"
                         : "bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                     }`}
+          id="save-button"
           onClick={async () => {
             await submit();
           }}
@@ -432,8 +506,9 @@ export default function EditTimeEntry({
           //         )) || totalHoursExceeded
           // }
           disabled={
-              invalidTimeFormat.length > 0 ||
-              isClearButtonVisible || totalHoursExceeded
+            invalidTimeFormat.length > 0 ||
+            isClearButtonVisible ||
+            totalHoursExceeded
           }
         >
           Save
