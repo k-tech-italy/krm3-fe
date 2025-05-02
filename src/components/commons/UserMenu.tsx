@@ -14,7 +14,7 @@ export function UserMenu() {
     setIsOpen((prev) => !prev);
   }
 
-  const beUrl = process.env.KRM3_FE_API_BASE_URL?.replace("/api/v1/", "");
+  const beUrl = document.location.protocol + '//' + document.location.host;
 
   return (
     <div className="relative inline-block text-left">
