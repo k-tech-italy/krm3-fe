@@ -7,7 +7,7 @@ import { useGetTimesheet } from "../../hooks/timesheet";
 import { Droppable } from "./Droppable";
 import { formatDate } from "./Krm3Calendar";
 import { TotalHourCell } from "./TotalHour";
-import { TimeSheetRow } from "./TimeSheetRow";
+import { TimeSheetRow } from "./timesheet-row/TimeSheetRow";
 import { normalizeDate } from "./utils";
 import LoadSpinner from "../commons/LoadSpinner";
 
@@ -413,7 +413,7 @@ export function TimeSheetTable(props: Props) {
         )}
         <div
           id="timesheet-table"
-          className={`grid gap-0`}
+          className={`grid gap-0 `}
           style={{
             gridTemplateColumns: isColumnView
               ? undefined
@@ -487,11 +487,6 @@ export function TimeSheetTable(props: Props) {
             />
           ))}
         </div>
-        <DragOverlay>
-          {activeId && dragType === "cell" && (
-            <div className="bg-blue-300 p-2 h-full rounded opacity-10"></div>
-          )}
-        </DragOverlay>
       </DndContext>
     </>
   );

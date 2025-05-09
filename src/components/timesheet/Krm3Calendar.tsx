@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Task, TimeEntry } from "../../restapi/types";
-import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Krm3Modal from "../commons/krm3Modal";
 import EditTimeEntry from "./EditTimeEntry";
 import { TimeSheetTable } from "./TimesheetTable";
@@ -23,7 +23,6 @@ export const formatDate = (
   }
   return date.toLocaleDateString("en-US", {
     weekday: "short",
-    month: "short",
     day: "numeric",
   });
 };
@@ -98,40 +97,33 @@ export default function Krm3Calendar() {
 
   return (
     <div className="p-4" id="krm3-calendar-container">
-      <div className="flex justify-between items-center mb-4" id="calendar-navigation">
-        <button
-          id="nav-prev-btn"
-          onClick={navigatePrev}
-          className="px-3 py-1 bg-gray-200 rounded cursor-pointer"
+      <div className="flex justify-between">
+        <div
+          className="flex space-x-4 items-center mb-4"
+          id="calendar-navigation"
         >
-          <ArrowBigLeft />
-        </button>
-        <span className="font-medium" id="date-range-display">
-          {isMonth
-            ? formatDate(scheduledDays.days[0], false, isMonth)
-            : `${formatDate(scheduledDays.days[0])} - ${formatDate(
-                scheduledDays.days[6]
-              )}`}
-        </span>
-        <button
-          onClick={navigateNext}
-          className="px-3 py-1 bg-gray-200 rounded cursor-pointer"
-          id="nav-next-btn"
-        >
-          <ArrowBigRight />
-        </button>
-      </div>
-
-      <div className="flex justify-between items-center mb-4" id="view-controls">
-        <button
-          id="toggle-view-btn"
-          onClick={() => {
-            setIsMonth(!isMonth);
-          }}
-          className="px-4 py-2 bg-yellow-500 text-white rounded"
-        >
-          {isMonth ? "Week" : "Month"}
-        </button>
+          <button
+            id="nav-prev-btn"
+            onClick={navigatePrev}
+            className=" cursor-pointer"
+          >
+            <ChevronLeft />
+          </button>
+          <span className="font-medium" id="date-range-display">
+            {isMonth
+              ? formatDate(scheduledDays.days[0], false, isMonth)
+              : `${formatDate(scheduledDays.days[0])} - ${formatDate(
+                  scheduledDays.days[6]
+                )}`}
+          </span>
+          <button
+            onClick={navigateNext}
+            className=" cursor-pointer"
+            id="nav-next-btn"
+          >
+            <ChevronRight />
+          </button>
+        </div>
         <button
           id="today-btn"
           onClick={() =>
@@ -149,6 +141,44 @@ export default function Krm3Calendar() {
         >
           Today
         </button>
+      </div>
+
+      <div
+        className="flex justify-between items-center mb-4"
+        id="view-controls"
+      >
+      
+        <div className="flex justify-end mb-4">
+            <div className="inline-flex items-end gap-2">
+              <label
+                htmlFor="switch-month-on"
+                className="text-slate-600 text-sm cursor-pointer"
+              >
+                Month
+              </label>
+              <div className="relative inline-block w-11 h-5">
+                <input
+                  id="switch-month-on"
+                  type="checkbox"
+                  className="peer appearance-none w-11 h-5 bg-slate-100 rounded-full checked:bg-slate-800 cursor-pointer transition-colors duration-300"
+                  checked={isMonth}
+                  onChange={() => {
+                    setIsMonth(!isMonth);
+                  }}
+                />
+                <label
+                  htmlFor="switch-week-on"
+                  className="absolute top-0 left-0 w-5 h-5 bg-white rounded-full border border-slate-300 shadow-sm transition-transform duration-300 peer-checked:translate-x-6 peer-checked:border-slate-800 cursor-pointer"
+                ></label>
+              </div>
+              <label
+                htmlFor="switch-week-on"
+                className="text-slate-600 text-sm cursor-pointer"
+              >
+                Week
+              </label>
+            </div>
+          </div>
       </div>
       <TimeSheetTable
         setOpenTimeEntryModal={setOpenTimeEntryModal}
