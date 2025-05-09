@@ -97,15 +97,16 @@ export default function Krm3Calendar() {
   };
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
+    <div className="p-4" id="krm3-calendar-container">
+      <div className="flex justify-between items-center mb-4" id="calendar-navigation">
         <button
+          id="nav-prev-btn"
           onClick={navigatePrev}
           className="px-3 py-1 bg-gray-200 rounded cursor-pointer"
         >
           <ArrowBigLeft />
         </button>
-        <span className="font-medium">
+        <span className="font-medium" id="date-range-display">
           {isMonth
             ? formatDate(scheduledDays.days[0], false, isMonth)
             : `${formatDate(scheduledDays.days[0])} - ${formatDate(
@@ -115,13 +116,15 @@ export default function Krm3Calendar() {
         <button
           onClick={navigateNext}
           className="px-3 py-1 bg-gray-200 rounded cursor-pointer"
+          id="nav-next-btn"
         >
           <ArrowBigRight />
         </button>
       </div>
 
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4" id="view-controls">
         <button
+          id="toggle-view-btn"
           onClick={() => {
             setIsMonth(!isMonth);
           }}
@@ -130,6 +133,7 @@ export default function Krm3Calendar() {
           {isMonth ? "Week" : "Month"}
         </button>
         <button
+          id="today-btn"
           onClick={() =>
             setCurrentWeekStart(() => {
               const today = new Date();
@@ -184,7 +188,7 @@ export default function Krm3Calendar() {
                   timeEntries={timeEntries}
                   closeModal={() => {
                     setOpenTimeEntryModal(false);
-                    setSelectedCells(undefined)
+                    setSelectedCells(undefined);
                   }}
                 />
               )}

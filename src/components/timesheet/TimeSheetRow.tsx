@@ -106,6 +106,7 @@ export function TimeSheetRow(props: Props) {
         if (props.isHoliday(day)) {
           return (
             <div
+              id={`holiday-cell-${cellId}`}
               key={dayIndex}
               style={{ border: "solid 1px", borderColor: backgroundColor }}
               className={` ${props.isMonthView ? "p-1" : "p-2"} h-full w-full ${
@@ -125,6 +126,7 @@ export function TimeSheetRow(props: Props) {
         if (props.isSickDay(day)) {
           return (
             <div
+              id={`sick-day-cell-${cellId}`}
               key={dayIndex}
               style={{ border: "solid 1px", borderColor: backgroundColor }}
               className={` ${props.isMonthView ? "p-1" : "p-2"} h-full w-full ${
@@ -145,6 +147,7 @@ export function TimeSheetRow(props: Props) {
         if (props.isTaskFinished(day, props.task)) {
           return (
             <div
+              id={`task-finished-cell-${cellId}`}
               style={{ border: "solid 1px", borderColor: backgroundColor }}
               key={dayIndex}
               className={` ${props.isMonthView ? "p-1" : "p-2"} h-full w-full ${

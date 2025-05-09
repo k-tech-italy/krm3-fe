@@ -64,6 +64,7 @@ export function TotalHourCell({
   return (
     <div className="relative bg-gray-100 justify-center flex flex-col h-full w-full">
       <div
+        id='total-hour-label'
         className={`bg-gray-100 font-semibold ${
           isMonthView ? "text-xs" : "text-sm"
         } flex justify-center items-center h-full w-full text-${colorClass()}-500`}

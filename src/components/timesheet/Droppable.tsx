@@ -10,7 +10,7 @@ export function Droppable(props: { children: React.ReactNode; id: string }) {
   };
 
   return (
-    <div className="w-full h-full" ref={setNodeRef} style={style}>
+    <div id={`droppable-${props.id}`}  className="w-full h-full" ref={setNodeRef} style={style}>
       {props.children}
     </div>
   );

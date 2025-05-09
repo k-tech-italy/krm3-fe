@@ -140,6 +140,7 @@ export default function EditDayEntry({
           <div className="flex flex-wrap gap-2">
             {days.selDays.map((day, index) => (
               <span
+                id={`selected-day-${index}`}
                 key={index}
                 className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded"
               >
@@ -156,6 +157,7 @@ export default function EditDayEntry({
               Days with existing entries:
             </h3>
             <button
+              id="day-entry-clear-days-button"
               type="button"
               className="text-red-500 hover:text-red-700 cursor-pointer flex items-center"
               onClick={() => setIsOpenConfirmModal(!isOpenConfirmModal)}
@@ -167,6 +169,7 @@ export default function EditDayEntry({
           <div className="flex flex-wrap gap-2">
             {days.skipDays.map((day, index) => (
               <span
+                id={`skipped-day-${index}`}
                 key={index}
                 className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-1 rounded"
               >
@@ -184,6 +187,7 @@ export default function EditDayEntry({
           </label>
           <div className="grid grid-cols-3 gap-3">
             <div
+              id="day-entry-holiday-radio"
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "holiday"
                   ? "bg-yellow-100 border-yellow-500 text-yellow-700"
@@ -210,6 +214,7 @@ export default function EditDayEntry({
             </div>
 
             <div
+              id="day-entry-sick-days-radio"
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "sick"
                   ? "bg-yellow-100 border-yellow-500 text-yellow-700"
@@ -236,6 +241,7 @@ export default function EditDayEntry({
             </div>
 
             <div
+              id="day-entry-leave-radio"
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "leave"
                   ? "bg-yellow-100 border-yellow-500 text-yellow-700"
@@ -263,11 +269,15 @@ export default function EditDayEntry({
 
         {entryType === "leave" && (
           <div className="transition-all duration-300 ease-in-out">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              id="day-entry-leave-hour-label"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Leave Hours
             </label>
             <div className="relative mt-1 rounded-md shadow-sm">
               <input
+                id="day-entry-leave-hour-input"
                 type="number"
                 value={leaveHours || ""}
                 onChange={handleLeaveHoursChange}
@@ -281,10 +291,14 @@ export default function EditDayEntry({
           </div>
         )}
         <div className="pt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            id="day-entry-comments-label"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Comments
           </label>
           <textarea
+            id="day-entry-comments-input"
             rows={3}
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
             placeholder="Add any notes here..."
@@ -292,7 +306,7 @@ export default function EditDayEntry({
         </div>
 
         {days.skipDays.length > 0 && (
-          <div className="pt-4">
+          <div className="pt-4" id="existing-entry-message">
             {isHolidaySickDisabled && entryType !== "leave" ? (
               <label className="block text-sm font-medium text-red-500 mb-2">
                 Warning: You have selected days with existing entries. You can
@@ -314,6 +328,7 @@ export default function EditDayEntry({
 
         <div className="pt-4 flex justify-around">
           <button
+            id="cancel-day-entry-form"
             type="button"
             onClick={onClose}
             disabled={isLoading || isOpenConfirmModal}
@@ -326,6 +341,7 @@ export default function EditDayEntry({
             Cancel
           </button>
           <button
+            id="submit-day-entry-form"
             type="submit"
             disabled={!canSubmit}
             className={`w-full flex justify-center py-2 px-4 ml-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
@@ -349,7 +365,10 @@ export default function EditDayEntry({
       )}
       {isOpenConfirmModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 max-w-2xl">
+          <div
+            id="confirm-clear-day-entry-modal"
+            className="bg-white rounded-lg shadow-lg p-6 max-w-2xl"
+          >
             <h3 className="text-lg font-semibold text-gray-800 mb-4">
               Confirm Deletion
             </h3>
@@ -368,6 +387,7 @@ export default function EditDayEntry({
             </div>
             <div className="flex justify-end">
               <button
+                id="confirm-clear-day-entry-modal-cancel"
                 type="button"
                 className="mr-2 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
                 onClick={() => setIsOpenConfirmModal(false)}
@@ -375,6 +395,7 @@ export default function EditDayEntry({
                 Cancel
               </button>
               <button
+                id="confirm-clear-day-entry-modal-submit"
                 type="button"
                 className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
                 onClick={handleDeleteEntry}

@@ -3,7 +3,7 @@ import { useMediaQuery } from "../../hooks/commons";
 import { DndContext, DragOverlay, closestCenter } from "@dnd-kit/core";
 import { TimeEntry, Task } from "../../restapi/types";
 import { Draggable } from "./Draggable";
-import { useGetTimesheet } from "../../hooks/timesheet"; 
+import { useGetTimesheet } from "../../hooks/timesheet";
 import { Droppable } from "./Droppable";
 import { formatDate } from "./Krm3Calendar";
 import { TotalHourCell } from "./TotalHour";
@@ -35,10 +35,10 @@ export function TimeSheetTable(props: Props) {
     props.scheduleDays.days[props.scheduleDays.numberOfDays - 1]
   );
 
-  const {
-    data: timesheet,
-    isLoading: isLoadingTimesheet,
-  } = useGetTimesheet(startDate, endDate);
+  const { data: timesheet, isLoading: isLoadingTimesheet } = useGetTimesheet(
+    startDate,
+    endDate
+  );
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeDragData, setActiveDragData] = useState<{
@@ -198,8 +198,9 @@ export function TimeSheetTable(props: Props) {
         // Handle column drag end
         if (over.id.startsWith("column-")) {
           const targetDayIndex = Number(over.id.replace("column-", ""));
-          const targetDay = normalizeDate(props.scheduleDays.days[targetDayIndex])
-           
+          const targetDay = normalizeDate(
+            props.scheduleDays.days[targetDayIndex]
+          );
 
           if (activeDragData.columnDay && targetDay) {
             if (timesheet.tasks && timesheet.tasks.length > 0) {
@@ -251,7 +252,9 @@ export function TimeSheetTable(props: Props) {
               props.setSelectedTask(task);
               props.setTimeEntries(timesheet.timeEntries);
               props.setSelectedCells(
-                draggedOverCells.filter((day) => !isHoliday(day) && !isSickday(day))
+                draggedOverCells.filter(
+                  (day) => !isHoliday(day) && !isSickday(day)
+                )
               );
 
               props.setOpenTimeEntryModal(true);
@@ -409,6 +412,7 @@ export function TimeSheetTable(props: Props) {
           </div>
         )}
         <div
+          id="timesheet-table"
           className={`grid gap-0`}
           style={{
             gridTemplateColumns: isColumnView

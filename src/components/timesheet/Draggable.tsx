@@ -13,7 +13,7 @@ export function Draggable(props: { children: React.ReactNode; id: string }) {
     : { cursor: "grab" };
 
   return (
-    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
+    <div id={`draggable-${props.id}`} ref={setNodeRef} style={style} {...listeners} {...attributes}>
       {props.children}
     </div>
   );
