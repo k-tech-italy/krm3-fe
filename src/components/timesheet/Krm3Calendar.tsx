@@ -38,6 +38,7 @@ export default function Krm3Calendar() {
   const [openTimeEntryModal, setOpenTimeEntryModal] = useState<boolean>(false);
   const [isDayEntry, setIsDayEntry] = useState<boolean>(false);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [isMonth, setIsMonth] = useState<boolean>(false);
   const {isColumnView, setColumnView} = useColumnViewPreference();
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
@@ -155,9 +156,10 @@ export default function Krm3Calendar() {
         setSkippedDays={setSkippedDays}
         setIsDayEntry={setIsDayEntry}
         setStartDate={setStartDate}
+        setEndDate={setEndDate}
         scheduleDays={scheduledDays}
       />
-      {openTimeEntryModal && selectedCells && selectedTask && startDate && (
+      {openTimeEntryModal && selectedCells && selectedTask && startDate && endDate && (
         <Krm3Modal
           open={openTimeEntryModal}
           onClose={() => {
@@ -181,6 +183,7 @@ export default function Krm3Calendar() {
                 <EditTimeEntry
                   selectedDates={selectedCells}
                   startDate={startDate}
+                  endDate={endDate}
                   task={selectedTask}
                   timeEntries={timeEntries}
                   closeModal={() => {

@@ -28,3 +28,22 @@ export const getPastelColor = (index: number): { backgroundColor: string; border
     borderColor: color,
   };
 };
+
+
+export const getDaysBetween = (startDate: string, endDate: string): Date[] => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const days: Date[] = [];
+
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+
+  for (
+    let currentDate = new Date(start);
+    currentDate <= end;
+    currentDate.setDate(currentDate.getDate() + 1)
+  ) {
+    days.push(new Date(currentDate));
+  }
+  return days;
+};

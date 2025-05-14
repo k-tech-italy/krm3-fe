@@ -21,11 +21,11 @@ export function useCreateTimeEntry() {
     return useMutation((params: {
         taskId?: number,
         dates: string[],
-        workHours?: number,
+        dayShiftHours?: number,
         sickHours?: number,
         holidayHours?: number,
         leaveHours?: number,
-        overtimeHours?: number,
+        nightShiftHours?: number,
         travelHours?: number,
         onCallHours?: number,
         restHours?: number,

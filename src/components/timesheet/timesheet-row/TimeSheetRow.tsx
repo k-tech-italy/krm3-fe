@@ -3,6 +3,7 @@ import { TaskHeader } from "./TaskCell";
 import { TimeEntryCell } from "./TimeEntryCell";
 import { getPastelColor, normalizeDate } from "../utils";
 import { Task, TimeEntry } from "../../../restapi/types";
+import { useCreateTimeEntry } from "../../../hooks/timesheet";
 
 export interface TimeSheetRowProps {
   scheduleDays: Date[];
@@ -16,9 +17,9 @@ export interface TimeSheetRowProps {
   isTaskFinished: (currentDay: Date, task: Task) => boolean | undefined;
   getTimeEntriesForTaskAndDay: (taskId: number, day: Date) => TimeEntry[];
   openTimeEntryModalHandler: (task: Task) => void;
-  openShortMenu?: { day: string; taskId: string };
+  openShortMenu?: {selectedCells: Date[]; day: string; taskId: string };
   setOpenShortMenu?: (
-    value: { day: string; taskId: string } | undefined
+    value: {selectedCells: Date[]; day: string; taskId: string } | undefined
   ) => void;
 }
 
@@ -67,9 +68,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             key={dayIndex}
             openShortMenu={openShortMenu}
             setOpenShortMenu={setOpenShortMenu}
-            openTimeEntryModalHandler={() =>
-              openTimeEntryModalHandler(task)
-            }
+            openTimeEntryModalHandler={() => openTimeEntryModalHandler(task)}
           />
           <TimeEntryCell
             day={day}
@@ -123,9 +122,9 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
 const ShortHoursMenu = (props: {
   day: Date;
   taskId: number;
-  openShortMenu: { day: string; taskId: string } | undefined;
+  openShortMenu: {selectedCells: Date[]; day: string; taskId: string } | undefined;
   setOpenShortMenu?: (
-    value: { day: string; taskId: string } | undefined
+    value: {selectedCells: Date[]; day: string; taskId: string } | undefined
   ) => void;
   openTimeEntryModalHandler: () => void;
 }) => {
@@ -133,6 +132,11 @@ const ShortHoursMenu = (props: {
     !!props.openShortMenu &&
     normalizeDate(props.openShortMenu.day) === normalizeDate(props.day) &&
     Number(props.openShortMenu.taskId) === props.taskId;
+  const { mutate: createTimeEntries } = useCreateTimeEntry();
+
+  const selectedCells = (props.openShortMenu?.selectedCells || []).map(
+    (date) => normalizeDate(date)
+  )
 
   const options = [
     { label: "2h", value: 2 },
@@ -145,7 +149,12 @@ const ShortHoursMenu = (props: {
     //DO THE API CALL
     if (value === 99) {
       props.openTimeEntryModalHandler();
-
+    } else {
+      createTimeEntries({
+        dates: selectedCells,
+        taskId: props.taskId,
+        dayShiftHours: value,
+      });
     }
     props.setOpenShortMenu?.(undefined);
   }
@@ -162,6 +171,7 @@ const ShortHoursMenu = (props: {
         <div className="flex flex-col gap-2">
           {options.map(({ label: option, value }) => (
             <button
+              key={value}
               onClick={() => handleButtonClick(value)}
               className="px-4 py-2"
             >

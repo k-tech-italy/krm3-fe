@@ -92,7 +92,7 @@ export default function EditDayEntry({
         holidayHours: entryType === "holiday" ? 8 : undefined,
         sickHours: entryType === "sick" ? 8 : undefined,
         leaveHours: entryType === "leave" ? leaveHours : undefined,
-        workHours: 0, // Set workHours to 0 if adding leave to days with task entries
+        dayShiftHours: 0, // Set dayShiftHours to 0 if adding leave to days with task entries
       }).then(onClose);
     }
   };

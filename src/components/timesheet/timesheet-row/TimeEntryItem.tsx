@@ -19,10 +19,10 @@ export const TimeEntryItem: React.FC<TimeEntryItemProps> = ({
 
   // Get the hours value from the first available hours field
   const hoursValue =
-    entry.workHours ||
+    entry.dayShiftHours ||
     entry.onCallHours ||
     entry.restHours ||
-    entry.overtimeHours ||
+    entry.nightShiftHours ||
     entry.travelHours;
   return (
     <Draggable id={entryId} className="h-full w-full">
