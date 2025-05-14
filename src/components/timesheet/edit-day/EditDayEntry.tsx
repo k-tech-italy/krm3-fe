@@ -326,32 +326,50 @@ export default function EditDayEntry({
           </div>
         )}
 
-        <div className="pt-4 flex justify-around">
-          <button
-            id="cancel-day-entry-form"
-            type="button"
-            onClick={onClose}
-            disabled={isLoading || isOpenConfirmModal}
-            className={`w-full flex justify-center py-2 px-4 mr-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-              !isOpenConfirmModal
-                ? "bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                : "bg-gray-300 cursor-not-allowed"
-            }`}
-          >
-            Cancel
-          </button>
-          <button
-            id="submit-day-entry-form"
-            type="submit"
-            disabled={!canSubmit}
-            className={`w-full flex justify-center py-2 px-4 ml-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-              canSubmit
-                ? "bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                : "bg-gray-300 cursor-not-allowed"
-            }`}
-          >
-            Submit
-          </button>
+        <div className="pt-4 flex justify-between">
+          <div>
+            <button
+              id="cancel-day-entry-form"
+              type="button"
+              onClick={onClose}
+              disabled={isLoading || isOpenConfirmModal}
+              className={`w-full flex justify-center py-2 px-4 mr-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+                !isOpenConfirmModal
+                  ? "bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  : "bg-gray-300 cursor-not-allowed"
+              }`}
+            >
+              Delete
+            </button>
+           
+          </div>
+          <div className="flex justify-around">
+            <button
+              id="cancel-day-entry-form"
+              type="button"
+              onClick={onClose}
+              disabled={isLoading || isOpenConfirmModal}
+              className={`w-full flex justify-center py-2 px-4 mr-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+                !isOpenConfirmModal
+                  ? "bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  : "bg-gray-300 cursor-not-allowed"
+              }`}
+            >
+              Cancel
+            </button>
+            <button
+              id="submit-day-entry-form"
+              type="submit"
+              // disabled={!canSubmit}
+              className={`w-full flex justify-center py-2 px-4 ml-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+                canSubmit
+                  ? "bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                  : "bg-gray-300 cursor-not-allowed"
+              }`}
+            >
+              Submit
+            </button>
+          </div>
         </div>
       </form>
 

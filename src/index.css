@@ -1,6 +1,4 @@
-/* 
-@tailwind base;
-@tailwind components;
+/* @import "tailwindcss/preflight";
 @tailwind utilities; */
 
 @import "tailwindcss";
@@ -20,7 +18,6 @@
 	transition: margin-left 0.35s ease-in-out, left 0.35s ease-in-out, margin-right 0.35s ease-in-out, right 0.35s ease-in-out;
 	flex-direction: column;
 }
-
 
 body {
 	margin: 0;

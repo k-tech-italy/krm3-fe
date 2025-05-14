@@ -505,11 +505,11 @@ export default function EditTimeEntry({
           //             normalizeDate(startDate)
           //         )) || totalHoursExceeded
           // }
-          disabled={
-            invalidTimeFormat.length > 0 ||
-            isClearButtonVisible ||
-            totalHoursExceeded
-          }
+          // disabled={
+          //   invalidTimeFormat.length > 0 ||
+          //   isClearButtonVisible ||
+          //   totalHoursExceeded
+          // }
         >
           Save
         </button>

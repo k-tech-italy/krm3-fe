@@ -9,11 +9,22 @@ export const normalizeDate = (date: Date | string): string => {
   )}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
-export const generatePastelColor = (): string => {
-  // Generate a random pastel color
-  const randomValue = () => Math.floor(Math.random() * 128 + 127);
-  const r = randomValue();
-  const g = randomValue();
-  const b = randomValue();
-  return `rgb(${r}, ${g}, ${b})`;
+export const pastelColors: string[] = [
+  "#c9e4ca",
+  "#f2c5b9",
+  "#e5d8b6",
+  "#c7f464",
+  "#f5c2c7",
+  "#f8e231",
+  "#d7f0db",
+  "#ffd7be",
+  "#c5e1a5",
+];
+
+export const getPastelColor = (index: number): { backgroundColor: string; borderColor: string } => {
+  const color = pastelColors[index % pastelColors.length];
+  return {
+    backgroundColor: `${color}50`,
+    borderColor: color,
+  };
 };

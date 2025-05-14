@@ -1,10 +1,12 @@
 import { useState, useMemo } from "react";
 import { Task, TimeEntry } from "../../restapi/types";
-import { ArrowBigLeft, ArrowBigRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import Krm3Modal from "../commons/krm3Modal";
 import EditTimeEntry from "./EditTimeEntry";
 import { TimeSheetTable } from "./TimesheetTable";
 import EditDayEntry from "./edit-day/EditDayEntry";
+import VisualizationActions from "./VisualizationActions";
+import { useColumnViewPreference } from "../../hooks/commons";
 
 export const formatDate = (
   date: Date,
@@ -14,6 +16,7 @@ export const formatDate = (
   if (isDay) {
     return date.toLocaleDateString("en-US", {
       day: "numeric",
+      weekday: "narrow",
     });
   }
   if (isMonthName) {
@@ -23,7 +26,6 @@ export const formatDate = (
   }
   return date.toLocaleDateString("en-US", {
     weekday: "short",
-    month: "short",
     day: "numeric",
   });
 };
@@ -37,7 +39,7 @@ export default function Krm3Calendar() {
   const [isDayEntry, setIsDayEntry] = useState<boolean>(false);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [isMonth, setIsMonth] = useState<boolean>(false);
-
+  const {isColumnView, setColumnView} = useColumnViewPreference();
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
     const day = today.getDay();
@@ -98,40 +100,33 @@ export default function Krm3Calendar() {
 
   return (
     <div className="p-4" id="krm3-calendar-container">
-      <div className="flex justify-between items-center mb-4" id="calendar-navigation">
-        <button
-          id="nav-prev-btn"
-          onClick={navigatePrev}
-          className="px-3 py-1 bg-gray-200 rounded cursor-pointer"
+      <div className="flex justify-between">
+        <div
+          className="flex space-x-4 items-center"
+          id="calendar-navigation"
         >
-          <ArrowBigLeft />
-        </button>
-        <span className="font-medium" id="date-range-display">
-          {isMonth
-            ? formatDate(scheduledDays.days[0], false, isMonth)
-            : `${formatDate(scheduledDays.days[0])} - ${formatDate(
-                scheduledDays.days[6]
-              )}`}
-        </span>
-        <button
-          onClick={navigateNext}
-          className="px-3 py-1 bg-gray-200 rounded cursor-pointer"
-          id="nav-next-btn"
-        >
-          <ArrowBigRight />
-        </button>
-      </div>
-
-      <div className="flex justify-between items-center mb-4" id="view-controls">
-        <button
-          id="toggle-view-btn"
-          onClick={() => {
-            setIsMonth(!isMonth);
-          }}
-          className="px-4 py-2 bg-yellow-500 text-white rounded"
-        >
-          {isMonth ? "Week" : "Month"}
-        </button>
+          <button
+            id="nav-prev-btn"
+            onClick={navigatePrev}
+            className="cursor-pointer"
+          >
+            <ChevronLeft />
+          </button>
+          <span className="font-medium" id="date-range-display">
+            {isMonth
+              ? formatDate(scheduledDays.days[0], false, isMonth)
+              : `${formatDate(scheduledDays.days[0])} - ${formatDate(
+                  scheduledDays.days[6]
+                )}`}
+          </span>
+          <button
+            onClick={navigateNext}
+            className="cursor-pointer"
+            id="nav-next-btn"
+          >
+            <ChevronRight />
+          </button>
+        </div>
         <button
           id="today-btn"
           onClick={() =>
@@ -147,10 +142,12 @@ export default function Krm3Calendar() {
           } rounded px-4 py-2  text-white `}
           disabled={isToday}
         >
-          Today
+          {isMonth ? "This month" : "This week"}
         </button>
       </div>
+      <VisualizationActions isMonth={isMonth} setIsMonth={setIsMonth} isColumnView={isColumnView} setColumnView={setColumnView} />
       <TimeSheetTable
+        isColumnView={isColumnView}
         setOpenTimeEntryModal={setOpenTimeEntryModal}
         setSelectedTask={setSelectedTask}
         setTimeEntries={setTimeEntries}
