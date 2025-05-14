@@ -7,7 +7,7 @@ import { useGetTimesheet } from "../../hooks/timesheet";
 import { Droppable } from "./Droppable";
 import { formatDate } from "./Krm3Calendar";
 import { TotalHourCell } from "./TotalHour";
-import { TimeSheetRow } from "./TimeSheetRow";
+import { TimeSheetRow } from "./timesheet-row/TimeSheetRow";
 import { normalizeDate } from "./utils";
 import LoadSpinner from "../commons/LoadSpinner";
 
@@ -20,15 +20,11 @@ interface Props {
   setStartDate: (date: Date) => void;
   setTimeEntries: (entries: TimeEntry[]) => void;
   scheduleDays: { days: Date[]; numberOfDays: number };
+  isColumnView: boolean;
 }
 
 export function TimeSheetTable(props: Props) {
-  const defaultView = localStorage.getItem("isColumnView");
   const isMonthView = props.scheduleDays.numberOfDays > 7;
-  const isSmallScreen = useMediaQuery("(max-width: 768px)");
-  const [isColumnView, setIsColumnView] = useState(
-    defaultView === "true" || false
-  );
 
   const startDate = normalizeDate(props.scheduleDays.days[0]);
   const endDate = normalizeDate(
@@ -56,19 +52,6 @@ export function TimeSheetTable(props: Props) {
   const [draggedColumnIndex, setDraggedColumnIndex] = useState<number | null>(
     null
   );
-
-  useEffect(() => {
-    if (isSmallScreen) {
-      setIsColumnView(true);
-    } else {
-      setIsColumnView(false);
-    }
-  }, [isSmallScreen]);
-
-  const toggleView = () => {
-    localStorage.setItem("isColumnView", JSON.stringify(!isColumnView));
-    setIsColumnView(!isColumnView);
-  };
 
   const getDaysBetween = (startDate: string, endDate: string): Date[] => {
     const start = new Date(startDate);
@@ -373,69 +356,57 @@ export function TimeSheetTable(props: Props) {
   }
 
   return (
-    <>
+    <div className="flex-col">
+      <div className="max-w-200 text-gray-500 mb-1">
+        <p>
+          Clicking and holding a cell or a column to drag it. Drop it in the
+          desired position to place your hours.
+        </p>
+      </div>
       <DndContext
         onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}
         onDragStart={handleDragStart}
         collisionDetection={closestCenter}
       >
-        {!isSmallScreen && (
-          <div className="flex justify-end mb-4">
-            <div className="inline-flex items-end gap-2">
-              <label
-                htmlFor="switch-component-on"
-                className="text-slate-600 text-sm cursor-pointer"
-              >
-                Row
-              </label>
-              <div className="relative inline-block w-11 h-5">
-                <input
-                  id="switch-component-on"
-                  type="checkbox"
-                  className="peer appearance-none w-11 h-5 bg-slate-100 rounded-full checked:bg-slate-800 cursor-pointer transition-colors duration-300"
-                  checked={isColumnView}
-                  onChange={toggleView}
-                />
-                <label
-                  htmlFor="switch-component-on"
-                  className="absolute top-0 left-0 w-5 h-5 bg-white rounded-full border border-slate-300 shadow-sm transition-transform duration-300 peer-checked:translate-x-6 peer-checked:border-slate-800 cursor-pointer"
-                ></label>
-              </div>
-              <label
-                htmlFor="switch-component-on"
-                className="text-slate-600 text-sm cursor-pointer"
-              >
-                Column
-              </label>
-            </div>
-          </div>
-        )}
         <div
           id="timesheet-table"
           className={`grid gap-0`}
           style={{
-            gridTemplateColumns: isColumnView
+            gridTemplateColumns: props.isColumnView
               ? undefined
-              : `160px repeat(${props.scheduleDays.numberOfDays}, 1fr)`,
-            gridTemplateRows: isColumnView
-              ? `repeat(${props.scheduleDays.numberOfDays + 1}, auto)`
+              : `160px repeat( ${props.scheduleDays.numberOfDays + 1}, 1fr)`,
+            gridTemplateRows: props.isColumnView
+              ? `repeat(${props.scheduleDays.numberOfDays + 2}, auto)`
               : undefined,
-            gridAutoFlow: isColumnView ? "column" : "row",
+            gridAutoFlow: props.isColumnView ? "column" : "row",
           }}
         >
           <div
-            className={` bg-gray-100 p-2 font-semibold border-1 border-gray-300 ${
+            // border-1 border-gray-300
+            className={`flex justify-between items-center bg-gray-100 border-b-2 border-gray-300  p-2 font-semibold  ${
               isMonthView ? "text-xs" : "text-sm"
             } col-span-1`}
           >
-            Tasks
+            <div>Task</div>
+          </div>
+          <div
+            // border-1 border-gray-300
+            className={`flex justify-between items-center bg-gray-100 border-b-2 border-gray-300  p-2 font-semibold  ${
+              isMonthView ? "text-xs" : "text-sm"
+            } col-span-1`}
+          >
+            {isMonthView ? "h" : "Hours"}
           </div>
           {props.scheduleDays.days.map((day, index) => (
             <Droppable key={index} id={`column-${index}`}>
               <Draggable id={`column-${index}`}>
                 <div
-                  className={`bg-gray-100 font-semibold ${
+                  className={`h-full w-full ${
+                    props.isColumnView
+                      ? "flex justify-between items-center py-2"
+                      : "flex-col items-center"
+                  } bg-gray-100 font-semibold ${
                     isMonthView ? "text-xs p-1" : "text-sm p-2"
                   } text-center 
                                         ${
@@ -445,21 +416,23 @@ export function TimeSheetTable(props: Props) {
                                         }
                                         ${
                                           isColumnHighlighted(index)
-                                            ? "bg-blue-100 border-blue-400"
-                                            : "border-gray-300"
-                                        } border-1 hover:border-blue-400 cursor-grab`}
+                                            ? "bg-blue-100 border-b-2 border-blue-400"
+                                            : "border-b-2 border-gray-300 hover:border-blue-400"
+                                        } cursor-grab`}
                 >
-                  <div>{formatDate(day, isMonthView && !isColumnView)}</div>
+                  <div className={`${isMonthView ? "text-[10px]" : "text-sm"}`}>
+                    {formatDate(day, isMonthView && !props.isColumnView)}
+                  </div>
                   <div
                     className={`bg-gray-100 font-semibold ${
-                      isMonthView ? "text-xs pb-2" : "text-sm"
+                      isMonthView ? "text-[10px]" : "text-sm"
                     } text-center`}
                   >
                     <TotalHourCell
                       day={day}
                       timeEntries={timesheet?.timeEntries || []}
                       isMonthView={isMonthView}
-                      isColumnView={isColumnView}
+                      isColumnView={props.isColumnView}
                     />
                   </div>
                 </div>
@@ -482,17 +455,12 @@ export function TimeSheetTable(props: Props) {
               isSickDay={isSickday}
               isTaskFinished={isTaskNotInDate}
               getTimeEntriesForTaskAndDay={getTimeEntriesForTaskAndDay}
-              isColumnView={isColumnView}
+              isColumnView={props.isColumnView}
               openTimeEntryModalHandler={openTimeEntryModalHandler}
             />
           ))}
         </div>
-        <DragOverlay>
-          {activeId && dragType === "cell" && (
-            <div className="bg-blue-300 p-2 h-full rounded opacity-10"></div>
-          )}
-        </DragOverlay>
       </DndContext>
-    </>
+    </div>
   );
 }

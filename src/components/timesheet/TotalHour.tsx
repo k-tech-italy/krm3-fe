@@ -2,6 +2,7 @@ import { Info } from "lucide-react";
 import { TimeEntry } from "../../restapi/types";
 import { useState } from "react";
 import { normalizeDate } from "./utils";
+import { useColumnViewPreference } from "../../hooks/commons";
 
 interface Props {
   day: Date;
@@ -52,24 +53,27 @@ export function TotalHourCell({
   }
 
   function colorClass() {
-    if (totalHour < 8) {
-      return "yellow";
-    }
     if (totalHour > 8) {
       return "red";
     }
-    return "green";
+    if (totalHour > 0 && totalHour < 8) {
+      return "blue";
+    }
+    if (totalHour === 8) {
+      return "green";
+    }
+    return "yellow";
   }
 
   return (
-    <div className="relative bg-gray-100 justify-center flex flex-col h-full w-full">
+    <div className={`relative flex justify-center items-center h-full w-full`}>
       <div
-        id='total-hour-label'
+        id="total-hour-label"
         className={`bg-gray-100 font-semibold ${
-          isMonthView ? "text-xs" : "text-sm"
+          isMonthView ? "text-[10px]" : "text-sm"
         } flex justify-center items-center h-full w-full text-${colorClass()}-500`}
       >
-        {totalHour} h
+        {totalHour}h
         {totalHour > 0 && !isMonthView && (
           <Info
             onMouseEnter={handleShowTooltip}
@@ -81,9 +85,9 @@ export function TotalHourCell({
         )}
       </div>
       {showTooltip && dayEntries.length > 0 && (
-        <div className="absolute left-0 bottom-full mt-2 w-64 bg-white border border-gray-300 shadow-lg rounded z-10">
+        <div className="absolute left-0 bottom-full w-64 bg-white border border-gray-300 shadow-lg rounded z-10">
           {dayEntries.map((timeEntry: TimeEntry, index: number) => (
-            <div key={index} className="mb-2 p-2">
+            <div key={index} className="">
               <div className="font-semibold">
                 {" "}
                 {timeEntry.task ? `Task id: ${timeEntry.task}` : "Day"}

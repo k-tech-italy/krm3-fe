@@ -13,7 +13,6 @@ export function useGetCurrentUser() {
     cacheTime: 30 * 60 * 1000,
     // Don't retry automatically on errors
     retry: false,
- 
   });
 
   const refreshUser = async () => {
@@ -59,4 +58,33 @@ export const useMediaQuery = (query: string) => {
   }, [query]);
 
   return matches;
+};
+
+export const useColumnViewPreference = (): {
+  isColumnView: boolean;
+  setColumnView: (value: boolean) => void;
+  getIsColumnView: () => boolean;
+} => {
+  const isSmallScreen = useMediaQuery("(max-width: 768px)");
+  const initialIsColumnView = localStorage.getItem("isColumnView") === "true";
+
+  const [isColumnView, setIsColumnView] = useState<boolean>(
+    isSmallScreen ? true : initialIsColumnView
+  );
+
+  const setColumnView = (value: boolean): void => {
+    localStorage.setItem("isColumnView", JSON.stringify(value));
+    setIsColumnView(value);
+  };
+
+  useEffect(() => {
+    setIsColumnView(isSmallScreen);
+  }, [isSmallScreen]);
+
+  const getIsColumnView = (): boolean => {
+    return localStorage.getItem("isColumnView") === "true";
+  };
+
+
+  return { isColumnView, setColumnView, getIsColumnView };
 };

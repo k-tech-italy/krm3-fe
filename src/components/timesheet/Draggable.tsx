@@ -1,19 +1,20 @@
 import React from "react";
 import { useDraggable } from "@dnd-kit/core";
 
-export function Draggable(props: { children: React.ReactNode; id: string }) {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+export function Draggable(props: { children: React.ReactNode; id: string, className?: string }) {
+  const { attributes, listeners, setNodeRef } = useDraggable({
     id: props.id,
   });
-  const style = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-        cursor: "grabbing",
-      }
-    : { cursor: "grab" };
+  
 
   return (
-    <div id={`draggable-${props.id}`} ref={setNodeRef} style={style} {...listeners} {...attributes}>
+    <div
+      id={`draggable-${props.id}`}
+      ref={setNodeRef}
+      className={`h-full w-full ` + props.className || ""}
+      {...listeners}
+      {...attributes}
+    >
       {props.children}
     </div>
   );
