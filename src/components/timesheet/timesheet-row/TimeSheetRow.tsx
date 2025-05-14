@@ -1,10 +1,8 @@
-import React, { useEffect, useMemo } from "react";
-import { SpecialDayCell } from "./SpecialDayCell";
+import React, { useMemo } from "react";
 import { TaskHeader } from "./TaskCell";
 import { TimeEntryCell } from "./TimeEntryCell";
-import { getPastelColor } from "../utils";
+import { getPastelColor, normalizeDate } from "../utils";
 import { Task, TimeEntry } from "../../../restapi/types";
-import { useColumnViewPreference } from "../../../hooks/commons";
 
 export interface TimeSheetRowProps {
   scheduleDays: Date[];
@@ -17,14 +15,18 @@ export interface TimeSheetRowProps {
   isSickDay: (day: Date) => boolean;
   isTaskFinished: (currentDay: Date, task: Task) => boolean | undefined;
   getTimeEntriesForTaskAndDay: (taskId: number, day: Date) => TimeEntry[];
-  openTimeEntryModalHandler: (task: Task, day: Date) => void;
+  openTimeEntryModalHandler: (task: Task) => void;
+  openShortMenu?: { day: string; taskId: string };
+  setOpenShortMenu?: (
+    value: { day: string; taskId: string } | undefined
+  ) => void;
 }
 
 export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   scheduleDays,
   task,
   isMonthView,
-  isColumnView, // Kept for future use
+  isColumnView,
   isCellInDragRange,
   isColumnHighlighted,
   isHoliday,
@@ -32,11 +34,13 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   isTaskFinished,
   getTimeEntriesForTaskAndDay,
   openTimeEntryModalHandler,
+  openShortMenu,
+  setOpenShortMenu,
 }) => {
   // Generate color once per task row
   const { backgroundColor, borderColor } = useMemo(
     () => getPastelColor(task.id),
-    []
+    [task.id]
   );
 
   const borderColorClass = isColumnView
@@ -51,21 +55,35 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
       : isTaskFinished(day, task)
       ? "finished"
       : "task";
+
     const timeEntries = getTimeEntriesForTaskAndDay(task.id, day);
+
     return (
-      <TimeEntryCell
-        key={dayIndex}
-        day={day}
-        taskId={task.id}
-        type={type}
-        timeEntries={timeEntries}
-        isMonthView={isMonthView}
-        isColumnView={isColumnView}
-        isColumnHighlighted={isColumnHighlighted(dayIndex)}
-        isInDragRange={isCellInDragRange(day, task.id)}
-        colors={{ backgroundColor, borderColor }}
-        onClick={() => openTimeEntryModalHandler(task, day)}
-      />
+      <div key={dayIndex} className="w-full h-full">
+        <div className="w-full h-full cursor-pointer relative">
+          <ShortHoursMenu
+            day={day}
+            taskId={task.id}
+            key={dayIndex}
+            openShortMenu={openShortMenu}
+            setOpenShortMenu={setOpenShortMenu}
+            openTimeEntryModalHandler={() =>
+              openTimeEntryModalHandler(task)
+            }
+          />
+          <TimeEntryCell
+            day={day}
+            taskId={task.id}
+            type={type}
+            timeEntries={timeEntries}
+            isMonthView={isMonthView}
+            isColumnView={isColumnView}
+            isColumnHighlighted={isColumnHighlighted(dayIndex)}
+            isInDragRange={isCellInDragRange(day, task.id)}
+            colors={{ backgroundColor, borderColor }}
+          />
+        </div>
+      </div>
     );
   };
 
@@ -99,5 +117,59 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
       </div>
       {scheduleDays.map((day, dayIndex) => renderDayCell(day, dayIndex))}
     </React.Fragment>
+  );
+};
+
+const ShortHoursMenu = (props: {
+  day: Date;
+  taskId: number;
+  openShortMenu: { day: string; taskId: string } | undefined;
+  setOpenShortMenu?: (
+    value: { day: string; taskId: string } | undefined
+  ) => void;
+  openTimeEntryModalHandler: () => void;
+}) => {
+  const isTooltipVisible =
+    !!props.openShortMenu &&
+    normalizeDate(props.openShortMenu.day) === normalizeDate(props.day) &&
+    Number(props.openShortMenu.taskId) === props.taskId;
+
+  const options = [
+    { label: "2h", value: 2 },
+    { label: "4h", value: 4 },
+    { label: "8h", value: 8 },
+    { label: "More", value: 99 },
+  ];
+
+  function handleButtonClick(value: number) {
+    //DO THE API CALL
+    if (value === 99) {
+      props.openTimeEntryModalHandler();
+
+    }
+    props.setOpenShortMenu?.(undefined);
+  }
+  return (
+    <div
+      onMouseLeave={() => props.setOpenShortMenu?.(undefined)}
+      className={`absolute  z-50 left-0 mt-2 w-56 origin-top-right bg-white  divide-y divide-gray-100 rounded-md shadow  focus:outline-none  transition-all duration-200 ease-out transform ${
+        isTooltipVisible
+          ? "opacity-100 scale-100"
+          : "opacity-0 scale-95 pointer-events-none"
+      }`}
+    >
+      {isTooltipVisible && (
+        <div className="flex flex-col gap-2">
+          {options.map(({ label: option, value }) => (
+            <button
+              onClick={() => handleButtonClick(value)}
+              className="px-4 py-2"
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };

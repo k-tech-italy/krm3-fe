@@ -19,7 +19,7 @@ export interface CellProps {
 
 export interface TimeEntryCellProps extends CellProps {
   timeEntries: TimeEntry[];
-  onClick: () => void;
+  onClick?: () => void;
   isInDragRange: boolean;
   type: "task" | "holiday" | "sick" | "finished";
   isColumnView: boolean;
