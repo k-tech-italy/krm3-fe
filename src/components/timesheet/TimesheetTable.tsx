@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
-import { useMediaQuery } from "../../hooks/commons";
-import { DndContext, DragOverlay, closestCenter } from "@dnd-kit/core";
+import { useState } from "react";
+import { DndContext, closestCenter } from "@dnd-kit/core";
 import { TimeEntry, Task } from "../../restapi/types";
 import { Draggable } from "./Draggable";
 import { useGetTimesheet } from "../../hooks/timesheet";
@@ -8,7 +7,7 @@ import { Droppable } from "./Droppable";
 import { formatDate } from "./Krm3Calendar";
 import { TotalHourCell } from "./TotalHour";
 import { TimeSheetRow } from "./timesheet-row/TimeSheetRow";
-import { normalizeDate } from "./utils";
+import { getDaysBetween, normalizeDate } from "./utils";
 import LoadSpinner from "../commons/LoadSpinner";
 
 interface Props {
@@ -18,6 +17,7 @@ interface Props {
   setSkippedDays: (days: Date[]) => void;
   setIsDayEntry: (isDayEntry: boolean) => void;
   setStartDate: (date: Date) => void;
+  setEndDate: (date: Date) => void;
   setTimeEntries: (entries: TimeEntry[]) => void;
   scheduleDays: { days: Date[]; numberOfDays: number };
   isColumnView: boolean;
@@ -25,7 +25,6 @@ interface Props {
 
 export function TimeSheetTable(props: Props) {
   const isMonthView = props.scheduleDays.numberOfDays > 7;
-
   const startDate = normalizeDate(props.scheduleDays.days[0]);
   const endDate = normalizeDate(
     props.scheduleDays.days[props.scheduleDays.numberOfDays - 1]
@@ -52,24 +51,10 @@ export function TimeSheetTable(props: Props) {
   const [draggedColumnIndex, setDraggedColumnIndex] = useState<number | null>(
     null
   );
+  const [openShortMenu, setOpenShortMenu] = useState<{ selectedCells: Date[]; day: string; taskId: string } | undefined>();
 
-  const getDaysBetween = (startDate: string, endDate: string): Date[] => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const days: Date[] = [];
 
-    start.setHours(0, 0, 0, 0);
-    end.setHours(0, 0, 0, 0);
 
-    for (
-      let currentDate = new Date(start);
-      currentDate <= end;
-      currentDate.setDate(currentDate.getDate() + 1)
-    ) {
-      days.push(new Date(currentDate));
-    }
-    return days;
-  };
 
   // Function to get time entries for a specific task and day
   const getTimeEntriesForTaskAndDay = (
@@ -170,7 +155,6 @@ export function TimeSheetTable(props: Props) {
         });
       }
     }
-
     setActiveId(active.id);
     setDraggedOverCells([...draggedOverCells, new Date(date)]);
   }
@@ -215,6 +199,7 @@ export function TimeSheetTable(props: Props) {
               );
 
               props.setOpenTimeEntryModal(true);
+
               props.setIsDayEntry(true);
             }
           }
@@ -223,6 +208,7 @@ export function TimeSheetTable(props: Props) {
         const [targetDate, targetTaskId] = over.id.split("-");
         // TODO : Handle the case where the target is an n/a cell
         // NOW IT IS NOT POSSIBLE TO DRAG AND DROP TO N/A CELLS
+
         if (
           activeDragData.taskId &&
           Number(targetTaskId) === activeDragData.taskId
@@ -234,13 +220,20 @@ export function TimeSheetTable(props: Props) {
             if (task) {
               props.setSelectedTask(task);
               props.setTimeEntries(timesheet.timeEntries);
+
               props.setSelectedCells(
                 draggedOverCells.filter(
                   (day) => !isHoliday(day) && !isSickday(day)
                 )
               );
 
-              props.setOpenTimeEntryModal(true);
+              // props.setOpenTimeEntryModal(true);
+              props.setEndDate(new Date(targetDate));
+              setOpenShortMenu({
+                selectedCells: draggedOverCells,
+                day: targetDate,
+                taskId: targetTaskId});
+
               props.setIsDayEntry(false);
             }
           }
@@ -326,12 +319,14 @@ export function TimeSheetTable(props: Props) {
     return highlightedColumnIndexes.includes(dayIndex);
   };
 
-  const openTimeEntryModalHandler = (task: Task, day: Date) => {
+  const openTimeEntryModalHandler = (task: Task) => {
+
     props.setSelectedTask(task);
     props.setTimeEntries(timesheet?.timeEntries || []);
-    props.setSelectedCells([day]);
     props.setOpenTimeEntryModal(true);
   };
+
+  
 
   const isTaskNotInDate = (currentDay: Date, task: Task): boolean => {
     const currentDateString = normalizeDate(currentDay);
@@ -457,6 +452,8 @@ export function TimeSheetTable(props: Props) {
               getTimeEntriesForTaskAndDay={getTimeEntriesForTaskAndDay}
               isColumnView={props.isColumnView}
               openTimeEntryModalHandler={openTimeEntryModalHandler}
+              openShortMenu={openShortMenu}
+              setOpenShortMenu={setOpenShortMenu}
             />
           ))}
         </div>

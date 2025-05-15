@@ -7,7 +7,7 @@ export default function Timesheet() {
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">Timesheet</h2>
             </div>
-            <div className="overflow-x-auto">
+            <div>
                 <Krm3Calendar />
             </div>
         </div>

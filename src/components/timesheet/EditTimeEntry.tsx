@@ -1,19 +1,21 @@
 import { Task, TimeEntry } from "../../restapi/types";
-import React, { useEffect, useState } from "react";
-import { ChevronDown, Trash2, LoaderCircle } from "lucide-react";
-import { formatDate } from "./Krm3Calendar";
-import ConfirmationModal from "../commons/ConfirmationModal.tsx";
+import { useEffect, useState } from "react";
 import {
   useDeleteTimeEntries,
   useCreateTimeEntry,
 } from "../../hooks/timesheet.tsx";
-import { normalizeDate } from "./utils.ts";
+import { displayErrorMessage, normalizeDate } from "./utils.ts";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { format } from "path";
+import { formatDate } from "./Krm3Calendar.tsx";
 
 interface Props {
   selectedDates: Date[];
   task: Task;
   timeEntries: TimeEntry[];
   startDate: Date;
+  endDate: Date;
   closeModal: () => void;
 }
 
@@ -23,84 +25,75 @@ export default function EditTimeEntry({
   timeEntries,
   closeModal,
   startDate,
+  endDate,
 }: Props) {
-  const formattedStartDate =
-    startDate.getFullYear() +
-    "-" +
-    String(startDate.getMonth() + 1).padStart(2, "0") +
-    "-" +
-    String(startDate.getDate()).padStart(2, "0");
-
   const startEntry = timeEntries.find(
-    (item) => item.date === formattedStartDate && item.task == task.id
+    (item) => item.date === normalizeDate(startDate) && item.task == task.id
   );
 
-  const [timeEntryData, setTimeEntryData] = useState({
-    workHours: startEntry ? startEntry.workHours : "8",
-    overtimeHours: startEntry ? startEntry.overtimeHours : "0",
-    travelHours: startEntry ? startEntry.travelHours : "0",
-    onCallHours: startEntry ? startEntry.onCallHours : "0",
-    restHours: startEntry ? startEntry.restHours : "0",
-  });
-
-  const hoursLabel: Record<keyof typeof timeEntryData, string> = {
-    workHours: "Worked hours",
-    overtimeHours: "Overtime hours",
-    travelHours: "Travel hours",
-    onCallHours: "On-call hours",
-    restHours: "Rest hours",
+  const getDaysWithTimeEntries = (selectedDates: Date[]): string[] => {
+    return selectedDates
+      .filter((selectedDate) =>
+        timeEntries.some(
+          (timeEntry) =>
+            timeEntry.date === normalizeDate(selectedDate) &&
+            timeEntry.task === task.id
+        )
+      )
+      .map((selectedDate) => formatDate(selectedDate));
   };
-  const [comment, setComment] = useState(startEntry ? startEntry.comment : "");
-  const times = [1, 2, 4, 8];
 
-  const shouldDetailedViewBeOpenedOnFormLoad =
-    !!startEntry &&
-    (!times.includes(Number(startEntry.workHours)) ||
-      startEntry.restHours != 0 ||
-      startEntry.onCallHours != 0 ||
-      startEntry.travelHours != 0 ||
-      startEntry.overtimeHours != 0);
-
-  const [isDetailedViewOpened, setIsDetailedViewOpened] = useState<boolean>(
-    shouldDetailedViewBeOpenedOnFormLoad
+  const [fromDate, setFromDate] = useState<Date>(
+    startDate <= endDate ? startDate : endDate
+  );
+  const [toDate, setToDate] = useState<Date>(
+    endDate >= startDate ? endDate : startDate
   );
 
-  const [invalidTimeFormat, setInvalidTimeFormat] = useState<string[]>([]);
+  function getDatesBetween(fromDate: Date, toDate: Date): string[] {
+    const dates: string[] = [];
+    const currentDate = new Date(fromDate.getTime());
+
+    while (normalizeDate(currentDate) <= normalizeDate(toDate)) {
+      dates.push(normalizeDate(new Date(currentDate)));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    return dates;
+  }
+  const [totalHours, setTotalHours] = useState(
+    startEntry
+      ? Number(startEntry.dayShiftHours) +
+          Number(startEntry.nightShiftHours) +
+          Number(startEntry.travelHours) +
+          Number(startEntry.restHours)
+      : 0
+  ); // SHOULD ON CALL HOURS BE ADDED TO TOTAL HOURS???
+
+  const [dayShiftHours, setDayShiftHours] = useState(
+    startEntry ? Number(startEntry.dayShiftHours) : 0
+  );
+  const [nightShiftHours, setNightShiftHours] = useState(
+    startEntry ? Number(startEntry.nightShiftHours) : 0
+  );
+  const [onCallHours, setOnCallHours] = useState(
+    startEntry ? Number(startEntry.onCallHours) : 0
+  );
+  const [travelHours, setTravelHours] = useState(
+    startEntry ? Number(startEntry.travelHours) : 0
+  );
+  const [restHours, setRestHours] = useState(
+    startEntry ? Number(startEntry.restHours) : 0
+  );
+
+  const [comment, setComment] = useState(
+    startEntry && startEntry.comment ? startEntry.comment : ""
+  );
 
   const [totalHoursExceeded, setTotalHoursExceeded] = useState(false);
 
-  const [daysWithTimeEntries, setDaysWithTimeEntries] = useState(
-    timeEntryData
-      ? selectedDates.filter((selectedDate) =>
-          timeEntries.find(
-            (timeEntry) =>
-              timeEntry.date == normalizeDate(selectedDate) &&
-              timeEntry.task == task.id
-          )
-        )
-      : []
-  );
-  //switch to that code when api for overwriting timeentries is ready
-  // const isClearButtonVisible =
-  //   daysWithTimeEntries.filter(
-  //     (day) => normalizeDate(day) != normalizeDate(startDate)
-  //   ).length > 0 ||
-  //   (daysWithTimeEntries.length == 1 &&
-  //     normalizeDate(daysWithTimeEntries[0]) == normalizeDate(startDate));
-
-  const isClearButtonVisible = daysWithTimeEntries.length > 0;
-
-  const timeEntriesToDelete = timeEntries
-    .filter((timeEntry) => {
-      return (
-        selectedDates.find(
-          (selectedDate) => normalizeDate(selectedDate) == timeEntry.date
-        ) && timeEntry.task == task.id
-      );
-    })
-    .map((timeEntry) => timeEntry.id);
-
-  const [isClearModalOpened, setIsClearModalOpened] = useState(false);
+  useEffect(() => {
+    setTotalHoursExceeded(totalHours > 24);
+  }, [totalHours]);
 
   const {
     mutateAsync: deleteTimeEntries,
@@ -120,288 +113,170 @@ export default function EditTimeEntry({
     }
   }, [creationSuccess]);
 
-  const validateInput = (
-    numberOfHours: string,
-    key: keyof typeof timeEntryData
-  ) => {
-    if (invalidTimeFormat.includes(key)) {
-      setInvalidTimeFormat(invalidTimeFormat.filter((item) => item !== key));
-    }
-
-    const value = parseFloat(numberOfHours);
-    let isFormatValid = true;
-
-    for (const character of numberOfHours) {
-      if (!"1234567890.".includes(character)) {
-        isFormatValid = false;
-      }
-    }
-    if (isNaN(value)) isFormatValid = false;
-
-    if (!Number.isInteger(value * 4)) {
-      isFormatValid = false;
-    }
-
-    if (!isFormatValid) {
-      setInvalidTimeFormat([...invalidTimeFormat, key]);
-    }
-  };
-
-  const handleChangeHourInput = (
-    value: string,
-    key: keyof typeof timeEntryData
-  ) => {
-    setTimeEntryData({ ...timeEntryData, [key]: value });
-
-    setTotalHoursExceeded(false);
-
-    validateInput(value, key);
-
-    const totalHours = Number(
-      Object.values({ ...timeEntryData, [key]: value }).reduce(
-        (acc, curr) => Number(acc) + Number(curr),
-        0
-      )
-    );
-    if (totalHours > 24) {
-      setTotalHoursExceeded(true);
-    }
-  };
-
   const submit = async () => {
     await createTimeEntries({
       taskId: task.id,
-      dates: selectedDates.map((date) => normalizeDate(date)),
-      workHours: Number(timeEntryData.workHours),
-      onCallHours: Number(timeEntryData.onCallHours),
-      restHours: Number(timeEntryData.restHours),
-      travelHours: Number(timeEntryData.travelHours),
-      overtimeHours: Number(timeEntryData.overtimeHours),
+      dates: getDatesBetween(fromDate, toDate),
+      nightShiftHours: nightShiftHours,
+      dayShiftHours: dayShiftHours,
+      onCallHours: onCallHours,
+      restHours: restHours,
+      travelHours: travelHours,
       comment: comment,
-    }).then(() => closeModal);
+    }).then(() => closeModal).catch(e =>console.log(e));
   };
+
+  function handleDeleteEntries() {
+    const timeEntriesIds = timeEntries
+      .filter(
+        (timeEntry) =>
+          timeEntry.task == task.id &&
+          normalizeDate(fromDate) <= normalizeDate(timeEntry.date) &&
+          normalizeDate(toDate) >= normalizeDate(timeEntry.date)
+      )
+      .map((timeEntry) => timeEntry.id);
+    deleteTimeEntries(timeEntriesIds).then(() => closeModal());
+  }
 
   return (
     <div className="flex flex-col space-y-6" id="edit-time-entry-container">
-      <ConfirmationModal
-        open={isClearModalOpened}
-        onConfirm={async () => {
-          const response = await deleteTimeEntries(timeEntriesToDelete);
-
-          if (response.status == 204) {
-            setDaysWithTimeEntries([]);
-            setIsClearModalOpened(false);
-          }
-        }}
-        content={
-          <>
-            {!deletionIsSuccess && (
-              <>
-                {`Are you sure to clear time entries for these days?:`}
-                <div
-                  className="flex flex-wrap mt-2"
-                  id="clear-confirmation-days"
-                >
-                  {daysWithTimeEntries.map((day, idx) => (
-                    <p
-                      className="mr-2.5 mb-2.5 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded"
-                      key={idx}
-                      id={`clear-day-${idx}`}
-                    >
-                      {formatDate(day)}
-                    </p>
-                  ))}
-                </div>
-              </>
-            )}
-
-            <div className="flex justify-center">
-              {isLoading && (
-                <LoaderCircle
-                  className="animate-spin w-4 h-4"
-                  id="delete-loader"
-                />
-              )}
-            </div>
-            {deletionError && String(deletionError) != "null" && (
-              <p className="mt-2 text-red-500" id="deletion-error-message">
-                {String(deletionError)}
-              </p>
-            )}
-          </>
-        }
-        title="Clear days"
-        onClose={() => setIsClearModalOpened(false)}
-      />
-      <div
-        className="flex flex-col sm:flex-row items-start sm:items-center"
-        id="days-without-entries-section"
-      >
-        <label
-          className="sm:w-1/4 font-semibold mb-2 sm:mb-0"
-          id="days-without-entries-label"
-        >
-          Days without time entries
-        </label>
-        <div
-          className="sm:w-2/4 w-full flex flex-wrap"
-          id="days-without-entries-container"
-        >
-          {selectedDates
-            .filter((selectedDate) => {
-              if (!daysWithTimeEntries.includes(selectedDate)) return true;
-              else return false;
-            })
-            .map((date, idx) => (
-              <p
-                key={idx}
-                id={`day-without-entry-${idx}`}
-                className="mr-2.5 mb-2.5 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded"
-              >
-                {formatDate(date)}
-              </p>
-            ))}
+      <div className="items-start" id="datepickers-container">
+        <div className="text-lg font-bold">Days</div>
+        <div className="flex flex-wrap" id="datepickers">
+          <div className="w-full md:w-1/3  mb-4 md:mb-0">
+            <label className="block text-sm font-medium mb-1">
+              Dal giorno:
+            </label>
+            <DatePicker
+              dateFormat="yyyy-MM-dd"
+              maxDate={toDate}
+              selected={fromDate}
+              className="w-full border border-gray-300 rounded-md p-2"
+              onChange={(date: Date | null) => {
+                if (!!date) {
+                  setFromDate(date);
+                }
+              }}
+            />
+          </div>
+          <div className="w-full md:w-1/3 px-2 mb-4 md:mb-0">
+            <label className="block text-sm font-medium mb-1">Al giorno:</label>
+            <DatePicker
+              dateFormat="yyyy-MM-dd"
+              selected={toDate}
+              minDate={fromDate}
+              className="w-full border border-gray-300 rounded-md p-2"
+              onChange={(date: Date | null) => {
+                if (!!date) {
+                  setToDate(date);
+                }
+              }}
+            />
+          </div>
         </div>
       </div>
 
-      {isClearButtonVisible && (
-        <div
-          className="flex flex-col sm:flex-row items-start sm:items-center"
-          id="days-with-entries-section"
-        >
-          <label
-            className="sm:w-1/4 font-semibold mb-2 sm:mb-0"
-            id="days-with-entries-label"
-          >
-            Days with time entries
-          </label>
-          <div
-            className="sm:w-2/4 w-full flex flex-wrap"
-            id="days-with-entries-container"
-          >
-            {daysWithTimeEntries.map((day, idx) => (
-              <p
-                key={idx}
-                id={`day-with-entry-${idx}`}
-                className="mr-2.5 mb-2.5 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded"
-              >
-                {formatDate(day)}
-              </p>
-            ))}
+      <div className="items-start" id="details-section">
+        <div className="flex justify-between items-baseline my-4">
+          <div className="text-lg font-bold" id="details-label">
+            Hours
           </div>
-          <button
-            className="px-4 py-2 text-white rounded-lg focus:outline-none bg-red-500 ml-auto mr-5 hover:bg-red-600"
-            id="clear-entries-button"
-            onClick={() => {
-              setIsClearModalOpened(true);
-            }}
-          >
-            <Trash2 />
-          </button>
-        </div>
-      )}
-
-      <div
-        className="flex flex-col sm:flex-row items-start sm:items-center"
-        id="worked-hours-section"
-      >
-        <label
-          className="sm:w-1/4 font-semibold mb-2 sm:mb-0"
-          id="worked-hours-label"
-        >
-          Worked hours
-        </label>
-        <div
-          className="sm:w-2/4 w-full justify-between gap-2"
-          id="worked-hours-buttons"
-        >
-          {times.map((time, idx) => (
-            <button
-              key={idx}
-              id={`worked-hours-${time}`}
-              className={`border rounded-md py-2 w-[24%] cursor-pointer mr-[1%] border-gray-300
-                            ${
-                              Number(timeEntryData.workHours) == time
-                                ? "bg-yellow-100 border-yellow-500 text-yellow-700"
-                                : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                            }`}
-              onClick={() => {
-                setTimeEntryData({ ...timeEntryData, workHours: String(time) });
-              }}
-            >
-              {time}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div
-        className="flex flex-col sm:flex-row items-start"
-        id="details-section"
-      >
-        <label
-          className="sm:w-1/4 font-semibold mb-2 sm:mb-0 mt-2"
-          id="details-label"
-        >
-          More
-        </label>
-
-        <div
-          className="sm:w-2/4 p-2 border mt-3 rounded-md opacity-80 border-gray-300"
-          id="details-container"
-        >
-          <div className="flex flex-column">
-            <button
-              className="h-full hover:cursor-pointer ml-auto px-4 w-full flex"
-              id="toggle-details-button"
-              onClick={() => {
-                setIsDetailedViewOpened(!isDetailedViewOpened);
-              }}
-            >
-              {!isDetailedViewOpened && (
-                <p id="open-details-text">Open for details...</p>
-              )}
-              <ChevronDown className="ml-auto" />
-            </button>
+          <div className="text-sm font-bold" id="details-label">
+            Total Hours: {totalHours}h
           </div>
-          {isDetailedViewOpened && (
-            <div className="pb-5" id="detailed-hours-container">
-              {(
-                Object.keys(timeEntryData) as Array<keyof typeof timeEntryData>
-              ).map((key) => (
-                <div className="px-3" key={key} id={`${key}-container`}>
-                  <p className="font-bold mt-1" id={`${key}-label`}>
-                    {hoursLabel[key]}
-                  </p>
-                  <input
-                    className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300
-                                        ${
-                                          invalidTimeFormat.includes(key)
-                                            ? "border border-red-500"
-                                            : ""
-                                        }`}
-                    type="text"
-                    id={`${key}-input`}
-                    value={timeEntryData[key]}
-                    onChange={(e) => {
-                      handleChangeHourInput(e.target.value, key);
-                    }}
-                    onBlur={(e) => {
-                      if (e.target.value === "") {
-                        setTimeEntryData({ ...timeEntryData, [key]: "0" });
-                        handleChangeHourInput("0", key);
-                      }
-                    }}
-                  />
-                  {invalidTimeFormat.includes(key) && (
-                    <p className="text-red-500 mt-2" id={`${key}-error`}>
-                      Invalid value (must be 0-0.25 ecc..)
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+        </div>
+        <div className="grid grid-cols-3 gap-4" id="details-container">
+          <div>
+            <p>Daytime hours</p>
+            <input
+              className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
+              type="number"
+              id={`daytime-input`}
+              step={0.5}
+              value={dayShiftHours}
+              onChange={(e) => {
+                setDayShiftHours(Number(e.target.value));
+                setTotalHours(
+                  Number(e.target.value) +
+                    nightShiftHours +
+                    travelHours +
+                    restHours
+                );
+              }}
+            />
+          </div>
+          <div>
+            <p>Nighttime hours</p>
+            <input
+              className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
+              type="number"
+              step={0.5}
+              id={`daytime-input`}
+              value={nightShiftHours}
+              
+              onChange={(e) => {
+                setNightShiftHours(Number(Number(e.target.value).toFixed(1)));
+                setTotalHours(
+                  Number(e.target.value) +
+                    dayShiftHours +
+                    travelHours +
+                    restHours
+                );
+              }}
+            />
+          </div>
+          <div>
+            <p>Travel hours</p>
+            <input
+              className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
+              type="number"
+              step={0.5}
+              id={`travelHours-input`}
+              value={travelHours}
+              onChange={(e) => {
+                setTravelHours(Number(e.target.value));
+                setTotalHours(
+                  dayShiftHours +
+                    Number(e.target.value) +
+                    restHours +
+                    nightShiftHours
+                );
+              }}
+            />
+          </div>
+          <div>
+            <p>On Call hours</p>
+            <input
+              className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
+              type="number"
+              step={0.5}
+              id={`oncall-input`}
+              value={onCallHours}
+              onChange={(e) => {
+                setOnCallHours(Number(e.target.value));
+              }}
+            />
+          </div>
+
+          <div>
+            <p>Rest hours</p>
+            <input
+              className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
+              type="number"
+              step={0.5}
+              id={`travelHours-input`}
+              value={restHours}
+              onChange={(e) => {
+                setRestHours(Number(e.target.value));
+                setTotalHours(
+                  dayShiftHours +
+                    nightShiftHours +
+                    Number(e.target.value) +
+                    travelHours
+                );
+              }}
+            />
+          </div>
         </div>
       </div>
 
@@ -411,108 +286,66 @@ export default function EditTimeEntry({
         </p>
       )}
 
-      <div
-        className="flex flex-col sm:flex-row items-start sm:items-center"
-        id="comment-section"
-      >
-        <label
-          className="sm:w-1/4 font-semibold mb-2 sm:mb-0"
-          id="comment-label"
-        >
-          Comment
-        </label>
-        <div className="sm:w-2/4 w-full">
+      <div className="items-start" id="comment-section">
+        <label id="comment-label">Comment</label>
+        <div className="w-full">
           <textarea
-            className="w-full border rounded-md p-2 border-gray-300"
+            className="w-full border rounded-md p-2 border-gray-300 resize-none"
             id="comment-textarea"
+            rows={2}
             value={comment}
             onChange={(e) => {
               setComment(e.target.value);
             }}
-          ></textarea>
+          />
         </div>
       </div>
-      {/*switch to that code when api for overwriting timeentries is ready*/}
-      {/*{isClearButtonVisible &&*/}
-      {/*  !(*/}
-      {/*    daysWithTimeEntries.length == 1 &&*/}
-      {/*    normalizeDate(daysWithTimeEntries[0]) == normalizeDate(startDate)*/}
-      {/*  ) && (*/}
-      {/*    <p className="text-red-500 mt-2">Please clear time entries first</p>*/}
-      {/*  )}*/}
-      {isClearButtonVisible && (
-        <p className="text-red-500 mt-2" id="clear-entries-warning">
-          Please clear time entries first
-        </p>
-      )}
+
       {creationError && (
         <p className="text-red-500 mt-2" id="creation-error-message">
-          {creationError.status}
-          {creationError.message}
+          {displayErrorMessage(creationError) || 'Creation failed. Please try again.'}
         </p>
       )}
-      {deletionIsSuccess && (
-        <p className="text-green-600" id="deletion-success-message">
-          {`You've successfully cleared time entries`}
+      {getDaysWithTimeEntries(selectedDates).length > 0 && (
+        <p className="text-orange-500" id="deletion-success-message">
+          {"A time entry already exists for the following days: " +
+            getDaysWithTimeEntries(selectedDates).join(", ") + ". Save for update"}
         </p>
       )}
-
-      <div
-        className="flex justify-end items-center p-6 space-x-4"
-        id="action-buttons"
-      >
-        <button
-          className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 focus:outline-none"
-          id="close-button"
-          onClick={closeModal}
-        >
-          Close
-        </button>
-
-        <button
-          //switch to that code when api for overwriting timeentries is ready
-          // className={`px-4 py-2 text-white rounded-lg focus:outline-none
-          //           ${
-          //             invalidTimeFormat.length > 0 ||
-          //             (isClearButtonVisible &&
-          //               !(
-          //                 daysWithTimeEntries.length == 1 &&
-          //                 normalizeDate(daysWithTimeEntries[0]) ==
-          //                   normalizeDate(startDate)
-          //               )) || totalHoursExceeded
-          //               ? "bg-gray-300 cursor-not-allowed"
-          //               : "bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-          //           }`}
-          className={`px-4 py-2 text-white rounded-lg focus:outline-none
+      <div className="flex justify-between items-center ">
+        <div>
+          <button
+            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700 focus:outline-none"
+            id="delete-button"
+            onClick={handleDeleteEntries}
+          >
+            Delete entries
+          </button>
+        </div>
+        <div className="flex justify-end " id="action-buttons">
+          <button
+            className="px-4 py-2 mr-4 bg-[#4B6478] text-white   rounded-lg hover:bg-gray-400 focus:outline-none"
+            id="close-button"
+            onClick={closeModal}
+          >
+            Cancel
+          </button>
+          <button
+            className={`px-4 py-2 text-white rounded-lg focus:outline-none
                     ${
-                      invalidTimeFormat.length > 0 ||
-                      isClearButtonVisible ||
                       totalHoursExceeded
                         ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                        : "bg-yellow-500 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                     }`}
-          id="save-button"
-          onClick={async () => {
-            await submit();
-          }}
-          // switch to that code when api for overwriting timeentries is ready
-          // disabled={
-          //     invalidTimeFormat.length > 0 ||
-          //     (isClearButtonVisible &&
-          //         !(
-          //             daysWithTimeEntries.length == 1 &&
-          //             normalizeDate(daysWithTimeEntries[0]) ==
-          //             normalizeDate(startDate)
-          //         )) || totalHoursExceeded
-          // }
-          // disabled={
-          //   invalidTimeFormat.length > 0 ||
-          //   isClearButtonVisible ||
-          //   totalHoursExceeded
-          // }
-        >
-          Save
-        </button>
+            id="save-button"
+            disabled={totalHoursExceeded}
+            onClick={async () => {
+              await submit();
+            }}
+          >
+            Save
+          </button>
+        </div>
       </div>
     </div>
   );

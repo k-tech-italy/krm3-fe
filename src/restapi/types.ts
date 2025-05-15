@@ -176,11 +176,11 @@ export interface TimeEntry {
     date: string;
     task: number;
     lastModified?: string;
-    workHours: number;
+    dayShiftHours: number;
     sickHours: number;
     holidayHours: number;
     leaveHours: number;
-    overtimeHours: number;
+    nightShiftHours: number;
     travelHours: number;
     onCallHours: number;
     restHours: number;

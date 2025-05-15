@@ -15,8 +15,8 @@ export const TaskHeader: React.FC<TaskHeaderProps> = ({
   //   return timeEntries.reduce((acc, timeEntry) => {
   //     return (
   //       acc +
-  //       (Number(timeEntry.workHours) || 0) +
-  //       (Number(timeEntry.overtimeHours) || 0) +
+  //       (Number(timeEntry.dayShiftHours) || 0) +
+  //       (Number(timeEntry.nightShiftHours) || 0) +
   //       (Number(timeEntry.onCallHours) || 0) +
   //       (Number(timeEntry.leaveHours) || 0)
   //     );

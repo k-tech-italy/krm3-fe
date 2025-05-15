@@ -65,7 +65,7 @@ export const useColumnViewPreference = (): {
   setColumnView: (value: boolean) => void;
   getIsColumnView: () => boolean;
 } => {
-  const isSmallScreen = useMediaQuery("(max-width: 768px)");
+  const isSmallScreen = useMediaQuery("(max-width: 1024px)");
   const initialIsColumnView = localStorage.getItem("isColumnView") === "true";
 
   const [isColumnView, setIsColumnView] = useState<boolean>(

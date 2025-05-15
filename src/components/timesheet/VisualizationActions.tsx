@@ -16,7 +16,7 @@ function VisualizationActions({
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
 
   return (
-    <div className="flex justify-between my-4">
+    <div className="flex justify-between items-center my-4">
       <div className="">
         <div className="inline-flex items-end gap-2">
           <label
@@ -49,8 +49,7 @@ function VisualizationActions({
         </div>
       </div>
       {!isSmallScreen && (
-        <div className="flex justify-end mb-4">
-          <div className="inline-flex items-end gap-2">
+          <div className="inline-flex items-center gap-2">
             <label
               htmlFor="switch-component-on"
               className="text-slate-600 text-sm cursor-pointer"
@@ -77,7 +76,6 @@ function VisualizationActions({
               Column
             </label>
           </div>
-        </div>
       )}
     </div>
   );

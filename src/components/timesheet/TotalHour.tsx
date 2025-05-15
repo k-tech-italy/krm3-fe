@@ -32,8 +32,8 @@ export function TotalHourCell({
     if (entryDate === formattedDay) {
       return (
         acc +
-        (Number(timeEntry.workHours) || 0) +
-        (Number(timeEntry.overtimeHours) || 0) +
+        (Number(timeEntry.dayShiftHours) || 0) +
+        (Number(timeEntry.nightShiftHours) || 0) +
         (Number(timeEntry.onCallHours) || 0) +
         (Number(timeEntry.leaveHours) || 0)
       );
@@ -93,8 +93,8 @@ export function TotalHourCell({
                 {timeEntry.task ? `Task id: ${timeEntry.task}` : "Day"}
               </div>
               <div className="text-sm">
-                Work: {timeEntry.workHours || 0}h, Overtime:{" "}
-                {timeEntry.overtimeHours || 0}h, On Call:{" "}
+                Work: {timeEntry.dayShiftHours || 0}h, Overtime:{" "}
+                {timeEntry.nightShiftHours || 0}h, On Call:{" "}
                 {timeEntry.onCallHours || 0}h leave: {timeEntry.leaveHours || 0}
                 h
               </div>
