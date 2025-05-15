@@ -22,6 +22,7 @@ export const formatDate = (
   if (isMonthName) {
     return date.toLocaleDateString("en-US", {
       month: "long",
+      year: "numeric",
     });
   }
   return date.toLocaleDateString("en-US", {
@@ -103,7 +104,7 @@ export default function Krm3Calendar() {
     <div className="p-4" id="krm3-calendar-container">
       <div className="flex justify-between">
         <div
-          className="flex space-x-4 items-center"
+          className="flex  items-center justify-between min-w-[180px]"
           id="calendar-navigation"
         >
           <button

@@ -47,3 +47,17 @@ export const getDaysBetween = (startDate: string, endDate: string): Date[] => {
   }
   return days;
 };
+
+export function displayErrorMessage(error: any) {
+  // Check if the error has a response with data and take the first error field
+  if (error.response && error.response.data) {
+    const errorFields = Object.keys(error.response.data);
+    if (errorFields.length > 0) {
+      const firstErrorField = errorFields[0];
+      const errors = error.response.data[firstErrorField];
+      
+      if (Array.isArray(errors) && errors.length > 0) {
+        return errors[0];
+      }
+    }
+  }}

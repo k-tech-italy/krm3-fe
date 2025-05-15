@@ -4,9 +4,11 @@ import {
   useDeleteTimeEntries,
   useCreateTimeEntry,
 } from "../../hooks/timesheet.tsx";
-import { normalizeDate } from "./utils.ts";
+import { displayErrorMessage, normalizeDate } from "./utils.ts";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { format } from "path";
+import { formatDate } from "./Krm3Calendar.tsx";
 
 interface Props {
   selectedDates: Date[];
@@ -18,6 +20,7 @@ interface Props {
 }
 
 export default function EditTimeEntry({
+  selectedDates,
   task,
   timeEntries,
   closeModal,
@@ -28,6 +31,18 @@ export default function EditTimeEntry({
     (item) => item.date === normalizeDate(startDate) && item.task == task.id
   );
 
+  const getDaysWithTimeEntries = (selectedDates: Date[]): string[] => {
+    return selectedDates
+      .filter((selectedDate) =>
+        timeEntries.some(
+          (timeEntry) =>
+            timeEntry.date === normalizeDate(selectedDate) &&
+            timeEntry.task === task.id
+        )
+      )
+      .map((selectedDate) => formatDate(selectedDate));
+  };
+
   const [fromDate, setFromDate] = useState<Date>(
     startDate <= endDate ? startDate : endDate
   );
@@ -37,17 +52,14 @@ export default function EditTimeEntry({
 
   function getDatesBetween(fromDate: Date, toDate: Date): string[] {
     const dates: string[] = [];
+    const currentDate = new Date(fromDate.getTime());
 
-    const currentDate = fromDate;
-    currentDate.setDate(currentDate.getDate());
-
-    while (currentDate <= toDate) {
-      dates.push(normalizeDate(currentDate));
+    while (normalizeDate(currentDate) <= normalizeDate(toDate)) {
+      dates.push(normalizeDate(new Date(currentDate)));
       currentDate.setDate(currentDate.getDate() + 1);
     }
     return dates;
   }
-
   const [totalHours, setTotalHours] = useState(
     startEntry
       ? Number(startEntry.dayShiftHours) +
@@ -111,7 +123,7 @@ export default function EditTimeEntry({
       restHours: restHours,
       travelHours: travelHours,
       comment: comment,
-    }).then(() => closeModal);
+    }).then(() => closeModal).catch(e =>console.log(e));
   };
 
   function handleDeleteEntries() {
@@ -137,6 +149,7 @@ export default function EditTimeEntry({
             </label>
             <DatePicker
               dateFormat="yyyy-MM-dd"
+              maxDate={toDate}
               selected={fromDate}
               className="w-full border border-gray-300 rounded-md p-2"
               onChange={(date: Date | null) => {
@@ -151,6 +164,7 @@ export default function EditTimeEntry({
             <DatePicker
               dateFormat="yyyy-MM-dd"
               selected={toDate}
+              minDate={fromDate}
               className="w-full border border-gray-300 rounded-md p-2"
               onChange={(date: Date | null) => {
                 if (!!date) {
@@ -199,8 +213,9 @@ export default function EditTimeEntry({
               step={0.5}
               id={`daytime-input`}
               value={nightShiftHours}
+              
               onChange={(e) => {
-                setNightShiftHours(Number(e.target.value));
+                setNightShiftHours(Number(Number(e.target.value).toFixed(1)));
                 setTotalHours(
                   Number(e.target.value) +
                     dayShiftHours +
@@ -288,13 +303,13 @@ export default function EditTimeEntry({
 
       {creationError && (
         <p className="text-red-500 mt-2" id="creation-error-message">
-          {creationError.status}
-          {creationError.message}
+          {displayErrorMessage(creationError) || 'Creation failed. Please try again.'}
         </p>
       )}
-      {deletionIsSuccess && (
-        <p className="text-green-600" id="deletion-success-message">
-          {`You've successfully cleared time entries`}
+      {getDaysWithTimeEntries(selectedDates).length > 0 && (
+        <p className="text-orange-500" id="deletion-success-message">
+          {"A time entry already exists for the following days: " +
+            getDaysWithTimeEntries(selectedDates).join(", ") + ". Save for update"}
         </p>
       )}
       <div className="flex justify-between items-center ">
@@ -307,9 +322,9 @@ export default function EditTimeEntry({
             Delete entries
           </button>
         </div>
-        <div className="flex justify-end p-6 space-x-4" id="action-buttons">
+        <div className="flex justify-end " id="action-buttons">
           <button
-            className="px-4 py-2 bg-[#4B6478] text-white   rounded-lg hover:bg-gray-400 focus:outline-none"
+            className="px-4 py-2 mr-4 bg-[#4B6478] text-white   rounded-lg hover:bg-gray-400 focus:outline-none"
             id="close-button"
             onClick={closeModal}
           >
