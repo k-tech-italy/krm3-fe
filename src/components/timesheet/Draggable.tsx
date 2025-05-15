@@ -11,7 +11,7 @@ export function Draggable(props: { children: React.ReactNode; id: string, classN
     <div
       id={`draggable-${props.id}`}
       ref={setNodeRef}
-      className={`h-full w-full ` + props.className || ""}
+      className={`h-full w-full cursor-grabbing` + props.className || ""}
       {...listeners}
       {...attributes}
     >

@@ -18,55 +18,12 @@ export const TimeEntryItem: React.FC<TimeEntryItemProps> = ({
 }) => {
   const entryId = `${entry.id}-${taskId}`;
 
-  const getHoursValue = () => {
-    if (entry.dayShiftHours > 0) {
-      return {
-        hoursValue: (
-          <span className="flex items-center">
-            {entry.dayShiftHours}
-            <Sun size={isMonthView ? 12 : 18} />
-          </span>
-        ),
-      };
-    } else if (entry.nightShiftHours > 0) {
-      return {
-        hoursValue: (
-          <span className="flex items-center">
-            {entry.nightShiftHours}
-            <Moon size={isMonthView ? 12 : 18} />
-          </span>
-        ),
-      };
-    } else if (entry.restHours > 0) {
-      return {
-        hoursValue: (
-          <span className="flex items-center">
-            {entry.restHours}
-            <Bed size={isMonthView ? 12 : 18} />
-          </span>
-        ),
-      };
-    } else if (entry.travelHours > 0) {
-      return {
-        hoursValue: (
-          <span className="flex items-center">
-            {entry.travelHours}
-            <Plane size={isMonthView ? 12 : 18} />
-          </span>
-        ),
-      };
-    } else {
-      return {
-        hoursValue: (
-          <span className="flex items-center">
-            {entry.dayShiftHours}
-            <Sun />
-          </span>
-        ),
-      };
-    }
-  };
-  const { hoursValue } = getHoursValue();
+  const hoursValue =
+    Number(entry.dayShiftHours) +
+    Number(entry.nightShiftHours) +
+    Number(entry.restHours) +
+    Number(entry.travelHours);
+
   return (
     <Draggable id={entryId} className="h-full w-full">
       <div

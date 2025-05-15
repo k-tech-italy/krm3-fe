@@ -9,12 +9,19 @@ import { useGetCurrentUser, useMediaQuery } from "./hooks/commons";
 import BottomTabNavigation from "./components/commons/MobileTab";
 import Timesheet from "./pages/Timesheet";
 import LoadSpinner from "./components/commons/LoadSpinner";
+import { ToastContainer } from "react-toastify";
 
 const queryClient = new QueryClient();
 
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+      />
       <BrowserRouter
         future={{
           v7_startTransition: true,

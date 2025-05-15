@@ -4,14 +4,16 @@ import {
   useDeleteTimeEntries,
   useCreateTimeEntry,
 } from "../../hooks/timesheet.tsx";
-import { displayErrorMessage, normalizeDate } from "./utils.ts";
+import {
+  displayErrorMessage,
+  getDatesBetween,
+  normalizeDate,
+} from "./utils.ts";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { format } from "path";
 import { formatDate } from "./Krm3Calendar.tsx";
 
 interface Props {
-  selectedDates: Date[];
   task: Task;
   timeEntries: TimeEntry[];
   startDate: Date;
@@ -20,7 +22,6 @@ interface Props {
 }
 
 export default function EditTimeEntry({
-  selectedDates,
   task,
   timeEntries,
   closeModal,
@@ -30,36 +31,41 @@ export default function EditTimeEntry({
   const startEntry = timeEntries.find(
     (item) => item.date === normalizeDate(startDate) && item.task == task.id
   );
-
-  const getDaysWithTimeEntries = (selectedDates: Date[]): string[] => {
-    return selectedDates
-      .filter((selectedDate) =>
-        timeEntries.some(
-          (timeEntry) =>
-            timeEntry.date === normalizeDate(selectedDate) &&
-            timeEntry.task === task.id
-        )
-      )
-      .map((selectedDate) => formatDate(selectedDate));
-  };
-
   const [fromDate, setFromDate] = useState<Date>(
     startDate <= endDate ? startDate : endDate
   );
   const [toDate, setToDate] = useState<Date>(
     endDate >= startDate ? endDate : startDate
   );
+  const updateDaysWithTimeEntries = (
+    startDate: Date,
+    endDate: Date
+  ): string[] => {
+    const dates = getDatesBetween(startDate, endDate);
+    const datesWithTimeEntries = dates.filter((date) =>
+      timeEntries.some(
+        (timeEntry) =>
+          normalizeDate(timeEntry.date) === normalizeDate(date) &&
+          timeEntry.task === task.id
+      )
+    );
+    return datesWithTimeEntries;
+  };
 
-  function getDatesBetween(fromDate: Date, toDate: Date): string[] {
-    const dates: string[] = [];
-    const currentDate = new Date(fromDate.getTime());
+  const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
+    updateDaysWithTimeEntries(fromDate, toDate)
+  );
 
-    while (normalizeDate(currentDate) <= normalizeDate(toDate)) {
-      dates.push(normalizeDate(new Date(currentDate)));
-      currentDate.setDate(currentDate.getDate() + 1);
+  function handleChangeDate(date: Date, type: "from" | "to") {
+    if (type === "from") {
+      setFromDate(date);
+      setDaysWithTimeEntries(updateDaysWithTimeEntries(date, toDate));
+    } else {
+      setToDate(date);
+      setDaysWithTimeEntries(updateDaysWithTimeEntries(fromDate, date));
     }
-    return dates;
   }
+
   const [totalHours, setTotalHours] = useState(
     startEntry
       ? Number(startEntry.dayShiftHours) +
@@ -123,7 +129,9 @@ export default function EditTimeEntry({
       restHours: restHours,
       travelHours: travelHours,
       comment: comment,
-    }).then(() => closeModal).catch(e =>console.log(e));
+    })
+      .then(() => closeModal)
+      .catch((e) => console.log(e));
   };
 
   function handleDeleteEntries() {
@@ -154,7 +162,7 @@ export default function EditTimeEntry({
               className="w-full border border-gray-300 rounded-md p-2"
               onChange={(date: Date | null) => {
                 if (!!date) {
-                  setFromDate(date);
+                  handleChangeDate(date, "from");
                 }
               }}
             />
@@ -168,7 +176,7 @@ export default function EditTimeEntry({
               className="w-full border border-gray-300 rounded-md p-2"
               onChange={(date: Date | null) => {
                 if (!!date) {
-                  setToDate(date);
+                  handleChangeDate(date, "to");
                 }
               }}
             />
@@ -213,7 +221,6 @@ export default function EditTimeEntry({
               step={0.5}
               id={`daytime-input`}
               value={nightShiftHours}
-              
               onChange={(e) => {
                 setNightShiftHours(Number(Number(e.target.value).toFixed(1)));
                 setTotalHours(
@@ -300,24 +307,30 @@ export default function EditTimeEntry({
           />
         </div>
       </div>
-
       {creationError && (
         <p className="text-red-500 mt-2" id="creation-error-message">
-          {displayErrorMessage(creationError) || 'Creation failed. Please try again.'}
+          {displayErrorMessage(creationError) ||
+            "Creation failed. Please try again."}
         </p>
       )}
-      {getDaysWithTimeEntries(selectedDates).length > 0 && (
+      {daysWithTimeEntries.length > 0 && (
         <p className="text-orange-500" id="deletion-success-message">
           {"A time entry already exists for the following days: " +
-            getDaysWithTimeEntries(selectedDates).join(", ") + ". Save for update"}
+            daysWithTimeEntries.map((day) => day.split("-")[2]).join(", ") +
+            ". Save for update"}
         </p>
       )}
       <div className="flex justify-between items-center ">
         <div>
           <button
-            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700 focus:outline-none"
+            className={`px-4 py-2 text-white rounded-lg  ${
+              daysWithTimeEntries.length === 0
+                ? "cursor-not-allowed bg-gray-300"
+                : " bg-red-500 hover:bg-red-700 focus:outline-none"
+            }`}
             id="delete-button"
             onClick={handleDeleteEntries}
+            disabled={daysWithTimeEntries.length === 0}
           >
             Delete entries
           </button>

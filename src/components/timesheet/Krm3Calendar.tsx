@@ -178,11 +178,11 @@ export default function Krm3Calendar() {
                     setSelectedCells(undefined);
                   }}
                   startDate={startDate}
+                  endDate={endDate}
                   timeEntries={timeEntries}
                 />
               ) : (
                 <EditTimeEntry
-                  selectedDates={selectedCells}
                   startDate={startDate}
                   endDate={endDate}
                   task={selectedTask}
@@ -195,7 +195,7 @@ export default function Krm3Calendar() {
               )}
             </>
           }
-          title={isDayEntry ? "Day Entry" : "Time Entry"}
+          title={isDayEntry ? "Day Entry" : `Add Time Entry for ${selectedTask.title}`}
         />
       )}
     </div>

@@ -59,10 +59,10 @@ export function TimeSheetTable(props: Props) {
   // Function to get time entries for a specific task and day
   const getTimeEntriesForTaskAndDay = (
     taskId: number,
-    day: Date
+    day?: Date
   ): TimeEntry[] => {
     if (!timesheet || !timesheet.timeEntries) return [];
-
+    if (!day) return timesheet.timeEntries.filter((entry) => entry.task === taskId);
     return timesheet.timeEntries.filter(
       (entry) =>
         entry.task === taskId &&
@@ -168,9 +168,12 @@ export function TimeSheetTable(props: Props) {
           const targetDay = normalizeDate(
             props.scheduleDays.days[targetDayIndex]
           );
+          props.setEndDate(new Date(targetDay));
+
 
           if (activeDragData.columnDay && targetDay) {
             if (timesheet.tasks && timesheet.tasks.length > 0) {
+              // set task only for open modal
               props.setSelectedTask(timesheet.tasks[0]);
               // const dayEntries = timesheet.timeEntries.filter(
               //   (entry) => entry.task === null
@@ -199,8 +202,8 @@ export function TimeSheetTable(props: Props) {
               );
 
               props.setOpenTimeEntryModal(true);
-
               props.setIsDayEntry(true);
+            
             }
           }
         }

@@ -5,13 +5,14 @@ import {
   useDeleteTimeEntries,
 } from "../../../hooks/timesheet";
 import { TimeEntry } from "../../../restapi/types";
-import { normalizeDate } from "../utils";
-import { Trash } from "lucide-react";
-
+import { getDatesBetween, normalizeDate } from "../utils";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 interface Props {
   selectedDays: Date[];
   skippedDays: Date[];
   startDate: Date;
+  endDate: Date;
   timeEntries: TimeEntry[];
   onClose: () => void;
 }
@@ -21,6 +22,7 @@ export default function EditDayEntry({
   skippedDays,
   onClose,
   startDate,
+  endDate,
   timeEntries,
 }: Props) {
   const [entryType, setEntryType] = useState<string | null>(null);
@@ -30,6 +32,17 @@ export default function EditDayEntry({
     selDays: selectedDays,
     skipDays: skippedDays,
   });
+
+  // Using all selected and skipped days to submit 'cause new requirement afre mvp1-uat
+  // skipDays are only shows in the UI as a warning
+  const daysToSubmit = [...days.selDays, ...days.skipDays];
+
+  const [fromDate, setFromDate] = useState<Date>(
+    startDate <= endDate ? startDate : endDate
+  );
+  const [toDate, setToDate] = useState<Date>(
+    endDate >= startDate ? endDate : startDate
+  );
 
   const {
     mutateAsync: submitDays,
@@ -80,15 +93,8 @@ export default function EditDayEntry({
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (entryType) {
-      // For leave entries, we should include both selected days and skipped days with task entries
-      // For other entry types, we only use selected days (as skipped days need to be cleared first)
-      const daysToSubmit =
-        entryType === "leave"
-          ? [...days.selDays, ...days.skipDays]
-          : days.selDays;
-
       submitDays({
-        dates: daysToSubmit.map((day) => normalizeDate(day)),
+        dates: getDatesBetween(fromDate, toDate),
         holidayHours: entryType === "holiday" ? 8 : undefined,
         sickHours: entryType === "sick" ? 8 : undefined,
         leaveHours: entryType === "leave" ? leaveHours : undefined,
@@ -120,67 +126,52 @@ export default function EditDayEntry({
   }
 
   // Determine if submission should be allowed
-  const canSubmit =
-    entryType &&
-    !isLoading &&
-    !isError &&
-    !isOpenConfirmModal &&
-    !hasDayEntries;
+  const canSubmit = entryType && !isLoading && !isError;
 
   // For holiday/sick options, they should be disabled if there are existing entries
   const isHolidaySickDisabled = days.skipDays.length > 0;
 
   return (
     <div>
-      {days && days.selDays.length > 0 && (
-        <div className="mb-4">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">
-            Selected Days:
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {days.selDays.map((day, index) => (
-              <span
-                id={`selected-day-${index}`}
-                key={index}
-                className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-1 rounded"
-              >
-                {formatDate(day)}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-      {days.skipDays && days.skipDays.length > 0 && (
-        <div className="mb-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-sm font-medium text-gray-600 mb-2">
-              Days with existing entries:
-            </h3>
-            <button
-              id="day-entry-clear-days-button"
-              type="button"
-              className="text-red-500 hover:text-red-700 cursor-pointer flex items-center"
-              onClick={() => setIsOpenConfirmModal(!isOpenConfirmModal)}
-            >
-              <span className="mr-1">Clear Days</span>
-              <Trash size={16} />
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {days.skipDays.map((day, index) => (
-              <span
-                id={`skipped-day-${index}`}
-                key={index}
-                className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-1 rounded"
-              >
-                {formatDate(day)}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
       <form onSubmit={handleSubmit} className="pb-6">
+        <div className="items-start" id="datepickers-container">
+          <div className="text-lg font-bold">Days</div>
+          <div className="flex flex-wrap" id="datepickers">
+            <div className="w-full md:w-1/3  mb-4 md:mb-0">
+              <label className="block text-sm font-medium mb-1">
+                Dal giorno:
+              </label>
+              <DatePicker
+                dateFormat="yyyy-MM-dd"
+                maxDate={toDate}
+                selected={fromDate}
+                className="w-full border border-gray-300 rounded-md p-2"
+                onChange={(date: Date | null) => {
+                  if (!!date) {
+                    setFromDate(date);
+                  }
+                }}
+              />
+            </div>
+            <div className="w-full md:w-1/3 px-2 mb-4 md:mb-0">
+              <label className="block text-sm font-medium mb-1">
+                Al giorno:
+              </label>
+              <DatePicker
+                dateFormat="yyyy-MM-dd"
+                selected={toDate}
+                minDate={fromDate}
+                className="w-full border border-gray-300 rounded-md p-2"
+                onChange={(date: Date | null) => {
+                  if (!!date) {
+                    setToDate(date);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Entry Type
@@ -341,7 +332,6 @@ export default function EditDayEntry({
             >
               Delete
             </button>
-           
           </div>
           <div className="flex justify-around">
             <button
