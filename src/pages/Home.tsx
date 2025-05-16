@@ -38,7 +38,7 @@ export function Home() {
   return (
     <>
       <Tabs activeTab={activeTab} setActiveTab={(e) => setActiveTab(e)} />
-      <div className="container mx-auto px-4">
+      <div className=" mx-auto px-8">
         {isLoading && <LoadSpinner />}
         {isError && (
           <div className="text-red-500 text-center">

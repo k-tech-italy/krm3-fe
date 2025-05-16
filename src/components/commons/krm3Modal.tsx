@@ -20,8 +20,8 @@ export default function Krm3Modal({ open, onClose, children, title }: Props) {
                 className="relative mx-auto w-full max-w-[44rem] rounded-lg overflow-auto shadow-sm max-h-[90vh]"
             >
                 <div className="relative flex flex-col bg-white ">
-                    <div className="flex justify-between items-center border-b-grey px-6">
-                        <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
+                    <div className="flex justify-between items-center border-b-grey p-6">
+                        <p className="text-[1.6rem] font-semibold text-gray-800">{title}</p>
                         <button
                             className="text-gray-500 hover:text-gray-700 focus:outline-none"
                             onClick={onClose}

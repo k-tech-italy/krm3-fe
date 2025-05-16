@@ -33,7 +33,6 @@ export const formatDate = (
 
 export default function Krm3Calendar() {
   const [selectedCells, setSelectedCells] = useState<Date[] | undefined>();
-  const [skippedDays, setSkippedDays] = useState<Date[]>([]);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [openTimeEntryModal, setOpenTimeEntryModal] = useState<boolean>(false);
@@ -41,7 +40,7 @@ export default function Krm3Calendar() {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [isMonth, setIsMonth] = useState<boolean>(false);
-  const {isColumnView, setColumnView} = useColumnViewPreference();
+  const { isColumnView, setColumnView } = useColumnViewPreference();
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
     const day = today.getDay();
@@ -101,7 +100,7 @@ export default function Krm3Calendar() {
   };
 
   return (
-    <div className="p-4" id="krm3-calendar-container">
+    <div  id="krm3-calendar-container">
       <div className="flex justify-between">
         <div
           className="flex  items-center justify-between min-w-[180px]"
@@ -147,57 +146,67 @@ export default function Krm3Calendar() {
           {isMonth ? "This month" : "This week"}
         </button>
       </div>
-      <VisualizationActions isMonth={isMonth} setIsMonth={setIsMonth} isColumnView={isColumnView} setColumnView={setColumnView} />
+      <VisualizationActions
+        isMonth={isMonth}
+        setIsMonth={setIsMonth}
+        isColumnView={isColumnView}
+        setColumnView={setColumnView}
+      />
       <TimeSheetTable
         isColumnView={isColumnView}
         setOpenTimeEntryModal={setOpenTimeEntryModal}
         setSelectedTask={setSelectedTask}
         setTimeEntries={setTimeEntries}
         setSelectedCells={setSelectedCells}
-        setSkippedDays={setSkippedDays}
         setIsDayEntry={setIsDayEntry}
         setStartDate={setStartDate}
         setEndDate={setEndDate}
         scheduleDays={scheduledDays}
       />
-      {openTimeEntryModal && selectedCells && selectedTask && startDate && endDate && (
-        <Krm3Modal
-          open={openTimeEntryModal}
-          onClose={() => {
-            setOpenTimeEntryModal(false);
-            setSelectedCells(undefined);
-          }}
-          children={
-            <>
-              {isDayEntry ? (
-                <EditDayEntry
-                  selectedDays={selectedCells}
-                  skippedDays={skippedDays}
-                  onClose={() => {
-                    setOpenTimeEntryModal(false);
-                    setSelectedCells(undefined);
-                  }}
-                  startDate={startDate}
-                  timeEntries={timeEntries}
-                />
-              ) : (
-                <EditTimeEntry
-                  selectedDates={selectedCells}
-                  startDate={startDate}
-                  endDate={endDate}
-                  task={selectedTask}
-                  timeEntries={timeEntries}
-                  closeModal={() => {
-                    setOpenTimeEntryModal(false);
-                    setSelectedCells(undefined);
-                  }}
-                />
-              )}
-            </>
-          }
-          title={isDayEntry ? "Day Entry" : "Time Entry"}
-        />
-      )}
+      {openTimeEntryModal &&
+        selectedCells &&
+        selectedTask &&
+        startDate &&
+        endDate && (
+          <Krm3Modal
+            open={openTimeEntryModal}
+            onClose={() => {
+              setOpenTimeEntryModal(false);
+              setSelectedCells(undefined);
+            }}
+            children={
+              <>
+                {isDayEntry ? (
+                  <EditDayEntry
+                    onClose={() => {
+                      setOpenTimeEntryModal(false);
+                      setSelectedCells(undefined);
+                    }}
+                    startDate={startDate}
+                    endDate={endDate}
+                    timeEntries={timeEntries}
+                  />
+                ) : (
+                  <EditTimeEntry
+                    startDate={startDate}
+                    endDate={endDate}
+                    task={selectedTask}
+                    timeEntries={timeEntries}
+                    closeModal={() => {
+                      setOpenTimeEntryModal(false);
+                      setSelectedCells(undefined);
+                    }}
+                  />
+                )}
+              </>
+            }
+            title={
+              isDayEntry
+                ? "Day Entry"
+                : `Add Time Entry for ${selectedTask.title}`
+            }
+          />
+        )}
     </div>
   );
 }

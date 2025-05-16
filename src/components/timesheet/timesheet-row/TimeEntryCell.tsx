@@ -3,8 +3,8 @@ import { Droppable } from "../Droppable";
 import { TimeEntryItem } from "./TimeEntryItem";
 import { EmptyCell } from "./EmptyCell";
 import { TimeEntry } from "../../../restapi/types";
-import { useColumnViewPreference } from "../../../hooks/commons";
 import { SpecialDayCell } from "./SpecialDayCell";
+import { isWeekendDay } from "../utils";
 
 export interface CellProps {
   day: Date;
@@ -23,7 +23,6 @@ export interface TimeEntryCellProps extends CellProps {
   isInDragRange: boolean;
   type: "task" | "holiday" | "sick" | "finished";
   isColumnView: boolean;
-
 }
 
 export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
@@ -60,6 +59,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
       (isInDragRange || isColumnHighlighted) &&
       (isColumnView ? "border-l-blue-500" : "border-b-blue-500")
     }
+    ${isWeekendDay(day) ? "bg-zinc-100" : ""}
   `}
       >
         {(type === "holiday" || type === "sick" || type === "finished") && (

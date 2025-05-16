@@ -55,7 +55,7 @@ export const SpecialDayCell: React.FC<SpecialDayCellProps> = ({
     <div
       id={id}
       style={{ backgroundColor: colors.backgroundColor }}
-      className={`h-full w-full text-center flex items-center justify-center `}
+      className={`h-full w-full text-center flex items-center justify-center cursor-not-allowed `}
     >
       <div
         className={` h-full flex justify-center items-center`}

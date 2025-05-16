@@ -14,7 +14,7 @@ export default function Tabs(props: Props){
     }
     return (
         <div className={`transition-colors duration-300 sticky top-0 bg-white`}>
-        <ul className={`container mx-auto  px-4 flex items-center justify-start pt-3 mb-5` }>
+        <ul className={` mx-auto  px-8 flex items-center justify-start pt-3 mb-5` }>
             <li>
             <button
                 className={`py-2 px-4 ${activeTab === 'trasferte' ? 'border-b-2 border-yellow-500 font-medium' : 'text-gray-500'}`}
