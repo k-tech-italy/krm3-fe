@@ -11,24 +11,11 @@ export const ShortHoursMenu = (props: {
   ) => void;
   openTimeEntryModalHandler: () => void;
 }) => {
-  const notify = (e: any) => {
-    const error = displayErrorMessage(e);
-    if (!error) return;
-
-    toast.error(error, {
-      position: "top-right",
-      autoClose: 3000,
-      theme: "light",
-      hideProgressBar: false,
-      draggable: true,
-    });
-  };
-
   const isTooltipVisible =
     !!props.openShortMenu &&
     normalizeDate(props.openShortMenu.day) === normalizeDate(props.day) &&
     Number(props.openShortMenu.taskId) === props.taskId;
-  const { mutateAsync: createTimeEntries } = useCreateTimeEntry();
+  const { mutateAsync: createTimeEntries, error } = useCreateTimeEntry();
 
   const selectedCells = (props.openShortMenu?.selectedCells || []).map((date) =>
     normalizeDate(date)
@@ -45,11 +32,27 @@ export const ShortHoursMenu = (props: {
     if (label === "More") {
       props.openTimeEntryModalHandler();
     } else {
-      createTimeEntries({
-        dates: selectedCells,
-        taskId: props.taskId,
-        dayShiftHours: value,
-      }).catch((e) => notify(e));
+      toast.promise(
+        createTimeEntries({
+          dates: selectedCells,
+          taskId: props.taskId,
+          dayShiftHours: value,
+        }).then(() => {
+          props.setOpenShortMenu?.(undefined);
+        }),
+        {
+          pending: "Adding hours...",
+          success: "Hours added successfully",
+          error:
+            (!!error && displayErrorMessage(error)) || "Error adding hours",
+        },
+        {
+          autoClose: 2000,
+          theme: "light",
+          hideProgressBar: false,
+          draggable: true,
+        }
+      );
     }
     props.setOpenShortMenu?.(undefined);
   }

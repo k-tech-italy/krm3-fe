@@ -24,9 +24,10 @@ export const pastelColors: string[] = [
 ];
 
 export const getPastelColor = (
-  index: number
+  taskColor?: string
 ): { backgroundColor: string; borderColor: string } => {
-  const color = pastelColors[index % pastelColors.length];
+  
+  let color = taskColor || pastelColors[Math.floor(Math.random() * pastelColors.length)];
   return {
     backgroundColor: `${color}50`,
     borderColor: color,
@@ -51,7 +52,7 @@ export const getDaysBetween = (startDate: string, endDate: string): Date[] => {
   return days;
 };
 
-export function displayErrorMessage(error: any): string[] | undefined {
+export function displayErrorMessage(error: any): string| undefined {
   // Check if the error has a response with data and take the first error field
   if (error.response && error.response.data) {
     return error.response.data["error"];
