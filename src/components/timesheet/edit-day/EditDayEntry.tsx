@@ -287,7 +287,7 @@ export default function EditDayEntry({
             rows={3}
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
             placeholder="Add any notes here..."
-            value={comment}
+            value={comment || ""}
             required={entryType === "leave" || entryType === "sick"}
             onChange={(e) => setComment(e.target.value)}
           ></textarea>

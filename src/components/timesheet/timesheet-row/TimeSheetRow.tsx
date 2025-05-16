@@ -42,7 +42,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
 }) => {
   // Generate color once per task row
   const { backgroundColor, borderColor } = useMemo(
-    () => getPastelColor(task.id),
+    () => getPastelColor(task.color),
     [task.id]
   );
 

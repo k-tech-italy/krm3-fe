@@ -105,10 +105,8 @@ export default function EditTimeEntry({
     error: deletionError,
     isLoading,
   } = useDeleteTimeEntries();
-  const {
-    mutateAsync: createTimeEntries,
-    error: creationError,
-  } = useCreateTimeEntry();
+  const { mutateAsync: createTimeEntries, error: creationError } =
+    useCreateTimeEntry();
 
   const submit = async () => {
     await createTimeEntries({
@@ -120,9 +118,7 @@ export default function EditTimeEntry({
       restHours: restHours,
       travelHours: travelHours,
       comment: comment,
-    })
-      .then(() => closeModal())
-      .catch((e) => console.log(e));
+    }).then(() => closeModal());
   };
 
   function handleDeleteEntries() {
