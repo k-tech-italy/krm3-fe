@@ -66,3 +66,8 @@ export function getDatesBetween(fromDate: Date, toDate: Date): string[] {
   }
   return dates;
 }
+
+export function isWeekendDay(date: Date): boolean {
+  const day = date.getDay();
+  return day === 0 || day === 6;
+}
