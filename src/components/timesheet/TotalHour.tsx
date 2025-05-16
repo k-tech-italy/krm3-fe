@@ -1,8 +1,6 @@
 import { Info } from "lucide-react";
 import { TimeEntry } from "../../restapi/types";
-import { useState } from "react";
-import { normalizeDate } from "./utils";
-import { useColumnViewPreference } from "../../hooks/commons";
+import { isWeekendDay, normalizeDate } from "./utils";
 import { Tooltip } from "react-tooltip";
 
 interface Props {
@@ -63,7 +61,9 @@ export function TotalHourCell({ day, timeEntries, isMonthView }: Props) {
         data-tooltip-id={tooltipId}
         className={`bg-gray-100 font-semibold ${
           isMonthView ? "text-[10px]" : "text-sm"
-        } flex justify-center items-center h-full w-full text-${colorClass()}-500`}
+        } flex justify-center items-center h-full w-full text-${colorClass()}-500   ${
+          isWeekendDay(day) ? "bg-zinc-200" : ""
+        }`}
       >
         {totalHour}h
         {totalHour > 0 && !isMonthView && (

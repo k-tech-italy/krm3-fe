@@ -7,7 +7,7 @@ import { Droppable } from "./Droppable";
 import { formatDate } from "./Krm3Calendar";
 import { TotalHourCell } from "./TotalHour";
 import { TimeSheetRow } from "./timesheet-row/TimeSheetRow";
-import { getDaysBetween, normalizeDate } from "./utils";
+import { getDaysBetween, isWeekendDay, normalizeDate } from "./utils";
 import LoadSpinner from "../commons/LoadSpinner";
 
 interface Props {
@@ -51,10 +51,9 @@ export function TimeSheetTable(props: Props) {
   const [draggedColumnIndex, setDraggedColumnIndex] = useState<number | null>(
     null
   );
-  const [openShortMenu, setOpenShortMenu] = useState<{ selectedCells: Date[]; day: string; taskId: string } | undefined>();
-
-
-
+  const [openShortMenu, setOpenShortMenu] = useState<
+    { selectedCells: Date[]; day: string; taskId: string } | undefined
+  >();
 
   // Function to get time entries for a specific task and day
   const getTimeEntriesForTaskAndDay = (
@@ -62,7 +61,8 @@ export function TimeSheetTable(props: Props) {
     day?: Date
   ): TimeEntry[] => {
     if (!timesheet || !timesheet.timeEntries) return [];
-    if (!day) return timesheet.timeEntries.filter((entry) => entry.task === taskId);
+    if (!day)
+      return timesheet.timeEntries.filter((entry) => entry.task === taskId);
     return timesheet.timeEntries.filter(
       (entry) =>
         entry.task === taskId &&
@@ -170,7 +170,6 @@ export function TimeSheetTable(props: Props) {
           );
           props.setEndDate(new Date(targetDay));
 
-
           if (activeDragData.columnDay && targetDay) {
             if (timesheet.tasks && timesheet.tasks.length > 0) {
               // set task only for open modal
@@ -203,7 +202,6 @@ export function TimeSheetTable(props: Props) {
 
               props.setOpenTimeEntryModal(true);
               props.setIsDayEntry(true);
-            
             }
           }
         }
@@ -235,7 +233,8 @@ export function TimeSheetTable(props: Props) {
               setOpenShortMenu({
                 selectedCells: draggedOverCells,
                 day: targetDate,
-                taskId: targetTaskId});
+                taskId: targetTaskId,
+              });
 
               props.setIsDayEntry(false);
             }
@@ -323,13 +322,10 @@ export function TimeSheetTable(props: Props) {
   };
 
   const openTimeEntryModalHandler = (task: Task) => {
-
     props.setSelectedTask(task);
     props.setTimeEntries(timesheet?.timeEntries || []);
     props.setOpenTimeEntryModal(true);
   };
-
-  
 
   const isTaskNotInDate = (currentDay: Date, task: Task): boolean => {
     const currentDateString = normalizeDate(currentDay);
@@ -369,7 +365,7 @@ export function TimeSheetTable(props: Props) {
       >
         <div
           id="timesheet-table"
-          className={`grid gap-0`}
+          className={`grid gap-0 ${props.isColumnView ? "max-w-[800px]" : ""}`}
           style={{
             gridTemplateColumns: props.isColumnView
               ? undefined
@@ -416,7 +412,9 @@ export function TimeSheetTable(props: Props) {
                                           isColumnHighlighted(index)
                                             ? "bg-blue-100 border-b-2 border-blue-400"
                                             : "border-b-2 border-gray-300 hover:border-blue-400"
-                                        } cursor-grab`}
+                                        } cursor-grab   ${
+                    isWeekendDay(day) ? "bg-zinc-200" : ""
+                  }`}
                 >
                   <div className={`${isMonthView ? "text-[10px]" : "text-sm"}`}>
                     {formatDate(day, isMonthView && !props.isColumnView)}
