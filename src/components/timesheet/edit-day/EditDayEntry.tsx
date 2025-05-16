@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { formatDate } from "../Krm3Calendar";
 import {
   useCreateTimeEntry,
   useDeleteTimeEntries,
 } from "../../../hooks/timesheet";
 import { TimeEntry } from "../../../restapi/types";
-import { getDatesBetween, normalizeDate } from "../utils";
+import {
+  calculateTotalHoursForDays,
+  displayErrorMessage,
+  getDatesBetween,
+  normalizeDate,
+} from "../utils";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import LoadSpinner from "../../commons/LoadSpinner";
 interface Props {
-  selectedDays: Date[];
-  skippedDays: Date[];
   startDate: Date;
   endDate: Date;
   timeEntries: TimeEntry[];
@@ -18,32 +21,11 @@ interface Props {
 }
 
 export default function EditDayEntry({
-  selectedDays,
-  skippedDays,
   onClose,
   startDate,
   endDate,
   timeEntries,
 }: Props) {
-  const [entryType, setEntryType] = useState<string | null>(null);
-  const [leaveHours, setLeaveHours] = useState<number | undefined>();
-  const [isOpenConfirmModal, setIsOpenConfirmModal] = useState(false);
-  const [days, setDays] = useState({
-    selDays: selectedDays,
-    skipDays: skippedDays,
-  });
-
-  // Using all selected and skipped days to submit 'cause new requirement afre mvp1-uat
-  // skipDays are only shows in the UI as a warning
-  const daysToSubmit = [...days.selDays, ...days.skipDays];
-
-  const [fromDate, setFromDate] = useState<Date>(
-    startDate <= endDate ? startDate : endDate
-  );
-  const [toDate, setToDate] = useState<Date>(
-    endDate >= startDate ? endDate : startDate
-  );
-
   const {
     mutateAsync: submitDays,
     isLoading,
@@ -51,14 +33,6 @@ export default function EditDayEntry({
     error,
   } = useCreateTimeEntry();
   const { mutateAsync: deleteDays } = useDeleteTimeEntries();
-
-  const hasDayEntries = days.skipDays.some((day) => {
-    const entry = timeEntries.find(
-      (item) => normalizeDate(item.date) === normalizeDate(day)
-    );
-    return entry && entry.task === null;
-  });
-
   const startEntry = timeEntries.find(
     (item) => normalizeDate(item.date) === normalizeDate(startDate)
   );
@@ -77,6 +51,46 @@ export default function EditDayEntry({
     }
   }, [startEntry]);
 
+  const [entryType, setEntryType] = useState<string | null>(null);
+  const [leaveHours, setLeaveHours] = useState<number | undefined>();
+  const [comment, setComment] = useState<string | undefined>(
+    startEntry?.comment
+  );
+  const [leaveHoursError, setLeaveHoursError] = useState<string | null>(null);
+
+  const [fromDate, setFromDate] = useState<Date>(
+    startDate <= endDate ? startDate : endDate
+  );
+  const [toDate, setToDate] = useState<Date>(
+    endDate >= startDate ? endDate : startDate
+  );
+  const updateDaysWithTimeEntries = (
+    startDate: Date,
+    endDate: Date
+  ): string[] => {
+    const dates = getDatesBetween(startDate, endDate);
+    const datesWithTimeEntries = dates.filter((date) =>
+      timeEntries.some(
+        (timeEntry) => normalizeDate(timeEntry.date) === normalizeDate(date)
+      )
+    );
+    return datesWithTimeEntries;
+  };
+
+  const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
+    updateDaysWithTimeEntries(fromDate, toDate)
+  );
+
+  function handleChangeDate(selectedDate: Date, dateType: "from" | "to") {
+    if (dateType === "from") {
+      setFromDate(selectedDate);
+      setDaysWithTimeEntries(updateDaysWithTimeEntries(selectedDate, toDate));
+    } else if (dateType === "to") {
+      setToDate(selectedDate);
+      setDaysWithTimeEntries(updateDaysWithTimeEntries(fromDate, selectedDate));
+    }
+  }
+
   const handleEntryTypeChange = (type: string) => {
     setEntryType(type);
     if (type !== "leave") {
@@ -87,6 +101,18 @@ export default function EditDayEntry({
   const handleLeaveHoursChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
+    const totalHours = calculateTotalHoursForDays(
+      timeEntries,
+      daysWithTimeEntries
+    );
+    if (totalHours + Number(event.target.value) > 8) {
+      setLeaveHoursError(
+        "No overtime allowed when logging leave hours. Maximum allowed is 8 hours, Total hours: " +
+          (totalHours + Number(event.target.value))
+      );
+    } else {
+      setLeaveHoursError(null);
+    }
     setLeaveHours(Number(event.target.value));
   };
 
@@ -98,7 +124,8 @@ export default function EditDayEntry({
         holidayHours: entryType === "holiday" ? 8 : undefined,
         sickHours: entryType === "sick" ? 8 : undefined,
         leaveHours: entryType === "leave" ? leaveHours : undefined,
-        dayShiftHours: 0, // Set dayShiftHours to 0 if adding leave to days with task entries
+        dayShiftHours: 0, // Set dayShiftHours to 0 if 'cause is mandatory'
+        comment: comment,
       }).then(onClose);
     }
   };
@@ -106,35 +133,20 @@ export default function EditDayEntry({
   function handleDeleteEntry(event: any): void {
     event.preventDefault();
     //DELETE API with skippedTaskId
-    const skippedTaskId = days.skipDays.flatMap((day) => {
+    const skippedTaskId = daysWithTimeEntries.flatMap((day) => {
       return timeEntries
         .filter((item) => normalizeDate(item.date) === normalizeDate(day))
         .map((item) => item.id);
     });
-
-    deleteDays(skippedTaskId)
-      .then(() => {
-        setDays((prev) => ({
-          selDays: [...prev.selDays, ...prev.skipDays],
-          skipDays: [],
-        }));
-        setIsOpenConfirmModal(false);
-      })
-      .catch((error) => {
-        console.error("Error deleting entries:", error);
-      });
+    deleteDays(skippedTaskId).then(() => {
+      onClose();
+    });
   }
-
-  // Determine if submission should be allowed
-  const canSubmit = entryType && !isLoading && !isError;
-
-  // For holiday/sick options, they should be disabled if there are existing entries
-  const isHolidaySickDisabled = days.skipDays.length > 0;
 
   return (
     <div>
-      <form onSubmit={handleSubmit} className="pb-6">
-        <div className="items-start" id="datepickers-container">
+      <form onSubmit={handleSubmit} className="flex flex-col space-y-6">
+        <div className="items-start " id="datepickers-container">
           <div className="text-lg font-bold">Days</div>
           <div className="flex flex-wrap" id="datepickers">
             <div className="w-full md:w-1/3  mb-4 md:mb-0">
@@ -148,7 +160,7 @@ export default function EditDayEntry({
                 className="w-full border border-gray-300 rounded-md p-2"
                 onChange={(date: Date | null) => {
                   if (!!date) {
-                    setFromDate(date);
+                    handleChangeDate(date, "from");
                   }
                 }}
               />
@@ -164,7 +176,7 @@ export default function EditDayEntry({
                 className="w-full border border-gray-300 rounded-md p-2"
                 onChange={(date: Date | null) => {
                   if (!!date) {
-                    setToDate(date);
+                    handleChangeDate(date, "to");
                   }
                 }}
               />
@@ -182,24 +194,17 @@ export default function EditDayEntry({
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "holiday"
                   ? "bg-yellow-100 border-yellow-500 text-yellow-700"
-                  : isHolidaySickDisabled
-                  ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
               }`}
-              onClick={() =>
-                !isHolidaySickDisabled && handleEntryTypeChange("holiday")
-              }
+              onClick={() => handleEntryTypeChange("holiday")}
             >
               <input
                 type="radio"
                 name="entryType"
                 value="holiday"
                 checked={entryType === "holiday"}
-                onChange={() =>
-                  !isHolidaySickDisabled && handleEntryTypeChange("holiday")
-                }
+                onChange={() => handleEntryTypeChange("holiday")}
                 className="sr-only"
-                disabled={isHolidaySickDisabled}
               />
               <span className="text-sm font-medium">Holiday</span>
             </div>
@@ -209,24 +214,17 @@ export default function EditDayEntry({
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "sick"
                   ? "bg-yellow-100 border-yellow-500 text-yellow-700"
-                  : isHolidaySickDisabled
-                  ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
               }`}
-              onClick={() =>
-                !isHolidaySickDisabled && handleEntryTypeChange("sick")
-              }
+              onClick={() => handleEntryTypeChange("sick")}
             >
               <input
                 type="radio"
                 name="entryType"
                 value="sick"
                 checked={entryType === "sick"}
-                onChange={() =>
-                  !isHolidaySickDisabled && handleEntryTypeChange("sick")
-                }
+                onChange={() => handleEntryTypeChange("sick")}
                 className="sr-only"
-                disabled={isHolidaySickDisabled}
               />
               <span className="text-sm font-medium">Sick Day</span>
             </div>
@@ -236,21 +234,16 @@ export default function EditDayEntry({
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "leave"
                   ? "bg-yellow-100 border-yellow-500 text-yellow-700"
-                  : hasDayEntries
-                  ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
               }`}
-              onClick={() => !hasDayEntries && handleEntryTypeChange("leave")}
+              onClick={() => handleEntryTypeChange("leave")}
             >
               <input
                 type="radio"
                 name="entryType"
                 value="leave"
                 checked={entryType === "leave"}
-                onChange={() =>
-                  !hasDayEntries && handleEntryTypeChange("leave")
-                }
-                disabled={hasDayEntries}
+                onChange={() => handleEntryTypeChange("leave")}
                 className="sr-only"
               />
               <span className="text-sm font-medium">Leave</span>
@@ -273,8 +266,9 @@ export default function EditDayEntry({
                 value={leaveHours || ""}
                 onChange={handleLeaveHoursChange}
                 min="1"
-                max="24"
+                max="8"
                 step={0.5}
+                required={entryType === "leave"}
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
                 placeholder="Enter hours"
               />
@@ -293,27 +287,32 @@ export default function EditDayEntry({
             rows={3}
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
             placeholder="Add any notes here..."
+            value={comment}
+            required={entryType === "leave" || entryType === "sick"}
+            onChange={(e) => setComment(e.target.value)}
           ></textarea>
         </div>
 
-        {days.skipDays.length > 0 && (
-          <div className="pt-4" id="existing-entry-message">
-            {isHolidaySickDisabled && entryType !== "leave" ? (
-              <label className="block text-sm font-medium text-red-500 mb-2">
-                Warning: You have selected days with existing entries. You can
-                only add leave hours or clear existing entries.
-              </label>
-            ) : days.skipDays.length > 0 && entryType !== "leave" ? (
-              <label className="block text-sm font-medium text-red-500 mb-2">
-                Warning: You have selected days with existing entries. Please
-                Clear it if you want to proceed with {entryType}.
-              </label>
-            ) : entryType === "leave" ? (
-              <label className="block text-sm font-medium text-blue-500 mb-2">
-                Note: Leave hours will be added to all selected days, including
-                those with existing task entries.
-              </label>
-            ) : null}
+        {daysWithTimeEntries.length > 0 && (
+          <p className="text-orange-500" id="warning-message">
+            <strong>Warning: </strong>
+
+            {"A time entry already exists for the following days: " +
+              daysWithTimeEntries.map((day) => day.split("-")[2]).join(", ") +
+              ". Save to update"}
+          </p>
+        )}
+        {isLoading && <LoadSpinner />}
+        {error && (
+          <div className="text-start text-red-500">
+            <strong>Error: </strong>
+            {displayErrorMessage(error) || "Something went wrong"}
+          </div>
+        )}
+        {leaveHoursError && (
+          <div className="text-start text-red-500">
+            <strong>Error: </strong>
+            {leaveHoursError}
           </div>
         )}
 
@@ -322,12 +321,12 @@ export default function EditDayEntry({
             <button
               id="cancel-day-entry-form"
               type="button"
-              onClick={onClose}
-              disabled={isLoading || isOpenConfirmModal}
-              className={`w-full flex justify-center py-2 px-4 mr-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                !isOpenConfirmModal
-                  ? "bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                  : "bg-gray-300 cursor-not-allowed"
+              onClick={handleDeleteEntry}
+              disabled={daysWithTimeEntries.length === 0}
+              className={`w-full flex justify-center py-2 px-4 mr-4 border border-transparent rounded-md shadow-smfont-medium text-white ${
+                daysWithTimeEntries.length === 0
+                  ? "cursor-not-allowed bg-gray-300"
+                  : " bg-red-500 hover:bg-red-700 focus:outline-none"
               }`}
             >
               Delete
@@ -335,85 +334,30 @@ export default function EditDayEntry({
           </div>
           <div className="flex justify-around">
             <button
-              id="cancel-day-entry-form"
-              type="button"
+              disabled={isLoading}
+              className="px-4 py-2 mr-4 bg-[#4B6478] text-white   rounded-lg hover:bg-gray-500 focus:outline-none"
+              id="close-button"
               onClick={onClose}
-              disabled={isLoading || isOpenConfirmModal}
-              className={`w-full flex justify-center py-2 px-4 mr-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                !isOpenConfirmModal
-                  ? "bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                  : "bg-gray-300 cursor-not-allowed"
-              }`}
             >
               Cancel
             </button>
             <button
               id="submit-day-entry-form"
               type="submit"
-              // disabled={!canSubmit}
-              className={`w-full flex justify-center py-2 px-4 ml-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                canSubmit
-                  ? "bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                  : "bg-gray-300 cursor-not-allowed"
-              }`}
+              disabled={isLoading || !entryType || !!leaveHoursError}
+              className={`
+                ${
+                  isLoading || !entryType || !!leaveHoursError
+                    ? "cursor-not-allowed bg-gray-300"
+                    : "bg-yellow-600 hover:bg-yellow-700 focus:outline-none"
+                }
+                w-full flex justify-center py-2 px-4 ml-4 border border-transparent rounded-md shadow-sm font-medium text-white `}
             >
               Submit
             </button>
           </div>
         </div>
       </form>
-
-      {isLoading && (
-        <div className="text-center text-yellow-500">Loading...</div>
-      )}
-      {isError && (
-        <div className="text-center text-red-500">
-          Error: {error?.message || "Something went wrong"}
-        </div>
-      )}
-      {isOpenConfirmModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div
-            id="confirm-clear-day-entry-modal"
-            className="bg-white rounded-lg shadow-lg p-6 max-w-2xl"
-          >
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Confirm Deletion
-            </h3>
-            <p className="text-gray-600 " />
-            Are you sure you want to delete this entry?
-            <br />
-            <div className="flex flex-wrap gap-2 mb-4">
-              {days.skipDays.map((day, index) => (
-                <span
-                  key={index}
-                  className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-1 rounded"
-                >
-                  {formatDate(day)}
-                </span>
-              ))}
-            </div>
-            <div className="flex justify-end">
-              <button
-                id="confirm-clear-day-entry-modal-cancel"
-                type="button"
-                className="mr-2 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-                onClick={() => setIsOpenConfirmModal(false)}
-              >
-                Cancel
-              </button>
-              <button
-                id="confirm-clear-day-entry-modal-submit"
-                type="button"
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                onClick={handleDeleteEntry}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

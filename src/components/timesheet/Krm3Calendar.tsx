@@ -33,7 +33,6 @@ export const formatDate = (
 
 export default function Krm3Calendar() {
   const [selectedCells, setSelectedCells] = useState<Date[] | undefined>();
-  const [skippedDays, setSkippedDays] = useState<Date[]>([]);
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [openTimeEntryModal, setOpenTimeEntryModal] = useState<boolean>(false);
@@ -159,7 +158,6 @@ export default function Krm3Calendar() {
         setSelectedTask={setSelectedTask}
         setTimeEntries={setTimeEntries}
         setSelectedCells={setSelectedCells}
-        setSkippedDays={setSkippedDays}
         setIsDayEntry={setIsDayEntry}
         setStartDate={setStartDate}
         setEndDate={setEndDate}
@@ -180,8 +178,6 @@ export default function Krm3Calendar() {
               <>
                 {isDayEntry ? (
                   <EditDayEntry
-                    selectedDays={selectedCells}
-                    skippedDays={skippedDays}
                     onClose={() => {
                       setOpenTimeEntryModal(false);
                       setSelectedCells(undefined);

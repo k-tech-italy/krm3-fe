@@ -14,7 +14,6 @@ interface Props {
   setOpenTimeEntryModal: (open: boolean) => void;
   setSelectedTask: (task: Task) => void;
   setSelectedCells: (cells: Date[] | undefined) => void;
-  setSkippedDays: (days: Date[]) => void;
   setIsDayEntry: (isDayEntry: boolean) => void;
   setStartDate: (date: Date) => void;
   setEndDate: (date: Date) => void;
@@ -114,7 +113,6 @@ export function TimeSheetTable(props: Props) {
       setDraggedColumnIndex(dayIndex);
       setHighlightedColumnIndexes([dayIndex]);
       setDraggedOverCells([columnDay]);
-      props.setSkippedDays([]);
       props.setStartDate(new Date(columnDay));
       return;
     }
@@ -174,22 +172,8 @@ export function TimeSheetTable(props: Props) {
             if (timesheet.tasks && timesheet.tasks.length > 0) {
               // set task only for open modal
               props.setSelectedTask(timesheet.tasks[0]);
-              // const dayEntries = timesheet.timeEntries.filter(
-              //   (entry) => entry.task === null
-              // );
-
-              // props.setTimeEntries(dayEntries);
 
               props.setTimeEntries(timesheet.timeEntries);
-
-              props.setSkippedDays(
-                draggedOverCells.filter((day) => {
-                  const hasTimeEntry = timesheet.timeEntries.some(
-                    (entry) => normalizeDate(entry.date) === normalizeDate(day)
-                  );
-                  return isHoliday(day) || hasTimeEntry;
-                })
-              );
 
               props.setSelectedCells(
                 draggedOverCells.filter((day) => {
@@ -390,7 +374,7 @@ export function TimeSheetTable(props: Props) {
               isMonthView ? "text-xs" : "text-sm"
             } col-span-1`}
           >
-            {isMonthView ? "h" : "Hours"}
+            {isMonthView && !props.isColumnView ? "H" : "Hours"}
           </div>
           {props.scheduleDays.days.map((day, index) => (
             <Droppable key={index} id={`column-${index}`}>

@@ -11,7 +11,6 @@ import {
 } from "./utils.ts";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { formatDate } from "./Krm3Calendar.tsx";
 
 interface Props {
   task: Task;
@@ -105,19 +104,11 @@ export default function EditTimeEntry({
     mutateAsync: deleteTimeEntries,
     error: deletionError,
     isLoading,
-    isSuccess: deletionIsSuccess,
   } = useDeleteTimeEntries();
   const {
     mutateAsync: createTimeEntries,
     error: creationError,
-    isSuccess: creationSuccess,
   } = useCreateTimeEntry();
-
-  useEffect(() => {
-    if (creationSuccess) {
-      closeModal();
-    }
-  }, [creationSuccess]);
 
   const submit = async () => {
     await createTimeEntries({
@@ -130,7 +121,7 @@ export default function EditTimeEntry({
       travelHours: travelHours,
       comment: comment,
     })
-      .then(() => closeModal)
+      .then(() => closeModal())
       .catch((e) => console.log(e));
   };
 
@@ -314,7 +305,9 @@ export default function EditTimeEntry({
         </p>
       )}
       {daysWithTimeEntries.length > 0 && (
-        <p className="text-orange-500" id="deletion-success-message">
+        <p className="text-orange-500" id="warning-message">
+          <strong>Warning: </strong>
+
           {"A time entry already exists for the following days: " +
             daysWithTimeEntries.map((day) => day.split("-")[2]).join(", ") +
             ". Save for update"}
@@ -332,11 +325,12 @@ export default function EditTimeEntry({
             onClick={handleDeleteEntries}
             disabled={daysWithTimeEntries.length === 0}
           >
-            Delete entries
+            Delete
           </button>
         </div>
         <div className="flex justify-end " id="action-buttons">
           <button
+            disabled={isLoading}
             className="px-4 py-2 mr-4 bg-[#4B6478] text-white   rounded-lg hover:bg-gray-400 focus:outline-none"
             id="close-button"
             onClick={closeModal}
