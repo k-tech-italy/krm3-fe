@@ -43,9 +43,7 @@ export default function EditTimeEntry({
     const dates = getDatesBetween(startDate, endDate);
     const datesWithTimeEntries = dates.filter((date) =>
       timeEntries.some(
-        (timeEntry) =>
-          normalizeDate(timeEntry.date) === normalizeDate(date) &&
-          timeEntry.task === task.id
+        (timeEntry) => normalizeDate(timeEntry.date) === normalizeDate(date)
       )
     );
     return datesWithTimeEntries;
@@ -125,7 +123,6 @@ export default function EditTimeEntry({
     const timeEntriesIds = timeEntries
       .filter(
         (timeEntry) =>
-          timeEntry.task == task.id &&
           normalizeDate(fromDate) <= normalizeDate(timeEntry.date) &&
           normalizeDate(toDate) >= normalizeDate(timeEntry.date)
       )
@@ -134,7 +131,7 @@ export default function EditTimeEntry({
   }
 
   return (
-    <div className="flex flex-col space-y-6" id="edit-time-entry-container">
+    <div className="flex flex-col space-y-4" id="edit-time-entry-container">
       <div className="items-start" id="datepickers-container">
         <div className="text-lg font-bold">Days</div>
         <div className="flex flex-wrap" id="datepickers">
@@ -154,7 +151,7 @@ export default function EditTimeEntry({
               }}
             />
           </div>
-          <div className="w-full md:w-1/3 px-2 mb-4 md:mb-0">
+          <div className="w-full md:w-1/3 mb-4 md:mb-0">
             <label className="block text-sm font-medium mb-1">Al giorno:</label>
             <DatePicker
               dateFormat="yyyy-MM-dd"
@@ -180,7 +177,10 @@ export default function EditTimeEntry({
             Total Hours: {totalHours}h
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-4" id="details-container">
+        <div
+          className="grid grid-cols-3 gap-4 items-end"
+          id="details-container"
+        >
           <div>
             <p>Daytime hours</p>
             <input
@@ -324,7 +324,7 @@ export default function EditTimeEntry({
             Delete
           </button>
         </div>
-        <div className="flex justify-end " id="action-buttons">
+        <div className="flex justify-end" id="action-buttons">
           <button
             disabled={isLoading}
             className="px-4 py-2 mr-4 bg-[#4B6478] text-white   rounded-lg hover:bg-gray-400 focus:outline-none"
@@ -336,12 +336,12 @@ export default function EditTimeEntry({
           <button
             className={`px-4 py-2 text-white rounded-lg focus:outline-none
                     ${
-                      totalHoursExceeded
+                      totalHoursExceeded || totalHours === 0
                         ? "bg-gray-300 cursor-not-allowed"
                         : "bg-yellow-500 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                     }`}
             id="save-button"
-            disabled={totalHoursExceeded}
+            disabled={totalHoursExceeded || totalHours === 0}
             onClick={async () => {
               await submit();
             }}

@@ -35,7 +35,7 @@ export function Login() {
     const values = queryString.parse(location.search);
     const state = values.state ? values.state : null;
     const code = values.code ? values.code : null;
-
+    
     if (state && code) {
       setIsLoading(true);
       googleAuthenticate(state.toString(), code.toString())
@@ -132,17 +132,17 @@ export function Login() {
 
   const handleGoogleLogin = () => {
     setIsLoading(true);
-    window.location.href = '/oauth/login/google-oauth2/';
-    // loginGoogle()
-    //   .catch((err) => {
-    //     console.error("Failed to initiate Google login", err);
-    //     setError({
-    //       detail: "Failed to connect to Google. Please try again.",
-    //     });
-    //   })
-    //   .finally(() => {
-    //     setIsLoading(false);
-    //   });
+    // window.location.href = '/oauth/login/google-oauth2/';
+    loginGoogle()
+      .catch((err) => {
+        console.error("Failed to initiate Google login", err);
+        setError({
+          detail: "Failed to connect to Google. Please try again.",
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   if (isLoading && !showLogin) {

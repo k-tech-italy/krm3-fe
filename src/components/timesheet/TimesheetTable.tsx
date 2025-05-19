@@ -336,7 +336,7 @@ export function TimeSheetTable(props: Props) {
   return (
     <div className="flex-col">
       <div className="max-w-200 text-gray-500 mb-1">
-        <p>
+        <p className="mt-4">
           Clicking and holding a cell or a column to drag it. Drop it in the
           desired position to place your hours.
         </p>
