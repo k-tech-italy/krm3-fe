@@ -52,7 +52,7 @@ function AuthenticatedRoutes() {
     <div className="wrapper">
       <div className="main bg-slate-50">
         <Navbar />
-        <div className="min-h-screen">
+        <div className=" pb-16">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/home" element={<Home />} />

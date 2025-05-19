@@ -122,7 +122,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
         }
         className={`p-2 ${borderColorClass} ${
           isColumnView ? "border-l-3" : "border-b-3"
-        } ${isMonthView ? "text-[10px]" : ""}`}
+        } ${isMonthView ? "text-[10px] text-center" : ""}`}
       >
        {totalHours}
       </div>

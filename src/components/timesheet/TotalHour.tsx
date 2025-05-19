@@ -59,9 +59,9 @@ export function TotalHourCell({ day, timeEntries, isMonthView }: Props) {
     <div className={`relative flex justify-center items-center h-full w-full`}>
       <div
         data-tooltip-id={tooltipId}
-        className={`bg-gray-100 font-semibold ${
+        className={`bg-gray-100 items-center font-semibold ${
           isMonthView ? "text-[10px]" : "text-sm"
-        } flex justify-center items-center h-full w-full text-${colorClass()}-500   ${
+        } flex justify-center  h-full w-full text-${colorClass()}-500   ${
           isWeekendDay(day) ? "bg-zinc-200" : ""
         }`}
       >

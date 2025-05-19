@@ -1,6 +1,7 @@
 import { toast } from "react-toastify";
 import { useCreateTimeEntry } from "../../../hooks/timesheet";
 import { displayErrorMessage, normalizeDate } from "../utils";
+import { useRef, useState, useEffect } from "react";
 
 export const ShortHoursMenu = (props: {
   day: Date;
@@ -20,6 +21,7 @@ export const ShortHoursMenu = (props: {
   const selectedCells = (props.openShortMenu?.selectedCells || []).map((date) =>
     normalizeDate(date)
   );
+  const [isMenuRight, setIsMenuRight] = useState(true);
 
   const options = [
     { label: "2h", value: 2 },
@@ -59,7 +61,9 @@ export const ShortHoursMenu = (props: {
   return (
     <div
       onMouseLeave={() => props.setOpenShortMenu?.(undefined)}
-      className={`absolute z-50 left-0 mt-2 w-56 origin-top-right bg-white  divide-y divide-gray-100 rounded-md shadow  focus:outline-none  transition-all duration-200 ease-out transform ${
+      className={`absolute z-50 ${
+        isMenuRight ? "right-0" : "left-0"
+      } mt-2 w-56 origin-top-right bg-white divide-y divide-gray-100 rounded-md shadow focus:outline-none transition-all duration-200 ease-out transform ${
         isTooltipVisible
           ? "opacity-100 scale-100"
           : "opacity-0 scale-95 pointer-events-none"

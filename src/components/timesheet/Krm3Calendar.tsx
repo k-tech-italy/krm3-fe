@@ -39,7 +39,7 @@ export default function Krm3Calendar() {
   const [isDayEntry, setIsDayEntry] = useState<boolean>(false);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  const [isMonth, setIsMonth] = useState<boolean>(false);
+  const [isMonth, setIsMonth] = useState<boolean>(true);
   const { isColumnView, setColumnView } = useColumnViewPreference();
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();

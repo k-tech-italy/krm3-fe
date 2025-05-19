@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useMediaQuery } from "../../hooks/commons";
 
 interface Props {
@@ -15,40 +15,44 @@ function VisualizationActions({
 }: Props) {
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
 
+  useEffect(() => {
+    setIsMonth(prev => isSmallScreen ? true : prev);
+  }, [isSmallScreen]);
+
   return (
-    <div className="flex justify-between items-center my-4">
-      <div className="">
-        <div className="inline-flex items-end gap-2">
-          <label
-            htmlFor="switch-month-on"
-            className="text-slate-600 text-sm cursor-pointer"
-          >
-            Week
-          </label>
-          <div className="relative inline-block w-11 h-5">
-            <input
-              id="switch-month-on"
-              type="checkbox"
-              className="peer appearance-none w-11 h-5 bg-slate-100 rounded-full checked:bg-slate-800 cursor-pointer transition-colors duration-300"
-              checked={isMonth}
-              onChange={() => {
-                setIsMonth(!isMonth);
-              }}
-            />
+    <div>
+      {!isSmallScreen && (
+        <div className="flex justify-between items-center mt-4">
+          <div className="inline-flex items-end gap-2">
             <label
               htmlFor="switch-month-on"
-              className="absolute top-0 left-0 w-5 h-5 bg-white rounded-full border border-slate-300 shadow-sm transition-transform duration-300 peer-checked:translate-x-6 peer-checked:border-slate-800 cursor-pointer"
-            ></label>
+              className="text-slate-600 text-sm cursor-pointer"
+            >
+              Week
+            </label>
+            <div className="relative inline-block w-11 h-5">
+              <input
+                id="switch-month-on"
+                type="checkbox"
+                className="peer appearance-none w-11 h-5 bg-slate-100 rounded-full checked:bg-slate-800 cursor-pointer transition-colors duration-300"
+                checked={isMonth}
+                onChange={() => {
+                  setIsMonth(!isMonth);
+                }}
+              />
+              <label
+                htmlFor="switch-month-on"
+                className="absolute top-0 left-0 w-5 h-5 bg-white rounded-full border border-slate-300 shadow-sm transition-transform duration-300 peer-checked:translate-x-6 peer-checked:border-slate-800 cursor-pointer"
+              ></label>
+            </div>
+            <label
+              htmlFor="switch-month-on"
+              className="text-slate-600 text-sm cursor-pointer"
+            >
+              Month
+            </label>
           </div>
-          <label
-            htmlFor="switch-month-on"
-            className="text-slate-600 text-sm cursor-pointer"
-          >
-            Month
-          </label>
-        </div>
-      </div>
-      {!isSmallScreen && (
+
           <div className="inline-flex items-center gap-2">
             <label
               htmlFor="switch-component-on"
@@ -76,6 +80,7 @@ function VisualizationActions({
               Column
             </label>
           </div>
+        </div>
       )}
     </div>
   );

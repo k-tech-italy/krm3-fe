@@ -165,7 +165,7 @@ export default function EditDayEntry({
                 }}
               />
             </div>
-            <div className="w-full md:w-1/3 px-2 mb-4 md:mb-0">
+            <div className="w-full md:w-1/3 mb-4 md:mb-0">
               <label className="block text-sm font-medium mb-1">
                 Al giorno:
               </label>
@@ -332,10 +332,10 @@ export default function EditDayEntry({
               Delete
             </button>
           </div>
-          <div className="flex justify-around">
+          <div className="flex justify-end">
             <button
               disabled={isLoading}
-              className="px-4 py-2 mr-4 bg-[#4B6478] text-white   rounded-lg hover:bg-gray-500 focus:outline-none"
+              className="px-4 py-2 mr-4 bg-[#4B6478] text-white   rounded-lg hover:bg-gray-400 focus:outline-none"
               id="close-button"
               onClick={onClose}
             >
@@ -345,13 +345,13 @@ export default function EditDayEntry({
               id="submit-day-entry-form"
               type="submit"
               disabled={isLoading || !entryType || !!leaveHoursError}
-              className={`
+              className={`px-4 py-2 text-white rounded-lg focus:outline-none
                 ${
                   isLoading || !entryType || !!leaveHoursError
                     ? "cursor-not-allowed bg-gray-300"
-                    : "bg-yellow-600 hover:bg-yellow-700 focus:outline-none"
+                    : "bg-yellow-500 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                 }
-                w-full flex justify-center py-2 px-4 ml-4 border border-transparent rounded-md shadow-sm font-medium text-white `}
+                `}
             >
               Submit
             </button>

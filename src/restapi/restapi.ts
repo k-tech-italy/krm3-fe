@@ -2,9 +2,7 @@ import axios from "axios";
 import { getToken } from "./oauth";
 import applyCaseMiddleware from "axios-case-converter";
 
-// used to temporary bypass Google login
 export const djSessionId = null;
-// export const djSessionId = 's1xslht0h0vzluoak8v3nzpriq7u2w2p';
 
 axios.defaults.xsrfCookieName = "csrftoken";
 axios.defaults.xsrfHeaderName = "X-CSRFToken";

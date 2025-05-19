@@ -1,39 +1,110 @@
+import { useState, useEffect } from "react";
+import Modal from "react-modal";
 import { X } from "lucide-react";
 
-interface Props {
-    open: boolean;
-    onClose: () => void;
-    children: React.ReactNode;
-    title?: string;
+// Make sure to set the app element for accessibility
+// This should be done once in your app's entry point (e.g., index.js or App.js)
+// Modal.setAppElement('#root');
+
+interface Krm3ModalProps {
+  open: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+  title?: string;
 }
 
-export default function Krm3Modal({ open, onClose, children, title }: Props) {
-    return (
-        <div
-            id='time-entry-modal'
+export default function Krm3Modal({ open, onClose, children, title }: Krm3ModalProps) {
+  // Handle body scroll lock
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  // Modal styles that match your original component
+  const customStyles = {
+    overlay: {
+      backgroundColor: "rgba(0, 0, 0, 0.2)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 50,
+      transition: "background-color 300ms"
+    },
+    content: {
+      position: "relative" as const,
+      top: "auto",
+      left: "auto",
+      right: "auto",
+      bottom: "auto",
+      maxWidth: "44rem",
+      width: "100%",
+      padding: 0,
+      border: "none",
+      borderRadius: "0.5rem",
+      background: "#fff",
+      maxHeight: "90vh",
+      overflow: "auto",
+      boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
+      margin: "0 1rem"
+    }
+  };
+
+  return (
+    <Modal
+      isOpen={open}
+      onRequestClose={onClose}
+      style={customStyles}
+      contentLabel={title || "Modal"}
+      closeTimeoutMS={300}
+      ariaHideApp={false}
+    >
+      <div className="relative flex flex-col bg-white">
+        <div className="flex justify-between items-center border-b p-4 sm:p-6">
+          <p className="text-xl sm:text-2xl font-semibold text-gray-800">
+            {title}
+          </p>
+          <button
+            className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 rounded p-1"
             onClick={onClose}
-            className={`fixed inset-0 flex justify-center items-center transition-colors duration-300 ${open ? "visible bg-black/20" : "invisible bg-transparent"
-                }`}
-        >
-            <div
-                onClick={(e) => e.stopPropagation()}
-                className="relative mx-auto w-full max-w-[44rem] rounded-lg overflow-auto shadow-sm max-h-[90vh]"
-            >
-                <div className="relative flex flex-col bg-white ">
-                    <div className="flex justify-between items-center border-b-grey p-6">
-                        <p className="text-[1.6rem] font-semibold text-gray-800">{title}</p>
-                        <button
-                            className="text-gray-500 hover:text-gray-700 focus:outline-none"
-                            onClick={onClose}
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                    </div>
-                    <div className="p-6">
-                        {children}
-                    </div>
-                </div>
-            </div>
+            aria-label="Close modal"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
-    );
+        <div className="p-4 sm:p-6">
+          {children}
+        </div>
+      </div>
+    </Modal>
+  );
 }
+
+// Usage Example:
+// 
+// import { useState } from 'react';
+// import Krm3Modal from './Krm3Modal';
+// 
+// function App() {
+//   const [modalOpen, setModalOpen] = useState(false);
+//   
+//   return (
+//     <div>
+//       <button onClick={() => setModalOpen(true)}>Open Modal</button>
+//       
+//       <Krm3Modal 
+//         open={modalOpen} 
+//         onClose={() => setModalOpen(false)}
+//         title="My Modal Title"
+//       >
+//         <p>Modal content goes here!</p>
+//         <button onClick={() => setModalOpen(false)}>Close</button>
+//       </Krm3Modal>
+//     </div>
+//   );
+// }
