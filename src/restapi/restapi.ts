@@ -1,15 +1,14 @@
 import axios from "axios";
+import { getToken } from "./oauth";
 import applyCaseMiddleware from "axios-case-converter";
 
+// used to temporary bypass Google login
 export const djSessionId = null;
+// export const djSessionId = 's1xslht0h0vzluoak8v3nzpriq7u2w2p';
 
 axios.defaults.xsrfCookieName = "csrftoken";
-axios.defaults.xsrfHeaderName = "x-csrftoken";
-let baseUrl = process.env.KRM3_FE_API_BASE_URL || "/api/v1/";
-
-if (baseUrl.startsWith("/")) {
-     baseUrl = document.location.protocol + '//' + document.location.host + baseUrl;
-}
+axios.defaults.xsrfHeaderName = "X-CSRFToken";
+const baseUrl = process.env.KRM3_FE_API_BASE_URL;
 
 export const restapi = applyCaseMiddleware(
   axios.create({
@@ -18,31 +17,6 @@ export const restapi = applyCaseMiddleware(
   })
 );
 let isRedirecting = false;
-
-restapi.interceptors.request.use(
-  (config) => {
-    const url = config.url?.split("?")[0]?.replace(/\/+$/, "");
-    if (
-      (config.method === "post" && url && !url.endsWith("login")) ||
-      config.method === "put" ||
-      config.method === "patch" ||
-      config.method === "delete"
-    ) {
-      const csrfToken = localStorage.getItem("CSRF_TOKEN");
-      if (csrfToken) {
-        //@ts-ignore
-        config.headers = {
-          ...config.headers,
-          "x-csrftoken": csrfToken,
-        };
-      }
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
 restapi.interceptors.response.use(
   (response) => {
@@ -65,6 +39,18 @@ restapi.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+if (!djSessionId && process.env.NODE_ENV !== "test") {
+  // prevent this from being used in tests
+  restapi.interceptors.request.use(async (config) => {
+    const c = { ...config, headers: config.headers || {} };
+    const token = await getToken();
+    if (token) {
+      c.headers["Authorization"] = `JWT ` + token; //TODO CHECK THIS(ERROR 401)
+    }
+    return c;
+  });
+}
 
 if (djSessionId) {
   // set cookie

@@ -1,20 +1,21 @@
 import { useState } from "react";
-import { useGetCurrentUser, useLogout } from "../../hooks/commons";
+import { useGetCurrentUser } from "../../hooks/commons";
+import { clearToken } from "../../restapi/oauth";
 
 export function UserMenu() {
   const { data: user } = useGetCurrentUser();
   const [isOpen, setIsOpen] = useState(false);
-  const { mutate: logoutUser } = useLogout();
 
   function handleLogout() {
-    logoutUser();
+    clearToken();
+    window.location.replace("/login");
   }
 
   function toggleMenu() {
     setIsOpen((prev) => !prev);
   }
 
-  const beUrl = document.location.protocol + '//' + document.location.host;
+  const beUrl = document.location.protocol + "//" + document.location.host;
 
   return (
     <div className="relative inline-block text-left">
