@@ -6,7 +6,13 @@ export const djSessionId = null;
 
 axios.defaults.xsrfCookieName = "csrftoken";
 axios.defaults.xsrfHeaderName = "X-CSRFToken";
-const baseUrl = process.env.KRM3_FE_API_BASE_URL;
+
+let baseUrl = process.env.KRM3_FE_API_BASE_URL || "/api/v1/";
+
+if (baseUrl.startsWith("/")) {
+  baseUrl =
+    document.location.protocol + "//" + document.location.host + baseUrl;
+}
 
 export const restapi = applyCaseMiddleware(
   axios.create({
