@@ -3,7 +3,6 @@ import { restapi } from "./restapi";
 
 export function getCurrentUser(): Promise<User> {
   return restapi.get<User>(`/core/user/me/`).then((res) => {
-    localStorage.setItem("CSRF_TOKEN", res.data.cid);
     return res.data;
   });
 }
