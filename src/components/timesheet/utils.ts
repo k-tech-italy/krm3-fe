@@ -26,8 +26,8 @@ export const pastelColors: string[] = [
 export const getPastelColor = (
   taskColor?: string
 ): { backgroundColor: string; borderColor: string } => {
-  
-  let color = taskColor || pastelColors[Math.floor(Math.random() * pastelColors.length)];
+  let color =
+    taskColor || pastelColors[Math.floor(Math.random() * pastelColors.length)];
   return {
     backgroundColor: `${color}50`,
     borderColor: color,
@@ -52,7 +52,7 @@ export const getDaysBetween = (startDate: string, endDate: string): Date[] => {
   return days;
 };
 
-export function displayErrorMessage(error: any): string| undefined {
+export function displayErrorMessage(error: any): string | undefined {
   // Check if the error has a response with data and take the first error field
   if (error.response && error.response.data) {
     return error.response.data["error"];
@@ -75,17 +75,25 @@ export function isWeekendDay(date: Date): boolean {
   return day === 0 || day === 6;
 }
 
-
-export function calculateTotalHoursForDays(timeEntries: TimeEntry[], dates: string[]): number {
-  return dates.reduce((totalHours, date) => {
-    const dailyEntries = timeEntries.filter(
-      (entry) => normalizeDate(entry.date) === date
-    );
-    const dailyTotal = dailyEntries.reduce((sum, entry) => {
-      return sum + (Number(entry.dayShiftHours) || 0) + 
-                   (Number(entry.nightShiftHours) || 0) + 
-                   (Number(entry.travelHours) || 0);
-    }, 0);
-    return totalHours + dailyTotal;
-  }, 0);
+export function calculateTotalHoursForDays(
+  timeEntries: TimeEntry[],
+  dates: string[]
+): number {
+  return dates.reduce(
+    (totalHours, date) =>
+      Math.max(
+        totalHours,
+        timeEntries
+          .filter((entry) => normalizeDate(entry.date) === date)
+          .reduce(
+            (dailyTotal, entry) =>
+              dailyTotal +
+              (Number(entry.dayShiftHours) || 0) +
+              (Number(entry.nightShiftHours) || 0) +
+              (Number(entry.travelHours) || 0),
+            0
+          )
+      ),
+    0
+  );
 }
