@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { useGetCurrentUser } from "../../hooks/commons";
 import { clearToken } from "../../restapi/oauth";
+import { logout } from "../../restapi/user";
 
 export function UserMenu() {
   const { data: user } = useGetCurrentUser();
   const [isOpen, setIsOpen] = useState(false);
 
   function handleLogout() {
-    clearToken();
-    window.location.replace("/login");
+    logout().then(() => {
+      console.log("logged out");
+      clearToken();
+      window.location.replace("/login");
+    });
   }
 
   function toggleMenu() {
