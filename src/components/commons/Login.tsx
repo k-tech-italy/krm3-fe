@@ -21,10 +21,9 @@ interface ValidationResult {
 
 export function Login() {
   const isSmallScreen = useMediaQuery("(max-width: 767.98px)");
-  const { isAuthenticated } = useGetCurrentUser();
   const location = useLocation();
   const navigate = useNavigate();
-
+  const { isAuthenticated } = useGetCurrentUser();
   const [showLogin, setShowLogin] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -35,11 +34,11 @@ export function Login() {
     const values = queryString.parse(location.search);
     const state = values.state ? values.state : null;
     const code = values.code ? values.code : null;
-    
     if (state && code) {
       setIsLoading(true);
       googleAuthenticate(state.toString(), code.toString())
         .then(() => {
+          console.log("Google authentication successful");
           navigate("/home");
         })
         .catch((err) => {
@@ -78,7 +77,7 @@ export function Login() {
     if (!password) {
       errors.password = "Password is required";
       isValid = false;
-    } 
+    }
     // else if (password.length < 0) {
     //   errors.password = "Password must be at least 6 characters";
     //   isValid = false;
@@ -132,17 +131,17 @@ export function Login() {
 
   const handleGoogleLogin = () => {
     setIsLoading(true);
-    window.location.href = '/oauth/login/google-oauth2/';
-    // loginGoogle()
-    //   .catch((err) => {
-    //     console.error("Failed to initiate Google login", err);
-    //     setError({
-    //       detail: "Failed to connect to Google. Please try again.",
-    //     });
-    //   })
-    //   .finally(() => {
-    //     setIsLoading(false);
-    //   });
+    // window.location.href = '/oauth/login/google-oauth2/';
+    loginGoogle()
+      .catch((err) => {
+        console.error("Failed to initiate Google login", err);
+        setError({
+          detail: "Failed to connect to Google. Please try again.",
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   if (isLoading && !showLogin) {

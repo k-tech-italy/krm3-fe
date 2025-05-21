@@ -12,15 +12,16 @@ export function loginUser(username: string, password: string) {
 }
 
 export async function loginGoogle() {
+  console.log("Logging in with Google");
   try {
     localStorage.removeItem(LS_TOKEN_KEY);
     let currentUrl = window.location.toString();
     const loginUrl =
       window.location.protocol + "//" + window.location.host + "/login";
-    if (currentUrl.startsWith(loginUrl)) {
-      // redirect to home if user goes to /login in the first place
-      currentUrl = window.location.protocol + "//" + window.location.host + "/";
-    }
+    // if (currentUrl.startsWith(loginUrl)) {
+    //   // redirect to home if user goes to /login in the first place
+    //   currentUrl = window.location.protocol + "//" + window.location.host + "/";
+    // }
     localStorage.setItem(LS_LOGIN_NEXT_URI, currentUrl);
     const res = await restapi.get(
       `/o/${oauthProvider}/?redirect_uri=${loginUrl}`
@@ -50,7 +51,9 @@ export async function googleAuthenticate(state: string, code: string) {
       .join("&");
     try {
       const res = await restapi.post(`/o/google-oauth2/`, formBody, {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
       });
       const token = res.data.access;
       localStorage.setItem(LS_TOKEN_KEY, token);

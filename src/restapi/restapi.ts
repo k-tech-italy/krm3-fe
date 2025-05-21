@@ -26,10 +26,9 @@ restapi.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401 && !isRedirecting) {
+    if (error.response?.status >= 400 && !isRedirecting) {
       const currentPath = window.location.pathname;
 
-      // Verifica di non essere già sulla pagina di login
       if (currentPath !== "/login") {
         isRedirecting = true;
         window.location.href = "/login";

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { getCurrentUser, logout } from "../restapi/user";
+import { AxiosError } from "axios";
+import { clearToken } from "../restapi/oauth";
 
 export function useGetCurrentUser() {
   const queryClient = useQueryClient();
@@ -76,3 +78,16 @@ export const useColumnViewPreference = (): {
 
   return { isColumnView, setColumnView, getIsColumnView };
 };
+
+
+export function useLogout() {
+  // const queryClient = useQueryClient();
+  return useMutation(() => logout(), {
+    onSuccess: () => {
+      clearToken();
+      // queryClient.invalidateQueries({ queryKey: ["user", "current"] });
+      window.location.replace("/login");
+    },
+    onError: (error: AxiosError) => {},
+  });
+}
