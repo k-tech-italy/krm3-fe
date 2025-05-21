@@ -5,6 +5,7 @@ import { Mission } from "./components/missions/Mission";
 import { Navbar } from "./components/commons/Navbar";
 import { Login } from "./components/commons/Login";
 import { User } from "./pages/User";
+import { LogoutPage } from "./pages/Logout";
 import { useGetCurrentUser, useMediaQuery } from "./hooks/commons";
 import BottomTabNavigation from "./components/commons/MobileTab";
 import Timesheet from "./pages/Timesheet";
@@ -30,6 +31,7 @@ export function App() {
       >
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/logout" element={<LogoutPage />} />
           <Route path="/*" element={<AuthenticatedRoutes />} />
         </Routes>
       </BrowserRouter>
