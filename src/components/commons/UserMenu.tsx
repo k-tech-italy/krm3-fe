@@ -1,20 +1,20 @@
 import { useState } from "react";
-import { useGetCurrentUser } from "../../hooks/commons";
-import {clearToken} from "../../restapi/oauth.ts";
+import { useGetCurrentUser, useLogout } from "../../hooks/commons";
 
 export function UserMenu() {
   const { data: user } = useGetCurrentUser();
   const [isOpen, setIsOpen] = useState(false);
+  const { mutate: logoutUser } = useLogout();
 
   function handleLogout() {
-    clearToken();
-    window.location.replace("/login");
+    logoutUser();
   }
 
   function toggleMenu() {
     setIsOpen((prev) => !prev);
   }
 
+  const beUrl = document.location.protocol + "//" + document.location.host;
 
   return (
     <div className="relative inline-block text-left">
@@ -53,6 +53,14 @@ export function UserMenu() {
           >
             Profile
           </a>
+          {user?.isStaff && (
+            <a
+              href={`${beUrl}/admin/`}
+              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            >
+              Django Admin
+            </a>
+          )}
         </div>
         <div className="py-1">
           <button
