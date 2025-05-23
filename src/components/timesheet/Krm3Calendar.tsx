@@ -7,7 +7,7 @@ import { TimeSheetTable } from "./TimesheetTable";
 import EditDayEntry from "./edit-day/EditDayEntry";
 import VisualizationActions from "./VisualizationActions";
 import { useColumnViewPreference } from "../../hooks/commons";
-import { formatDayAndMonth, formatMonthName } from "./utils/dates";
+import { formatDate, formatDayAndMonth, formatMonthName } from "./utils/dates";
 
 export default function Krm3Calendar() {
   const [selectedCells, setSelectedCells] = useState<Date[] | undefined>();
@@ -47,7 +47,7 @@ export default function Krm3Calendar() {
       if (!isMonth) {
         day.setDate(currentWeekStart.getDate() + i);
       }
-      days.push(day);
+      days.push(formatDate(day));
     }
     return { days, numberOfDays };
   }, [currentWeekStart, isMonth]);

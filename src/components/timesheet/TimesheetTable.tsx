@@ -6,7 +6,7 @@ import { useGetTimesheet } from "../../hooks/timesheet";
 import { Droppable } from "./Droppable";
 import { TotalHourCell } from "./TotalHour";
 import { TimeSheetRow } from "./timesheet-row/TimeSheetRow";
-import { getDaysBetween, isWeekendDay } from "./utils/utils";
+import { getDaysBetween, isWeekendDay } from "./utils/dates";
 import { formatDay, formatDayOfWeek, normalizeDate } from "./utils/dates";
 import LoadSpinner from "../commons/LoadSpinner";
 

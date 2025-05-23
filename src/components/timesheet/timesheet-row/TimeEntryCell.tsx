@@ -4,7 +4,7 @@ import { TimeEntryItem } from "./TimeEntryItem";
 import { EmptyCell } from "./EmptyCell";
 import { TimeEntry } from "../../../restapi/types";
 import { SpecialDayCell } from "./SpecialDayCell";
-import { isWeekendDay } from "../utils/utils";
+import { isWeekendDay } from "../utils/dates";
 
 export interface CellProps {
   day: Date;

@@ -41,7 +41,6 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   setOpenShortMenu,
 }) => {
   // Generate color once per task row
-  console.log(index)
   const { backgroundColor, borderColor } = useMemo(
     () => getTaskColor(index, task.color),
     [task.id]

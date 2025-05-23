@@ -14,35 +14,26 @@ export const defaultColors: string[] = [
   "#ffe7ce",
 ];
 
+/**
+ * Generates a color for a task based on the row it is in or the specified color.
+ * The color will be a lighter version of the specified color. If no color is
+ * specified, it will use the next color in the default color array.
+ */
 export function getTaskColor(
   row: number,
   taskColor?: string
 ): { backgroundColor: string; borderColor: string } {
   const color = taskColor || defaultColors[row % defaultColors.length];
-  return {
-    backgroundColor: `${color}50`,
-    borderColor: color,
-  };
+  const backgroundColor = `${color}50`; // 50% opacity
+  const borderColor = color;
+  return { backgroundColor, borderColor };
 }
 
-export const getDaysBetween = (startDate: string, endDate: string): Date[] => {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const days: Date[] = [];
-
-  start.setHours(0, 0, 0, 0);
-  end.setHours(0, 0, 0, 0);
-
-  for (
-    let currentDate = new Date(start);
-    currentDate <= end;
-    currentDate.setDate(currentDate.getDate() + 1)
-  ) {
-    days.push(new Date(currentDate));
-  }
-  return days;
-};
-
+/**
+ * Display the error message from the API response.
+ * @param error The error object that is passed from the API call.
+ * @returns The error message as a string or undefined if it is not available.
+ */
 export function displayErrorMessage(error: any): string | undefined {
   // Check if the error has a response with data and take the first error field
   if (error.response && error.response.data) {
@@ -50,32 +41,23 @@ export function displayErrorMessage(error: any): string | undefined {
   }
 }
 
-export function getDatesBetween(fromDate: Date, toDate: Date): string[] {
-  const dates: string[] = [];
-  const currentDate = new Date(fromDate.getTime());
-
-  while (normalizeDate(currentDate) <= normalizeDate(toDate)) {
-    dates.push(normalizeDate(new Date(currentDate)));
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-  return dates;
-}
-
-export function isWeekendDay(date: Date): boolean {
-  const day = date.getDay();
-  return day === 0 || day === 6;
-}
-
+//Calculate the total hours for a list of dates. This function takes a list of
 export function calculateTotalHoursForDays(
   timeEntries: TimeEntry[],
   dates: string[]
 ): number {
   return dates.reduce(
+    // Use the maximum total hours for each day.
+    // This is done to prevent a situation where a day has both day and night
+    // shift hours, and the total hours for the day are calculated as the
+    // maximum of the two.
     (totalHours, date) =>
       Math.max(
         totalHours,
+        // Filter time entries for the current date
         timeEntries
           .filter((entry) => normalizeDate(entry.date) === date)
+          // Calculate the total hours for the day
           .reduce(
             (dailyTotal, entry) =>
               dailyTotal +

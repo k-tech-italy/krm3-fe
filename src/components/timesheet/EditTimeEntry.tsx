@@ -6,8 +6,8 @@ import {
 } from "../../hooks/timesheet.tsx";
 import {
   displayErrorMessage,
-  getDatesBetween,
 } from "./utils/utils.ts";
+import { getDatesBetween } from "./utils/dates.ts";
 import { normalizeDate } from "./utils/dates.ts";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -40,6 +40,7 @@ export default function EditTimeEntry({
     startDate: Date,
     endDate: Date
   ): string[] => {
+    console.log(startDate, endDate);
     const dates = getDatesBetween(startDate, endDate);
     const datesWithTimeEntries = dates.filter((date) =>
       timeEntries.some(
@@ -67,7 +68,7 @@ export default function EditTimeEntry({
     startEntry
       ? Number(startEntry.dayShiftHours) +
           Number(startEntry.nightShiftHours) +
-          Number(startEntry.travelHours)
+          Number(startEntry.travelHours) 
       : 0
   ); // SHOULD ON CALL HOURS BE ADDED TO TOTAL HOURS???
 
@@ -102,8 +103,8 @@ export default function EditTimeEntry({
   const { mutateAsync: createTimeEntries, error: creationError } =
     useCreateTimeEntry();
 
-  const submit = async () => {
-    await createTimeEntries({
+  const submit = () => {
+     createTimeEntries({
       taskId: task.id,
       dates: getDatesBetween(fromDate, toDate),
       nightShiftHours: nightShiftHours,
@@ -183,7 +184,7 @@ export default function EditTimeEntry({
               type="number"
               id={`daytime-input`}
               step={0.5}
-              value={dayShiftHours}
+              value={dayShiftHours || ''}
               onChange={(e) => {
                 setDayShiftHours(Number(e.target.value));
                 setTotalHours(
@@ -199,7 +200,7 @@ export default function EditTimeEntry({
               type="number"
               step={0.5}
               id={`daytime-input`}
-              value={nightShiftHours}
+              value={nightShiftHours || ''}
               onChange={(e) => {
                 setNightShiftHours(Number(Number(e.target.value).toFixed(1)));
                 setTotalHours(
@@ -215,7 +216,7 @@ export default function EditTimeEntry({
               type="number"
               step={0.5}
               id={`travelHours-input`}
-              value={travelHours}
+              value={travelHours || ''}
               onChange={(e) => {
                 setTravelHours(Number(e.target.value));
                 setTotalHours(
@@ -231,7 +232,7 @@ export default function EditTimeEntry({
               type="number"
               step={0.5}
               id={`oncall-input`}
-              value={onCallHours}
+              value={onCallHours || ''}
               onChange={(e) => {
                 setOnCallHours(Number(e.target.value));
               }}
@@ -302,15 +303,13 @@ export default function EditTimeEntry({
           <button
             className={`px-4 py-2 text-white rounded-lg focus:outline-none
                     ${
-                      totalHoursExceeded || totalHours === 0
+                      totalHoursExceeded || (totalHours === 0 || onCallHours === 0)
                         ? "bg-gray-300 cursor-not-allowed"
                         : "bg-yellow-500 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                     }`}
             id="save-button"
-            disabled={totalHoursExceeded || totalHours === 0}
-            onClick={async () => {
-              await submit();
-            }}
+            disabled={totalHoursExceeded || (totalHours === 0 || onCallHours === 0)}
+            onClick={submit}
           >
             Save
           </button>

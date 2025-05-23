@@ -1,6 +1,6 @@
 import { Info } from "lucide-react";
 import { TimeEntry } from "../../restapi/types";
-import { isWeekendDay } from "./utils/utils";
+import { isWeekendDay } from "./utils/dates";
 import { normalizeDate } from "./utils/dates";
 import { Tooltip } from "react-tooltip";
 
@@ -27,10 +27,7 @@ export function TotalHourCell({ day, timeEntries, isMonthView }: Props) {
         acc +
         (Number(timeEntry.dayShiftHours) || 0) +
         (Number(timeEntry.nightShiftHours) || 0) +
-        (Number(timeEntry.onCallHours) || 0) +
-        (Number(timeEntry.leaveHours) || 0) +
-        (Number(timeEntry.restHours) || 0) +
-        (Number(timeEntry.travelHours) || 0)
+        (Number(timeEntry.leaveHours) || 0)
       );
     }
     return acc;

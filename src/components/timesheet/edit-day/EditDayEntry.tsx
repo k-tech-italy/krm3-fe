@@ -7,8 +7,8 @@ import { TimeEntry } from "../../../restapi/types";
 import {
   calculateTotalHoursForDays,
   displayErrorMessage,
-  getDatesBetween,
 } from "../utils/utils";
+import { getDatesBetween } from "../utils/dates";
 import { normalizeDate } from "../utils/dates";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -280,7 +280,7 @@ export default function EditDayEntry({
           </div>
         </div>
 
-        {(entryType === "leave" || "rest") && (
+        {entryType === "leave" || entryType === "rest" && (
           <div className="transition-all duration-300 ease-in-out">
             <label
               id="day-entry-leave-hour-label"
