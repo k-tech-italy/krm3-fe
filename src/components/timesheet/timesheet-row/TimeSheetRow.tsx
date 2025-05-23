@@ -4,6 +4,7 @@ import { TimeEntryCell } from "./TimeEntryCell";
 import { getTaskColor } from "../utils/utils";
 import { Task, TimeEntry } from "../../../restapi/types";
 import { ShortHoursMenu } from "./ShortHoursMenu";
+import { normalizeDate } from "../utils/dates";
 
 export interface TimeSheetRowProps {
   index: number;
@@ -15,12 +16,11 @@ export interface TimeSheetRowProps {
   isColumnHighlighted: (dayIndex: number) => boolean;
   isHoliday: (day: Date) => boolean;
   isSickDay: (day: Date) => boolean;
-  isTaskFinished: (currentDay: Date, task: Task) => boolean | undefined;
   getTimeEntriesForTaskAndDay: (taskId: number, day?: Date) => TimeEntry[];
   openTimeEntryModalHandler: (task: Task) => void;
-  openShortMenu?: { selectedCells: Date[]; day: string; taskId: string };
+  openShortMenu?: {startDate: string; endDate: string; taskId: string };
   setOpenShortMenu?: (
-    value: { selectedCells: Date[]; day: string; taskId: string } | undefined
+    value: { startDate: string; endDate: string; taskId: string } | undefined
   ) => void;
 }
 
@@ -34,7 +34,6 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   isColumnHighlighted,
   isHoliday,
   isSickDay,
-  isTaskFinished,
   getTimeEntriesForTaskAndDay,
   openTimeEntryModalHandler,
   openShortMenu,
@@ -46,6 +45,17 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
     [task.id]
   );
   const timeEntries = getTimeEntriesForTaskAndDay(task.id);
+
+  const isTaskFinished = (currentDay: Date, task: Task): boolean => {
+    const currentDateString = normalizeDate(currentDay);
+    const startDateString = normalizeDate(task.startDate);
+    const endDateString = task.endDate ? normalizeDate(task.endDate) : null;
+
+    return (
+      currentDateString < startDateString ||
+      (endDateString !== null && currentDateString > endDateString)
+    );
+  };
 
   const totalHours = timeEntries.reduce(
     (total, entry) =>

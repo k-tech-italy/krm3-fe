@@ -1,26 +1,26 @@
 import { toast } from "react-toastify";
 import { useCreateTimeEntry } from "../../../hooks/timesheet";
 import { displayErrorMessage } from "../utils/utils";
-import { normalizeDate } from "../utils/dates";
-import { useRef, useState, useEffect } from "react";
+import { formatDate, getDatesBetween, normalizeDate } from "../utils/dates";
+import { useState } from "react";
 
 export const ShortHoursMenu = (props: {
   day: Date;
   taskId: number;
-  openShortMenu?: { selectedCells: Date[]; day: string; taskId: string };
+  openShortMenu?: {startDate: string; endDate: string; taskId: string };
   setOpenShortMenu?: (
-    value: { selectedCells: Date[]; day: string; taskId: string } | undefined
+    value: { startDate: string; endDate: string; taskId: string } | undefined
   ) => void;
   openTimeEntryModalHandler: () => void;
 }) => {
   const isTooltipVisible =
     !!props.openShortMenu &&
-    normalizeDate(props.openShortMenu.day) === normalizeDate(props.day) &&
+    normalizeDate(props.openShortMenu.endDate) === normalizeDate(props.day) &&
     Number(props.openShortMenu.taskId) === props.taskId;
   const { mutateAsync: createTimeEntries, error } = useCreateTimeEntry();
-
-  const selectedCells = (props.openShortMenu?.selectedCells || []).map((date) =>
-    normalizeDate(date)
+  const selectedDates = getDatesBetween(
+    formatDate(props.openShortMenu?.startDate || ''),
+    formatDate(props.openShortMenu?.endDate || ''),
   );
   const [isMenuRight, setIsMenuRight] = useState(true);
 
@@ -37,7 +37,7 @@ export const ShortHoursMenu = (props: {
     } else {
       toast.promise(
         createTimeEntries({
-          dates: selectedCells,
+          dates: selectedDates,
           taskId: props.taskId,
           dayShiftHours: value,
         }).then(() => {

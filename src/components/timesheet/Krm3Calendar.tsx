@@ -140,9 +140,10 @@ export default function Krm3Calendar() {
         setStartDate={setStartDate}
         setEndDate={setEndDate}
         scheduleDays={scheduledDays}
+        startDate={startDate}
+        endDate={endDate}
       />
       {openTimeEntryModal &&
-        selectedCells &&
         selectedTask &&
         startDate &&
         endDate && (

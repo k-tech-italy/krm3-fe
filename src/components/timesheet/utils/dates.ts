@@ -1,97 +1,96 @@
-// Create a Date at noon to avoid timezone issues
-export const formatDate = (date: Date | string): Date => {
-  const d = new Date(date);
-  return new Date(
-    d.getFullYear(),
-    d.getMonth(),
-    d.getDate(),
-    12, // set time to noon
-    0,
-    0
-  );
-};
 
-// Convert a date to YYYY-MM-DD string format
-export const normalizeDate = (date: Date | string): string => {
-  const d = formatDate(date); // ensure consistent day
+/** 
+ * Create a Date at local noon (to avoid timezone/DST shifts) 
+ * @param d input Date or ISO-string 
+ */
+export function formatDate(d: Date | string): Date {
+  const dt = typeof d === 'string' ? new Date(d) : new Date(d.getTime());
+  return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate(), 12, 0, 0, 0);
+}
+
+/** 
+ * Format a Date (or date-string) into 'YYYY-MM-DD' 
+ */
+export function normalizeDate(input: Date | string): string {
+  const d = formatDate(input);
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
-};
-
-// Format a date to display the day of the month and weekday
-export const formatDay = (date: Date) =>
-  date.toLocaleDateString("en-US", {
-    day: "numeric",
-    weekday: "narrow",
-  });
-
-// Format a date to display the month name and year
-export const formatMonthName = (date: Date) =>
-  date.toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
-
-// Format a date to display the weekday and day of the month
-export const formatDayOfWeek = (date: Date) =>
-  date.toLocaleDateString("en-US", {
-    weekday: "short",
-    day: "numeric",
-  });
-
-// Format a date to display the day and month
-export const formatDayAndMonth = (date: Date) =>
-  date.toLocaleDateString("en-US", {
-    day: "numeric",
-    month: "short",
-  });
-
-// Get an array of Date objects between two dates, inclusive
-export const getDateRange = (start: Date, end: Date): Date[] => {
-  const days: Date[] = [];
-  for (
-    let currentDate = new Date(start);
-    currentDate <= end;
-    currentDate.setDate(currentDate.getDate() + 1)
-  ) {
-    days.push(new Date(currentDate));
-  }
-  return days;
-};
-
-// Get an array of Date objects between two string dates, inclusive
-export const getDaysBetween = (startDate: string, endDate: string): Date[] => {
-  const start = formatDate(new Date(startDate));
-  const end = formatDate(new Date(endDate));
-  const days: Date[] = [];
-  for (
-    let currentDate = new Date(start);
-    currentDate <= end;
-    currentDate.setDate(currentDate.getDate() + 1)
-  ) {
-    days.push(new Date(currentDate));
-  }
-  return days;
-};
-
-// Get an array of date strings between two dates, inclusive
-export function getDatesBetween(fromDate: Date, toDate: Date): string[] {
-  const dates: string[] = [];
-  const currentDate = formatDate(fromDate);
-  const endDate = formatDate(toDate);
-
-  while (currentDate <= endDate) {
-    dates.push(normalizeDate(currentDate));
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-  return dates;
 }
 
-// Check if a date is a weekend
-export function isWeekendDay(date: Date): boolean {
-  const day = date.getDay();
+/** 
+ * Generic wrapper around Intl.DateTimeFormat 
+ * @param input Date or date-string 
+ * @param options Intl formatting options 
+ * @param locale BCP-47 locale (default 'en-US') 
+ */
+export function formatIntl(
+  input: Date | string,
+  options: Intl.DateTimeFormatOptions,
+  locale = 'en-US'
+): string {
+  const d = typeof input === 'string' ? new Date(input) : input;
+  return d.toLocaleDateString(locale, options);
+}
+
+// ——— Specific formatters ——————————————————————————————————————————————
+
+/** e.g. “W 3” or “T 12” */
+export const formatDay = (d: Date | string, locale?: string) =>
+  formatIntl(d, { weekday: 'narrow', day: 'numeric' }, locale);
+
+/** e.g. “Tue 12” */
+export const formatDayOfWeek = (d: Date | string, locale?: string) =>
+  formatIntl(d, { weekday: 'short', day: 'numeric' }, locale);
+
+/** e.g. “May 2025” */
+export const formatMonthName = (d: Date | string, locale?: string) =>
+  formatIntl(d, { month: 'long', year: 'numeric' }, locale);
+
+/** e.g. “12 May” */
+export const formatDayAndMonth = (d: Date | string, locale?: string) =>
+  formatIntl(d, { day: 'numeric', month: 'short' }, locale);
+
+// ——— Range generators ——————————————————————————————————————————————
+
+/**
+ * Returns an array of Date objects from `start` → `end` inclusive.
+ * Goes forwards or backwards depending on which is earlier.
+ */
+export function getDateRange(
+  start: Date | string,
+  end: Date | string
+): Date[] {
+  const s = formatDate(start);
+  const e = formatDate(end);
+  const step = s <= e ? 1 : -1;
+  const result: Date[] = [];
+  const cur = new Date(s);
+
+  while ((step > 0 && cur <= e) || (step < 0 && cur >= e)) {
+    result.push(new Date(cur));
+    cur.setDate(cur.getDate() + step);
+  }
+
+  return result;
+}
+
+/**
+ * Returns an array of 'YYYY-MM-DD' strings from `start` → `end` inclusive.
+ */
+export function getDatesBetween(
+  start: Date | string,
+  end: Date | string
+): string[] {
+  return getDateRange(start, end).map(normalizeDate);
+}
+
+// ——— Misc ——————————————————————————————————————————————————————————
+
+/** Returns true if the given date is Saturday or Sunday */
+export function isWeekendDay(input: Date | string): boolean {
+  const d = typeof input === 'string' ? new Date(input) : input;
+  const day = d.getDay();
   return day === 0 || day === 6;
 }
-
