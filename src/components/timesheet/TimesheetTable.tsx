@@ -4,10 +4,10 @@ import { TimeEntry, Task } from "../../restapi/types";
 import { Draggable } from "./Draggable";
 import { useGetTimesheet } from "../../hooks/timesheet";
 import { Droppable } from "./Droppable";
-import { formatDate } from "./Krm3Calendar";
 import { TotalHourCell } from "./TotalHour";
 import { TimeSheetRow } from "./timesheet-row/TimeSheetRow";
-import { getDaysBetween, isWeekendDay, normalizeDate } from "./utils/utils";
+import { getDaysBetween, isWeekendDay } from "./utils/utils";
+import { formatDay, formatDayOfWeek, normalizeDate } from "./utils/dates";
 import LoadSpinner from "../commons/LoadSpinner";
 
 interface Props {
@@ -401,7 +401,9 @@ export function TimeSheetTable(props: Props) {
                   }`}
                 >
                   <div className={`${isMonthView ? "text-[10px]" : "text-sm"}`}>
-                    {formatDate(day, isMonthView && !props.isColumnView)}
+                    {isMonthView && !props.isColumnView
+                      ? formatDay(day)
+                      : formatDayOfWeek(day)}
                   </div>
                   <div
                     className={`bg-gray-100 font-semibold ${

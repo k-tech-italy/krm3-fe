@@ -7,8 +7,8 @@ import {
 import {
   displayErrorMessage,
   getDatesBetween,
-  normalizeDate,
 } from "./utils/utils.ts";
+import { normalizeDate } from "./utils/dates.ts";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 

@@ -8,8 +8,8 @@ import {
   calculateTotalHoursForDays,
   displayErrorMessage,
   getDatesBetween,
-  normalizeDate,
 } from "../utils/utils";
+import { normalizeDate } from "../utils/dates";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import LoadSpinner from "../../commons/LoadSpinner";
