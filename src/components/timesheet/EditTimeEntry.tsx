@@ -8,7 +8,7 @@ import {
   displayErrorMessage,
   getDatesBetween,
   normalizeDate,
-} from "./utils.ts";
+} from "./utils/utils.ts";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -67,8 +67,7 @@ export default function EditTimeEntry({
     startEntry
       ? Number(startEntry.dayShiftHours) +
           Number(startEntry.nightShiftHours) +
-          Number(startEntry.travelHours) +
-          Number(startEntry.restHours)
+          Number(startEntry.travelHours)
       : 0
   ); // SHOULD ON CALL HOURS BE ADDED TO TOTAL HOURS???
 
@@ -83,9 +82,6 @@ export default function EditTimeEntry({
   );
   const [travelHours, setTravelHours] = useState(
     startEntry ? Number(startEntry.travelHours) : 0
-  );
-  const [restHours, setRestHours] = useState(
-    startEntry ? Number(startEntry.restHours) : 0
   );
 
   const [comment, setComment] = useState(
@@ -113,7 +109,6 @@ export default function EditTimeEntry({
       nightShiftHours: nightShiftHours,
       dayShiftHours: dayShiftHours,
       onCallHours: onCallHours,
-      restHours: restHours,
       travelHours: travelHours,
       comment: comment,
     }).then(() => closeModal());
@@ -192,10 +187,7 @@ export default function EditTimeEntry({
               onChange={(e) => {
                 setDayShiftHours(Number(e.target.value));
                 setTotalHours(
-                  Number(e.target.value) +
-                    nightShiftHours +
-                    travelHours +
-                    restHours
+                  Number(e.target.value) + nightShiftHours + travelHours
                 );
               }}
             />
@@ -211,10 +203,7 @@ export default function EditTimeEntry({
               onChange={(e) => {
                 setNightShiftHours(Number(Number(e.target.value).toFixed(1)));
                 setTotalHours(
-                  Number(e.target.value) +
-                    dayShiftHours +
-                    travelHours +
-                    restHours
+                  Number(e.target.value) + dayShiftHours + travelHours
                 );
               }}
             />
@@ -230,10 +219,7 @@ export default function EditTimeEntry({
               onChange={(e) => {
                 setTravelHours(Number(e.target.value));
                 setTotalHours(
-                  dayShiftHours +
-                    Number(e.target.value) +
-                    restHours +
-                    nightShiftHours
+                  dayShiftHours + Number(e.target.value) + nightShiftHours
                 );
               }}
             />
@@ -248,26 +234,6 @@ export default function EditTimeEntry({
               value={onCallHours}
               onChange={(e) => {
                 setOnCallHours(Number(e.target.value));
-              }}
-            />
-          </div>
-
-          <div>
-            <p>Rest hours</p>
-            <input
-              className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
-              type="number"
-              step={0.5}
-              id={`travelHours-input`}
-              value={restHours}
-              onChange={(e) => {
-                setRestHours(Number(e.target.value));
-                setTotalHours(
-                  dayShiftHours +
-                    nightShiftHours +
-                    Number(e.target.value) +
-                    travelHours
-                );
               }}
             />
           </div>

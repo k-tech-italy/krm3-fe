@@ -1,4 +1,4 @@
-import { TimeEntry } from "../../restapi/types";
+import { TimeEntry } from "../../../restapi/types";
 
 export const normalizeDate = (date: Date | string): string => {
   // Normalize the date to YYYY-MM-DD format
@@ -11,7 +11,7 @@ export const normalizeDate = (date: Date | string): string => {
   )}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
-export const pastelColors: string[] = [
+export const defaultColors: string[] = [
   "#c9e4ca",
   "#f2c5b9",
   "#e5d8b6",
@@ -21,18 +21,19 @@ export const pastelColors: string[] = [
   "#d7f0db",
   "#ffd7be",
   "#c5e1a5",
+  "#ffe7ce",
 ];
 
-export const getPastelColor = (
+export function getTaskColor(
+  row: number,
   taskColor?: string
-): { backgroundColor: string; borderColor: string } => {
-  let color =
-    taskColor || pastelColors[Math.floor(Math.random() * pastelColors.length)];
+): { backgroundColor: string; borderColor: string } {
+  const color = taskColor || defaultColors[row % defaultColors.length];
   return {
     backgroundColor: `${color}50`,
     borderColor: color,
   };
-};
+}
 
 export const getDaysBetween = (startDate: string, endDate: string): Date[] => {
   const start = new Date(startDate);

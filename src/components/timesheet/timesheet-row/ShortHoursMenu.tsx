@@ -1,6 +1,6 @@
 import { toast } from "react-toastify";
 import { useCreateTimeEntry } from "../../../hooks/timesheet";
-import { displayErrorMessage, normalizeDate } from "../utils";
+import { displayErrorMessage, normalizeDate } from "../utils/utils";
 import { useRef, useState, useEffect } from "react";
 
 export const ShortHoursMenu = (props: {

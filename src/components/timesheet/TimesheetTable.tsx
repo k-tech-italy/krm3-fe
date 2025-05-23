@@ -7,7 +7,7 @@ import { Droppable } from "./Droppable";
 import { formatDate } from "./Krm3Calendar";
 import { TotalHourCell } from "./TotalHour";
 import { TimeSheetRow } from "./timesheet-row/TimeSheetRow";
-import { getDaysBetween, isWeekendDay, normalizeDate } from "./utils";
+import { getDaysBetween, isWeekendDay, normalizeDate } from "./utils/utils";
 import LoadSpinner from "../commons/LoadSpinner";
 
 interface Props {
@@ -423,8 +423,9 @@ export function TimeSheetTable(props: Props) {
             (timesheet.tasks.length === 0 && (
               <div className="bg-gray-50 p-2">No tasks available</div>
             ))}
-          {timesheet?.tasks?.map((task) => (
+          {timesheet?.tasks?.map((task, index) => (
             <TimeSheetRow
+              index={index}
               key={task.id}
               task={task}
               scheduleDays={props.scheduleDays.days}

@@ -9,7 +9,7 @@ import {
   displayErrorMessage,
   getDatesBetween,
   normalizeDate,
-} from "../utils";
+} from "../utils/utils";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import LoadSpinner from "../../commons/LoadSpinner";
@@ -48,8 +48,18 @@ export default function EditDayEntry({
       if (startEntry.sickHours > 0) {
         setEntryType("sick");
       }
+      if (startEntry.specialLeaveHours > 0) {
+        setEntryType("special");
+        //setSpecialReason(startEntry.specialReason);
+      }
     }
   }, [startEntry]);
+
+  const specialReasonOptions = [
+    { value: "104", label: "104" },
+    { value: "special_r_1", label: "Special Reason 1" },
+    { value: "special_r_2", label: "Special Reason 2" },
+  ];
 
   const [entryType, setEntryType] = useState<string | null>(null);
   const [leaveHours, setLeaveHours] = useState<number | undefined>();
@@ -57,7 +67,7 @@ export default function EditDayEntry({
     startEntry?.comment
   );
   const [leaveHoursError, setLeaveHoursError] = useState<string | null>(null);
-
+  const [specialReason, setSpecialReason] = useState<string | undefined>();
   const [fromDate, setFromDate] = useState<Date>(
     startDate <= endDate ? startDate : endDate
   );
@@ -123,7 +133,8 @@ export default function EditDayEntry({
         dates: getDatesBetween(fromDate, toDate),
         holidayHours: entryType === "holiday" ? 8 : undefined,
         sickHours: entryType === "sick" ? 8 : undefined,
-        leaveHours: entryType === "leave" ? leaveHours : undefined,
+        leaveHours: leaveHours,
+        specialReason: specialReason,
         dayShiftHours: 0, // Set dayShiftHours to 0 if 'cause is mandatory'
         comment: comment,
       }).then(onClose);
@@ -188,7 +199,7 @@ export default function EditDayEntry({
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Entry Type
           </label>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <div
               id="day-entry-holiday-radio"
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
@@ -228,7 +239,6 @@ export default function EditDayEntry({
               />
               <span className="text-sm font-medium">Sick Day</span>
             </div>
-
             <div
               id="day-entry-leave-radio"
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
@@ -248,10 +258,29 @@ export default function EditDayEntry({
               />
               <span className="text-sm font-medium">Leave</span>
             </div>
+            <div
+              id="day-entry-leave-radio"
+              className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
+                entryType === "rest"
+                  ? "bg-yellow-100 border-yellow-500 text-yellow-700"
+                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+              }`}
+              onClick={() => handleEntryTypeChange("rest")}
+            >
+              <input
+                type="radio"
+                name="entryType"
+                value="rest"
+                checked={entryType === "rest"}
+                onChange={() => handleEntryTypeChange("rest")}
+                className="sr-only"
+              />
+              <span className="text-sm font-medium">Rest</span>
+            </div>
           </div>
         </div>
 
-        {entryType === "leave" && (
+        {(entryType === "leave" || "rest") && (
           <div className="transition-all duration-300 ease-in-out">
             <label
               id="day-entry-leave-hour-label"
@@ -268,14 +297,40 @@ export default function EditDayEntry({
                 min="1"
                 max="8"
                 step={0.5}
-                required={entryType === "leave"}
+                required
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
                 placeholder="Enter hours"
               />
             </div>
           </div>
         )}
-        <div className="pt-4">
+
+        {entryType === "leave" && (
+          <div className="col-span-3">
+            <label
+              id="day-entry-special-reason-label"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Reason
+            </label>
+            <select
+              id="day-entry-special-reason"
+              name="specialReason"
+              value={specialReason}
+              onChange={(e) => setSpecialReason(e.target.value)}
+              className="w-full border border-gray-300 rounded-md p-2"
+            >
+              <option value=""> Select a reason</option>
+              {specialReasonOptions.map((reason, idx) => (
+                <option key={reason.value} value={reason.value}>
+                  {reason.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div className="">
           <label
             id="day-entry-comments-label"
             className="block text-sm font-medium text-gray-700 mb-2"
@@ -288,7 +343,7 @@ export default function EditDayEntry({
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
             placeholder="Add any notes here..."
             value={comment || ""}
-            required={entryType === "leave" || entryType === "sick"}
+            required={entryType === "sick"}
             onChange={(e) => setComment(e.target.value)}
           ></textarea>
         </div>

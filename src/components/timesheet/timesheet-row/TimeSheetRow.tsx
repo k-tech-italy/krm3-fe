@@ -1,13 +1,12 @@
 import React, { useMemo } from "react";
 import { TaskHeader } from "./TaskCell";
 import { TimeEntryCell } from "./TimeEntryCell";
-import { displayErrorMessage, getPastelColor, normalizeDate } from "../utils";
+import { getTaskColor } from "../utils/utils";
 import { Task, TimeEntry } from "../../../restapi/types";
-import { useCreateTimeEntry } from "../../../hooks/timesheet";
-import { toast, ToastContainer } from "react-toastify";
 import { ShortHoursMenu } from "./ShortHoursMenu";
 
 export interface TimeSheetRowProps {
+  index: number;
   scheduleDays: Date[];
   task: Task;
   isMonthView: boolean;
@@ -26,6 +25,7 @@ export interface TimeSheetRowProps {
 }
 
 export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
+  index,
   scheduleDays,
   task,
   isMonthView,
@@ -41,19 +41,21 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   setOpenShortMenu,
 }) => {
   // Generate color once per task row
+  console.log(index)
   const { backgroundColor, borderColor } = useMemo(
-    () => getPastelColor(task.color),
+    () => getTaskColor(index, task.color),
     [task.id]
   );
-
   const timeEntries = getTimeEntriesForTaskAndDay(task.id);
 
   const totalHours = timeEntries.reduce(
-    (total, entry) => total + Number(entry.dayShiftHours) + Number(entry.nightShiftHours) + Number(entry.restHours),
+    (total, entry) =>
+      total +
+      Number(entry.dayShiftHours) +
+      Number(entry.nightShiftHours) +
+      Number(entry.restHours),
     0
   );
-
- 
 
   const borderColorClass = isColumnView
     ? "border-l-[var(--border-color)]"
@@ -69,7 +71,6 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
       : "task";
 
     const timeEntries = getTimeEntriesForTaskAndDay(task.id, day);
-
 
     return (
       <div key={dayIndex} className="w-full h-full">
@@ -124,11 +125,9 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
           isColumnView ? "border-l-3" : "border-b-3"
         } ${isMonthView ? "text-[10px] text-center" : ""}`}
       >
-       {totalHours}
+        {totalHours}
       </div>
       {scheduleDays.map((day, dayIndex) => renderDayCell(day, dayIndex))}
     </React.Fragment>
   );
 };
-
-

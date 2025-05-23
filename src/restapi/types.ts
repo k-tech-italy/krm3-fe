@@ -184,6 +184,8 @@ export interface TimeEntry {
     travelHours: number;
     onCallHours: number;
     restHours: number;
+    specialLeaveHours: number;
+    specialReason?: string;
     state?: string;
     comment?: string;
     metaData?: JSON;

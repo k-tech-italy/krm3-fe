@@ -1,6 +1,6 @@
 import { Info } from "lucide-react";
 import { TimeEntry } from "../../restapi/types";
-import { isWeekendDay, normalizeDate } from "./utils";
+import { isWeekendDay, normalizeDate } from "./utils/utils";
 import { Tooltip } from "react-tooltip";
 
 interface Props {
