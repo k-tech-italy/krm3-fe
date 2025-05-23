@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DndContext, closestCenter } from "@dnd-kit/core";
-import { TimeEntry, Task } from "../../restapi/types";
+import { TimeEntry, Task, Timesheet } from "../../restapi/types";
 import { Draggable } from "./Draggable";
 import { useGetTimesheet } from "../../hooks/timesheet";
 import { Droppable } from "./Droppable";
@@ -15,7 +15,6 @@ import {
 import { isWeekendDay } from "./utils/dates";
 import LoadSpinner from "../commons/LoadSpinner";
 import { DragCallbacks, useDragAndDrop } from "../../hooks/useDragAndDrop";
-import { format } from "path";
 
 interface Props {
   setOpenTimeEntryModal: (open: boolean) => void;
@@ -48,41 +47,7 @@ export function TimeSheetTable(props: Props) {
     { startDate: string; endDate: string; taskId: string } | undefined
   >();
 
-  // Helper functions
-  const getTimeEntriesForTaskAndDay = (
-    taskId: number,
-    day?: Date
-  ): TimeEntry[] => {
-    if (!timesheet?.timeEntries) return [];
-    if (!day) {
-      return timesheet.timeEntries.filter((entry) => entry.task === taskId);
-    }
-    return timesheet.timeEntries.filter(
-      (entry) =>
-        entry.task === taskId &&
-        normalizeDate(entry.date) === normalizeDate(day)
-    );
-  };
 
-  const isHoliday = (day: Date): boolean => {
-    return (
-      timesheet?.timeEntries?.some((entry) => {
-        if (!entry.holidayHours || entry.holidayHours <= 0) return false;
-        const entryDate = new Date(entry.date);
-        return entryDate.toDateString() === day.toDateString();
-      }) ?? false
-    );
-  };
-
-  const isSickday = (day: Date): boolean => {
-    return (
-      timesheet?.timeEntries?.some((entry) => {
-        if (!entry.sickHours || entry.sickHours <= 0) return false;
-        const entryDate = new Date(entry.date);
-        return entryDate.toDateString() === day.toDateString();
-      }) ?? false
-    );
-  };
 
   const openTimeEntryModalHandler = (task: Task) => {
     props.setSelectedTask(task);
@@ -126,9 +91,7 @@ export function TimeSheetTable(props: Props) {
     isColumnHighlighted,
   } = useDragAndDrop({
     scheduleDays: props.scheduleDays.days,
-    timesheet,
-    isHoliday,
-    isSickday,
+    timesheet: timesheet!, //TODO: Remove !
     callbacks: dragCallbacks,
   });
 
@@ -238,6 +201,7 @@ export function TimeSheetTable(props: Props) {
           ) : (
             timesheet.tasks.map((task, index) => (
               <TimeSheetRow
+                timesheet={timesheet} 
                 index={index}
                 key={task.id}
                 task={task}
@@ -245,9 +209,6 @@ export function TimeSheetTable(props: Props) {
                 isMonthView={isMonthView}
                 isCellInDragRange={isCellInDragRange}
                 isColumnHighlighted={isColumnHighlighted}
-                isHoliday={isHoliday}
-                isSickDay={isSickday}
-                getTimeEntriesForTaskAndDay={getTimeEntriesForTaskAndDay}
                 isColumnView={props.isColumnView}
                 openTimeEntryModalHandler={openTimeEntryModalHandler}
                 openShortMenu={openShortMenu}

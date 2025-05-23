@@ -1,12 +1,18 @@
 import React, { useMemo } from "react";
 import { TaskHeader } from "./TaskCell";
 import { TimeEntryCell } from "./TimeEntryCell";
-import { getTaskColor } from "../utils/utils";
-import { Task, TimeEntry } from "../../../restapi/types";
+import {
+  getTaskColor,
+  getTimeEntriesForTaskAndDay,
+  isHoliday,
+  isSickDay,
+} from "../utils/utils";
+import { Task, TimeEntry, Timesheet } from "../../../restapi/types";
 import { ShortHoursMenu } from "./ShortHoursMenu";
 import { normalizeDate } from "../utils/dates";
 
 export interface TimeSheetRowProps {
+  timesheet: Timesheet;
   index: number;
   scheduleDays: Date[];
   task: Task;
@@ -14,17 +20,15 @@ export interface TimeSheetRowProps {
   isColumnView: boolean;
   isCellInDragRange: (day: Date, taskId: number) => boolean;
   isColumnHighlighted: (dayIndex: number) => boolean;
-  isHoliday: (day: Date) => boolean;
-  isSickDay: (day: Date) => boolean;
-  getTimeEntriesForTaskAndDay: (taskId: number, day?: Date) => TimeEntry[];
   openTimeEntryModalHandler: (task: Task) => void;
-  openShortMenu?: {startDate: string; endDate: string; taskId: string };
+  openShortMenu?: { startDate: string; endDate: string; taskId: string };
   setOpenShortMenu?: (
     value: { startDate: string; endDate: string; taskId: string } | undefined
   ) => void;
 }
 
 export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
+  timesheet,
   index,
   scheduleDays,
   task,
@@ -32,9 +36,6 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   isColumnView,
   isCellInDragRange,
   isColumnHighlighted,
-  isHoliday,
-  isSickDay,
-  getTimeEntriesForTaskAndDay,
   openTimeEntryModalHandler,
   openShortMenu,
   setOpenShortMenu,
@@ -44,7 +45,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
     () => getTaskColor(index, task.color),
     [task.id]
   );
-  const timeEntries = getTimeEntriesForTaskAndDay(task.id);
+  const timeEntries = getTimeEntriesForTaskAndDay(task.id, timesheet);
 
   const isTaskFinished = (currentDay: Date, task: Task): boolean => {
     const currentDateString = normalizeDate(currentDay);
@@ -71,15 +72,17 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
     : "border-b-[var(--border-color)]";
 
   const renderDayCell = (day: Date, dayIndex: number) => {
-    const type = isHoliday(day)
+    const type = isHoliday(day, timesheet)
       ? "holiday"
-      : isSickDay(day)
+      : isSickDay(day, timesheet)
       ? "sick"
       : isTaskFinished(day, task)
       ? "finished"
       : "task";
 
-    const timeEntries = getTimeEntriesForTaskAndDay(task.id, day);
+    const timeEntry = timeEntries.find(
+      (entry) => normalizeDate(entry.date) === normalizeDate(day)
+    );
 
     return (
       <div key={dayIndex} className="w-full h-full">
@@ -96,7 +99,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             day={day}
             taskId={task.id}
             type={type}
-            timeEntries={timeEntries}
+            timeEntry={timeEntry}
             isMonthView={isMonthView}
             isColumnView={isColumnView}
             isColumnHighlighted={isColumnHighlighted(dayIndex)}

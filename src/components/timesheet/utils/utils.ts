@@ -1,4 +1,4 @@
-import { TimeEntry } from "../../../restapi/types";
+import { TimeEntry, Timesheet } from "../../../restapi/types";
 import { normalizeDate } from "./dates";
 
 export const defaultColors: string[] = [
@@ -70,3 +70,44 @@ export function calculateTotalHoursForDays(
     0
   );
 }
+
+
+
+
+
+export const isHoliday = (day: Date, timesheet: Timesheet): boolean => {
+  return (
+    timesheet.timeEntries?.some((entry) => {
+      if (!entry.holidayHours || entry.holidayHours <= 0) return false;
+      const entryDate = new Date(entry.date);
+      return entryDate.toDateString() === day.toDateString();
+    }) ?? false
+  );
+};
+
+export const isSickDay = (day: Date, timesheet: Timesheet): boolean => {
+  return (
+    timesheet?.timeEntries?.some((entry) => {
+      if (!entry.sickHours || entry.sickHours <= 0) return false;
+      const entryDate = new Date(entry.date);
+      return entryDate.toDateString() === day.toDateString();
+    }) ?? false
+  );
+};
+
+
+export const getTimeEntriesForTaskAndDay = (
+  taskId: number,
+  timesheet: Timesheet,
+  day?: Date,
+): TimeEntry[] => {
+  if (!timesheet.timeEntries) return [];
+  if (!day) {
+    return timesheet.timeEntries.filter((entry) => entry.task === taskId);
+  }
+  return timesheet.timeEntries.filter(
+    (entry) =>
+      entry.task === taskId &&
+      normalizeDate(entry.date) === normalizeDate(day)
+  );
+};

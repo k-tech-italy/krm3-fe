@@ -4,8 +4,7 @@ import {
   getDateRange,
   normalizeDate,
 } from "../components/timesheet/utils/dates";
-import { TimeEntry, Task } from "../restapi/types";
-import { format } from "path";
+import { TimeEntry, Task, Timesheet } from "../restapi/types";
 
 export interface DragData {
   timeEntry?: TimeEntry;
@@ -31,17 +30,38 @@ export interface DragCallbacks {
 
 export interface UseDragAndDropProps {
   scheduleDays: Date[];
-  timesheet: any; // Replace with proper timesheet type
-  isHoliday: (day: Date) => boolean;
-  isSickday: (day: Date) => boolean;
+  timesheet: Timesheet;
   callbacks: DragCallbacks;
 }
-
+/**
+ * Provides state and functions for managing drag-and-drop operations.
+ *
+ * @remarks
+ * This hook is used in the Timesheet component to handle drag-and-drop
+ * operations. It provides state and functions for managing the drag state,
+ * and for handling the different types of drag operations (cell or column).
+ *
+ * The hook takes the following props:
+ *   - `scheduleDays`: an array of dates representing the schedule
+ *   - `timesheet`: an object representing the timesheet
+ *   - `callbacks`: an object with callback functions for drag and drop events
+ *
+ * The hook returns an object with the following properties:
+ *   - `activeId`: a string representing the currently active cell or column
+ *   - `draggedOverCells`: an array of dates representing the cells currently
+ *     being dragged over
+ *   - `dragType`: a string representing the type of drag operation (cell or column)
+ *   - `handleDragStart`: a function to handle the start of a drag operation
+ *   - `handleDragMove`: a function to handle the movement of a drag operation
+ *   - `handleDragEnd`: a function to handle the end of a drag operation
+ *   - `isCellInDragRange`: a function to check if a cell is in the drag range
+ *   - `isColumnActive`: a function to check if a column is active
+ *   - `isColumnHighlighted`: a function to check if a column is highlighted
+ *   - `resetDragState`: a function to reset the drag state
+ */
 export function useDragAndDrop({
   scheduleDays,
   timesheet,
-  isHoliday,
-  isSickday,
   callbacks,
 }: UseDragAndDropProps) {
   // State management
@@ -65,6 +85,17 @@ export function useDragAndDrop({
     setDraggedColumnIndex(null);
     setHighlightedColumnIndexes([]);
   };
+
+  /**
+   * Parses the given activeId string to determine the type of drag operation and its associated data.
+   *
+   * @param {string} activeId - The ID representing the current active item being dragged.
+   * @returns {Object|null} An object containing the type of drag operation and relevant information:
+   *   - If the ID starts with "column-", returns an object with type "column" and the dayIndex.
+   *   - If the ID has two parts separated by "-", returns an object with type "timeEntry", entryId, and taskId.
+   *   - If the ID has three parts separated by "-", returns an object with type "emptyCell", date, and taskId.
+   *   - Returns null if the ID does not match any expected format.
+   */
 
   const parseActiveId = (activeId: string) => {
     if (activeId.startsWith("column-")) {
@@ -96,10 +127,18 @@ export function useDragAndDrop({
     return null;
   };
 
+  /**
+   * Finds a time entry in the timesheet by entryId and taskId.
+   *
+   * @param {number} entryId - The ID of the time entry to find.
+   * @param {number} taskId - The ID of the task associated with the time entry.
+   * @returns {TimeEntry | undefined} The matching TimeEntry object, or undefined if not found.
+   */
   const findTimeEntry = (
     entryId: number,
     taskId: number
   ): TimeEntry | undefined => {
+    // Search for the time entry in the timesheet's timeEntries array
     return timesheet?.timeEntries?.find(
       (entry: TimeEntry) => entry.id === entryId && entry.task === taskId
     );
@@ -247,12 +286,12 @@ export function useDragAndDrop({
 
     if (!timesheet.tasks?.length) return;
 
-    const filteredCells = draggedOverCells.filter((day) => {
-      const hasTimeEntry = timesheet.timeEntries?.some(
-        (entry: TimeEntry) => normalizeDate(entry.date) === normalizeDate(day)
-      );
-      return !isHoliday(day) && !hasTimeEntry;
-    });
+    // const filteredCells = draggedOverCells.filter((day) => {
+    //   const hasTimeEntry = timesheet.timeEntries?.some(
+    //     (entry: TimeEntry) => normalizeDate(entry.date) === normalizeDate(day)
+    //   );
+    //   return !isHoliday(day) && !hasTimeEntry;
+    // });
 
     callbacks.onColumnDrag({
       task: timesheet.tasks[0],
