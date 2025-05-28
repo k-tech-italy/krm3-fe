@@ -3,7 +3,7 @@ import {
   useCreateTimeEntry,
   useDeleteTimeEntries,
   useGetSpecialReason,
-} from "../../../hooks/timesheet";
+} from "../../../hooks/useTimesheet";
 import { TimeEntry } from "../../../restapi/types";
 import {
   calculateTotalHoursForDays,
@@ -56,7 +56,6 @@ export default function EditDayEntry({
       }
     }
   }, [startEntry]);
-
 
   const [entryType, setEntryType] = useState<string | null>(null);
   const [leaveHours, setLeaveHours] = useState<number | undefined>();
@@ -342,7 +341,7 @@ export default function EditDayEntry({
             id="day-entry-comments-label"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Comments{(entryType === "sick" || entryType === "leave") && " *"}
+            Comments{entryType === "sick" && " *"}
           </label>
           <textarea
             id="day-entry-comments-input"
@@ -350,7 +349,7 @@ export default function EditDayEntry({
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
             placeholder="Add any notes here..."
             value={comment || ""}
-            required={entryType === "sick" || entryType === "leave"}
+            required={entryType === "sick"}
             onChange={(e) => setComment(e.target.value)}
           ></textarea>
         </div>

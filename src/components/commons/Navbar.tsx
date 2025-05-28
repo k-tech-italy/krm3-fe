@@ -1,5 +1,5 @@
 import { UserMenu } from "./UserMenu";
-import { useMediaQuery } from "../../hooks/commons";
+import { useMediaQuery } from "../../hooks/useView";
 
 // SIDEBAR, NOT IN USE WITH MVP2
 //  const [isSidebarOpen, setIsSidebarOpen] = useState(false);

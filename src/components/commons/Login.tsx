@@ -6,7 +6,8 @@ import {
   loginGoogle,
   loginUser,
 } from "../../restapi/oauth";
-import { useGetCurrentUser, useMediaQuery } from "../../hooks/commons";
+import { useMediaQuery } from "../../hooks/useView";
+import { useGetCurrentUser } from "../../hooks/useAuth";
 
 interface LoginError {
   username?: string;

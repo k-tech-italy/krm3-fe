@@ -6,7 +6,7 @@ import EditTimeEntry from "./EditTimeEntry";
 import { TimeSheetTable } from "./TimesheetTable";
 import EditDayEntry from "./edit-day/EditDayEntry";
 import VisualizationActions from "./VisualizationActions";
-import { useColumnViewPreference } from "../../hooks/commons";
+import { useColumnViewPreference } from "../../hooks/useView";
 import { formatDate, formatDayAndMonth, formatMonthName } from "./utils/dates";
 
 export default function Krm3Calendar() {

@@ -12,8 +12,8 @@ import {
   useGetProjects,
   useGetCountries,
   useGetCitiess,
-} from "../../../hooks/mission";
-import { useGetCurrencies } from "../../../hooks/expense";
+} from "../../../hooks/useMissions";
+import { useGetCurrencies } from "../../../hooks/useExpense";
 import "react-datepicker/dist/react-datepicker.css";
 
 interface Props {

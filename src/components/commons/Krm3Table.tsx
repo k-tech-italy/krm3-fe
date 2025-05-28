@@ -6,7 +6,7 @@ import {
     getSortedRowModel,
     getPaginationRowModel,
 } from '@tanstack/react-table';
-import { useMediaQuery } from "../../hooks/commons";
+import { useMediaQuery } from "../../hooks/useView";
 
 interface Props {
     columns: { accessorKey: string, header: string }[]

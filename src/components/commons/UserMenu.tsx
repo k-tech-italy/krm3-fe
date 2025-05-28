@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useGetCurrentUser, useLogout } from "../../hooks/commons";
+import { useGetCurrentUser } from "../../hooks/useAuth";
+import { useLogout } from "../../hooks/useAuth";
 
 export function UserMenu() {
   const { data: user } = useGetCurrentUser();

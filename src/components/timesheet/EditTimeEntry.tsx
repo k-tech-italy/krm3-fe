@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import {
   useDeleteTimeEntries,
   useCreateTimeEntry,
-} from "../../hooks/timesheet.tsx";
+} from "../../hooks/useTimesheet.tsx";
 import { displayErrorMessage } from "./utils/utils.ts";
 import { getDatesBetween } from "./utils/dates.ts";
 import { normalizeDate } from "./utils/dates.ts";

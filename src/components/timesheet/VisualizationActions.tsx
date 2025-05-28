@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useMediaQuery } from "../../hooks/commons";
+import { useMediaQuery } from "../../hooks/useView";
 
 interface Props {
   isMonth: boolean;

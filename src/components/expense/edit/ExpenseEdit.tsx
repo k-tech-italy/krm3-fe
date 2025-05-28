@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ExpenseError, ExpenseInterface } from "../../../restapi/types";
-import { useEditExpense } from "../../../hooks/expense";
+import { useEditExpense } from "../../../hooks/useExpense";
 import { ExpenseEditForm } from "./ExpenseEditForm";
 import { validateExpense } from '../../../utils/validationExpenseForm';
 import "react-datepicker/dist/react-datepicker.css";
