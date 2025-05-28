@@ -86,7 +86,6 @@ export function getDatesBetween(
   return getDateRange(start, end).map(normalizeDate);
 }
 
-// ——— Misc ——————————————————————————————————————————————————————————
 
 /** Returns true if the given date is Saturday or Sunday */
 export function isWeekendDay(input: Date | string): boolean {

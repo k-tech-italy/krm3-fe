@@ -180,7 +180,7 @@ export default function EditTimeEntry({
               className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
               type="number"
               id={`daytime-input`}
-              step={0.5}
+              step={0.25}
               value={dayShiftHours || ""}
               onChange={(e) => {
                 setDayShiftHours(Number(e.target.value));
@@ -195,7 +195,7 @@ export default function EditTimeEntry({
             <input
               className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
               type="number"
-              step={0.5}
+              step={0.25}
               id={`daytime-input`}
               value={nightShiftHours || ""}
               onChange={(e) => {
@@ -211,7 +211,7 @@ export default function EditTimeEntry({
             <input
               className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
               type="number"
-              step={0.5}
+              step={0.25}
               id={`travelHours-input`}
               value={travelHours || ""}
               onChange={(e) => {
@@ -227,7 +227,7 @@ export default function EditTimeEntry({
             <input
               className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
               type="number"
-              step={0.5}
+              step={0.25}
               id={`oncall-input`}
               value={onCallHours || ""}
               onChange={(e) => {

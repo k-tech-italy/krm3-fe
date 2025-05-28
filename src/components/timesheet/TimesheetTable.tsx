@@ -37,7 +37,6 @@ export function TimeSheetTable(props: Props) {
     props.scheduleDays.days[props.scheduleDays.numberOfDays - 1]
   );
 
-
   const { data: timesheet, isLoading: isLoadingTimesheet } = useGetTimesheet(
     startScheduled,
     endScheduled
@@ -46,8 +45,6 @@ export function TimeSheetTable(props: Props) {
   const [openShortMenu, setOpenShortMenu] = useState<
     { startDate: string; endDate: string; taskId: string } | undefined
   >();
-
-
 
   const openTimeEntryModalHandler = (task: Task) => {
     props.setSelectedTask(task);
@@ -69,12 +66,17 @@ export function TimeSheetTable(props: Props) {
       props.setSelectedTask(task);
       props.setTimeEntries(timeEntries);
       props.setEndDate(endDate);
-      props.setIsDayEntry(false);
-      setOpenShortMenu({
-        startDate: normalizeDate(props.startDate!),
-        endDate: normalizeDate(endDate),
-        taskId: task.id.toString(),
-      });
+      props.setIsDayEntry(false)
+      if (
+        endDate > formatDate(task.startDate) &&
+        (!!task.endDate ? endDate < formatDate(task.endDate) : true)
+      ) {
+        setOpenShortMenu({
+          startDate: normalizeDate(props.startDate!),
+          endDate: normalizeDate(endDate),
+          taskId: task.id.toString(),
+        });
+      }
     },
     onDragStart: ({ startDate }) => {
       props.setStartDate(formatDate(startDate));
@@ -146,8 +148,8 @@ export function TimeSheetTable(props: Props) {
           </div>
 
           <div
-            className={`flex justify-between items-center bg-gray-100 border-b-2 border-gray-300 p-2 font-semibold ${
-              isMonthView ? "text-xs" : "text-sm"
+            className={`flex items-center  bg-gray-100 border-b-2 border-gray-300  font-semibold ${
+              isMonthView ? "text-xs p-1 justify-center" : "text-sm p-2"
             } col-span-1`}
           >
             {isMonthView && !props.isColumnView ? "H" : "Hours"}
@@ -201,7 +203,7 @@ export function TimeSheetTable(props: Props) {
           ) : (
             timesheet.tasks.map((task, index) => (
               <TimeSheetRow
-                timesheet={timesheet} 
+                timesheet={timesheet}
                 index={index}
                 key={task.id}
                 task={task}

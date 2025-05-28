@@ -2,12 +2,12 @@ import { TimeEntry, Timesheet } from "../../../restapi/types";
 import { normalizeDate } from "./dates";
 
 export const defaultColors: string[] = [
-  "#c9e4ca",
-  "#f2c5b9",
-  "#e5d8b6",
-  "#c7f464",
-  "#f5c2c7",
-  "#f8e231",
+  "#fd8a8a",
+  "#9ea1d4",
+  "#ffcbcb",
+  "#f1f7b5",
+  "#a8d1d1",
+  "#dfebeb",
   "#d7f0db",
   "#ffd7be",
   "#c5e1a5",
@@ -24,7 +24,7 @@ export function getTaskColor(
   taskColor?: string
 ): { backgroundColor: string; borderColor: string } {
   const color = taskColor || defaultColors[row % defaultColors.length];
-  const backgroundColor = `${color}50`; // 50% opacity
+  const backgroundColor = `${color}50`;
   const borderColor = color;
   return { backgroundColor, borderColor };
 }

@@ -1,5 +1,5 @@
 import { restapi } from "./restapi";
-import { Timesheet } from "./types";
+import { SpecialReason, Timesheet } from "./types";
 
 export function getTimesheet(params: {
   resourceId: number;
@@ -29,6 +29,11 @@ export function createTimeEntry(params: {
 }
 
 export function deleteTimeEntries(ids: number[]) {
+  return restapi.post("timesheet/time-entry/clear/", { ids: ids });
+}
 
-  return restapi.post('timesheet/time-entry/clear/', {ids: ids});
+export function getSpecialReason(from: string, to: string): Promise<SpecialReason[]> {
+  return restapi
+    .get("timesheet/special-leave-reason/", { params: { from, to } })
+    .then((res) => res.data);
 }
