@@ -148,13 +148,11 @@ export function TimeSheetTable(props: Props) {
           </div>
 
           <div
-            className={`flex items-center p-2 bg-gray-100 border-b-2 border-gray-300  font-semibold  ${
-              props.isColumnView
-                ? "flex justify-start items-center py-2"
-                : "flex-col items-center"
-            }  ${
-              isMonthView ? "text-xs " : "text-sm "
-            } col-span-1`}
+            className={`flex  items-center bg-gray-100 border-b-2 border-gray-300 p-2 font-semibold ${
+              isMonthView ? "text-xs" : "text-sm"
+            }
+            ${isMonthView && !props.isColumnView ? "justify-center" : "justify-between"}
+             col-span-1`}
           >
             {isMonthView && !props.isColumnView ? "H" : "Hours"}
           </div>
@@ -164,10 +162,10 @@ export function TimeSheetTable(props: Props) {
             <Droppable key={index} id={`column-${index}`}>
               <Draggable id={`column-${index}`}>
                 <div
-                  className={`h-full w-full ${
+                  className={`h-full w-fullitems-center ${
                     props.isColumnView
-                      ? "flex justify-between items-center py-2"
-                      : "flex-col items-center"
+                      ? "flex justify-between py-2"
+                      : "flex-col "
                   } bg-gray-100 font-semibold ${
                     isMonthView ? "text-xs p-1" : "text-sm p-2"
                   } text-center cursor-grab
