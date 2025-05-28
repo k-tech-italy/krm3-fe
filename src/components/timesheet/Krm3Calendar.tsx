@@ -26,6 +26,13 @@ export default function Krm3Calendar() {
     return new Date(today.setDate(diff));
   });
 
+  const currentMonth = useMemo(() => {
+    // currentWeekStart.getMonth();
+    const month = new Date();
+    month.getMonth();
+    return month.getMonth();
+  }, [currentWeekStart]);
+
   const scheduledDays = useMemo(() => {
     const days = [];
     const currentMonth = currentWeekStart.getMonth();
@@ -45,6 +52,10 @@ export default function Krm3Calendar() {
         : new Date(currentWeekStart);
 
       if (!isMonth) {
+        if (day.getMonth() !== currentMonth) {
+          numberOfDays = i;
+          break;
+        }
         day.setDate(currentWeekStart.getDate() + i);
       }
       days.push(formatDate(day));
