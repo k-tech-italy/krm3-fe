@@ -1,6 +1,6 @@
 import { Info } from "lucide-react";
 import { TimeEntry } from "../../restapi/types";
-import { isWeekendDay, normalizeDate } from "./utils";
+import { normalizeDate, isWeekendDay } from "./utils/dates";
 import { Tooltip } from "react-tooltip";
 
 interface Props {
@@ -26,10 +26,7 @@ export function TotalHourCell({ day, timeEntries, isMonthView }: Props) {
         acc +
         (Number(timeEntry.dayShiftHours) || 0) +
         (Number(timeEntry.nightShiftHours) || 0) +
-        (Number(timeEntry.onCallHours) || 0) +
-        (Number(timeEntry.leaveHours) || 0) +
-        (Number(timeEntry.restHours) || 0) +
-        (Number(timeEntry.travelHours) || 0)
+        (Number(timeEntry.leaveHours) || 0)
       );
     }
     return acc;
@@ -80,42 +77,14 @@ export function TotalHourCell({ day, timeEntries, isMonthView }: Props) {
           id={tooltipId}
           place="top"
           clickable={true}
-          className="z-10 !bg-white !text-black !opacity-100 rounded shadow-lg border border-gray-300"
+          className="z-10 !bg-white !text-black !opacity-100  rounded shadow-lg border border-gray-300"
           style={{ width: "16rem", maxWidth: "20rem" }}
           delayShow={300}
         >
-          <div className="p-2">
+          <div className="">
             {dayEntries.map((timeEntry: TimeEntry, index: number) => (
               <div key={index} className="mb-2 last:mb-0">
-                <div className="font-semibold">
-                  {timeEntry.task ? `Task id: ${timeEntry.task}` : "Day"}
-                </div>
-                <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-sm mt-1">
-                  <div className="flex items-center">
-                    <span className="font-medium mr-1">Daytime:</span>
-                    <span>{timeEntry.dayShiftHours || 0}h</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="font-medium mr-1">Nighttime:</span>
-                    <span>{timeEntry.nightShiftHours || 0}h</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="font-medium mr-1">On Call:</span>
-                    <span>{timeEntry.onCallHours || 0}h</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="font-medium mr-1">Leave:</span>
-                    <span>{timeEntry.leaveHours || 0}h</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="font-medium mr-1">Travel:</span>
-                    <span>{timeEntry.travelHours || 0}h</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="font-medium mr-1">Rest:</span>
-                    <span>{timeEntry.restHours || 0}h</span>
-                  </div>
-                </div>
+                <TotalHourForTask timeEntry={timeEntry} />
               </div>
             ))}
           </div>
@@ -124,3 +93,33 @@ export function TotalHourCell({ day, timeEntries, isMonthView }: Props) {
     </div>
   );
 }
+
+const TotalHourForTask = ({ timeEntry }: { timeEntry: TimeEntry }) => {
+  const hours = [
+    { label: "Daytime", value: timeEntry.dayShiftHours },
+    { label: "Nighttime", value: timeEntry.nightShiftHours },
+    { label: "On Call", value: timeEntry.onCallHours },
+    { label: "Leave", value: timeEntry.leaveHours },
+    { label: "Travel", value: timeEntry.travelHours },
+    { label: "Rest", value: timeEntry.restHours },
+  ];
+
+  return (
+    <>
+      <div className="font-semibold">
+        {timeEntry.task ? `Task ID: ${timeEntry.task}` : "Day"}
+      </div>
+      <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-sm mt-1">
+        {hours.map(
+          ({ label, value }) =>
+            value > 0 && (
+              <div key={label} className="flex items-center">
+                <span className="font-medium mr-1">{label}:</span>
+                <span>{value}h</span>
+              </div>
+            )
+        )}
+      </div>
+    </>
+  );
+};

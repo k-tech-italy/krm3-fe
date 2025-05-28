@@ -4,7 +4,7 @@ import { TimeEntryItem } from "./TimeEntryItem";
 import { EmptyCell } from "./EmptyCell";
 import { TimeEntry } from "../../../restapi/types";
 import { SpecialDayCell } from "./SpecialDayCell";
-import { isWeekendDay } from "../utils";
+import { isWeekendDay } from "../utils/dates";
 
 export interface CellProps {
   day: Date;
@@ -18,7 +18,7 @@ export interface CellProps {
 }
 
 export interface TimeEntryCellProps extends CellProps {
-  timeEntries: TimeEntry[];
+  timeEntry?: TimeEntry;
   onClick?: () => void;
   isInDragRange: boolean;
   type: "task" | "holiday" | "sick" | "finished";
@@ -28,7 +28,7 @@ export interface TimeEntryCellProps extends CellProps {
 export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   day,
   taskId,
-  timeEntries,
+  timeEntry,
   isMonthView,
   isColumnView,
   isColumnHighlighted,
@@ -74,21 +74,17 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
             />
           </div>
         )}
-        {timeEntries.length > 0 && (
-          <>
-            {timeEntries.map((entry) => (
-              <div key={entry.id} className={`h-full w-full flex items-center`}>
-                <TimeEntryItem
-                  entry={entry}
-                  taskId={taskId}
-                  isMonthView={isMonthView}
-                  backgroundColor={colors.backgroundColor}
-                />
-              </div>
-            ))}
-          </>
-        )}{" "}
-        {!timeEntries.length && type === "task" && (
+        {timeEntry && (
+          <div key={timeEntry.id} className={`h-full w-full flex items-center`}>
+            <TimeEntryItem
+              entry={timeEntry}
+              taskId={taskId}
+              isMonthView={isMonthView}
+              backgroundColor={colors.backgroundColor}
+            />
+          </div>
+        )}
+        {!timeEntry && type === "task" && (
           <EmptyCell day={day} taskId={taskId} isMonthView={isMonthView} />
         )}
       </div>

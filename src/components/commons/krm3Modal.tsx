@@ -13,7 +13,12 @@ interface Krm3ModalProps {
   title?: string;
 }
 
-export default function Krm3Modal({ open, onClose, children, title }: Krm3ModalProps) {
+export default function Krm3Modal({
+  open,
+  onClose,
+  children,
+  title,
+}: Krm3ModalProps) {
   // Handle body scroll lock
   useEffect(() => {
     if (open) {
@@ -34,7 +39,7 @@ export default function Krm3Modal({ open, onClose, children, title }: Krm3ModalP
       alignItems: "center",
       justifyContent: "center",
       zIndex: 50,
-      transition: "background-color 300ms"
+      transition: "background-color 300ms",
     },
     content: {
       position: "relative" as const,
@@ -51,8 +56,8 @@ export default function Krm3Modal({ open, onClose, children, title }: Krm3ModalP
       maxHeight: "90vh",
       overflow: "auto",
       boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
-      margin: "0 1rem"
-    }
+      margin: "0 1rem",
+    },
   };
 
   return (
@@ -65,7 +70,7 @@ export default function Krm3Modal({ open, onClose, children, title }: Krm3ModalP
       ariaHideApp={false}
     >
       <div className="relative flex flex-col bg-white">
-        <div className="flex justify-between items-center border-b p-4 sm:p-6">
+        <div className="flex justify-between items-center p-4 sm:p-6">
           <p className="text-xl sm:text-2xl font-semibold text-gray-800">
             {title}
           </p>
@@ -77,34 +82,8 @@ export default function Krm3Modal({ open, onClose, children, title }: Krm3ModalP
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-4 sm:p-6">
-          {children}
-        </div>
+        <div className="p-4 sm:p-6">{children}</div>
       </div>
     </Modal>
   );
 }
-
-// Usage Example:
-// 
-// import { useState } from 'react';
-// import Krm3Modal from './Krm3Modal';
-// 
-// function App() {
-//   const [modalOpen, setModalOpen] = useState(false);
-//   
-//   return (
-//     <div>
-//       <button onClick={() => setModalOpen(true)}>Open Modal</button>
-//       
-//       <Krm3Modal 
-//         open={modalOpen} 
-//         onClose={() => setModalOpen(false)}
-//         title="My Modal Title"
-//       >
-//         <p>Modal content goes here!</p>
-//         <button onClick={() => setModalOpen(false)}>Close</button>
-//       </Krm3Modal>
-//     </div>
-//   );
-// }

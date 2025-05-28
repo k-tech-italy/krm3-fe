@@ -7,29 +7,7 @@ import { TimeSheetTable } from "./TimesheetTable";
 import EditDayEntry from "./edit-day/EditDayEntry";
 import VisualizationActions from "./VisualizationActions";
 import { useColumnViewPreference } from "../../hooks/commons";
-
-export const formatDate = (
-  date: Date,
-  isDay?: boolean,
-  isMonthName?: boolean
-) => {
-  if (isDay) {
-    return date.toLocaleDateString("en-US", {
-      day: "numeric",
-      weekday: "narrow",
-    });
-  }
-  if (isMonthName) {
-    return date.toLocaleDateString("en-US", {
-      month: "long",
-      year: "numeric",
-    });
-  }
-  return date.toLocaleDateString("en-US", {
-    weekday: "short",
-    day: "numeric",
-  });
-};
+import { formatDate, formatDayAndMonth, formatMonthName } from "./utils/dates";
 
 export default function Krm3Calendar() {
   const [selectedCells, setSelectedCells] = useState<Date[] | undefined>();
@@ -69,7 +47,7 @@ export default function Krm3Calendar() {
       if (!isMonth) {
         day.setDate(currentWeekStart.getDate() + i);
       }
-      days.push(day);
+      days.push(formatDate(day));
     }
     return { days, numberOfDays };
   }, [currentWeekStart, isMonth]);
@@ -115,8 +93,8 @@ export default function Krm3Calendar() {
           </button>
           <span className="font-medium" id="date-range-display">
             {isMonth
-              ? formatDate(scheduledDays.days[0], false, isMonth)
-              : `${formatDate(scheduledDays.days[0])} - ${formatDate(
+              ? formatMonthName(scheduledDays.days[0])
+              : `${formatDayAndMonth(scheduledDays.days[0])} - ${formatDayAndMonth(
                   scheduledDays.days[6]
                 )}`}
           </span>
@@ -162,9 +140,10 @@ export default function Krm3Calendar() {
         setStartDate={setStartDate}
         setEndDate={setEndDate}
         scheduleDays={scheduledDays}
+        startDate={startDate}
+        endDate={endDate}
       />
       {openTimeEntryModal &&
-        selectedCells &&
         selectedTask &&
         startDate &&
         endDate && (

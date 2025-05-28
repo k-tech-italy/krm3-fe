@@ -26,7 +26,7 @@ restapi.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status >= 400 && !isRedirecting) {
+    if (error.response?.status === 401 && !isRedirecting) {
       const currentPath = window.location.pathname;
 
       if (currentPath !== "/login") {

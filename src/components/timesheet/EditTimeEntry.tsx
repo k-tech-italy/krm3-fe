@@ -4,11 +4,9 @@ import {
   useDeleteTimeEntries,
   useCreateTimeEntry,
 } from "../../hooks/timesheet.tsx";
-import {
-  displayErrorMessage,
-  getDatesBetween,
-  normalizeDate,
-} from "./utils.ts";
+import { displayErrorMessage } from "./utils/utils.ts";
+import { getDatesBetween } from "./utils/dates.ts";
+import { normalizeDate } from "./utils/dates.ts";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -67,8 +65,7 @@ export default function EditTimeEntry({
     startEntry
       ? Number(startEntry.dayShiftHours) +
           Number(startEntry.nightShiftHours) +
-          Number(startEntry.travelHours) +
-          Number(startEntry.restHours)
+          Number(startEntry.travelHours)
       : 0
   ); // SHOULD ON CALL HOURS BE ADDED TO TOTAL HOURS???
 
@@ -83,9 +80,6 @@ export default function EditTimeEntry({
   );
   const [travelHours, setTravelHours] = useState(
     startEntry ? Number(startEntry.travelHours) : 0
-  );
-  const [restHours, setRestHours] = useState(
-    startEntry ? Number(startEntry.restHours) : 0
   );
 
   const [comment, setComment] = useState(
@@ -106,14 +100,13 @@ export default function EditTimeEntry({
   const { mutateAsync: createTimeEntries, error: creationError } =
     useCreateTimeEntry();
 
-  const submit = async () => {
-    await createTimeEntries({
+  const submit = () => {
+    createTimeEntries({
       taskId: task.id,
       dates: getDatesBetween(fromDate, toDate),
       nightShiftHours: nightShiftHours,
       dayShiftHours: dayShiftHours,
       onCallHours: onCallHours,
-      restHours: restHours,
       travelHours: travelHours,
       comment: comment,
     }).then(() => closeModal());
@@ -187,15 +180,12 @@ export default function EditTimeEntry({
               className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
               type="number"
               id={`daytime-input`}
-              step={0.5}
-              value={dayShiftHours}
+              step={0.25}
+              value={dayShiftHours || ""}
               onChange={(e) => {
                 setDayShiftHours(Number(e.target.value));
                 setTotalHours(
-                  Number(e.target.value) +
-                    nightShiftHours +
-                    travelHours +
-                    restHours
+                  Number(e.target.value) + nightShiftHours + travelHours
                 );
               }}
             />
@@ -205,16 +195,13 @@ export default function EditTimeEntry({
             <input
               className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
               type="number"
-              step={0.5}
+              step={0.25}
               id={`daytime-input`}
-              value={nightShiftHours}
+              value={nightShiftHours || ""}
               onChange={(e) => {
                 setNightShiftHours(Number(Number(e.target.value).toFixed(1)));
                 setTotalHours(
-                  Number(e.target.value) +
-                    dayShiftHours +
-                    travelHours +
-                    restHours
+                  Number(e.target.value) + dayShiftHours + travelHours
                 );
               }}
             />
@@ -224,16 +211,13 @@ export default function EditTimeEntry({
             <input
               className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
               type="number"
-              step={0.5}
+              step={0.25}
               id={`travelHours-input`}
-              value={travelHours}
+              value={travelHours || ""}
               onChange={(e) => {
                 setTravelHours(Number(e.target.value));
                 setTotalHours(
-                  dayShiftHours +
-                    Number(e.target.value) +
-                    restHours +
-                    nightShiftHours
+                  dayShiftHours + Number(e.target.value) + nightShiftHours
                 );
               }}
             />
@@ -243,31 +227,11 @@ export default function EditTimeEntry({
             <input
               className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
               type="number"
-              step={0.5}
+              step={0.25}
               id={`oncall-input`}
-              value={onCallHours}
+              value={onCallHours || ""}
               onChange={(e) => {
                 setOnCallHours(Number(e.target.value));
-              }}
-            />
-          </div>
-
-          <div>
-            <p>Rest hours</p>
-            <input
-              className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
-              type="number"
-              step={0.5}
-              id={`travelHours-input`}
-              value={restHours}
-              onChange={(e) => {
-                setRestHours(Number(e.target.value));
-                setTotalHours(
-                  dayShiftHours +
-                    nightShiftHours +
-                    Number(e.target.value) +
-                    travelHours
-                );
               }}
             />
           </div>
@@ -336,15 +300,17 @@ export default function EditTimeEntry({
           <button
             className={`px-4 py-2 text-white rounded-lg focus:outline-none
                     ${
-                      totalHoursExceeded || totalHours === 0
+                      totalHoursExceeded ||
+                      totalHours === 0 ||
+                      onCallHours === 0
                         ? "bg-gray-300 cursor-not-allowed"
                         : "bg-yellow-500 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                     }`}
             id="save-button"
-            disabled={totalHoursExceeded || totalHours === 0}
-            onClick={async () => {
-              await submit();
-            }}
+            disabled={
+              totalHoursExceeded || totalHours === 0 || onCallHours === 0
+            }
+            onClick={submit}
           >
             Save
           </button>

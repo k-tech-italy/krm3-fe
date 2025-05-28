@@ -1,75 +1,88 @@
 import React, { useMemo } from "react";
 import { TaskHeader } from "./TaskCell";
 import { TimeEntryCell } from "./TimeEntryCell";
-import { displayErrorMessage, getPastelColor, normalizeDate } from "../utils";
-import { Task, TimeEntry } from "../../../restapi/types";
-import { useCreateTimeEntry } from "../../../hooks/timesheet";
-import { toast, ToastContainer } from "react-toastify";
+import {
+  getTaskColor,
+  getTimeEntriesForTaskAndDay,
+  isHoliday,
+  isSickDay,
+} from "../utils/utils";
+import { Task, TimeEntry, Timesheet } from "../../../restapi/types";
 import { ShortHoursMenu } from "./ShortHoursMenu";
+import { normalizeDate } from "../utils/dates";
 
 export interface TimeSheetRowProps {
+  timesheet: Timesheet;
+  index: number;
   scheduleDays: Date[];
   task: Task;
   isMonthView: boolean;
   isColumnView: boolean;
   isCellInDragRange: (day: Date, taskId: number) => boolean;
   isColumnHighlighted: (dayIndex: number) => boolean;
-  isHoliday: (day: Date) => boolean;
-  isSickDay: (day: Date) => boolean;
-  isTaskFinished: (currentDay: Date, task: Task) => boolean | undefined;
-  getTimeEntriesForTaskAndDay: (taskId: number, day?: Date) => TimeEntry[];
   openTimeEntryModalHandler: (task: Task) => void;
-  openShortMenu?: { selectedCells: Date[]; day: string; taskId: string };
+  openShortMenu?: { startDate: string; endDate: string; taskId: string };
   setOpenShortMenu?: (
-    value: { selectedCells: Date[]; day: string; taskId: string } | undefined
+    value: { startDate: string; endDate: string; taskId: string } | undefined
   ) => void;
 }
 
 export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
+  timesheet,
+  index,
   scheduleDays,
   task,
   isMonthView,
   isColumnView,
   isCellInDragRange,
   isColumnHighlighted,
-  isHoliday,
-  isSickDay,
-  isTaskFinished,
-  getTimeEntriesForTaskAndDay,
   openTimeEntryModalHandler,
   openShortMenu,
   setOpenShortMenu,
 }) => {
   // Generate color once per task row
   const { backgroundColor, borderColor } = useMemo(
-    () => getPastelColor(task.color),
+    () => getTaskColor(index, task.color),
     [task.id]
   );
+  const timeEntries = getTimeEntriesForTaskAndDay(task.id, timesheet);
 
-  const timeEntries = getTimeEntriesForTaskAndDay(task.id);
+  const isTaskFinished = (currentDay: Date, task: Task): boolean => {
+    const currentDateString = normalizeDate(currentDay);
+    const startDateString = normalizeDate(task.startDate);
+    const endDateString = task.endDate ? normalizeDate(task.endDate) : null;
+
+    return (
+      currentDateString < startDateString ||
+      (endDateString !== null && currentDateString > endDateString)
+    );
+  };
 
   const totalHours = timeEntries.reduce(
-    (total, entry) => total + Number(entry.dayShiftHours) + Number(entry.nightShiftHours) + Number(entry.restHours),
+    (total, entry) =>
+      total +
+      Number(entry.dayShiftHours) +
+      Number(entry.nightShiftHours) +
+      Number(entry.restHours),
     0
   );
-
- 
 
   const borderColorClass = isColumnView
     ? "border-l-[var(--border-color)]"
     : "border-b-[var(--border-color)]";
 
   const renderDayCell = (day: Date, dayIndex: number) => {
-    const type = isHoliday(day)
+    const type = isHoliday(day, timesheet)
       ? "holiday"
-      : isSickDay(day)
+      : isSickDay(day, timesheet)
       ? "sick"
       : isTaskFinished(day, task)
       ? "finished"
       : "task";
 
-    const timeEntries = getTimeEntriesForTaskAndDay(task.id, day);
-
+    const timeEntry = timeEntries.find(
+      (entry) => normalizeDate(entry.date) === normalizeDate(day)
+    );
 
     return (
       <div key={dayIndex} className="w-full h-full">
@@ -86,7 +99,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             day={day}
             taskId={task.id}
             type={type}
-            timeEntries={timeEntries}
+            timeEntry={timeEntry}
             isMonthView={isMonthView}
             isColumnView={isColumnView}
             isColumnHighlighted={isColumnHighlighted(dayIndex)}
@@ -124,11 +137,9 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
           isColumnView ? "border-l-3" : "border-b-3"
         } ${isMonthView ? "text-[10px] text-center" : ""}`}
       >
-       {totalHours}
+        {totalHours}
       </div>
       {scheduleDays.map((day, dayIndex) => renderDayCell(day, dayIndex))}
     </React.Fragment>
   );
 };
-
-

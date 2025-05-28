@@ -1,4 +1,3 @@
-import React from 'react';
 import { MissionInterface } from '../../restapi/types';
 
 interface Props {

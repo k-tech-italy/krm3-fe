@@ -42,7 +42,7 @@ export const SpecialDayCell: React.FC<SpecialDayCellProps> = ({
       case "finished":
         return {
           id: `task-finished-cell-${cellId}`,
-          icon: <span className="text-xs text-gray-400">N/A</span>,
+          icon: <span className="text-xs text-gray-600">N/A</span>,
         };
       default:
         return {};
