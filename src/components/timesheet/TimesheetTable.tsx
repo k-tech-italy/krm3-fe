@@ -66,7 +66,7 @@ export function TimeSheetTable(props: Props) {
       props.setSelectedTask(task);
       props.setTimeEntries(timeEntries);
       props.setEndDate(endDate);
-      props.setIsDayEntry(false)
+      props.setIsDayEntry(false);
       if (
         endDate > formatDate(task.startDate) &&
         (!!task.endDate ? endDate < formatDate(task.endDate) : true)
@@ -148,8 +148,12 @@ export function TimeSheetTable(props: Props) {
           </div>
 
           <div
-            className={`flex items-center  bg-gray-100 border-b-2 border-gray-300  font-semibold ${
-              isMonthView ? "text-xs p-1 justify-center" : "text-sm p-2"
+            className={`flex items-center p-2 bg-gray-100 border-b-2 border-gray-300  font-semibold  ${
+              props.isColumnView
+                ? "flex justify-start items-center py-2"
+                : "flex-col items-center"
+            }  ${
+              isMonthView ? "text-xs " : "text-sm "
             } col-span-1`}
           >
             {isMonthView && !props.isColumnView ? "H" : "Hours"}
