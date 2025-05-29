@@ -87,12 +87,6 @@ export default function EditTimeEntry({
     startEntry && startEntry.comment ? startEntry.comment : ""
   );
 
-  const [totalHoursExceeded, setTotalHoursExceeded] = useState(false);
-
-  useEffect(() => {
-    setTotalHoursExceeded(totalHours > 24);
-  }, [totalHours]);
-
   const {
     mutateAsync: deleteTimeEntries,
     error: deletionError,
@@ -125,7 +119,11 @@ export default function EditTimeEntry({
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col space-y-4" id="edit-time-entry-container">
+    <form
+      onSubmit={submit}
+      className="flex flex-col space-y-4"
+      id="edit-time-entry-container"
+    >
       <div className="items-start" id="datepickers-container">
         <div className="text-lg font-bold">Days</div>
         <div className="flex flex-wrap" id="datepickers">
@@ -167,7 +165,6 @@ export default function EditTimeEntry({
           <div className="text-lg font-bold" id="details-label">
             Hours
           </div>
-          
         </div>
         <div
           className="grid grid-cols-3 gap-4 items-end"
@@ -203,7 +200,6 @@ export default function EditTimeEntry({
               id={`nightime-input`}
               value={nightShiftHours || ""}
               placeholder="Enter hours"
-
               onChange={(e) => {
                 setNightShiftHours(Number(Number(e.target.value)));
                 setTotalHours(
@@ -223,7 +219,6 @@ export default function EditTimeEntry({
               id={`travelHours-input`}
               value={travelHours || ""}
               placeholder="Enter hours"
-
               onChange={(e) => {
                 setTravelHours(Number(e.target.value));
                 setTotalHours(
@@ -243,7 +238,6 @@ export default function EditTimeEntry({
               id={`oncall-input`}
               value={onCallHours || ""}
               placeholder="Enter hours"
-
               onChange={(e) => {
                 setOnCallHours(Number(e.target.value));
               }}
@@ -251,12 +245,6 @@ export default function EditTimeEntry({
           </div>
         </div>
       </div>
-
-      {totalHoursExceeded && (
-        <p className="text-red-500 mt-2" id="total-hours-exceeded-error">
-          The total number of hours cannot exceed 24.
-        </p>
-      )}
 
       <div className="items-start" id="comment-section">
         <label id="comment-label">Comment</label>
@@ -272,12 +260,6 @@ export default function EditTimeEntry({
           />
         </div>
       </div>
-      {creationError && (
-        <p className="text-red-500 mt-2" id="creation-error-message">
-          {displayErrorMessage(creationError) ||
-            "Creation failed. Please try again."}
-        </p>
-      )}
       {daysWithTimeEntries.length > 0 && (
         <p className="text-orange-500" id="warning-message">
           <strong>Warning: </strong>
@@ -285,6 +267,17 @@ export default function EditTimeEntry({
           {"A time entry already exists for the following days: " +
             daysWithTimeEntries.map((day) => day.split("-")[2]).join(", ") +
             ". Save for update"}
+        </p>
+      )}
+      {totalHours > 24 && (
+        <p className="text-red-500 mt-2" id="total-hours-exceeded-error">
+          The total number of hours cannot exceed 24.
+        </p>
+      )}
+      {creationError && (
+        <p className="text-red-500 mt-2" id="creation-error-message">
+          {displayErrorMessage(creationError) ||
+            "Creation failed. Please try again."}
         </p>
       )}
       <div className="flex justify-between items-center ">
@@ -314,12 +307,12 @@ export default function EditTimeEntry({
           <button
             className={`px-4 py-2 text-white rounded-lg focus:outline-none
                     ${
-                      totalHoursExceeded || totalHours === 0
+                      totalHours > 24 || totalHours === 0
                         ? "bg-gray-300 cursor-not-allowed"
                         : "bg-yellow-500 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                     }`}
             id="save-button"
-            disabled={totalHoursExceeded || totalHours === 0}
+            disabled={totalHours > 24 || totalHours === 0}
             type="submit"
           >
             Save

@@ -36,7 +36,6 @@ export function getTaskColor(
  */
 export function displayErrorMessage(error: any): string | undefined {
   // Check if the error has a response with data and take the first error field
-  console.log(error);
   if (error.response) {
     return error.response.data["error"];
   }
