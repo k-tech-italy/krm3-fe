@@ -65,7 +65,8 @@ export default function EditTimeEntry({
     startEntry
       ? Number(startEntry.dayShiftHours) +
           Number(startEntry.nightShiftHours) +
-          Number(startEntry.travelHours)
+          Number(startEntry.travelHours) +
+          Number(startEntry.onCallHours)
       : 0
   ); // SHOULD ON CALL HOURS BE ADDED TO TOTAL HOURS???
 
@@ -124,7 +125,7 @@ export default function EditTimeEntry({
   }
 
   return (
-    <div className="flex flex-col space-y-4" id="edit-time-entry-container">
+    <form onSubmit={submit} className="flex flex-col space-y-4" id="edit-time-entry-container">
       <div className="items-start" id="datepickers-container">
         <div className="text-lg font-bold">Days</div>
         <div className="flex flex-wrap" id="datepickers">
@@ -166,9 +167,7 @@ export default function EditTimeEntry({
           <div className="text-lg font-bold" id="details-label">
             Hours
           </div>
-          <div className="text-sm font-bold" id="details-label">
-            Total Hours: {totalHours}h
-          </div>
+          
         </div>
         <div
           className="grid grid-cols-3 gap-4 items-end"
@@ -181,7 +180,10 @@ export default function EditTimeEntry({
               type="number"
               id={`daytime-input`}
               step={0.25}
+              min="0.25"
+              max="16"
               value={dayShiftHours || ""}
+              placeholder="Enter hours"
               onChange={(e) => {
                 setDayShiftHours(Number(e.target.value));
                 setTotalHours(
@@ -196,10 +198,14 @@ export default function EditTimeEntry({
               className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
               type="number"
               step={0.25}
-              id={`daytime-input`}
+              min="0.25"
+              max="8"
+              id={`nightime-input`}
               value={nightShiftHours || ""}
+              placeholder="Enter hours"
+
               onChange={(e) => {
-                setNightShiftHours(Number(Number(e.target.value).toFixed(1)));
+                setNightShiftHours(Number(Number(e.target.value)));
                 setTotalHours(
                   Number(e.target.value) + dayShiftHours + travelHours
                 );
@@ -212,8 +218,12 @@ export default function EditTimeEntry({
               className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
               type="number"
               step={0.25}
+              min="0.25"
+              max="24"
               id={`travelHours-input`}
               value={travelHours || ""}
+              placeholder="Enter hours"
+
               onChange={(e) => {
                 setTravelHours(Number(e.target.value));
                 setTotalHours(
@@ -228,8 +238,12 @@ export default function EditTimeEntry({
               className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
               type="number"
               step={0.25}
+              min="0.25"
+              max="24"
               id={`oncall-input`}
               value={onCallHours || ""}
+              placeholder="Enter hours"
+
               onChange={(e) => {
                 setOnCallHours(Number(e.target.value));
               }}
@@ -300,22 +314,18 @@ export default function EditTimeEntry({
           <button
             className={`px-4 py-2 text-white rounded-lg focus:outline-none
                     ${
-                      totalHoursExceeded ||
-                      totalHours === 0 ||
-                      onCallHours === 0
+                      totalHoursExceeded || totalHours === 0
                         ? "bg-gray-300 cursor-not-allowed"
                         : "bg-yellow-500 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                     }`}
             id="save-button"
-            disabled={
-              totalHoursExceeded || totalHours === 0 || onCallHours === 0
-            }
-            onClick={submit}
+            disabled={totalHoursExceeded || totalHours === 0}
+            type="submit"
           >
             Save
           </button>
         </div>
       </div>
-    </div>
+    </form>
   );
 }

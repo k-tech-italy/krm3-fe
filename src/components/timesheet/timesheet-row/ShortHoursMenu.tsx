@@ -47,7 +47,7 @@ export const ShortHoursMenu = (props: {
           pending: "Adding hours...",
           success: "Hours added successfully",
           error:
-            (!!error && displayErrorMessage(error)) || "Error adding hours",
+            (displayErrorMessage(error)),
         },
         {
           autoClose: 2000,

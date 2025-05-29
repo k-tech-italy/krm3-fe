@@ -296,7 +296,7 @@ export default function EditDayEntry({
                   type="number"
                   value={leaveHours || ""}
                   onChange={handleLeaveHoursChange}
-                  min="1"
+                  min="0.25"
                   max="8"
                   step={0.25}
                   required
@@ -414,7 +414,7 @@ export default function EditDayEntry({
                 }
                 `}
             >
-              Submit
+              Save
             </button>
           </div>
         </div>

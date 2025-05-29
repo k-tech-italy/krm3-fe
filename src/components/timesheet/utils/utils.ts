@@ -36,7 +36,8 @@ export function getTaskColor(
  */
 export function displayErrorMessage(error: any): string | undefined {
   // Check if the error has a response with data and take the first error field
-  if (error.response && error.response.data) {
+  console.log(error);
+  if (error.response) {
     return error.response.data["error"];
   }
 }
@@ -71,10 +72,6 @@ export function calculateTotalHoursForDays(
   );
 }
 
-
-
-
-
 export const isHoliday = (day: Date, timesheet: Timesheet): boolean => {
   return (
     timesheet.timeEntries?.some((entry) => {
@@ -95,11 +92,10 @@ export const isSickDay = (day: Date, timesheet: Timesheet): boolean => {
   );
 };
 
-
 export const getTimeEntriesForTaskAndDay = (
   taskId: number,
   timesheet: Timesheet,
-  day?: Date,
+  day?: Date
 ): TimeEntry[] => {
   if (!timesheet.timeEntries) return [];
   if (!day) {
@@ -107,7 +103,6 @@ export const getTimeEntriesForTaskAndDay = (
   }
   return timesheet.timeEntries.filter(
     (entry) =>
-      entry.task === taskId &&
-      normalizeDate(entry.date) === normalizeDate(day)
+      entry.task === taskId && normalizeDate(entry.date) === normalizeDate(day)
   );
 };
