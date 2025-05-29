@@ -34,6 +34,7 @@ export default function EditTimeEntry({
   const [toDate, setToDate] = useState<Date>(
     endDate >= startDate ? endDate : startDate
   );
+  const [keepEntries, setKeepEntries] = useState<boolean>(true);
   const updateDaysWithTimeEntries = (
     startDate: Date,
     endDate: Date
@@ -95,10 +96,22 @@ export default function EditTimeEntry({
   const { mutateAsync: createTimeEntries, error: creationError } =
     useCreateTimeEntry();
 
-  const submit = () => {
+  function getDatesToSave() {
+    if (keepEntries) {
+      return getDatesBetween(fromDate, toDate);
+    } else {
+      const datesWithNoTimeEntries = getDatesBetween(fromDate, toDate).filter(
+        (date) => !daysWithTimeEntries.includes(normalizeDate(date))
+      );
+      return datesWithNoTimeEntries;
+    }
+  }
+
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
     createTimeEntries({
       taskId: task.id,
-      dates: getDatesBetween(fromDate, toDate),
+      dates: getDatesToSave(),
       nightShiftHours: nightShiftHours,
       dayShiftHours: dayShiftHours,
       onCallHours: onCallHours,
@@ -261,13 +274,26 @@ export default function EditTimeEntry({
         </div>
       </div>
       {daysWithTimeEntries.length > 0 && (
-        <p className="text-orange-500" id="warning-message">
-          <strong>Warning: </strong>
-
-          {"A time entry already exists for the following days: " +
-            daysWithTimeEntries.map((day) => day.split("-")[2]).join(", ") +
-            ". Save for update"}
-        </p>
+        <div>
+          <p className="text-orange-500" id="warning-message">
+            <strong>Warning: </strong>
+            {"A time entry already exists for the following days: " +
+              daysWithTimeEntries.map((day) => day.split("-")[2]).join(", ") +
+              ". Save for update"}
+          </p>
+          <input
+            type="checkbox"
+            defaultChecked={keepEntries}
+            id="save-for-update-checkbox"
+            className="mr-2"
+            onChange={() => {
+              setKeepEntries(!keepEntries);
+            }}
+          />
+          <label>
+            Do you want to overwrite the existing time entry for update?
+          </label>
+        </div>
       )}
       {totalHours > 24 && (
         <p className="text-red-500 mt-2" id="total-hours-exceeded-error">
@@ -289,6 +315,7 @@ export default function EditTimeEntry({
                 : " bg-red-500 hover:bg-red-700 focus:outline-none"
             }`}
             id="delete-button"
+            type="button"
             onClick={handleDeleteEntries}
             disabled={daysWithTimeEntries.length === 0}
           >

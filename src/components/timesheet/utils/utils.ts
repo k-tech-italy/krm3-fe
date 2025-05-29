@@ -23,7 +23,10 @@ export function getTaskColor(
   row: number,
   taskColor?: string
 ): { backgroundColor: string; borderColor: string } {
-  const color = taskColor || defaultColors[row % defaultColors.length];
+  const color =
+    !taskColor || taskColor === ""
+      ? defaultColors[row % defaultColors.length]
+      : taskColor;
   const backgroundColor = `${color}50`;
   const borderColor = color;
   return { backgroundColor, borderColor };
