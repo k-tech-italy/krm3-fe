@@ -1,14 +1,18 @@
-import { Task, TimeEntry } from "../../restapi/types";
+import { Task, TimeEntry } from "../../../restapi/types.ts";
 import { useEffect, useState } from "react";
 import {
   useDeleteTimeEntries,
   useCreateTimeEntry,
-} from "../../hooks/useTimesheet.tsx";
-import { displayErrorMessage } from "./utils/utils.ts";
-import { getDatesBetween } from "./utils/dates.ts";
-import { normalizeDate } from "./utils/dates.ts";
+} from "../../../hooks/useTimesheet.tsx";
+import { displayErrorMessage } from "../utils/utils.ts";
+import { getDatesBetween } from "../utils/dates.ts";
+import { normalizeDate } from "../utils/dates.ts";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import WarningExistingEntry from "./WarningExistEntry.tsx";
+import ErrorMessage from "./ErrorMessage.tsx";
+import Krm3Button from "../../commons/Krm3Button.tsx";
+import { CheckIcon, SaveIcon, TrashIcon } from "lucide-react";
 
 interface Props {
   task: Task;
@@ -134,21 +138,28 @@ export default function EditTimeEntry({
   return (
     <form
       onSubmit={submit}
-      className="flex flex-col space-y-4"
+      className="space-y-6"
       id="edit-time-entry-container"
     >
-      <div className="items-start" id="datepickers-container">
-        <div className="text-lg font-bold">Days</div>
-        <div className="flex flex-wrap" id="datepickers">
-          <div className="w-full md:w-1/3  mb-4 md:mb-0">
-            <label className="block text-sm font-medium mb-1">
-              Dal giorno:
+      {/* Header
+        <div className="border-b border-gray-200 pb-4">
+          <h2 className="text-xl font-semibold text-gray-900">Edit Time Entry</h2>
+          <p className="text-sm text-gray-600 mt-1">Task: {task.title}</p>
+        </div> */}
+
+      {/* Date Selection Section */}
+      <div className="space-y-4" id="datepickers-container">
+        <h3 className="text-lg font-medium text-gray-900">Date Range</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4" id="datepickers">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              From Date
             </label>
             <DatePicker
               dateFormat="yyyy-MM-dd"
               maxDate={toDate}
               selected={fromDate}
-              className="w-full border border-gray-300 rounded-md p-2"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               onChange={(date: Date | null) => {
                 if (!!date) {
                   handleChangeDate(date, "from");
@@ -156,13 +167,15 @@ export default function EditTimeEntry({
               }}
             />
           </div>
-          <div className="w-full md:w-1/3 mb-4 md:mb-0">
-            <label className="block text-sm font-medium mb-1">Al giorno:</label>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              To Date
+            </label>
             <DatePicker
               dateFormat="yyyy-MM-dd"
               selected={toDate}
               minDate={fromDate}
-              className="w-full border border-gray-300 rounded-md p-2"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               onChange={(date: Date | null) => {
                 if (!!date) {
                   handleChangeDate(date, "to");
@@ -173,27 +186,39 @@ export default function EditTimeEntry({
         </div>
       </div>
 
-      <div className="items-start" id="details-section">
-        <div className="flex justify-between items-baseline my-4">
-          <div className="text-lg font-bold" id="details-label">
-            Hours
-          </div>
+      {/* Hours Section */}
+      <div className="space-y-4" id="details-section">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium text-gray-900">Hours</h3>
+          {/* <div className="text-sm text-gray-600">
+            Total:{" "}
+            <span
+              className={`font-medium ${
+                totalHours > 24 ? "text-red-600" : "text-gray-900"
+              }`}
+            >
+              {totalHours}h
+            </span>
+          </div> */}
         </div>
+
         <div
-          className="grid grid-cols-3 gap-4 items-end"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
           id="details-container"
         >
           <div>
-            <p>Daytime hours</p>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Daytime Hours
+            </label>
             <input
-              className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               type="number"
-              id={`daytime-input`}
+              id="daytime-input"
               step={0.25}
-              min="0.25"
+              min="0"
               max="16"
               value={dayShiftHours || ""}
-              placeholder="Enter hours"
+              placeholder="0.00"
               onChange={(e) => {
                 setDayShiftHours(Number(e.target.value));
                 setTotalHours(
@@ -202,36 +227,42 @@ export default function EditTimeEntry({
               }}
             />
           </div>
+
           <div>
-            <p>Nighttime hours</p>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nighttime Hours
+            </label>
             <input
-              className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               type="number"
               step={0.25}
-              min="0.25"
+              min="0"
               max="8"
-              id={`nightime-input`}
+              id="nightime-input"
               value={nightShiftHours || ""}
-              placeholder="Enter hours"
+              placeholder="0.00"
               onChange={(e) => {
-                setNightShiftHours(Number(Number(e.target.value)));
+                setNightShiftHours(Number(e.target.value));
                 setTotalHours(
                   Number(e.target.value) + dayShiftHours + travelHours
                 );
               }}
             />
           </div>
+
           <div>
-            <p>Travel hours</p>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Travel Hours
+            </label>
             <input
-              className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               type="number"
               step={0.25}
-              min="0.25"
+              min="0"
               max="24"
-              id={`travelHours-input`}
+              id="travelHours-input"
               value={travelHours || ""}
-              placeholder="Enter hours"
+              placeholder="0.00"
               onChange={(e) => {
                 setTravelHours(Number(e.target.value));
                 setTotalHours(
@@ -240,17 +271,20 @@ export default function EditTimeEntry({
               }}
             />
           </div>
+
           <div>
-            <p>On Call hours</p>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              On Call Hours
+            </label>
             <input
-              className={`border rounded-md p-2 cursor-pointer w-[100%] border-gray-300`}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               type="number"
               step={0.25}
-              min="0.25"
+              min="0"
               max="24"
-              id={`oncall-input`}
+              id="oncall-input"
               value={onCallHours || ""}
-              placeholder="Enter hours"
+              placeholder="0.00"
               onChange={(e) => {
                 setOnCallHours(Number(e.target.value));
               }}
@@ -259,91 +293,70 @@ export default function EditTimeEntry({
         </div>
       </div>
 
-      <div className="items-start" id="comment-section">
-        <label id="comment-label">Comment</label>
-        <div className="w-full">
-          <textarea
-            className="w-full border rounded-md p-2 border-gray-300 resize-none"
-            id="comment-textarea"
-            rows={2}
-            value={comment}
-            onChange={(e) => {
-              setComment(e.target.value);
-            }}
-          />
-        </div>
+      {/* Comment Section */}
+      <div className="space-y-2" id="comment-section">
+        <label
+          className="block text-sm font-medium text-gray-700"
+          id="comment-label"
+        >
+          Comment
+        </label>
+        <textarea
+          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+          id="comment-textarea"
+          rows={3}
+          value={comment}
+          placeholder="Add any additional notes..."
+          onChange={(e) => {
+            setComment(e.target.value);
+          }}
+        />
       </div>
-      {daysWithTimeEntries.length > 0 && (
-        <div>
-          <p className="text-orange-500" id="warning-message">
-            <strong>Warning: </strong>
-            {"A time entry already exists for the following days: " +
-              daysWithTimeEntries.map((day) => day.split("-")[2]).join(", ") +
-              ". Save for update"}
-          </p>
-          <input
-            type="checkbox"
-            defaultChecked={keepEntries}
-            id="save-for-update-checkbox"
-            className="mr-2"
-            onChange={() => {
-              setKeepEntries(!keepEntries);
-            }}
-          />
-          <label>
-            Do you want to overwrite the existing time entry for update?
-          </label>
-        </div>
-      )}
+      <WarningExistingEntry
+        daysWithTimeEntries={daysWithTimeEntries}
+        keepEntries={keepEntries}
+        setKeepEntries={setKeepEntries}
+        isCheckbox
+      />
       {totalHours > 24 && (
-        <p className="text-red-500 mt-2" id="total-hours-exceeded-error">
-          The total number of hours cannot exceed 24.
-        </p>
+        <ErrorMessage message="Total hours cannot exceed 24 hours per day." />
       )}
+
       {creationError && (
-        <p className="text-red-500 mt-2" id="creation-error-message">
-          {displayErrorMessage(creationError) ||
-            "Creation failed. Please try again."}
-        </p>
+        <ErrorMessage
+          message={displayErrorMessage(creationError) || "Creation Error"}
+        />
       )}
-      <div className="flex justify-between items-center ">
-        <div>
-          <button
-            className={`px-4 py-2 text-white rounded-lg  ${
-              daysWithTimeEntries.length === 0
-                ? "cursor-not-allowed bg-gray-300"
-                : " bg-red-500 hover:bg-red-700 focus:outline-none"
-            }`}
-            id="delete-button"
-            type="button"
-            onClick={handleDeleteEntries}
-            disabled={daysWithTimeEntries.length === 0}
-          >
-            Delete
-          </button>
-        </div>
-        <div className="flex justify-end" id="action-buttons">
-          <button
+
+      {/* Action Buttons */}
+      <div
+        id="action-buttons"
+        className="flex items-center justify-between pt-6 border-t border-gray-200"
+      >
+        <Krm3Button
+          disabled={daysWithTimeEntries.length === 0}
+          type="button"
+          style="danger"
+          onClick={handleDeleteEntries}
+          icon={<TrashIcon size={20} />}
+          label="Delete"
+        />
+
+        <div className="flex space-x-3">
+          <Krm3Button
             disabled={isLoading}
-            className="px-4 py-2 mr-4 bg-[#4B6478] text-white   rounded-lg hover:bg-gray-400 focus:outline-none"
-            id="close-button"
+            type="button"
             onClick={closeModal}
-          >
-            Cancel
-          </button>
-          <button
-            className={`px-4 py-2 text-white rounded-lg focus:outline-none
-                    ${
-                      totalHours > 24 || totalHours === 0
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-yellow-500 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                    }`}
-            id="save-button"
+            style="secondary"
+            label="Cancel"
+          />
+          <Krm3Button
             disabled={totalHours > 24 || totalHours === 0}
             type="submit"
-          >
-            Save
-          </button>
+            style="primary"
+            label="Save"
+            icon={<CheckIcon size={20} />}
+          />
         </div>
       </div>
     </form>
