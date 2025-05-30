@@ -23,7 +23,10 @@ export function getTaskColor(
   row: number,
   taskColor?: string
 ): { backgroundColor: string; borderColor: string } {
-  const color = taskColor || defaultColors[row % defaultColors.length];
+  const color =
+    !taskColor || taskColor === ""
+      ? defaultColors[row % defaultColors.length]
+      : taskColor;
   const backgroundColor = `${color}50`;
   const borderColor = color;
   return { backgroundColor, borderColor };
@@ -34,9 +37,9 @@ export function getTaskColor(
  * @param error The error object that is passed from the API call.
  * @returns The error message as a string or undefined if it is not available.
  */
-export function displayErrorMessage(error: any): string | undefined {
+export function displayErrorMessage(error?: any): string | undefined {
   // Check if the error has a response with data and take the first error field
-  if (error.response && error.response.data) {
+  if (!!error && error.response) {
     return error.response.data["error"];
   }
 }
@@ -71,10 +74,6 @@ export function calculateTotalHoursForDays(
   );
 }
 
-
-
-
-
 export const isHoliday = (day: Date, timesheet: Timesheet): boolean => {
   return (
     timesheet.timeEntries?.some((entry) => {
@@ -95,11 +94,10 @@ export const isSickDay = (day: Date, timesheet: Timesheet): boolean => {
   );
 };
 
-
 export const getTimeEntriesForTaskAndDay = (
   taskId: number,
   timesheet: Timesheet,
-  day?: Date,
+  day?: Date
 ): TimeEntry[] => {
   if (!timesheet.timeEntries) return [];
   if (!day) {
@@ -107,7 +105,6 @@ export const getTimeEntriesForTaskAndDay = (
   }
   return timesheet.timeEntries.filter(
     (entry) =>
-      entry.task === taskId &&
-      normalizeDate(entry.date) === normalizeDate(day)
+      entry.task === taskId && normalizeDate(entry.date) === normalizeDate(day)
   );
 };

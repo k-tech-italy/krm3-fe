@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 import { MissionInterface } from "../restapi/types";
 import { createMission, getMission, getMissions, getResources, getClients, getProjects, getCountries, getCities } from "../restapi/mission";
 import { AxiosError } from "axios";
-import { useGetCurrentUser } from "./commons";
+import { useGetCurrentUser } from "./useAuth";
 
 export function useCreateMission() {
     const queryClient = useQueryClient();

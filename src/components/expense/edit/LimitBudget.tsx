@@ -1,6 +1,6 @@
-import { useGetBudgetLimit } from "../../../hooks/expense";
+import { useGetBudgetLimit } from "../../../hooks/useExpense";
 import { useEffect, useState } from "react";
-import { useMediaQuery } from "../../../hooks/commons";
+import { useMediaQuery } from "../../../hooks/useView";
 import { Category } from "../../../restapi/types";
 
 interface props {

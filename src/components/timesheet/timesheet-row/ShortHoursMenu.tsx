@@ -1,5 +1,5 @@
 import { toast } from "react-toastify";
-import { useCreateTimeEntry } from "../../../hooks/timesheet";
+import { useCreateTimeEntry } from "../../../hooks/useTimesheet";
 import { displayErrorMessage } from "../utils/utils";
 import { formatDate, getDatesBetween, normalizeDate } from "../utils/dates";
 import { useState } from "react";
@@ -47,7 +47,7 @@ export const ShortHoursMenu = (props: {
           pending: "Adding hours...",
           success: "Hours added successfully",
           error:
-            (!!error && displayErrorMessage(error)) || "Error adding hours",
+            (displayErrorMessage(error)),
         },
         {
           autoClose: 2000,

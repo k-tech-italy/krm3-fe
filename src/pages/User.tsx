@@ -1,4 +1,4 @@
-import { useGetCurrentUser } from "../hooks/commons";
+import { useGetCurrentUser } from "../hooks/useAuth";
 import LoadSpinner from "../components/commons/LoadSpinner";
 
 export function User() {

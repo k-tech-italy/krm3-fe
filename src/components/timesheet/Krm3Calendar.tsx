@@ -2,11 +2,11 @@ import { useState, useMemo } from "react";
 import { Task, TimeEntry } from "../../restapi/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Krm3Modal from "../commons/krm3Modal";
-import EditTimeEntry from "./EditTimeEntry";
+import EditTimeEntry from "./edit-entry/EditTimeEntry";
 import { TimeSheetTable } from "./TimesheetTable";
-import EditDayEntry from "./edit-day/EditDayEntry";
+import EditDayEntry from "./edit-entry/EditDayEntry";
 import VisualizationActions from "./VisualizationActions";
-import { useColumnViewPreference } from "../../hooks/commons";
+import { useColumnViewPreference } from "../../hooks/useView";
 import { formatDate, formatDayAndMonth, formatMonthName } from "./utils/dates";
 
 export default function Krm3Calendar() {
@@ -25,6 +25,13 @@ export default function Krm3Calendar() {
     const diff = today.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(today.setDate(diff));
   });
+
+  const currentMonth = useMemo(() => {
+    // currentWeekStart.getMonth();
+    const month = new Date();
+    month.getMonth();
+    return month.getMonth();
+  }, [currentWeekStart]);
 
   const scheduledDays = useMemo(() => {
     const days = [];
@@ -45,6 +52,10 @@ export default function Krm3Calendar() {
         : new Date(currentWeekStart);
 
       if (!isMonth) {
+        if (day.getMonth() !== currentMonth) {
+          numberOfDays = i;
+          break;
+        }
         day.setDate(currentWeekStart.getDate() + i);
       }
       days.push(formatDate(day));

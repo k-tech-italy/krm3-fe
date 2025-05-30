@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MissionError, MissionInterface } from "../../../restapi/types";
 import { CreateMissionForm } from './CreateMissionForm';
-import { useCreateMission } from '../../../hooks/mission';
+import { useCreateMission } from '../../../hooks/useMissions';
 import { validateMission } from '../../../utils/validationMissionForm';
 import "react-datepicker/dist/react-datepicker.css";
 import moment from 'moment';

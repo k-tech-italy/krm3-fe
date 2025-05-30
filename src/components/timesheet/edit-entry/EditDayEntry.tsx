@@ -3,7 +3,7 @@ import {
   useCreateTimeEntry,
   useDeleteTimeEntries,
   useGetSpecialReason,
-} from "../../../hooks/timesheet";
+} from "../../../hooks/useTimesheet";
 import { TimeEntry } from "../../../restapi/types";
 import {
   calculateTotalHoursForDays,
@@ -14,6 +14,10 @@ import { normalizeDate } from "../utils/dates";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import LoadSpinner from "../../commons/LoadSpinner";
+import ErrorMessage from "./ErrorMessage";
+import WarningExistingEntry from "./WarningExistEntry";
+import Krm3Button from "../../commons/Krm3Button";
+import { CheckIcon, TrashIcon } from "lucide-react";
 interface Props {
   startDate: Date;
   endDate: Date;
@@ -56,7 +60,6 @@ export default function EditDayEntry({
       }
     }
   }, [startEntry]);
-
 
   const [entryType, setEntryType] = useState<string | null>(null);
   const [leaveHours, setLeaveHours] = useState<number | undefined>();
@@ -291,20 +294,18 @@ export default function EditDayEntry({
               >
                 Hours *
               </label>
-              <div className="relative mt-1 rounded-md shadow-sm">
-                <input
-                  id="day-entry-leave-hour-input"
-                  type="number"
-                  value={leaveHours || ""}
-                  onChange={handleLeaveHoursChange}
-                  min="1"
-                  max="8"
-                  step={0.25}
-                  required
-                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
-                  placeholder="Enter hours"
-                />
-              </div>
+              <input
+                id="day-entry-leave-hour-input"
+                type="number"
+                value={leaveHours || ""}
+                onChange={handleLeaveHoursChange}
+                min="0"
+                max="8"
+                step={0.25}
+                required
+                className="w-full border  border-gray-300 rounded-md p-2"
+                placeholder="Enter hours"
+              />
             </div>
           )}
 
@@ -314,7 +315,7 @@ export default function EditDayEntry({
                 id="day-entry-special-reason-label"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Reason (optional)
+                Reason
               </label>
               {!!specialReasonOptions && (
                 <select
@@ -322,7 +323,7 @@ export default function EditDayEntry({
                   name="specialReason"
                   value={specialReason}
                   onChange={(e) => setSpecialReason(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2"
+                  className="w-full border   border-gray-300 rounded-md p-2"
                 >
                   <option value=""> Select a reason</option>
                   {specialReasonOptions.map((reason, idx) => (
@@ -342,7 +343,7 @@ export default function EditDayEntry({
             id="day-entry-comments-label"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Comments{(entryType === "sick" || entryType === "leave") && " *"}
+            Comments{entryType === "sick" && " *"}
           </label>
           <textarea
             id="day-entry-comments-input"
@@ -350,73 +351,52 @@ export default function EditDayEntry({
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
             placeholder="Add any notes here..."
             value={comment || ""}
-            required={entryType === "sick" || entryType === "leave"}
+            required={entryType === "sick"}
             onChange={(e) => setComment(e.target.value)}
           ></textarea>
         </div>
 
         {daysWithTimeEntries.length > 0 && (
-          <p className="text-orange-500" id="warning-message">
-            <strong>Warning: </strong>
-
-            {"A time entry already exists for the following days: " +
-              daysWithTimeEntries.map((day) => day.split("-")[2]).join(", ") +
-              ". Save to update"}
-          </p>
+          <WarningExistingEntry
+            daysWithTimeEntries={daysWithTimeEntries}
+            isCheckbox={false}
+          />
         )}
+
         {isLoading && <LoadSpinner />}
         {error && (
-          <div className="text-start text-red-500">
-            <strong>Error: </strong>
-            {displayErrorMessage(error) || "Something went wrong"}
-          </div>
+          <ErrorMessage
+            message={displayErrorMessage(error) || "Something went wrong"}
+          />
         )}
-        {leaveHoursError && (
-          <div className="text-start text-red-500">
-            <strong>Error: </strong>
-            {leaveHoursError}
-          </div>
-        )}
+        {leaveHoursError && <ErrorMessage message={leaveHoursError} />}
 
-        <div className="pt-4 flex justify-between">
-          <div>
-            <button
-              id="cancel-day-entry-form"
-              type="button"
-              onClick={handleDeleteEntry}
-              disabled={daysWithTimeEntries.length === 0}
-              className={`w-full flex justify-center py-2 px-4 mr-4 border border-transparent rounded-md shadow-smfont-medium text-white ${
-                daysWithTimeEntries.length === 0
-                  ? "cursor-not-allowed bg-gray-300"
-                  : " bg-red-500 hover:bg-red-700 focus:outline-none"
-              }`}
-            >
-              Delete
-            </button>
-          </div>
-          <div className="flex justify-end">
-            <button
+        <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+          <Krm3Button
+            disabled={daysWithTimeEntries.length === 0}
+            type="button"
+            style="danger"
+            onClick={handleDeleteEntry}
+            icon={<TrashIcon size={20} />}
+            label="Delete"
+          />
+        <div className="flex space-x-3">
+            <Krm3Button
               disabled={isLoading}
-              className="px-4 py-2 mr-4 bg-[#4B6478] text-white   rounded-lg hover:bg-gray-400 focus:outline-none"
-              id="close-button"
+              type="button"
               onClick={onClose}
-            >
-              Cancel
-            </button>
-            <button
-              id="submit-day-entry-form"
-              type="submit"
+              style="secondary"
+              label="Cancel"
+            />
+
+            <Krm3Button
               disabled={isLoading || !entryType || !!leaveHoursError}
-              className={`px-4 py-2 text-white rounded-lg focus:outline-none
-                ${
-                  isLoading || !entryType || !!leaveHoursError
-                    ? "cursor-not-allowed bg-gray-300"
-                    : "bg-yellow-500 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                }
-                `}
-            >
-              Submit
-            </button>
+              type="submit"
+              style="primary"
+              label="Save"
+              icon={<CheckIcon size={20} />}
+
+            />
           </div>
         </div>
       </form>

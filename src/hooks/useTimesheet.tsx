@@ -8,7 +8,7 @@ import {
   getCities,
 } from "../restapi/mission";
 import { AxiosError, AxiosResponse } from "axios";
-import { useGetCurrentUser } from "./commons";
+import { useGetCurrentUser } from "./useAuth";
 import {
   createTimeEntry,
   getTimesheet,

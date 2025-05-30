@@ -37,18 +37,12 @@ export function TotalHourCell({ day, timeEntries, isMonthView }: Props) {
     (entry) => normalizeDate(entry.date) === formattedDay
   );
 
-  function colorClass() {
-    if (totalHour > 8) {
-      return "red";
-    }
-    if (totalHour > 0 && totalHour < 8) {
-      return "blue";
-    }
-    if (totalHour === 8) {
-      return "green";
-    }
-    return "yellow";
-  }
+  const getTextColorClass = (totalHours: number): string => {
+    if (totalHours > 8) return "text-red-500";
+    if (totalHours > 0 && totalHours < 8) return "text-blue-500";
+    if (totalHours === 8) return "text-green-500";
+    return "text-yellow-500";
+  };
 
   const tooltipId = `tooltip-hours-${formattedDay}`;
 
@@ -58,7 +52,7 @@ export function TotalHourCell({ day, timeEntries, isMonthView }: Props) {
         data-tooltip-id={tooltipId}
         className={`bg-gray-100 items-center font-semibold ${
           isMonthView ? "text-[10px]" : "text-sm"
-        } flex justify-center  h-full w-full text-${colorClass()}-500   ${
+        } flex justify-center  h-full w-full ${getTextColorClass(totalHour)} ${
           isWeekendDay(day) ? "bg-zinc-200" : ""
         }`}
       >

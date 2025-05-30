@@ -2,7 +2,7 @@ import { useState } from "react";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import { TimeEntry, Task, Timesheet } from "../../restapi/types";
 import { Draggable } from "./Draggable";
-import { useGetTimesheet } from "../../hooks/timesheet";
+import { useGetTimesheet } from "../../hooks/useTimesheet";
 import { Droppable } from "./Droppable";
 import { TotalHourCell } from "./TotalHour";
 import { TimeSheetRow } from "./timesheet-row/TimeSheetRow";
@@ -66,7 +66,7 @@ export function TimeSheetTable(props: Props) {
       props.setSelectedTask(task);
       props.setTimeEntries(timeEntries);
       props.setEndDate(endDate);
-      props.setIsDayEntry(false)
+      props.setIsDayEntry(false);
       if (
         endDate > formatDate(task.startDate) &&
         (!!task.endDate ? endDate < formatDate(task.endDate) : true)
@@ -148,9 +148,11 @@ export function TimeSheetTable(props: Props) {
           </div>
 
           <div
-            className={`flex items-center  bg-gray-100 border-b-2 border-gray-300  font-semibold ${
-              isMonthView ? "text-xs p-1 justify-center" : "text-sm p-2"
-            } col-span-1`}
+            className={`flex  items-center bg-gray-100 border-b-2 border-gray-300 p-2 font-semibold ${
+              isMonthView ? "text-xs" : "text-sm"
+            }
+            ${isMonthView && !props.isColumnView ? "justify-center" : "justify-between"}
+             col-span-1`}
           >
             {isMonthView && !props.isColumnView ? "H" : "Hours"}
           </div>
@@ -160,10 +162,10 @@ export function TimeSheetTable(props: Props) {
             <Droppable key={index} id={`column-${index}`}>
               <Draggable id={`column-${index}`}>
                 <div
-                  className={`h-full w-full ${
+                  className={`h-full w-fullitems-center ${
                     props.isColumnView
-                      ? "flex justify-between items-center py-2"
-                      : "flex-col items-center"
+                      ? "flex justify-between py-2"
+                      : "flex-col "
                   } bg-gray-100 font-semibold ${
                     isMonthView ? "text-xs p-1" : "text-sm p-2"
                   } text-center cursor-grab

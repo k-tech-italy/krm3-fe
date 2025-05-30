@@ -27,6 +27,7 @@ export const SpecialDayCell: React.FC<SpecialDayCellProps> = ({
               size={isMonthView ? 12 : 20}
             />
           ),
+          style: { backgroundColor: colors.backgroundColor },
         };
       case "sick":
         return {
@@ -38,30 +39,28 @@ export const SpecialDayCell: React.FC<SpecialDayCellProps> = ({
               size={isMonthView ? 12 : 20}
             />
           ),
+          style: { backgroundColor: colors.backgroundColor },
         };
       case "finished":
         return {
           id: `task-finished-cell-${cellId}`,
           icon: <span className="text-xs text-gray-600">N/A</span>,
+          style: { backgroundColor: "#e5e7eb" },
         };
       default:
         return {};
     }
   };
 
-  const { id, icon } = getCellStyles();
+  const { id, icon, style } = getCellStyles();
 
   return (
     <div
       id={id}
-      style={{ backgroundColor: colors.backgroundColor }}
+      style={style}
       className={`h-full w-full text-center flex items-center justify-center cursor-not-allowed `}
     >
-      <div
-        className={` h-full flex justify-center items-center`}
-      >
-        {icon}
-      </div>
+      <div className={` h-full flex justify-center items-center`}>{icon}</div>
     </div>
   );
 };

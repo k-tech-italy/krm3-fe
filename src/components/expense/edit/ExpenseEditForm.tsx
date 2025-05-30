@@ -7,7 +7,7 @@ import {
   useGetCurrencies,
   useGetDocumentType,
   useGetTypeOfPayment,
-} from "../../../hooks/expense";
+} from "../../../hooks/useExpense";
 import { convertCurrencyTo } from "../../../restapi/expense";
 import LimitBudget from "./LimitBudget";
 import "react-datepicker/dist/react-datepicker.css";
