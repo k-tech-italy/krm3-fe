@@ -35,7 +35,7 @@ const WarningExistingEntry = ({
                     .join(", ")}
                 </span>
               </p>
-              {isCheckbox && setKeepEntries && keepEntries && (
+              {isCheckbox && setKeepEntries && (
                 <div className="mt-3 flex items-center">
                   <input
                     type="checkbox"

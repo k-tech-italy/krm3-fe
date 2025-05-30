@@ -37,9 +37,9 @@ export function getTaskColor(
  * @param error The error object that is passed from the API call.
  * @returns The error message as a string or undefined if it is not available.
  */
-export function displayErrorMessage(error: any): string | undefined {
+export function displayErrorMessage(error?: any): string | undefined {
   // Check if the error has a response with data and take the first error field
-  if (error.response) {
+  if (!!error && error.response) {
     return error.response.data["error"];
   }
 }

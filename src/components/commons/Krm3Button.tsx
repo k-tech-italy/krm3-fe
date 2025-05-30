@@ -8,37 +8,47 @@ interface Props {
 }
 
 const Krm3Button = ({ disabled, onClick, type, style, icon, label }: Props) => {
-  let buttonStyle;
-  switch (style) {
-    case "primary":
-      buttonStyle =
-        "bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500";
-      break;
-    case "secondary":
-      buttonStyle =
-        "inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
-      break;
-    case "danger":
-      buttonStyle =
-        "bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500";
-      break;
-    default:
-      buttonStyle =
-        "bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500";
-  }
+  const styles = {
+    primary: {
+      buttonStyle:
+        "text-white border-transparent bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-yellow-500",
+      disabledStyle:
+        " text-white border-transparent bg-gray-300 cursor-not-allowed",
+    },
+    secondary: {
+      buttonStyle:
+        "border-gray-300 font-medium rounded-md text-gray-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-blue-500 transition-colors duration-200",
+      disabledStyle:
+        "text-white border-transparent bg-gray-300 cursor-not-allowed",
+    },
+    danger: {
+      buttonStyle:
+        "text-white border-transparent bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-red-500",
+      disabledStyle:
+        "text-white border-transparent bg-gray-300 cursor-not-allowed",
+    },
+    default: {
+      buttonStyle:
+        "border-transparent bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-yellow-500",
+      disabledStyle:
+        "text-white border-transparent bg-gray-300 cursor-not-allowed",
+    },
+  };
+
+  const { buttonStyle, disabledStyle } = styles[style || "default"];
 
   return (
     <button
-      className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md  transition-colors duration-200 ${
-        disabled ? "bg-gray-300 cursor-not-allowed" : buttonStyle
+      className={`inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md  transition-colors duration-200 focus:ring-2 focus:ring-offset-2 ${
+        disabled ? disabledStyle : buttonStyle
       }`}
       id="delete-button"
       type={type}
       onClick={onClick}
       disabled={disabled}
     >
-      {icon && <span>{icon}</span>}
-      <span className="ml-2">{label}</span>
+      {icon && <span className="mr-2">{icon}</span>}
+      <span>{label}</span>
     </button>
   );
 };

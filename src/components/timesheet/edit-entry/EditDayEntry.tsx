@@ -17,7 +17,7 @@ import LoadSpinner from "../../commons/LoadSpinner";
 import ErrorMessage from "./ErrorMessage";
 import WarningExistingEntry from "./WarningExistEntry";
 import Krm3Button from "../../commons/Krm3Button";
-import { TrashIcon } from "lucide-react";
+import { CheckIcon, TrashIcon } from "lucide-react";
 interface Props {
   startDate: Date;
   endDate: Date;
@@ -394,6 +394,8 @@ export default function EditDayEntry({
               type="submit"
               style="primary"
               label="Save"
+              icon={<CheckIcon size={20} />}
+
             />
           </div>
         </div>
