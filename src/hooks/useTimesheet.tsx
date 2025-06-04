@@ -16,9 +16,9 @@ import {
   getSpecialReason,
 } from "../restapi/timesheet";
 
-export function useCreateTimeEntry() {
+export function useCreateTimeEntry(selectedResourceId: number | null) {
   const { data: currentUser } = useGetCurrentUser();
-  const resourceId = currentUser?.resource.id;
+  const resourceId = selectedResourceId ? selectedResourceId : currentUser?.resource.id;
   const queryClient = useQueryClient();
   if (resourceId === undefined) {
     throw new Error("Resource ID is undefined");
@@ -48,9 +48,13 @@ export function useCreateTimeEntry() {
   );
 }
 
-export function useGetTimesheet(startDate: string, endDate: string) {
+export function useGetTimesheet(
+  startDate: string, 
+  endDate: string, 
+  selectedResourceId: number | null
+) {
   const { data } = useGetCurrentUser();
-  const resourceId = data?.resource?.id;
+  const resourceId = selectedResourceId ? selectedResourceId : data?.resource?.id;
 
   return useQuery(
     ["timesheet", resourceId, startDate, endDate],

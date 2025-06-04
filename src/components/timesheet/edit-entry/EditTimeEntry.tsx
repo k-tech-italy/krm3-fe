@@ -20,6 +20,8 @@ interface Props {
   startDate: Date;
   endDate: Date;
   closeModal: () => void;
+  readOnly: boolean;
+  selectedResourceId: number | null;
 }
 
 export default function EditTimeEntry({
@@ -28,6 +30,8 @@ export default function EditTimeEntry({
   closeModal,
   startDate,
   endDate,
+  readOnly,
+  selectedResourceId,
 }: Props) {
   const startEntry = timeEntries.find(
     (item) => item.date === normalizeDate(startDate) && item.task == task.id
@@ -69,9 +73,9 @@ export default function EditTimeEntry({
   const [totalHours, setTotalHours] = useState(
     startEntry
       ? Number(startEntry.dayShiftHours) +
-          Number(startEntry.nightShiftHours) +
-          Number(startEntry.travelHours) +
-          Number(startEntry.onCallHours)
+      Number(startEntry.nightShiftHours) +
+      Number(startEntry.travelHours) +
+      Number(startEntry.onCallHours)
       : 0
   ); // SHOULD ON CALL HOURS BE ADDED TO TOTAL HOURS???
 
@@ -98,7 +102,7 @@ export default function EditTimeEntry({
     isLoading,
   } = useDeleteTimeEntries();
   const { mutateAsync: createTimeEntries, error: creationError } =
-    useCreateTimeEntry();
+    useCreateTimeEntry(selectedResourceId);
 
   function getDatesToSave() {
     if (keepEntries) {
@@ -165,6 +169,7 @@ export default function EditTimeEntry({
                   handleChangeDate(date, "from");
                 }
               }}
+              disabled={readOnly}
             />
           </div>
           <div>
@@ -181,6 +186,7 @@ export default function EditTimeEntry({
                   handleChangeDate(date, "to");
                 }
               }}
+              disabled={readOnly}
             />
           </div>
         </div>
@@ -225,6 +231,7 @@ export default function EditTimeEntry({
                   Number(e.target.value) + nightShiftHours + travelHours
                 );
               }}
+              disabled={readOnly}
             />
           </div>
 
@@ -247,6 +254,7 @@ export default function EditTimeEntry({
                   Number(e.target.value) + dayShiftHours + travelHours
                 );
               }}
+              disabled={readOnly}
             />
           </div>
 
@@ -269,6 +277,7 @@ export default function EditTimeEntry({
                   dayShiftHours + Number(e.target.value) + nightShiftHours
                 );
               }}
+              disabled={readOnly}
             />
           </div>
 
@@ -288,6 +297,7 @@ export default function EditTimeEntry({
               onChange={(e) => {
                 setOnCallHours(Number(e.target.value));
               }}
+              disabled={readOnly}
             />
           </div>
         </div>
@@ -310,14 +320,17 @@ export default function EditTimeEntry({
           onChange={(e) => {
             setComment(e.target.value);
           }}
+          disabled={readOnly}
         />
       </div>
-      <WarningExistingEntry
-        daysWithTimeEntries={daysWithTimeEntries}
-        keepEntries={keepEntries}
-        setKeepEntries={setKeepEntries}
-        isCheckbox
-      />
+      {!readOnly && (
+        <WarningExistingEntry
+          daysWithTimeEntries={daysWithTimeEntries}
+          keepEntries={keepEntries}
+          setKeepEntries={setKeepEntries}
+          isCheckbox
+        />
+      )}
       {totalHours > 24 && (
         <ErrorMessage message="Total hours cannot exceed 24 hours per day." />
       )}
@@ -334,7 +347,7 @@ export default function EditTimeEntry({
         className="flex items-center justify-between pt-6 border-t border-gray-200"
       >
         <Krm3Button
-          disabled={daysWithTimeEntries.length === 0}
+          disabled={daysWithTimeEntries.length === 0 || readOnly}
           type="button"
           style="danger"
           onClick={handleDeleteEntries}
@@ -351,7 +364,7 @@ export default function EditTimeEntry({
             label="Cancel"
           />
           <Krm3Button
-            disabled={totalHours > 24 || totalHours === 0}
+            disabled={totalHours > 24 || totalHours === 0 || readOnly}
             type="submit"
             style="primary"
             label="Save"

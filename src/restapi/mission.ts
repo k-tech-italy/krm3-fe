@@ -37,6 +37,12 @@ export function getResources(profile?: number): Promise<Page<Resource>> {
     return restapi.get<Page<Resource>>(`core/resource/`, { params }).then(res => res.data);
 }
 
+export function getActiveResources(): Promise<Resource[]> {
+    return restapi.get<Resource[]>(`core/resource/active/`)
+        .then(res => res.data)
+        .catch((): Resource[] => []);
+}
+
 export function getClients(): Promise<Page<Client>> {
     return restapi.get<Page<Client>>(`core/client/`).then(res => res.data);
 }
