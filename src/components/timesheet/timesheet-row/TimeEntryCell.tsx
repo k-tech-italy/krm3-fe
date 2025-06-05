@@ -23,6 +23,7 @@ export interface TimeEntryCellProps extends CellProps {
   isInDragRange: boolean;
   type: "task" | "holiday" | "sick" | "finished";
   isColumnView: boolean;
+  readOnly: boolean;
 }
 
 export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
@@ -35,6 +36,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   isInDragRange,
   colors,
   type,
+  readOnly,
   onClick,
 }) => {
   const cellId = `${day.toDateString()}-${taskId}`;

@@ -28,6 +28,8 @@ interface Props {
   isColumnView: boolean;
   startDate?: Date;
   endDate?: Date;
+  selectedResourceId: number | null;
+  readOnly: boolean;
 }
 
 export function TimeSheetTable(props: Props) {
@@ -39,7 +41,8 @@ export function TimeSheetTable(props: Props) {
 
   const { data: timesheet, isLoading: isLoadingTimesheet } = useGetTimesheet(
     startScheduled,
-    endScheduled
+    endScheduled,
+    props.selectedResourceId
   );
 
   const [openShortMenu, setOpenShortMenu] = useState<
@@ -217,6 +220,8 @@ export function TimeSheetTable(props: Props) {
                 openTimeEntryModalHandler={openTimeEntryModalHandler}
                 openShortMenu={openShortMenu}
                 setOpenShortMenu={setOpenShortMenu}
+                readOnly={props.readOnly}
+                selectedResourceId={props.selectedResourceId}
               />
             ))
           )}

@@ -25,6 +25,8 @@ export interface TimeSheetRowProps {
   setOpenShortMenu?: (
     value: { startDate: string; endDate: string; taskId: string } | undefined
   ) => void;
+  readOnly: boolean;
+  selectedResourceId: number | null;
 }
 
 export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
@@ -39,6 +41,8 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   openTimeEntryModalHandler,
   openShortMenu,
   setOpenShortMenu,
+  readOnly,
+  selectedResourceId
 }) => {
   // Generate color once per task row
   const { backgroundColor, borderColor } = useMemo(
@@ -94,6 +98,8 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             openShortMenu={openShortMenu}
             setOpenShortMenu={setOpenShortMenu}
             openTimeEntryModalHandler={() => openTimeEntryModalHandler(task)}
+            readOnly={readOnly}
+            selectedResourceId={selectedResourceId}
           />
           <TimeEntryCell
             day={day}
@@ -105,6 +111,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             isColumnHighlighted={isColumnHighlighted(dayIndex)}
             isInDragRange={isCellInDragRange(day, task.id)}
             colors={{ backgroundColor, borderColor }}
+            readOnly={readOnly}
           />
         </div>
       </div>

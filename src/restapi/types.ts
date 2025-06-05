@@ -40,8 +40,8 @@ export interface Currency {
 
 export interface Page<T> {
   count: number;
-  next: string;
-  previous: string;
+  next: string | null;
+  previous: string | null;
   results: T[];
 }
 
@@ -151,6 +151,7 @@ export interface User {
   profile: ProfileInterface;
   username: string;
   cid: string;
+  permissions: string[] | null;
 }
 
 export interface Task {
