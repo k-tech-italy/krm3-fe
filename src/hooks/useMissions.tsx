@@ -1,6 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { MissionInterface } from "../restapi/types";
-import { createMission, getMission, getMissions, getResources, getClients, getProjects, getCountries, getCities } from "../restapi/mission";
+import { 
+    createMission, 
+    getMission, 
+    getMissions, 
+    getResources,
+    getActiveResources,
+    getClients, 
+    getProjects, 
+    getCountries, 
+    getCities 
+} from "../restapi/mission";
 import { AxiosError } from "axios";
 import { useGetCurrentUser } from "./useAuth";
 
@@ -32,6 +42,11 @@ export function useGetMissions() {
 
 export function useGetResources() {
     const resources = useQuery('resources', () => getResources());
+    return resources.data;
+}
+
+export function useGetActiveResources() {
+    const resources = useQuery('activeResources', () => getActiveResources());
     return resources.data;
 }
 

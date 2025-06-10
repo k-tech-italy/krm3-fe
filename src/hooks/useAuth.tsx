@@ -34,11 +34,23 @@ export function useLogout() {
     queryClient.setQueryData(["user", "current"], null);
   };
 
+  const isAuthenticated = !!userQuery.data && !userQuery.isError;
+
+  const isSuperUser = isAuthenticated && userQuery.data?.isSuperuser;
+
+  const userCan = (permissions: string[]) => {
+    if (!isAuthenticated) return false;
+    if (isSuperUser) return true; // Superusers have all permissions
+    const userPermissions = userQuery.data?.permissions || [];
+    return permissions.every((perm) => userPermissions.includes(perm));
+  };
+
   return {
     ...userQuery,
     refreshUser,
     clearUser,
-    isAuthenticated: !!userQuery.data && !userQuery.isError,
+    isAuthenticated,
+    userCan,
   };
 }
 

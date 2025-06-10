@@ -23,6 +23,8 @@ interface Props {
   endDate: Date;
   timeEntries: TimeEntry[];
   onClose: () => void;
+  readOnly: boolean;
+  selectedResourceId: number | null;
 }
 
 export default function EditDayEntry({
@@ -30,13 +32,15 @@ export default function EditDayEntry({
   startDate,
   endDate,
   timeEntries,
+  readOnly,
+  selectedResourceId
 }: Props) {
   const {
     mutateAsync: submitDays,
     isLoading,
     isError,
     error,
-  } = useCreateTimeEntry();
+  } = useCreateTimeEntry(selectedResourceId);
   const { mutateAsync: deleteDays } = useDeleteTimeEntries();
   const startEntry = timeEntries.find(
     (item) => normalizeDate(item.date) === normalizeDate(startDate)
@@ -108,6 +112,7 @@ export default function EditDayEntry({
   }
 
   const handleEntryTypeChange = (type: string) => {
+    if (readOnly) return; // Prevent changes in read-only mode
     setEntryType(type);
     if (type !== "leave") {
       setLeaveHours(undefined); // Clear leave hours if not leave
@@ -168,7 +173,7 @@ export default function EditDayEntry({
           <div className="flex flex-wrap" id="datepickers">
             <div className="w-full md:w-1/3  mb-4 md:mb-0">
               <label className="block text-sm font-medium mb-1">
-                Dal giorno:
+                From day:
               </label>
               <DatePicker
                 dateFormat="yyyy-MM-dd"
@@ -180,11 +185,12 @@ export default function EditDayEntry({
                     handleChangeDate(date, "from");
                   }
                 }}
+                disabled={readOnly}
               />
             </div>
             <div className="w-full md:w-1/3 mb-4 md:mb-0">
               <label className="block text-sm font-medium mb-1">
-                Al giorno:
+                To day:
               </label>
               <DatePicker
                 dateFormat="yyyy-MM-dd"
@@ -196,6 +202,7 @@ export default function EditDayEntry({
                     handleChangeDate(date, "to");
                   }
                 }}
+                disabled={readOnly}
               />
             </div>
           </div>
@@ -305,6 +312,7 @@ export default function EditDayEntry({
                 required
                 className="w-full border  border-gray-300 rounded-md p-2"
                 placeholder="Enter hours"
+                disabled={readOnly}
               />
             </div>
           )}
@@ -324,6 +332,7 @@ export default function EditDayEntry({
                   value={specialReason}
                   onChange={(e) => setSpecialReason(e.target.value)}
                   className="w-full border   border-gray-300 rounded-md p-2"
+                  disabled={readOnly}
                 >
                   <option value=""> Select a reason</option>
                   {specialReasonOptions.map((reason, idx) => (
@@ -353,6 +362,7 @@ export default function EditDayEntry({
             value={comment || ""}
             required={entryType === "sick"}
             onChange={(e) => setComment(e.target.value)}
+            disabled={readOnly}
           ></textarea>
         </div>
 
@@ -373,7 +383,7 @@ export default function EditDayEntry({
 
         <div className="flex items-center justify-between pt-6 border-t border-gray-200">
           <Krm3Button
-            disabled={daysWithTimeEntries.length === 0}
+            disabled={daysWithTimeEntries.length === 0 || readOnly}
             type="button"
             style="danger"
             onClick={handleDeleteEntry}
@@ -390,7 +400,7 @@ export default function EditDayEntry({
             />
 
             <Krm3Button
-              disabled={isLoading || !entryType || !!leaveHoursError}
+              disabled={isLoading || !entryType || !!leaveHoursError || readOnly}
               type="submit"
               style="primary"
               label="Save"
