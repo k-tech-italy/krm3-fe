@@ -18,6 +18,8 @@ import ErrorMessage from "./ErrorMessage";
 import WarningExistingEntry from "./WarningExistEntry";
 import Krm3Button from "../../commons/Krm3Button";
 import { CheckIcon, TrashIcon } from "lucide-react";
+import { getDatesWitTimeEntries } from "../utils/timeEntry";
+
 interface Props {
   startDate: Date;
   endDate: Date;
@@ -84,30 +86,19 @@ export default function EditDayEntry({
     isLoading: isSpecialReasonLoading,
     error: specialReasonError,
   } = useGetSpecialReason(normalizeDate(fromDate), normalizeDate(toDate));
-  const updateDaysWithTimeEntries = (
-    startDate: Date,
-    endDate: Date
-  ): string[] => {
-    const dates = getDatesBetween(startDate, endDate);
-    const datesWithTimeEntries = dates.filter((date) =>
-      timeEntries.some(
-        (timeEntry) => normalizeDate(timeEntry.date) === normalizeDate(date)
-      )
-    );
-    return datesWithTimeEntries;
-  };
+  
 
   const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
-    updateDaysWithTimeEntries(fromDate, toDate)
+    getDatesWitTimeEntries(fromDate, toDate, timeEntries)
   );
 
   function handleChangeDate(selectedDate: Date, dateType: "from" | "to") {
     if (dateType === "from") {
       setFromDate(selectedDate);
-      setDaysWithTimeEntries(updateDaysWithTimeEntries(selectedDate, toDate));
+      setDaysWithTimeEntries(getDatesWitTimeEntries(selectedDate, toDate, timeEntries));
     } else if (dateType === "to") {
       setToDate(selectedDate);
-      setDaysWithTimeEntries(updateDaysWithTimeEntries(fromDate, selectedDate));
+      setDaysWithTimeEntries(getDatesWitTimeEntries(fromDate, selectedDate, timeEntries));
     }
   }
 

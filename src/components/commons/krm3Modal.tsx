@@ -1,15 +1,12 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import Modal from "react-modal";
 import { X } from "lucide-react";
-
-// Make sure to set the app element for accessibility
-// This should be done once in your app's entry point (e.g., index.js or App.js)
-// Modal.setAppElement('#root');
 
 interface Krm3ModalProps {
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  width?: string;
   title?: string;
 }
 
@@ -18,6 +15,7 @@ export default function Krm3Modal({
   onClose,
   children,
   title,
+  width,
 }: Krm3ModalProps) {
   // Handle body scroll lock
   useEffect(() => {
@@ -31,7 +29,7 @@ export default function Krm3Modal({
     };
   }, [open]);
 
-  // Modal styles that match your original component
+  // Modal styles that match original component
   const customStyles = {
     overlay: {
       backgroundColor: "rgba(0, 0, 0, 0.2)",
@@ -47,7 +45,7 @@ export default function Krm3Modal({
       left: "auto",
       right: "auto",
       bottom: "auto",
-      maxWidth: "44rem",
+      maxWidth: width || "44rem",
       width: "100%",
       padding: 0,
       border: "none",

@@ -5,6 +5,7 @@ interface Props {
   isCheckbox: boolean;
   keepEntries?: boolean;
   setKeepEntries?: React.Dispatch<React.SetStateAction<boolean>>;
+  style?: string;
 }
 
 const WarningExistingEntry = ({
@@ -12,22 +13,22 @@ const WarningExistingEntry = ({
   keepEntries,
   setKeepEntries,
   isCheckbox,
+  style,
 }: Props) => {
   return (
-    <div>
-      {" "}
+    <div className={style || ""}>
       {daysWithTimeEntries.length > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-md p-4">
+        <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
           <div className="flex items-start">
             <div className="flex-shrink-0">
               <TriangleAlert
                 color="#f59e0b"
-                className="h-5 w-5 text-orange-400"
+                className="h-5 w-5 text-amber-400"
                 size={20}
               />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-orange-800" id="warning-message">
+              <p className="text-sm text-amber-800" id="warning-message">
                 <strong>Warning:</strong> Time entries already exist for days:{" "}
                 <span className="font-medium">
                   {daysWithTimeEntries
@@ -46,7 +47,7 @@ const WarningExistingEntry = ({
                       setKeepEntries(!keepEntries);
                     }}
                   />
-                  <label className="ml-2 text-sm text-orange-800">
+                  <label className="ml-2 text-sm text-amber-800">
                     Overwrite existing time entries
                   </label>
                 </div>
