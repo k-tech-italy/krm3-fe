@@ -100,6 +100,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             openTimeEntryModalHandler={() => openTimeEntryModalHandler(task)}
             readOnly={readOnly}
             selectedResourceId={selectedResourceId}
+            timeEntries={timeEntries}
           />
           <TimeEntryCell
             day={day}

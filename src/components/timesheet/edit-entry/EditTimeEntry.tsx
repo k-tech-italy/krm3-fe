@@ -13,6 +13,7 @@ import WarningExistingEntry from "./WarningExistEntry.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
 import Krm3Button from "../../commons/Krm3Button.tsx";
 import { CheckIcon, SaveIcon, TrashIcon } from "lucide-react";
+import { getDatesWitTimeEntries } from "../utils/timeEntry.ts";
 
 interface Props {
   task: Task;
@@ -43,30 +44,19 @@ export default function EditTimeEntry({
     endDate >= startDate ? endDate : startDate
   );
   const [keepEntries, setKeepEntries] = useState<boolean>(true);
-  const updateDaysWithTimeEntries = (
-    startDate: Date,
-    endDate: Date
-  ): string[] => {
-    const dates = getDatesBetween(startDate, endDate);
-    const datesWithTimeEntries = dates.filter((date) =>
-      timeEntries.some(
-        (timeEntry) => normalizeDate(timeEntry.date) === normalizeDate(date)
-      )
-    );
-    return datesWithTimeEntries;
-  };
+
 
   const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
-    updateDaysWithTimeEntries(fromDate, toDate)
+    getDatesWitTimeEntries(fromDate, toDate, timeEntries)
   );
 
   function handleChangeDate(date: Date, type: "from" | "to") {
     if (type === "from") {
       setFromDate(date);
-      setDaysWithTimeEntries(updateDaysWithTimeEntries(date, toDate));
+      setDaysWithTimeEntries(getDatesWitTimeEntries(date, toDate, timeEntries));
     } else {
       setToDate(date);
-      setDaysWithTimeEntries(updateDaysWithTimeEntries(fromDate, date));
+      setDaysWithTimeEntries(getDatesWitTimeEntries(fromDate, date, timeEntries));
     }
   }
 
@@ -77,7 +67,7 @@ export default function EditTimeEntry({
       Number(startEntry.travelHours) +
       Number(startEntry.onCallHours)
       : 0
-  ); // SHOULD ON CALL HOURS BE ADDED TO TOTAL HOURS???
+  ); 
 
   const [dayShiftHours, setDayShiftHours] = useState(
     startEntry ? Number(startEntry.dayShiftHours) : 0
