@@ -7,7 +7,7 @@ import {
   isHoliday,
   isSickDay,
 } from "../utils/utils";
-import { Days, Task, TimeEntry, Timesheet } from "../../../restapi/types";
+import { Days, Task, TimeEntry, TimeEntryType, Timesheet } from "../../../restapi/types";
 import { ShortHoursMenu } from "./ShortHoursMenu";
 import { normalizeDate } from "../utils/dates";
 
@@ -81,15 +81,15 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
       (entry) => normalizeDate(entry.date) === normalizeDate(day)
     );
 
-    const type = isHoliday(day, timesheet)
-      ? "holiday"
+    const type: TimeEntryType = isHoliday(day, timesheet)
+      ? TimeEntryType.HOLIDAY
       : isSickDay(day, timesheet)
-      ? "sick"
+      ? TimeEntryType.SICK
       : isTaskFinished(day, task)
-      ? "finished"
+      ? TimeEntryType.FINISHED
       : timeEntry?.state === "CLOSED"
-      ? "closed"
-      : "task"
+      ? TimeEntryType.CLOSED
+      : TimeEntryType.TASK
 
     return (
       <div key={dayIndex} className="w-full h-full">

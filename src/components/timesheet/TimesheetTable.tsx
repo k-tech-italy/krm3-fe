@@ -76,7 +76,7 @@ export function TimeSheetTable(props: Props) {
       props.setEndDate(endDate);
       props.setIsDayEntry(false);
       if (
-        endDateTimeEntry?.state === "OPEN" &&
+        !endDateTimeEntry || endDateTimeEntry?.state === "OPEN" &&
         endDate >= formatDate(task.startDate) &&
         (!!task.endDate ? endDate <= formatDate(task.endDate) : true)
       ) {

@@ -35,7 +35,7 @@ export default function EditDayEntry({
   endDate,
   timeEntries,
   readOnly,
-  selectedResourceId
+  selectedResourceId,
 }: Props) {
   const {
     mutateAsync: submitDays,
@@ -86,19 +86,22 @@ export default function EditDayEntry({
     isLoading: isSpecialReasonLoading,
     error: specialReasonError,
   } = useGetSpecialReason(normalizeDate(fromDate), normalizeDate(toDate));
-  
 
   const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
-    getDatesWithTimeEntries(fromDate, toDate, timeEntries)
+    getDatesWithTimeEntries(fromDate, toDate, timeEntries, true)
   );
 
   function handleChangeDate(selectedDate: Date, dateType: "from" | "to") {
     if (dateType === "from") {
       setFromDate(selectedDate);
-      setDaysWithTimeEntries(getDatesWithTimeEntries(selectedDate, toDate, timeEntries));
+      setDaysWithTimeEntries(
+        getDatesWithTimeEntries(selectedDate, toDate, timeEntries, true)
+      );
     } else if (dateType === "to") {
       setToDate(selectedDate);
-      setDaysWithTimeEntries(getDatesWithTimeEntries(fromDate, selectedDate, timeEntries));
+      setDaysWithTimeEntries(
+        getDatesWithTimeEntries(fromDate, selectedDate, timeEntries, true)
+      );
     }
   }
 
@@ -132,7 +135,12 @@ export default function EditDayEntry({
     event.preventDefault();
     if (entryType) {
       submitDays({
-        dates: getDatesBetween(fromDate, toDate),
+        dates: getDatesBetween(startDate, endDate).filter((date) =>{
+          const closedEntries = timeEntries.filter((entry) => {
+            return entry.state == 'CLOSED'
+          })
+          return !closedEntries.map((entry) => entry.date).includes(date)
+        }),
         holidayHours: entryType === "holiday" ? 8 : undefined,
         sickHours: entryType === "sick" ? 8 : undefined,
         leaveHours: leaveHours,
@@ -142,6 +150,7 @@ export default function EditDayEntry({
       }).then(onClose);
     }
   };
+
 
   function handleDeleteEntry(event: any): void {
     event.preventDefault();
@@ -180,9 +189,7 @@ export default function EditDayEntry({
               />
             </div>
             <div className="w-full md:w-1/3 mb-4 md:mb-0">
-              <label className="block text-sm font-medium mb-1">
-                To day:
-              </label>
+              <label className="block text-sm font-medium mb-1">To day:</label>
               <DatePicker
                 dateFormat="yyyy-MM-dd"
                 selected={toDate}
@@ -381,7 +388,7 @@ export default function EditDayEntry({
             icon={<TrashIcon size={20} />}
             label="Delete"
           />
-        <div className="flex space-x-3">
+          <div className="flex space-x-3">
             <Krm3Button
               disabled={isLoading}
               type="button"
@@ -391,12 +398,13 @@ export default function EditDayEntry({
             />
 
             <Krm3Button
-              disabled={isLoading || !entryType || !!leaveHoursError || readOnly}
+              disabled={
+                isLoading || !entryType || !!leaveHoursError || readOnly
+              }
               type="submit"
               style="primary"
               label="Save"
               icon={<CheckIcon size={20} />}
-
             />
           </div>
         </div>

@@ -63,7 +63,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
     ${isWeekendDay(day) ? "bg-zinc-100" : ""}
   `}
       >
-        {(type === TimeEntryType.HOLIDAY || type === TimeEntryType.SICK || type === TimeEntryType.FINISHED || type === TimeEntryType.CLOSED) && (
+        {(type === TimeEntryType.HOLIDAY || type === TimeEntryType.SICK || type === TimeEntryType.FINISHED) && (
           <div className="h-full w-full flex items-center justify-center">
             <SpecialDayCell
               day={day}
@@ -74,7 +74,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
             />
           </div>
         )}
-        {timeEntry && timeEntry.state === "OPEN" && (
+        {timeEntry && (
           <div key={timeEntry.id} className={`h-full w-full flex items-center`}>
             <TimeEntryItem
               entry={timeEntry}
@@ -84,7 +84,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
             />
           </div>
         )}
-        {!timeEntry && type === "task" && (
+        {!timeEntry && type === TimeEntryType.TASK && (
           <EmptyCell day={day} taskId={taskId} isMonthView={isMonthView} />
         )}
       </div>
