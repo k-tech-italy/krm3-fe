@@ -97,7 +97,12 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       isVisible,
       daysWithTimeEntries,
       datesWithNoTimeEntries,
-      selectedDates: getDatesBetween(startDate, endDate),
+      selectedDates: getDatesBetween(startDate, endDate).filter((date) =>{
+        const closedEntries = timeEntries.filter((entry) => {
+          return entry.state == 'CLOSED'
+        })
+        return !closedEntries.map((entry) => entry.date).includes(date)
+      }),
     };
   }, [openShortMenu, day, taskId, timeEntries]);
 
