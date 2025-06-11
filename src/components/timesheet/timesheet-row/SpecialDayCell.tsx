@@ -15,6 +15,7 @@ interface Props {
   type: TimeEntryType;
 }
 
+
 export const SpecialDayCell: React.FC<Props> = ({
   day,
   taskId,
