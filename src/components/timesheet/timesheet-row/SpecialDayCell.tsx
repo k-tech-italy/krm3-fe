@@ -10,7 +10,6 @@ export const SpecialDayCell: React.FC<SpecialDayCellProps> = ({
   taskId,
   type,
   isMonthView,
-  isColumnHighlighted,
   colors,
 }) => {
   const cellId = `${day.toDateString()}-${taskId}`;

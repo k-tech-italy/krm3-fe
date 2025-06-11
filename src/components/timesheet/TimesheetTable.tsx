@@ -66,13 +66,14 @@ export function TimeSheetTable(props: Props) {
       props.setIsDayEntry(true);
     },
     onTimeEntryDrag: ({ task, timeEntries, endDate }) => {
+     
       props.setSelectedTask(task);
       props.setTimeEntries(timeEntries);
       props.setEndDate(endDate);
       props.setIsDayEntry(false);
       if (
-        endDate > formatDate(task.startDate) &&
-        (!!task.endDate ? endDate < formatDate(task.endDate) : true)
+        endDate >= formatDate(task.startDate) &&
+        (!!task.endDate ? endDate <= formatDate(task.endDate) : true)
       ) {
         setOpenShortMenu({
           startDate: normalizeDate(props.startDate!),

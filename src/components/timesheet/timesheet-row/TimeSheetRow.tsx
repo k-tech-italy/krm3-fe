@@ -42,7 +42,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   openShortMenu,
   setOpenShortMenu,
   readOnly,
-  selectedResourceId
+  selectedResourceId,
 }) => {
   // Generate color once per task row
   const { backgroundColor, borderColor } = useMemo(

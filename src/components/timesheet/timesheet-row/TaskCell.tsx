@@ -10,22 +10,6 @@ export const TaskHeader: React.FC<TaskHeaderProps> = ({
   task,
   isMonthView,
 }) => {
-  // const getTotalHours = (timeEntries: TimeEntry[] | undefined) => {
-  //   if (!timeEntries) return 0;
-  //   return timeEntries.reduce((acc, timeEntry) => {
-  //     return (
-  //       acc +
-  //       (Number(timeEntry.dayShiftHours) || 0) +
-  //       (Number(timeEntry.nightShiftHours) || 0) +
-  //       (Number(timeEntry.onCallHours) || 0) +
-  //       (Number(timeEntry.leaveHours) || 0)
-  //     );
-  //   }, 0);
-  // };
-
-  const getTotalHours = () => {
-    return 0;
-  };
 
   return (
     <div
