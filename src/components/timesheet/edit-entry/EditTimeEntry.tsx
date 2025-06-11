@@ -1,5 +1,5 @@
 import { Task, TimeEntry } from "../../../restapi/types.ts";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   useDeleteTimeEntries,
   useCreateTimeEntry,
@@ -12,7 +12,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import WarningExistingEntry from "./WarningExistEntry.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
 import Krm3Button from "../../commons/Krm3Button.tsx";
-import { CheckIcon, SaveIcon, TrashIcon } from "lucide-react";
+import { CheckIcon, TrashIcon } from "lucide-react";
 import { getDatesWithTimeEntries } from "../utils/timeEntry.ts";
 
 interface Props {
@@ -49,6 +49,7 @@ export default function EditTimeEntry({
   const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
     getDatesWithTimeEntries(fromDate, toDate, timeEntries, true)
   );
+
 
   function handleChangeDate(date: Date, type: "from" | "to") {
     if (type === "from") {
@@ -95,13 +96,22 @@ export default function EditTimeEntry({
     useCreateTimeEntry(selectedResourceId);
 
   function getDatesToSave() {
+    if(timeEntries.length === 0) {
+      return getDatesBetween(fromDate, toDate);
+    }
     if (keepEntries) {
-      return getDatesWithTimeEntries(fromDate, toDate, timeEntries, true);
-    } else {
-      const datesWithNoTimeEntries = getDatesBetween(fromDate, toDate).filter(
-        (date) => !daysWithTimeEntries.includes(normalizeDate(date))
+      return getDatesBetween(fromDate, toDate).filter(
+        (date) => !getDatesWithTimeEntries(
+          fromDate,
+          toDate,
+          timeEntries
+        ).includes(normalizeDate(date))
       );
-      return datesWithNoTimeEntries;
+      
+    } else {
+      return getDatesBetween(fromDate, toDate).filter(
+        (date) => daysWithTimeEntries.includes(normalizeDate(date))
+      );
     }
   }
 
@@ -122,6 +132,7 @@ export default function EditTimeEntry({
     const timeEntriesIds = timeEntries
       .filter(
         (timeEntry) =>
+          timeEntry.state !== "CLOSED" &&
           normalizeDate(fromDate) <= normalizeDate(timeEntry.date) &&
           normalizeDate(toDate) >= normalizeDate(timeEntry.date)
       )

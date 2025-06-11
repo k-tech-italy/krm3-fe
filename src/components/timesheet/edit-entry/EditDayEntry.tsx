@@ -64,11 +64,16 @@ export default function EditDayEntry({
         setEntryType("special");
         //setSpecialReason(startEntry.specialReason);
       }
+      if (startEntry.restHours > 0) {
+        setEntryType("rest");
+        setRestHours(startEntry.restHours);
+      }
     }
   }, [startEntry]);
 
   const [entryType, setEntryType] = useState<string | null>(null);
   const [leaveHours, setLeaveHours] = useState<number | undefined>();
+  const [restHours, setRestHours] = useState<number | undefined>();
   const [comment, setComment] = useState<string | undefined>(
     startEntry?.comment
   );
@@ -131,19 +136,30 @@ export default function EditDayEntry({
     setLeaveHours(Number(event.target.value));
   };
 
+  const handleDatesChange = (entryType: string) => {
+    const closedEntries = timeEntries.filter(
+      (entry) => entry.state === "CLOSED"
+    );
+    const dates = getDatesBetween(startDate, endDate);
+    if (entryType === "leave" || entryType === "rest") {
+      return dates;
+    } else {
+      return dates.filter((date) => {
+        return !closedEntries.map((entry) => entry.date).includes(date);
+      });
+    }
+  };
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (entryType) {
       submitDays({
-        dates: getDatesBetween(startDate, endDate).filter((date) =>{
-          const closedEntries = timeEntries.filter((entry) => {
-            return entry.state == 'CLOSED'
-          })
-          return !closedEntries.map((entry) => entry.date).includes(date)
-        }),
+        dates: handleDatesChange(entryType),
+        nightShiftHours: 0,
         holidayHours: entryType === "holiday" ? 8 : undefined,
         sickHours: entryType === "sick" ? 8 : undefined,
         leaveHours: leaveHours,
+        restHours: restHours,
         specialReason: specialReason,
         dayShiftHours: 0, // Set dayShiftHours to 0 if 'cause is mandatory'
         comment: comment,
@@ -151,13 +167,16 @@ export default function EditDayEntry({
     }
   };
 
-
   function handleDeleteEntry(event: any): void {
     event.preventDefault();
     //DELETE API with skippedTaskId
     const skippedTaskId = daysWithTimeEntries.flatMap((day) => {
       return timeEntries
-        .filter((item) => normalizeDate(item.date) === normalizeDate(day))
+        .filter(
+          (item) =>
+            item.state !== "CLOSED" &&
+            normalizeDate(item.date) === normalizeDate(day)
+        )
         .map((item) => item.id);
     });
     deleteDays(skippedTaskId).then(() => {
@@ -302,7 +321,7 @@ export default function EditDayEntry({
               <input
                 id="day-entry-leave-hour-input"
                 type="number"
-                value={leaveHours || ""}
+                value={entryType === "leave" ? leaveHours : restHours}
                 onChange={handleLeaveHoursChange}
                 min="0"
                 max="8"
@@ -370,6 +389,13 @@ export default function EditDayEntry({
             isCheckbox={false}
           />
         )}
+        {!!entryType && handleDatesChange(entryType).length === 0 && (
+          <ErrorMessage
+            message={
+              "You must select at least one day without closed time entries"
+            }
+          />
+        )}
 
         {isLoading && <LoadSpinner />}
         {error && (
@@ -399,12 +425,17 @@ export default function EditDayEntry({
 
             <Krm3Button
               disabled={
-                isLoading || !entryType || !!leaveHoursError || readOnly
+                isLoading ||
+                !entryType ||
+                !!leaveHoursError ||
+                readOnly ||
+                (!!entryType && handleDatesChange(entryType).length === 0)
               }
               type="submit"
               style="primary"
               label="Save"
               icon={<CheckIcon size={20} />}
+              disabledTooltipMessage="Please select a valid day"
             />
           </div>
         </div>

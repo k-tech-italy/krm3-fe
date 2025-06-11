@@ -19,7 +19,7 @@ export const getDatesWithTimeEntries = (
   timeEntries: TimeEntry[],
   skipClosedTimeEntries: boolean = false
 ): string[] => {
-  const filteredTimeEntries = skipClosedTimeEntries
+    const filteredTimeEntries = skipClosedTimeEntries
     ? timeEntries.filter((timeEntry) => timeEntry.state !== "CLOSED")
     : timeEntries;
   const dates = getDatesBetween(startDate, endDate);
@@ -29,3 +29,19 @@ export const getDatesWithTimeEntries = (
     )
   );
 };
+
+export const getDatesWithoutClosedTimeEntries = (startDate: Date,
+  endDate: Date, timeEntries: TimeEntry[]) => {
+    const dates = getDatesBetween(startDate, endDate);
+    const filteredTimeEntries = timeEntries.filter((timeEntry) => timeEntry.state !== "CLOSED")
+    if (filteredTimeEntries.length === 0) {
+      return dates;
+    }
+    return dates.filter((date) =>
+      filteredTimeEntries.some(
+        (timeEntry) => normalizeDate(timeEntry.date) === normalizeDate(date)
+      )
+    );
+   
+
+}

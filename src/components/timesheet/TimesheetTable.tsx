@@ -15,6 +15,7 @@ import {
 import { isWeekendDay } from "./utils/dates";
 import LoadSpinner from "../commons/LoadSpinner";
 import { DragCallbacks, useDragAndDrop } from "../../hooks/useDragAndDrop";
+import { isHoliday, isSickDay } from "./utils/utils";
 
 interface Props {
   setOpenTimeEntryModal: (open: boolean) => void;
@@ -55,6 +56,29 @@ export function TimeSheetTable(props: Props) {
     props.setOpenTimeEntryModal(true);
   };
 
+  const openShortMenuHandler = (
+    endDate: Date,
+    task: Task,
+    timeEntries: TimeEntry[]
+  ) => {
+    const endDateTimeEntry = timesheet?.timeEntries.find(
+      (timeEntry) =>
+        timeEntry.task === task.id &&
+        normalizeDate(timeEntry.date) === normalizeDate(endDate)
+    );
+
+    console.log(!!timesheet && !isHoliday(endDate, timesheet));
+
+    if (
+      (!endDateTimeEntry && !!timesheet && !isHoliday(endDate, timesheet) && !isSickDay(endDate, timesheet)) ||
+      (endDateTimeEntry?.state === "OPEN" &&
+        endDate >= formatDate(task.startDate) &&
+        (!!task.endDate ? endDate <= formatDate(task.endDate) : true))
+    ) {
+      return true;
+    }
+  };
+
   // Drag and drop callbacks
   const dragCallbacks: DragCallbacks = {
     onColumnDrag: ({ task, timeEntries, endDate }) => {
@@ -66,20 +90,11 @@ export function TimeSheetTable(props: Props) {
       props.setIsDayEntry(true);
     },
     onTimeEntryDrag: ({ task, timeEntries, endDate }) => {
-
-      const endDateTimeEntry = timeEntries.find(
-        (timeEntry) => timeEntry.task === task.id && normalizeDate(timeEntry.date) === normalizeDate(endDate)
-      );
-      
       props.setSelectedTask(task);
       props.setTimeEntries(timeEntries);
       props.setEndDate(endDate);
       props.setIsDayEntry(false);
-      if (
-        !endDateTimeEntry || endDateTimeEntry?.state === "OPEN" &&
-        endDate >= formatDate(task.startDate) &&
-        (!!task.endDate ? endDate <= formatDate(task.endDate) : true)
-      ) {
+      if (openShortMenuHandler(endDate, task, timeEntries)) {
         setOpenShortMenu({
           startDate: normalizeDate(props.startDate!),
           endDate: normalizeDate(endDate),
@@ -113,7 +128,10 @@ export function TimeSheetTable(props: Props) {
 
   if (!timesheet) {
     return (
-      <div id='no-data-timesheet-table' className="flex items-center justify-center w-full">
+      <div
+        id="no-data-timesheet-table"
+        className="flex items-center justify-center w-full"
+      >
         <h3>No Data</h3>
       </div>
     );
@@ -149,7 +167,7 @@ export function TimeSheetTable(props: Props) {
         >
           {/* Table Headers */}
           <div
-          id='table-header'
+            id="table-header"
             className={`flex justify-between items-center bg-gray-100 border-b-2 border-gray-300 p-2 font-semibold ${
               isMonthView ? "text-xs" : "text-sm"
             } col-span-1`}
@@ -161,7 +179,11 @@ export function TimeSheetTable(props: Props) {
             className={`flex  items-center bg-gray-100 border-b-2 border-gray-300 p-2 font-semibold ${
               isMonthView ? "text-xs" : "text-sm"
             }
-            ${isMonthView && !props.isColumnView ? "justify-center" : "justify-between"}
+            ${
+              isMonthView && !props.isColumnView
+                ? "justify-center"
+                : "justify-between"
+            }
              col-span-1`}
           >
             {isMonthView && !props.isColumnView ? "H" : "Hours"}
