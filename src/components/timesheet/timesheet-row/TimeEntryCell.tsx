@@ -2,7 +2,7 @@ import React from "react";
 import { Droppable } from "../Droppable";
 import { TimeEntryItem } from "./TimeEntryItem";
 import { EmptyCell } from "./EmptyCell";
-import { TimeEntry } from "../../../restapi/types";
+import { TimeEntry, TimeEntryType } from "../../../restapi/types";
 import { SpecialDayCell } from "./SpecialDayCell";
 import { isWeekendDay } from "../utils/dates";
 
@@ -21,11 +21,10 @@ export interface TimeEntryCellProps extends CellProps {
   timeEntry?: TimeEntry;
   onClick?: () => void;
   isInDragRange: boolean;
-  type: "task" | "holiday" | "sick" | "finished" | "closed";
+  type: TimeEntryType;
   isColumnView: boolean;
   readOnly: boolean;
 }
-
 export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   day,
   taskId,
@@ -64,14 +63,13 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
     ${isWeekendDay(day) ? "bg-zinc-100" : ""}
   `}
       >
-        {(type === "holiday" || type === "sick" || type === "finished" || type === "closed") && (
+        {(type === TimeEntryType.HOLIDAY || type === TimeEntryType.SICK || type === TimeEntryType.FINISHED || type === TimeEntryType.CLOSED) && (
           <div className="h-full w-full flex items-center justify-center">
             <SpecialDayCell
               day={day}
               taskId={taskId}
               type={type}
               isMonthView={isMonthView}
-              isColumnHighlighted={isColumnHighlighted}
               colors={colors}
             />
           </div>

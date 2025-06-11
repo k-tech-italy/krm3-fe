@@ -202,3 +202,10 @@ export interface SpecialReason {
     fromDate: string,
     toDate: string
 }
+export const enum TimeEntryType {
+  TASK = "task",
+  HOLIDAY = "holiday",
+  SICK = "sick",
+  FINISHED = "finished",
+  CLOSED = "closed"
+}

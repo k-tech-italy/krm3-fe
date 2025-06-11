@@ -2,11 +2,20 @@ import React from "react";
 import { FileLock2, Martini, Stethoscope } from "lucide-react";
 import { CellProps } from "./TimeEntryCell";
 import { Tooltip } from "react-tooltip";
+import { TimeEntryType } from "../../../restapi/types";
 
-export interface SpecialDayCellProps extends CellProps {
-  type: "holiday" | "sick" | "finished" | "closed";
+interface Props {
+  day: Date;
+  taskId: number;
+  isMonthView: boolean;
+  colors: {
+    backgroundColor: string;
+    borderColor: string;
+  };
+  type: TimeEntryType;
 }
-export const SpecialDayCell: React.FC<SpecialDayCellProps> = ({
+
+export const SpecialDayCell: React.FC<Props> = ({
   day,
   taskId,
   type,
@@ -71,15 +80,14 @@ export const SpecialDayCell: React.FC<SpecialDayCellProps> = ({
   const { id, icon, style, tooltip } = getCellStyles();
 
   return (
-      <div
-        id={id}
-        data-tooltip-id={`tooltip-${id}`}
-        style={style}
-        className={`h-full w-full text-center flex items-center justify-center cursor-not-allowed `}
-      >
-        <div className={` h-full flex justify-center items-center`}>{icon}</div>
-        <Tooltip id={`tooltip-${id}`} content={tooltip} />
-
-      </div>
+    <div
+      id={id}
+      data-tooltip-id={`tooltip-${id}`}
+      style={style}
+      className={`h-full w-full text-center flex items-center justify-center cursor-not-allowed `}
+    >
+      <div className={` h-full flex justify-center items-center`}>{icon}</div>
+      <Tooltip id={`tooltip-${id}`} content={tooltip} />
+    </div>
   );
 };
