@@ -18,7 +18,7 @@ import ErrorMessage from "./ErrorMessage";
 import WarningExistingEntry from "./WarningExistEntry";
 import Krm3Button from "../../commons/Krm3Button";
 import { CheckIcon, TrashIcon } from "lucide-react";
-import { getDatesWitTimeEntries } from "../utils/timeEntry";
+import { getDatesWithTimeEntries } from "../utils/timeEntry";
 
 interface Props {
   startDate: Date;
@@ -89,16 +89,16 @@ export default function EditDayEntry({
   
 
   const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
-    getDatesWitTimeEntries(fromDate, toDate, timeEntries)
+    getDatesWithTimeEntries(fromDate, toDate, timeEntries)
   );
 
   function handleChangeDate(selectedDate: Date, dateType: "from" | "to") {
     if (dateType === "from") {
       setFromDate(selectedDate);
-      setDaysWithTimeEntries(getDatesWitTimeEntries(selectedDate, toDate, timeEntries));
+      setDaysWithTimeEntries(getDatesWithTimeEntries(selectedDate, toDate, timeEntries));
     } else if (dateType === "to") {
       setToDate(selectedDate);
-      setDaysWithTimeEntries(getDatesWitTimeEntries(fromDate, selectedDate, timeEntries));
+      setDaysWithTimeEntries(getDatesWithTimeEntries(fromDate, selectedDate, timeEntries));
     }
   }
 

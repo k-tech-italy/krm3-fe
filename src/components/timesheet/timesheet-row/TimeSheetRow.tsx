@@ -7,7 +7,7 @@ import {
   isHoliday,
   isSickDay,
 } from "../utils/utils";
-import { Task, TimeEntry, Timesheet } from "../../../restapi/types";
+import { Days, Task, TimeEntry, Timesheet } from "../../../restapi/types";
 import { ShortHoursMenu } from "./ShortHoursMenu";
 import { normalizeDate } from "../utils/dates";
 
@@ -76,17 +76,20 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
     : "border-b-[var(--border-color)]";
 
   const renderDayCell = (day: Date, dayIndex: number) => {
+    
+    const timeEntry = timeEntries.find(
+      (entry) => normalizeDate(entry.date) === normalizeDate(day)
+    );
+
     const type = isHoliday(day, timesheet)
       ? "holiday"
       : isSickDay(day, timesheet)
       ? "sick"
       : isTaskFinished(day, task)
       ? "finished"
-      : "task";
-
-    const timeEntry = timeEntries.find(
-      (entry) => normalizeDate(entry.date) === normalizeDate(day)
-    );
+      : timeEntry?.state === "CLOSED"
+      ? "closed"
+      : "task"
 
     return (
       <div key={dayIndex} className="w-full h-full">

@@ -21,7 +21,7 @@ export interface TimeEntryCellProps extends CellProps {
   timeEntry?: TimeEntry;
   onClick?: () => void;
   isInDragRange: boolean;
-  type: "task" | "holiday" | "sick" | "finished";
+  type: "task" | "holiday" | "sick" | "finished" | "closed";
   isColumnView: boolean;
   readOnly: boolean;
 }
@@ -64,7 +64,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
     ${isWeekendDay(day) ? "bg-zinc-100" : ""}
   `}
       >
-        {(type === "holiday" || type === "sick" || type === "finished") && (
+        {(type === "holiday" || type === "sick" || type === "finished" || type === "closed") && (
           <div className="h-full w-full flex items-center justify-center">
             <SpecialDayCell
               day={day}
@@ -76,7 +76,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
             />
           </div>
         )}
-        {timeEntry && (
+        {timeEntry && timeEntry.state === "OPEN" && (
           <div key={timeEntry.id} className={`h-full w-full flex items-center`}>
             <TimeEntryItem
               entry={timeEntry}

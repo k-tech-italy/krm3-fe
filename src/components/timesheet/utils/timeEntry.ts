@@ -1,7 +1,6 @@
 import { TimeEntry } from "../../../restapi/types";
 import { getDatesBetween, normalizeDate } from "./dates";
 
-
 /**
  * Given a start date, an end date, and an array of TimeEntry objects,
  * returns an array of 'YYYY-MM-DD' strings representing the dates
@@ -11,18 +10,22 @@ import { getDatesBetween, normalizeDate } from "./dates";
  * @param {Date} startDate The start date
  * @param {Date} endDate The end date
  * @param {TimeEntry[]} timeEntries An array of TimeEntry objects
+ * @param {boolean} [skipClosedTimeEntries=false] If true, skip TimeEntry objects with state === "CLOSED"
  * @returns {string[]} An array of 'YYYY-MM-DD' strings
  */
-export const getDatesWitTimeEntries = (
-    startDate: Date,
-    endDate: Date,
-    timeEntries: TimeEntry[]
-  ): string[] => {
-    const dates = getDatesBetween(startDate, endDate);
-    const datesWithTimeEntries = dates.filter((date) =>
-      timeEntries.some(
-        (timeEntry) => normalizeDate(timeEntry.date) === normalizeDate(date)
-      )
-    );
-    return datesWithTimeEntries;
-  };
+export const getDatesWithTimeEntries = (
+  startDate: Date,
+  endDate: Date,
+  timeEntries: TimeEntry[],
+  skipClosedTimeEntries: boolean = false
+): string[] => {
+  const filteredTimeEntries = skipClosedTimeEntries
+    ? timeEntries.filter((timeEntry) => timeEntry.state !== "CLOSED")
+    : timeEntries;
+  const dates = getDatesBetween(startDate, endDate);
+  return dates.filter((date) =>
+    filteredTimeEntries.some(
+      (timeEntry) => normalizeDate(timeEntry.date) === normalizeDate(date)
+    )
+  );
+};

@@ -66,12 +66,17 @@ export function TimeSheetTable(props: Props) {
       props.setIsDayEntry(true);
     },
     onTimeEntryDrag: ({ task, timeEntries, endDate }) => {
-     
+
+      const endDateTimeEntry = timeEntries.find(
+        (timeEntry) => timeEntry.task === task.id && normalizeDate(timeEntry.date) === normalizeDate(endDate)
+      );
+      
       props.setSelectedTask(task);
       props.setTimeEntries(timeEntries);
       props.setEndDate(endDate);
       props.setIsDayEntry(false);
       if (
+        endDateTimeEntry?.state === "OPEN" &&
         endDate >= formatDate(task.startDate) &&
         (!!task.endDate ? endDate <= formatDate(task.endDate) : true)
       ) {
@@ -108,7 +113,7 @@ export function TimeSheetTable(props: Props) {
 
   if (!timesheet) {
     return (
-      <div className="flex items-center justify-center w-full">
+      <div id='no-data-timesheet-table' className="flex items-center justify-center w-full">
         <h3>No Data</h3>
       </div>
     );
@@ -144,6 +149,7 @@ export function TimeSheetTable(props: Props) {
         >
           {/* Table Headers */}
           <div
+          id='table-header'
             className={`flex justify-between items-center bg-gray-100 border-b-2 border-gray-300 p-2 font-semibold ${
               isMonthView ? "text-xs" : "text-sm"
             } col-span-1`}

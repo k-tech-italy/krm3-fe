@@ -1,9 +1,10 @@
 import React from "react";
-import { Martini, Stethoscope } from "lucide-react";
+import { FileLock2, Martini, Stethoscope } from "lucide-react";
 import { CellProps } from "./TimeEntryCell";
+import { Tooltip } from "react-tooltip";
 
 export interface SpecialDayCellProps extends CellProps {
-  type: "holiday" | "sick" | "finished";
+  type: "holiday" | "sick" | "finished" | "closed";
 }
 export const SpecialDayCell: React.FC<SpecialDayCellProps> = ({
   day,
@@ -27,6 +28,7 @@ export const SpecialDayCell: React.FC<SpecialDayCellProps> = ({
             />
           ),
           style: { backgroundColor: colors.backgroundColor },
+          tooltip: "Holiday",
         };
       case "sick":
         return {
@@ -39,27 +41,45 @@ export const SpecialDayCell: React.FC<SpecialDayCellProps> = ({
             />
           ),
           style: { backgroundColor: colors.backgroundColor },
+          tooltip: "Sick Day",
         };
       case "finished":
         return {
           id: `task-finished-cell-${cellId}`,
           icon: <span className="text-xs text-gray-600">N/A</span>,
           style: { backgroundColor: "#e5e7eb" },
+          tooltip: "Task Finished",
+        };
+      case "closed":
+        return {
+          id: `task-closed-cell-${cellId}`,
+          icon: (
+            <FileLock2
+              strokeWidth={2.25}
+              color="black"
+              size={isMonthView ? 12 : 20}
+            />
+          ),
+          style: { backgroundColor: "#e5e7eb" },
+          tooltip: "Task Closed",
         };
       default:
         return {};
     }
   };
 
-  const { id, icon, style } = getCellStyles();
+  const { id, icon, style, tooltip } = getCellStyles();
 
   return (
-    <div
-      id={id}
-      style={style}
-      className={`h-full w-full text-center flex items-center justify-center cursor-not-allowed `}
-    >
-      <div className={` h-full flex justify-center items-center`}>{icon}</div>
-    </div>
+      <div
+        id={id}
+        data-tooltip-id={`tooltip-${id}`}
+        style={style}
+        className={`h-full w-full text-center flex items-center justify-center cursor-not-allowed `}
+      >
+        <div className={` h-full flex justify-center items-center`}>{icon}</div>
+        <Tooltip id={`tooltip-${id}`} content={tooltip} />
+
+      </div>
   );
 };
