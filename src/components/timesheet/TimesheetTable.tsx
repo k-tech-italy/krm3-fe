@@ -52,9 +52,10 @@ export function TimeSheetTable(props: Props) {
   >();
 
   const openTimeEntryModalHandler = (task: Task) => {
+    if(!timesheet) return
     props.setSelectedTask(task);
-    props.setTimeEntries(timesheet?.timeEntries || []);
-    props.setNoWorkingDay(timesheet?.days || {});
+    props.setTimeEntries(timesheet.timeEntries);
+    props.setNoWorkingDay(timesheet.days);
     props.setOpenTimeEntryModal(true);
   };
 
@@ -84,11 +85,12 @@ export function TimeSheetTable(props: Props) {
   // Drag and drop callbacks
   const dragCallbacks: DragCallbacks = {
     onColumnDrag: ({ task, timeEntries, endDate }) => {
+      if(!timesheet) return
       props.setSelectedTask(task);
       props.setTimeEntries(timeEntries);
-
+      props.setNoWorkingDay(timesheet.days);
       props.setEndDate(endDate);
-      if (isNoWorkOrBankHol(endDate, timesheet?.days) !== DayType.BANK_HOLIDAY) {
+      if (isNoWorkOrBankHol(endDate, timesheet.days) !== DayType.BANK_HOLIDAY) {
         props.setOpenTimeEntryModal(true);
         props.setIsDayEntry(true);
       }
