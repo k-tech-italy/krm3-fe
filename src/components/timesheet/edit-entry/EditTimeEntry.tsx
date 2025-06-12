@@ -1,5 +1,5 @@
 import { Task, TimeEntry } from "../../../restapi/types.ts";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   useDeleteTimeEntries,
   useCreateTimeEntry,
@@ -12,8 +12,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import WarningExistingEntry from "./WarningExistEntry.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
 import Krm3Button from "../../commons/Krm3Button.tsx";
-import { CheckIcon, SaveIcon, TrashIcon } from "lucide-react";
-import { getDatesWitTimeEntries } from "../utils/timeEntry.ts";
+import { CheckIcon, TrashIcon } from "lucide-react";
+import { getDatesWithTimeEntries } from "../utils/timeEntry.ts";
 
 interface Props {
   task: Task;
@@ -34,8 +34,8 @@ export default function EditTimeEntry({
   readOnly,
   selectedResourceId,
 }: Props) {
-  const startEntry = timeEntries.find(
-    (item) => item.date === normalizeDate(startDate) && item.task == task.id
+  const startEntry: TimeEntry | undefined = timeEntries.find(
+    (item) => normalizeDate(item.date) === normalizeDate(startDate) && item.task == task.id
   );
   const [fromDate, setFromDate] = useState<Date>(
     startDate <= endDate ? startDate : endDate
@@ -47,20 +47,21 @@ export default function EditTimeEntry({
 
 
   const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
-    getDatesWitTimeEntries(fromDate, toDate, timeEntries)
+    getDatesWithTimeEntries(fromDate, toDate, timeEntries, true)
   );
+
 
   function handleChangeDate(date: Date, type: "from" | "to") {
     if (type === "from") {
       setFromDate(date);
-      setDaysWithTimeEntries(getDatesWitTimeEntries(date, toDate, timeEntries));
+      setDaysWithTimeEntries(getDatesWithTimeEntries(date, toDate, timeEntries, true));
     } else {
       setToDate(date);
-      setDaysWithTimeEntries(getDatesWitTimeEntries(fromDate, date, timeEntries));
+      setDaysWithTimeEntries(getDatesWithTimeEntries(fromDate, date, timeEntries, true));
     }
   }
 
-  const [totalHours, setTotalHours] = useState(
+  const [totalHours, setTotalHours] = useState<number>(
     startEntry
       ? Number(startEntry.dayShiftHours) +
       Number(startEntry.nightShiftHours) +
@@ -69,20 +70,20 @@ export default function EditTimeEntry({
       : 0
   ); 
 
-  const [dayShiftHours, setDayShiftHours] = useState(
+  const [dayShiftHours, setDayShiftHours] = useState<number>(
     startEntry ? Number(startEntry.dayShiftHours) : 0
   );
-  const [nightShiftHours, setNightShiftHours] = useState(
+  const [nightShiftHours, setNightShiftHours] = useState<number>(
     startEntry ? Number(startEntry.nightShiftHours) : 0
   );
-  const [onCallHours, setOnCallHours] = useState(
+  const [onCallHours, setOnCallHours] = useState<number>(
     startEntry ? Number(startEntry.onCallHours) : 0
   );
-  const [travelHours, setTravelHours] = useState(
+  const [travelHours, setTravelHours] = useState<number>(
     startEntry ? Number(startEntry.travelHours) : 0
   );
 
-  const [comment, setComment] = useState(
+  const [comment, setComment] = useState<string>(
     startEntry && startEntry.comment ? startEntry.comment : ""
   );
 
@@ -95,13 +96,22 @@ export default function EditTimeEntry({
     useCreateTimeEntry(selectedResourceId);
 
   function getDatesToSave() {
-    if (keepEntries) {
+    if(timeEntries.length === 0) {
       return getDatesBetween(fromDate, toDate);
-    } else {
-      const datesWithNoTimeEntries = getDatesBetween(fromDate, toDate).filter(
-        (date) => !daysWithTimeEntries.includes(normalizeDate(date))
+    }
+    if (keepEntries) {
+      return getDatesBetween(fromDate, toDate).filter(
+        (date) => !getDatesWithTimeEntries(
+          fromDate,
+          toDate,
+          timeEntries
+        ).includes(normalizeDate(date))
       );
-      return datesWithNoTimeEntries;
+      
+    } else {
+      return getDatesBetween(fromDate, toDate).filter(
+        (date) => daysWithTimeEntries.includes(normalizeDate(date))
+      );
     }
   }
 
@@ -122,6 +132,7 @@ export default function EditTimeEntry({
     const timeEntriesIds = timeEntries
       .filter(
         (timeEntry) =>
+          timeEntry.state !== "CLOSED" &&
           normalizeDate(fromDate) <= normalizeDate(timeEntry.date) &&
           normalizeDate(toDate) >= normalizeDate(timeEntry.date)
       )
@@ -328,6 +339,11 @@ export default function EditTimeEntry({
       {creationError && (
         <ErrorMessage
           message={displayErrorMessage(creationError) || "Creation Error"}
+        />
+      )}
+      {deletionError && (
+        <ErrorMessage
+          message={displayErrorMessage(deletionError) || "Deletion Error"}
         />
       )}
 

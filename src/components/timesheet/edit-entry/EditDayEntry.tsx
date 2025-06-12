@@ -18,7 +18,7 @@ import ErrorMessage from "./ErrorMessage";
 import WarningExistingEntry from "./WarningExistEntry";
 import Krm3Button from "../../commons/Krm3Button";
 import { CheckIcon, TrashIcon } from "lucide-react";
-import { getDatesWitTimeEntries } from "../utils/timeEntry";
+import { getDatesWithTimeEntries } from "../utils/timeEntry";
 
 interface Props {
   startDate: Date;
@@ -35,7 +35,7 @@ export default function EditDayEntry({
   endDate,
   timeEntries,
   readOnly,
-  selectedResourceId
+  selectedResourceId,
 }: Props) {
   const {
     mutateAsync: submitDays,
@@ -64,11 +64,16 @@ export default function EditDayEntry({
         setEntryType("special");
         //setSpecialReason(startEntry.specialReason);
       }
+      if (startEntry.restHours > 0) {
+        setEntryType("rest");
+        setRestHours(startEntry.restHours);
+      }
     }
   }, [startEntry]);
 
   const [entryType, setEntryType] = useState<string | null>(null);
   const [leaveHours, setLeaveHours] = useState<number | undefined>();
+  const [restHours, setRestHours] = useState<number | undefined>();
   const [comment, setComment] = useState<string | undefined>(
     startEntry?.comment
   );
@@ -86,19 +91,22 @@ export default function EditDayEntry({
     isLoading: isSpecialReasonLoading,
     error: specialReasonError,
   } = useGetSpecialReason(normalizeDate(fromDate), normalizeDate(toDate));
-  
 
   const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
-    getDatesWitTimeEntries(fromDate, toDate, timeEntries)
+    getDatesWithTimeEntries(fromDate, toDate, timeEntries, true)
   );
 
   function handleChangeDate(selectedDate: Date, dateType: "from" | "to") {
     if (dateType === "from") {
       setFromDate(selectedDate);
-      setDaysWithTimeEntries(getDatesWitTimeEntries(selectedDate, toDate, timeEntries));
+      setDaysWithTimeEntries(
+        getDatesWithTimeEntries(selectedDate, toDate, timeEntries, true)
+      );
     } else if (dateType === "to") {
       setToDate(selectedDate);
-      setDaysWithTimeEntries(getDatesWitTimeEntries(fromDate, selectedDate, timeEntries));
+      setDaysWithTimeEntries(
+        getDatesWithTimeEntries(fromDate, selectedDate, timeEntries, true)
+      );
     }
   }
 
@@ -128,14 +136,30 @@ export default function EditDayEntry({
     setLeaveHours(Number(event.target.value));
   };
 
+  const handleDatesChange = (entryType: string) => {
+    const closedEntries = timeEntries.filter(
+      (entry) => entry.state === "CLOSED"
+    );
+    const dates = getDatesBetween(startDate, endDate);
+    if (entryType === "leave" || entryType === "rest") {
+      return dates;
+    } else {
+      return dates.filter((date) => {
+        return !closedEntries.map((entry) => entry.date).includes(date);
+      });
+    }
+  };
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     if (entryType) {
       submitDays({
-        dates: getDatesBetween(fromDate, toDate),
+        dates: handleDatesChange(entryType),
+        nightShiftHours: 0,
         holidayHours: entryType === "holiday" ? 8 : undefined,
         sickHours: entryType === "sick" ? 8 : undefined,
         leaveHours: leaveHours,
+        restHours: restHours,
         specialReason: specialReason,
         dayShiftHours: 0, // Set dayShiftHours to 0 if 'cause is mandatory'
         comment: comment,
@@ -148,7 +172,11 @@ export default function EditDayEntry({
     //DELETE API with skippedTaskId
     const skippedTaskId = daysWithTimeEntries.flatMap((day) => {
       return timeEntries
-        .filter((item) => normalizeDate(item.date) === normalizeDate(day))
+        .filter(
+          (item) =>
+            item.state !== "CLOSED" &&
+            normalizeDate(item.date) === normalizeDate(day)
+        )
         .map((item) => item.id);
     });
     deleteDays(skippedTaskId).then(() => {
@@ -180,9 +208,7 @@ export default function EditDayEntry({
               />
             </div>
             <div className="w-full md:w-1/3 mb-4 md:mb-0">
-              <label className="block text-sm font-medium mb-1">
-                To day:
-              </label>
+              <label className="block text-sm font-medium mb-1">To day:</label>
               <DatePicker
                 dateFormat="yyyy-MM-dd"
                 selected={toDate}
@@ -295,7 +321,7 @@ export default function EditDayEntry({
               <input
                 id="day-entry-leave-hour-input"
                 type="number"
-                value={leaveHours || ""}
+                value={entryType === "leave" ? leaveHours : restHours}
                 onChange={handleLeaveHoursChange}
                 min="0"
                 max="8"
@@ -361,6 +387,14 @@ export default function EditDayEntry({
           <WarningExistingEntry
             daysWithTimeEntries={daysWithTimeEntries}
             isCheckbox={false}
+            message="Time Entries with closed will be skipped"
+          />
+        )}
+        {!!entryType && handleDatesChange(entryType).length === 0 && (
+          <ErrorMessage
+            message={
+              "You must select at least one day without closed time entries"
+            }
           />
         )}
 
@@ -381,7 +415,7 @@ export default function EditDayEntry({
             icon={<TrashIcon size={20} />}
             label="Delete"
           />
-        <div className="flex space-x-3">
+          <div className="flex space-x-3">
             <Krm3Button
               disabled={isLoading}
               type="button"
@@ -391,12 +425,18 @@ export default function EditDayEntry({
             />
 
             <Krm3Button
-              disabled={isLoading || !entryType || !!leaveHoursError || readOnly}
+              disabled={
+                isLoading ||
+                !entryType ||
+                !!leaveHoursError ||
+                readOnly ||
+                (!!entryType && handleDatesChange(entryType).length === 0)
+              }
               type="submit"
               style="primary"
               label="Save"
               icon={<CheckIcon size={20} />}
-
+              disabledTooltipMessage="Please select a valid day"
             />
           </div>
         </div>

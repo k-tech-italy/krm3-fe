@@ -9,7 +9,7 @@ import { useCreateTimeEntry } from "../../../hooks/useTimesheet";
 import { displayErrorMessage } from "../utils/utils";
 import { formatDate, getDatesBetween, normalizeDate } from "../utils/dates";
 import { TimeEntry } from "../../../restapi/types";
-import { getDatesWitTimeEntries } from "../utils/timeEntry";
+import { getDatesWithTimeEntries } from "../utils/timeEntry";
 import Krm3Modal from "../../commons/krm3Modal";
 import Krm3Button from "../../commons/Krm3Button";
 import WarningExistingEntry from "../edit-entry/WarningExistEntry";
@@ -80,10 +80,11 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       normalizeDate(openShortMenu.endDate) === normalizeDate(day) &&
       Number(openShortMenu.taskId) === taskId;
 
-    const daysWithTimeEntries = getDatesWitTimeEntries(
+    const daysWithTimeEntries = getDatesWithTimeEntries(
       startDate,
       endDate,
-      timeEntries
+      timeEntries,
+      true
     );
 
     const datesWithNoTimeEntries = getDatesBetween(startDate, endDate).filter(
@@ -96,7 +97,12 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       isVisible,
       daysWithTimeEntries,
       datesWithNoTimeEntries,
-      selectedDates: getDatesBetween(startDate, endDate),
+      selectedDates: getDatesBetween(startDate, endDate).filter((date) =>{
+        const closedEntries = timeEntries.filter((entry) => {
+          return entry.state == 'CLOSED'
+        })
+        return !closedEntries.map((entry) => entry.date).includes(date)
+      }),
     };
   }, [openShortMenu, day, taskId, timeEntries]);
 

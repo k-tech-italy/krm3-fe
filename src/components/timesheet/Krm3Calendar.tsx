@@ -233,7 +233,9 @@ export default function Krm3Calendar({ selectedResourceId }: { selectedResourceI
                           startDate={startDate}
                           endDate={endDate}
                           task={selectedTask}
-                          timeEntries={timeEntries}
+                          timeEntries={timeEntries.filter(
+                            (timeEntry) => timeEntry.task === selectedTask.id
+                          )}
                           closeModal={() => {
                             setOpenTimeEntryModal(false);
                             setSelectedCells(undefined);

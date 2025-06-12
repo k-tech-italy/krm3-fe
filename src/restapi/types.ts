@@ -182,19 +182,30 @@ export interface TimeEntry {
   restHours: number;
   specialLeaveHours: number;
   specialReason?: string;
-  state?: string;
+  state: string;
   comment?: string;
   metaData?: JSON;
 }
 export interface Timesheet {
   tasks: Task[];
   timeEntries: TimeEntry[];
+  days: Days
 }
 
+export interface Days {
+  string: {hol: boolean, nwd: boolean}
+}
 export interface SpecialReason {
     id: number,
     title: string,
     description: string,
     fromDate: string,
     toDate: string
+}
+export const enum TimeEntryType {
+  TASK = "task",
+  HOLIDAY = "holiday",
+  SICK = "sick",
+  FINISHED = "finished",
+  CLOSED = "closed"
 }

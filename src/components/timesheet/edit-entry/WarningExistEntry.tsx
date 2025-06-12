@@ -6,6 +6,7 @@ interface Props {
   keepEntries?: boolean;
   setKeepEntries?: React.Dispatch<React.SetStateAction<boolean>>;
   style?: string;
+  message?: string;
 }
 
 const WarningExistingEntry = ({
@@ -14,6 +15,7 @@ const WarningExistingEntry = ({
   setKeepEntries,
   isCheckbox,
   style,
+  message,
 }: Props) => {
   return (
     <div className={style || ""}>
@@ -35,6 +37,12 @@ const WarningExistingEntry = ({
                     .map((day) => day.split("-")[2])
                     .join(", ")}
                 </span>
+              </p>
+              <p
+                className="text-sm text-amber-800"
+                id="warning-optional-message"
+              >
+                {message ? message : ""}
               </p>
               {isCheckbox && setKeepEntries && (
                 <div className="mt-3 flex items-center">
