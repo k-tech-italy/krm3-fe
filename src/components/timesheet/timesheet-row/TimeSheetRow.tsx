@@ -7,9 +7,9 @@ import {
   isHoliday,
   isSickDay,
 } from "../utils/utils";
-import { Days, Task, TimeEntry, TimeEntryType, Timesheet } from "../../../restapi/types";
+import { Task, TimeEntryType, Timesheet } from "../../../restapi/types";
 import { ShortHoursMenu } from "./ShortHoursMenu";
-import { normalizeDate } from "../utils/dates";
+import { DayType, isNoWorkOrBankHol, normalizeDate } from "../utils/dates";
 
 export interface TimeSheetRowProps {
   timesheet: Timesheet;
@@ -80,6 +80,8 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
     const timeEntry = timeEntries.find(
       (entry) => normalizeDate(entry.date) === normalizeDate(day)
     );
+    const isNoWorkDay = isNoWorkOrBankHol(day, timesheet.days);
+
 
     const type: TimeEntryType = isHoliday(day, timesheet)
       ? TimeEntryType.HOLIDAY
@@ -87,9 +89,10 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
       ? TimeEntryType.SICK
       : isTaskFinished(day, task)
       ? TimeEntryType.FINISHED
-      : timeEntry?.state === "CLOSED"
+      : isNoWorkDay === DayType.BANK_HOLIDAY
       ? TimeEntryType.CLOSED
       : TimeEntryType.TASK
+    
 
     return (
       <div key={dayIndex} className="w-full h-full">
@@ -104,6 +107,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             readOnly={readOnly}
             selectedResourceId={selectedResourceId}
             timeEntries={timeEntries}
+            noWorkingDays={timesheet.days}
           />
           <TimeEntryCell
             day={day}
@@ -116,6 +120,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             isInDragRange={isCellInDragRange(day, task.id)}
             colors={{ backgroundColor, borderColor }}
             readOnly={readOnly}
+            isNoWorkDay={isNoWorkDay === DayType.NO_WORK_DAY}
           />
         </div>
       </div>

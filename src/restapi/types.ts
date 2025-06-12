@@ -193,7 +193,7 @@ export interface Timesheet {
 }
 
 export interface Days {
-  string: {hol: boolean, nwd: boolean}
+  [key: string]: { hol: boolean, nwd: boolean };
 }
 export interface SpecialReason {
     id: number,

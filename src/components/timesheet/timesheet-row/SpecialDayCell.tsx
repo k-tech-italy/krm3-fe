@@ -1,5 +1,5 @@
 import React from "react";
-import { FileLock2, Martini, Stethoscope } from "lucide-react";
+import { CalendarCheck, FileLock2, Martini, Stethoscope } from "lucide-react";
 import { CellProps } from "./TimeEntryCell";
 import { Tooltip } from "react-tooltip";
 import { TimeEntryType } from "../../../restapi/types";
@@ -14,7 +14,6 @@ interface Props {
   };
   type: TimeEntryType;
 }
-
 
 export const SpecialDayCell: React.FC<Props> = ({
   day,
@@ -61,18 +60,17 @@ export const SpecialDayCell: React.FC<Props> = ({
           tooltip: "Task Finished",
         };
       case "closed":
-        // Closed day is implemented in TimeEntryItems
         return {
           id: `task-closed-cell-${cellId}`,
           icon: (
-            <FileLock2
+            <CalendarCheck
               strokeWidth={2.25}
               color="black"
               size={isMonthView ? 12 : 20}
             />
           ),
           style: { backgroundColor: "#e5e7eb" },
-          tooltip: "Task Closed",
+          tooltip: "Sunday or Bank Holiday",
         };
       default:
         return {};

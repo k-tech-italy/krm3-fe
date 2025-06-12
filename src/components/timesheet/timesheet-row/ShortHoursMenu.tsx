@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 import { useCreateTimeEntry } from "../../../hooks/useTimesheet";
 import { displayErrorMessage } from "../utils/utils";
 import { formatDate, getDatesBetween, normalizeDate } from "../utils/dates";
-import { TimeEntry } from "../../../restapi/types";
+import { Days, TimeEntry } from "../../../restapi/types";
 import { getDatesWithTimeEntries } from "../utils/timeEntry";
 import Krm3Modal from "../../commons/krm3Modal";
 import Krm3Button from "../../commons/Krm3Button";
@@ -29,6 +29,7 @@ interface ShortHoursMenuProps {
   ) => void;
   openTimeEntryModalHandler: () => void;
   timeEntries: TimeEntry[];
+  noWorkingDays?: Days;
 }
 
 interface HourOption {
@@ -57,6 +58,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     setOpenShortMenu,
     openTimeEntryModalHandler,
     timeEntries,
+    noWorkingDays,
   } = props;
 
   const [openConfirmModal, setOpenConfirmModal] = useState(false);
@@ -87,7 +89,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       true
     );
 
-    const datesWithNoTimeEntries = getDatesBetween(startDate, endDate).filter(
+    const datesWithNoTimeEntries = getDatesBetween(startDate, endDate, true, noWorkingDays).filter(
       (date) => !daysWithTimeEntries.includes(normalizeDate(date))
     );
 
@@ -97,7 +99,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       isVisible,
       daysWithTimeEntries,
       datesWithNoTimeEntries,
-      selectedDates: getDatesBetween(startDate, endDate).filter((date) =>{
+      selectedDates: getDatesBetween(startDate, endDate, true, noWorkingDays).filter((date) =>{
         const closedEntries = timeEntries.filter((entry) => {
           return entry.state == 'CLOSED'
         })

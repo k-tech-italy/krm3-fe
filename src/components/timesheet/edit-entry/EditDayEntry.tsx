@@ -4,7 +4,7 @@ import {
   useDeleteTimeEntries,
   useGetSpecialReason,
 } from "../../../hooks/useTimesheet";
-import { TimeEntry } from "../../../restapi/types";
+import { Days, TimeEntry } from "../../../restapi/types";
 import {
   calculateTotalHoursForDays,
   displayErrorMessage,
@@ -27,6 +27,7 @@ interface Props {
   onClose: () => void;
   readOnly: boolean;
   selectedResourceId: number | null;
+  noWorkingDays?: Days;
 }
 
 export default function EditDayEntry({
@@ -36,6 +37,7 @@ export default function EditDayEntry({
   timeEntries,
   readOnly,
   selectedResourceId,
+  noWorkingDays,
 }: Props) {
   const {
     mutateAsync: submitDays,
@@ -116,16 +118,17 @@ export default function EditDayEntry({
     if (type !== "leave") {
       setLeaveHours(undefined); // Clear leave hours if not leave
     }
+    if (type !== "rest") {
+      setRestHours(undefined); // Clear rest hours if not rest
+    }
   };
 
-  const handleLeaveHoursChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleHoursChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const totalHours = calculateTotalHoursForDays(
       timeEntries,
       daysWithTimeEntries
     );
-    if (totalHours + Number(event.target.value) > 8) {
+    if ((totalHours + Number(event.target.value) > 8) && entryType === "leave") {
       setLeaveHoursError(
         "No overtime allowed when logging leave hours. Maximum allowed is 8 hours, Total hours: " +
           (totalHours + Number(event.target.value))
@@ -133,14 +136,18 @@ export default function EditDayEntry({
     } else {
       setLeaveHoursError(null);
     }
-    setLeaveHours(Number(event.target.value));
+    if (entryType === "rest") {
+      setRestHours(Number(event.target.value));
+    } else {
+      setLeaveHours(Number(event.target.value));
+    }
   };
 
   const handleDatesChange = (entryType: string) => {
     const closedEntries = timeEntries.filter(
       (entry) => entry.state === "CLOSED"
     );
-    const dates = getDatesBetween(startDate, endDate);
+    const dates = getDatesBetween(startDate, endDate, true, noWorkingDays);
     if (entryType === "leave" || entryType === "rest") {
       return dates;
     } else {
@@ -321,8 +328,14 @@ export default function EditDayEntry({
               <input
                 id="day-entry-leave-hour-input"
                 type="number"
-                value={entryType === "leave" ? leaveHours : restHours}
-                onChange={handleLeaveHoursChange}
+                value={
+                  entryType === "leave"
+                    ? leaveHours || 0
+                    : entryType === "rest"
+                    ? restHours || 0
+                    : 0
+                }
+                onChange={handleHoursChange}
                 min="0"
                 max="8"
                 step={0.25}

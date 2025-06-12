@@ -4,7 +4,7 @@ import { TimeEntryItem } from "./TimeEntryItem";
 import { EmptyCell } from "./EmptyCell";
 import { TimeEntry, TimeEntryType } from "../../../restapi/types";
 import { SpecialDayCell } from "./SpecialDayCell";
-import { isWeekendDay } from "../utils/dates";
+import { isNoWorkOrBankHol } from "../utils/dates";
 
 export interface CellProps {
   day: Date;
@@ -24,6 +24,7 @@ export interface TimeEntryCellProps extends CellProps {
   type: TimeEntryType;
   isColumnView: boolean;
   readOnly: boolean;
+  isNoWorkDay: boolean;
 }
 export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   day,
@@ -36,6 +37,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   colors,
   type,
   readOnly,
+  isNoWorkDay,
   onClick,
 }) => {
   const cellId = `${day.toDateString()}-${taskId}`;
@@ -60,10 +62,10 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
       (isInDragRange || isColumnHighlighted) &&
       (isColumnView ? "border-l-blue-500" : "border-b-blue-500")
     }
-    ${isWeekendDay(day) ? "bg-zinc-100" : ""}
+     ${isNoWorkDay ? "bg-zinc-100" : ""}
   `}
       >
-        {(type === TimeEntryType.HOLIDAY || type === TimeEntryType.SICK || type === TimeEntryType.FINISHED) && (
+        {(type === TimeEntryType.HOLIDAY || type === TimeEntryType.SICK || type === TimeEntryType.FINISHED || type === TimeEntryType.CLOSED) && (
           <div className="h-full w-full flex items-center justify-center">
             <SpecialDayCell
               day={day}

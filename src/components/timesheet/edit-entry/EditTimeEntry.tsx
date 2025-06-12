@@ -1,4 +1,4 @@
-import { Task, TimeEntry } from "../../../restapi/types.ts";
+import { Days, Task, TimeEntry } from "../../../restapi/types.ts";
 import { useState } from "react";
 import {
   useDeleteTimeEntries,
@@ -23,6 +23,7 @@ interface Props {
   closeModal: () => void;
   readOnly: boolean;
   selectedResourceId: number | null;
+  noWorkingDays?: Days;
 }
 
 export default function EditTimeEntry({
@@ -33,9 +34,12 @@ export default function EditTimeEntry({
   endDate,
   readOnly,
   selectedResourceId,
+  noWorkingDays,
 }: Props) {
   const startEntry: TimeEntry | undefined = timeEntries.find(
-    (item) => normalizeDate(item.date) === normalizeDate(startDate) && item.task == task.id
+    (item) =>
+      normalizeDate(item.date) === normalizeDate(startDate) &&
+      item.task == task.id
   );
   const [fromDate, setFromDate] = useState<Date>(
     startDate <= endDate ? startDate : endDate
@@ -45,30 +49,32 @@ export default function EditTimeEntry({
   );
   const [keepEntries, setKeepEntries] = useState<boolean>(true);
 
-
   const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
     getDatesWithTimeEntries(fromDate, toDate, timeEntries, true)
   );
 
-
   function handleChangeDate(date: Date, type: "from" | "to") {
     if (type === "from") {
       setFromDate(date);
-      setDaysWithTimeEntries(getDatesWithTimeEntries(date, toDate, timeEntries, true));
+      setDaysWithTimeEntries(
+        getDatesWithTimeEntries(date, toDate, timeEntries, true)
+      );
     } else {
       setToDate(date);
-      setDaysWithTimeEntries(getDatesWithTimeEntries(fromDate, date, timeEntries, true));
+      setDaysWithTimeEntries(
+        getDatesWithTimeEntries(fromDate, date, timeEntries, true)
+      );
     }
   }
 
   const [totalHours, setTotalHours] = useState<number>(
     startEntry
       ? Number(startEntry.dayShiftHours) +
-      Number(startEntry.nightShiftHours) +
-      Number(startEntry.travelHours) +
-      Number(startEntry.onCallHours)
+          Number(startEntry.nightShiftHours) +
+          Number(startEntry.travelHours) +
+          Number(startEntry.onCallHours)
       : 0
-  ); 
+  );
 
   const [dayShiftHours, setDayShiftHours] = useState<number>(
     startEntry ? Number(startEntry.dayShiftHours) : 0
@@ -96,20 +102,18 @@ export default function EditTimeEntry({
     useCreateTimeEntry(selectedResourceId);
 
   function getDatesToSave() {
-    if(timeEntries.length === 0) {
-      return getDatesBetween(fromDate, toDate);
+    if (timeEntries.length === 0) {
+      return getDatesBetween(fromDate, toDate, true, noWorkingDays);
     }
     if (keepEntries) {
-      return getDatesBetween(fromDate, toDate).filter(
-        (date) => !getDatesWithTimeEntries(
-          fromDate,
-          toDate,
-          timeEntries
-        ).includes(normalizeDate(date))
+      return getDatesBetween(fromDate, toDate, true, noWorkingDays).filter(
+        (date) =>
+          !getDatesWithTimeEntries(fromDate, toDate, timeEntries).includes(
+            normalizeDate(date)
+          )
       );
-      
     } else {
-      return getDatesBetween(fromDate, toDate).filter(
+      return getDatesBetween(fromDate, toDate, true, noWorkingDays).filter(
         (date) => daysWithTimeEntries.includes(normalizeDate(date))
       );
     }

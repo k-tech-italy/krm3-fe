@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Task, TimeEntry } from "../../restapi/types";
+import { Days, Task, TimeEntry } from "../../restapi/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Krm3Modal from "../commons/krm3Modal";
 import EditTimeEntry from "./edit-entry/EditTimeEntry";
@@ -12,9 +12,9 @@ import { useGetCurrentUser } from "../../hooks/useAuth";
 import ErrorMessage from "./edit-entry/ErrorMessage";
 
 export default function Krm3Calendar({ selectedResourceId }: { selectedResourceId: number | null }) {
-  const [selectedCells, setSelectedCells] = useState<Date[] | undefined>();
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
+  const [noWorkingDay, setNoWorkingDay] = useState<Days>();
   const [openTimeEntryModal, setOpenTimeEntryModal] = useState<boolean>(false);
   const [isDayEntry, setIsDayEntry] = useState<boolean>(false);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
@@ -194,7 +194,7 @@ export default function Krm3Calendar({ selectedResourceId }: { selectedResourceI
               setOpenTimeEntryModal={setOpenTimeEntryModal}
               setSelectedTask={setSelectedTask}
               setTimeEntries={setTimeEntries}
-              setSelectedCells={setSelectedCells}
+              setNoWorkingDay={setNoWorkingDay}
               setIsDayEntry={setIsDayEntry}
               setStartDate={setStartDate}
               setEndDate={setEndDate}
@@ -212,7 +212,6 @@ export default function Krm3Calendar({ selectedResourceId }: { selectedResourceI
                   open={openTimeEntryModal}
                   onClose={() => {
                     setOpenTimeEntryModal(false);
-                    setSelectedCells(undefined);
                   }}
                   children={
                     <>
@@ -220,13 +219,13 @@ export default function Krm3Calendar({ selectedResourceId }: { selectedResourceI
                         <EditDayEntry
                           onClose={() => {
                             setOpenTimeEntryModal(false);
-                            setSelectedCells(undefined);
                           }}
                           startDate={startDate}
                           endDate={endDate}
                           timeEntries={timeEntries}
                           readOnly={readOnly}
                           selectedResourceId={selectedResourceId}
+                          noWorkingDays={noWorkingDay}
                         />
                       ) : (
                         <EditTimeEntry
@@ -238,10 +237,10 @@ export default function Krm3Calendar({ selectedResourceId }: { selectedResourceI
                           )}
                           closeModal={() => {
                             setOpenTimeEntryModal(false);
-                            setSelectedCells(undefined);
                           }}
                           readOnly={readOnly}
                           selectedResourceId={selectedResourceId}
+                          noWorkingDays={noWorkingDay}
                         />
                       )}
                     </>
