@@ -90,7 +90,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
       : isTaskFinished(day, task)
       ? TimeEntryType.FINISHED
       : isNoWorkDay === DayType.BANK_HOLIDAY
-      ? TimeEntryType.CLOSED
+      ? TimeEntryType.BANK_HOLIDAY
       : TimeEntryType.TASK
     
 

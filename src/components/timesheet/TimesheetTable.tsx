@@ -69,7 +69,10 @@ export function TimeSheetTable(props: Props) {
         normalizeDate(timeEntry.date) === normalizeDate(endDate)
     );
     if (
-      (!endDateTimeEntry && !!timesheet && !isHoliday(endDate, timesheet) && !isSickDay(endDate, timesheet)) ||
+      (!endDateTimeEntry &&
+        !!timesheet &&
+        !isHoliday(endDate, timesheet) &&
+        !isSickDay(endDate, timesheet)) ||
       (endDateTimeEntry?.state === "OPEN" &&
         endDate >= formatDate(task.startDate) &&
         (!!task.endDate ? endDate <= formatDate(task.endDate) : true))
@@ -85,8 +88,10 @@ export function TimeSheetTable(props: Props) {
       props.setTimeEntries(timeEntries);
 
       props.setEndDate(endDate);
-      props.setOpenTimeEntryModal(true);
-      props.setIsDayEntry(true);
+      if (isNoWorkOrBankHol(endDate, timesheet?.days) !== DayType.BANK_HOLIDAY) {
+        props.setOpenTimeEntryModal(true);
+        props.setIsDayEntry(true);
+      }
     },
     onTimeEntryDrag: ({ task, timeEntries, endDate }) => {
       props.setSelectedTask(task);
@@ -206,7 +211,17 @@ export function TimeSheetTable(props: Props) {
                       ? "bg-blue-100 border-b-2 border-blue-400"
                       : "border-b-2 border-gray-300 hover:border-blue-400"
                   }
-                  ${isNoWorkOrBankHol(day, timesheet.days) !== DayType.WORK ? "bg-zinc-200" : ""}`}
+                  ${
+                    isNoWorkOrBankHol(day, timesheet.days) !== DayType.WORK
+                      ? "bg-zinc-200"
+                      : ""
+                  }
+                  ${
+                    isNoWorkOrBankHol(day, timesheet.days) === DayType.BANK_HOLIDAY
+                      ? "cursor-not-allowed"
+                      : ""
+                  }
+                  `}
                 >
                   <div className={`${isMonthView ? "text-[10px]" : "text-sm"}`}>
                     {isMonthView && !props.isColumnView
@@ -223,7 +238,9 @@ export function TimeSheetTable(props: Props) {
                       timeEntries={timesheet?.timeEntries || []}
                       isMonthView={isMonthView}
                       isColumnView={props.isColumnView}
-                      isNoWorkDay={isNoWorkOrBankHol(day, timesheet.days) !== DayType.WORK}
+                      isNoWorkDay={
+                        isNoWorkOrBankHol(day, timesheet.days) !== DayType.WORK
+                      }
                     />
                   </div>
                 </div>

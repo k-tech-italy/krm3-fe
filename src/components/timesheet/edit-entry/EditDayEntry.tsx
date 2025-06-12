@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   useCreateTimeEntry,
   useDeleteTimeEntries,
@@ -112,6 +112,21 @@ export default function EditDayEntry({
     }
   }
 
+  const handleDatesChange = (entryType: string, startDate: Date = fromDate, endDate: Date = toDate): string[] => {
+    const closedEntries = timeEntries.filter(
+      (entry) => entry.state === "CLOSED"
+    );
+    const dates = getDatesBetween(startDate, endDate, true, noWorkingDays);
+    if (entryType === "leave" || entryType === "rest") {
+      return dates;
+    } else {
+      return dates.filter((date) => {
+        return !closedEntries.map((entry) => entry.date).includes(date);
+      });
+    }
+  };
+
+
   const handleEntryTypeChange = (type: string) => {
     if (readOnly) return; // Prevent changes in read-only mode
     setEntryType(type);
@@ -143,19 +158,7 @@ export default function EditDayEntry({
     }
   };
 
-  const handleDatesChange = (entryType: string) => {
-    const closedEntries = timeEntries.filter(
-      (entry) => entry.state === "CLOSED"
-    );
-    const dates = getDatesBetween(startDate, endDate, true, noWorkingDays);
-    if (entryType === "leave" || entryType === "rest") {
-      return dates;
-    } else {
-      return dates.filter((date) => {
-        return !closedEntries.map((entry) => entry.date).includes(date);
-      });
-    }
-  };
+
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();

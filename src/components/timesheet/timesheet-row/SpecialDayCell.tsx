@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { CalendarCheck, FileLock2, Martini, Stethoscope } from "lucide-react";
 import { CellProps } from "./TimeEntryCell";
 import { Tooltip } from "react-tooltip";
@@ -23,6 +23,12 @@ export const SpecialDayCell: React.FC<Props> = ({
   colors,
 }) => {
   const cellId = `${day.toDateString()}-${taskId}`;
+
+  useEffect(() => {
+    if (cellId === 'Thu May 01 2025-2') {
+      console.log(type)
+    }
+  }, [cellId])
   // Define cell styling based on type
   const getCellStyles = () => {
     switch (type) {
@@ -59,9 +65,9 @@ export const SpecialDayCell: React.FC<Props> = ({
           style: { backgroundColor: "#e5e7eb" },
           tooltip: "Task Finished",
         };
-      case "closed":
+      case "bank_holiday":
         return {
-          id: `task-closed-cell-${cellId}`,
+          id: `bank-holiday-cell-${cellId}`,
           icon: (
             <CalendarCheck
               strokeWidth={2.25}

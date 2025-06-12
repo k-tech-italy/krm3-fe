@@ -207,5 +207,5 @@ export const enum TimeEntryType {
   HOLIDAY = "holiday",
   SICK = "sick",
   FINISHED = "finished",
-  CLOSED = "closed"
+  BANK_HOLIDAY = "bank_holiday",
 }
