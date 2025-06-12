@@ -1,5 +1,14 @@
 import { restapi } from "./restapi";
-import { SpecialReason, Timesheet } from "./types";
+import { Days, SpecialReason, Timesheet } from "./types";
+
+const sanitzeDays = (days: Days) => {
+  const newDays: Days = {};
+  Object.keys(days).forEach((key) => {
+    const [year, month, day] = key.split("_");
+    newDays[`${year}-${month}-${day}`] = days[key];
+  });
+  return newDays;
+};
 
 export function getTimesheet(params: {
   resourceId: number;
@@ -8,7 +17,9 @@ export function getTimesheet(params: {
 }): Promise<Timesheet> {
   return restapi
     .get<Timesheet>(`timesheet/`, { params })
-    .then((res) => res.data);
+    .then((res) => {
+      res.data.days = sanitzeDays(res.data.days);
+      return res.data});
 }
 
 export function createTimeEntry(params: {

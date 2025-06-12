@@ -193,7 +193,7 @@ export interface Timesheet {
 }
 
 export interface Days {
-  string: {hol: boolean, nwd: boolean}
+  [key: string]: { hol: boolean, nwd: boolean };
 }
 export interface SpecialReason {
     id: number,
@@ -207,5 +207,5 @@ export const enum TimeEntryType {
   HOLIDAY = "holiday",
   SICK = "sick",
   FINISHED = "finished",
-  CLOSED = "closed"
+  BANK_HOLIDAY = "bank_holiday",
 }

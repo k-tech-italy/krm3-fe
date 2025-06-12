@@ -1,15 +1,16 @@
+import { Days } from "../../../restapi/types";
 
-/** 
- * Create a Date at local noon (to avoid timezone/DST shifts) 
- * @param d input Date or ISO-string 
+/**
+ * Create a Date at local noon (to avoid timezone/DST shifts)
+ * @param d input Date or ISO-string
  */
 export function formatDate(d: Date | string): Date {
-  const dt = typeof d === 'string' ? new Date(d) : new Date(d.getTime());
+  const dt = typeof d === "string" ? new Date(d) : new Date(d.getTime());
   return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate(), 12, 0, 0, 0);
 }
 
-/** 
- * Format a Date (or date-string) into 'YYYY-MM-DD' 
+/**
+ * Format a Date (or date-string) into 'YYYY-MM-DD'
  */
 export function normalizeDate(input: Date | string): string {
   const d = formatDate(input);
@@ -19,18 +20,18 @@ export function normalizeDate(input: Date | string): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-/** 
- * Generic wrapper around Intl.DateTimeFormat 
- * @param input Date or date-string 
- * @param options Intl formatting options 
- * @param locale BCP-47 locale (default 'en-US') 
+/**
+ * Generic wrapper around Intl.DateTimeFormat
+ * @param input Date or date-string
+ * @param options Intl formatting options
+ * @param locale BCP-47 locale (default 'en-US')
  */
 export function formatIntl(
   input: Date | string,
   options: Intl.DateTimeFormatOptions,
-  locale = 'en-US'
+  locale = "en-US"
 ): string {
-  const d = typeof input === 'string' ? new Date(input) : input;
+  const d = typeof input === "string" ? new Date(input) : input;
   return d.toLocaleDateString(locale, options);
 }
 
@@ -38,19 +39,19 @@ export function formatIntl(
 
 /** e.g. “W 3” or “T 12” */
 export const formatDay = (d: Date | string, locale?: string) =>
-  formatIntl(d, { weekday: 'narrow', day: 'numeric' }, locale);
+  formatIntl(d, { weekday: "narrow", day: "numeric" }, locale);
 
 /** e.g. “Tue 12” */
 export const formatDayOfWeek = (d: Date | string, locale?: string) =>
-  formatIntl(d, { weekday: 'short', day: 'numeric' }, locale);
+  formatIntl(d, { weekday: "short", day: "numeric" }, locale);
 
 /** e.g. “May 2025” */
 export const formatMonthName = (d: Date | string, locale?: string) =>
-  formatIntl(d, { month: 'long', year: 'numeric' }, locale);
+  formatIntl(d, { month: "long", year: "numeric" }, locale);
 
 /** e.g. “12 May” */
 export const formatDayAndMonth = (d: Date | string, locale?: string) =>
-  formatIntl(d, { day: 'numeric', month: 'short' }, locale);
+  formatIntl(d, { day: "numeric", month: "short" }, locale);
 
 // ——— Range generators ——————————————————————————————————————————————
 
@@ -58,10 +59,7 @@ export const formatDayAndMonth = (d: Date | string, locale?: string) =>
  * Returns an array of Date objects from `start` → `end` inclusive.
  * Goes forwards or backwards depending on which is earlier.
  */
-export function getDateRange(
-  start: Date | string,
-  end: Date | string
-): Date[] {
+export function getDateRange(start: Date | string, end: Date | string): Date[] {
   const s = formatDate(start);
   const e = formatDate(end);
   const step = s <= e ? 1 : -1;
@@ -78,20 +76,50 @@ export function getDateRange(
 
 /**
  * Returns an array of 'YYYY-MM-DD' strings from `start` → `end` inclusive.
+ * If `skipBankHolidays` is true and `noWorkingDays` is provided, excludes bank holidays.
  */
 export function getDatesBetween(
   start: Date | string,
-  end: Date | string
+  end: Date | string,
+  skipBankHolidays?: boolean,
+  noWorkingDays?: Days
 ): string[] {
+  if (skipBankHolidays && noWorkingDays) {
+    return getDateRange(start, end).filter(
+      (date) => isNoWorkOrBankHol(date, noWorkingDays) !== DayType.BANK_HOLIDAY
+    ).map(normalizeDate);
+  }
   return getDateRange(start, end).map(normalizeDate);
 }
 
+//if is nwd true and hol false is nwd
+//if is nwd ture adn hol true is bank holiday
+//if is nwd false and hol true is bank holiday
+export const enum DayType {
+  WORK = "work",
+  NO_WORK_DAY = "nwd",
+  BANK_HOLIDAY = "hol",
+}
 
-/** Returns true if the given date is Saturday or Sunday */
-export function isWeekendDay(input: Date | string): boolean {
-  const d = typeof input === 'string' ? new Date(input) : input;
-  const day = d.getDay();
-  return day === 0 || day === 6;
+/**
+ * Given a Date or date-string `input` and an optional object of bank holidays and no working days
+ * `days`, returns the type of day that `input` is. If `days` is not provided,
+ * `input` is assumed to be a work day.
+ *
+ * @param {Date|string} input A Date or date-string to check
+ * @param {Days} [days] An object of bank holidays and no working days, where the keys are the dates
+ * in 'YYYY-MM-DD' format, and the values are objects with a single boolean
+ * property `hol` indicating whether the date is a bank holiday, and 
+ * boolean property `nwd` indicating whether the date is a non-working day.
+ * @returns {DayType} The type of day that `input` is, which can be one of
+ * `DayType.WORK`, `DayType.NO_WORK_DAY`, or `DayType.BANK_HOLIDAY`.
+ */
+export function isNoWorkOrBankHol(input: Date | string, days?: Days): DayType {
+  const d = normalizeDate(input);
+  if (!days) return DayType.WORK;
+  if (days[d]?.nwd && !days[d]?.hol) return DayType.NO_WORK_DAY;
+  if (days[d]?.hol) return DayType.BANK_HOLIDAY;
+  return DayType.WORK;
 }
 
 export function getFirstMondayOfMonth(inputDate: Date): number

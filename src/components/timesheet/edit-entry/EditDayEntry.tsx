@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   useCreateTimeEntry,
   useDeleteTimeEntries,
   useGetSpecialReason,
 } from "../../../hooks/useTimesheet";
-import { TimeEntry } from "../../../restapi/types";
+import { Days, TimeEntry } from "../../../restapi/types";
 import {
   calculateTotalHoursForDays,
   displayErrorMessage,
@@ -27,6 +27,7 @@ interface Props {
   onClose: () => void;
   readOnly: boolean;
   selectedResourceId: number | null;
+  noWorkingDays?: Days;
 }
 
 export default function EditDayEntry({
@@ -36,6 +37,7 @@ export default function EditDayEntry({
   timeEntries,
   readOnly,
   selectedResourceId,
+  noWorkingDays,
 }: Props) {
   const {
     mutateAsync: submitDays,
@@ -110,37 +112,11 @@ export default function EditDayEntry({
     }
   }
 
-  const handleEntryTypeChange = (type: string) => {
-    if (readOnly) return; // Prevent changes in read-only mode
-    setEntryType(type);
-    if (type !== "leave") {
-      setLeaveHours(undefined); // Clear leave hours if not leave
-    }
-  };
-
-  const handleLeaveHoursChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const totalHours = calculateTotalHoursForDays(
-      timeEntries,
-      daysWithTimeEntries
-    );
-    if (totalHours + Number(event.target.value) > 8) {
-      setLeaveHoursError(
-        "No overtime allowed when logging leave hours. Maximum allowed is 8 hours, Total hours: " +
-          (totalHours + Number(event.target.value))
-      );
-    } else {
-      setLeaveHoursError(null);
-    }
-    setLeaveHours(Number(event.target.value));
-  };
-
-  const handleDatesChange = (entryType: string) => {
+  const handleDatesChange = (entryType: string, startDate: Date = fromDate, endDate: Date = toDate): string[] => {
     const closedEntries = timeEntries.filter(
       (entry) => entry.state === "CLOSED"
     );
-    const dates = getDatesBetween(startDate, endDate);
+    const dates = getDatesBetween(startDate, endDate, true, noWorkingDays);
     if (entryType === "leave" || entryType === "rest") {
       return dates;
     } else {
@@ -149,6 +125,40 @@ export default function EditDayEntry({
       });
     }
   };
+
+
+  const handleEntryTypeChange = (type: string) => {
+    if (readOnly) return; // Prevent changes in read-only mode
+    setEntryType(type);
+    if (type !== "leave") {
+      setLeaveHours(undefined); // Clear leave hours if not leave
+    }
+    if (type !== "rest") {
+      setRestHours(undefined); // Clear rest hours if not rest
+    }
+  };
+
+  const handleHoursChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const totalHours = calculateTotalHoursForDays(
+      timeEntries,
+      daysWithTimeEntries
+    );
+    if ((totalHours + Number(event.target.value) > 8) && entryType === "leave") {
+      setLeaveHoursError(
+        "No overtime allowed when logging leave hours. Maximum allowed is 8 hours, Total hours: " +
+          (totalHours + Number(event.target.value))
+      );
+    } else {
+      setLeaveHoursError(null);
+    }
+    if (entryType === "rest") {
+      setRestHours(Number(event.target.value));
+    } else {
+      setLeaveHours(Number(event.target.value));
+    }
+  };
+
+
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -321,8 +331,14 @@ export default function EditDayEntry({
               <input
                 id="day-entry-leave-hour-input"
                 type="number"
-                value={entryType === "leave" ? leaveHours : restHours}
-                onChange={handleLeaveHoursChange}
+                value={
+                  entryType === "leave"
+                    ? leaveHours || 0
+                    : entryType === "rest"
+                    ? restHours || 0
+                    : 0
+                }
+                onChange={handleHoursChange}
                 min="0"
                 max="8"
                 step={0.25}

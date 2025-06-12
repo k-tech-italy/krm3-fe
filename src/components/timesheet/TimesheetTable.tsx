@@ -1,18 +1,19 @@
 import { useState } from "react";
 import { DndContext, closestCenter } from "@dnd-kit/core";
-import { TimeEntry, Task, Timesheet } from "../../restapi/types";
+import { TimeEntry, Task, Timesheet, Days } from "../../restapi/types";
 import { Draggable } from "./Draggable";
 import { useGetTimesheet } from "../../hooks/useTimesheet";
 import { Droppable } from "./Droppable";
 import { TotalHourCell } from "./TotalHour";
 import { TimeSheetRow } from "./timesheet-row/TimeSheetRow";
 import {
+  DayType,
   formatDate,
   formatDay,
   formatDayOfWeek,
   normalizeDate,
 } from "./utils/dates";
-import { isWeekendDay } from "./utils/dates";
+import { isNoWorkOrBankHol } from "./utils/dates";
 import LoadSpinner from "../commons/LoadSpinner";
 import { DragCallbacks, useDragAndDrop } from "../../hooks/useDragAndDrop";
 import { isHoliday, isSickDay } from "./utils/utils";
@@ -20,11 +21,11 @@ import { isHoliday, isSickDay } from "./utils/utils";
 interface Props {
   setOpenTimeEntryModal: (open: boolean) => void;
   setSelectedTask: (task: Task) => void;
-  setSelectedCells: (cells: Date[] | undefined) => void;
   setIsDayEntry: (isDayEntry: boolean) => void;
   setStartDate: (date: Date) => void;
   setEndDate: (date: Date) => void;
   setTimeEntries: (entries: TimeEntry[]) => void;
+  setNoWorkingDay: (days: Days) => void;
   scheduleDays: { days: Date[]; numberOfDays: number };
   isColumnView: boolean;
   startDate?: Date;
@@ -53,6 +54,7 @@ export function TimeSheetTable(props: Props) {
   const openTimeEntryModalHandler = (task: Task) => {
     props.setSelectedTask(task);
     props.setTimeEntries(timesheet?.timeEntries || []);
+    props.setNoWorkingDay(timesheet?.days || {});
     props.setOpenTimeEntryModal(true);
   };
 
@@ -67,7 +69,10 @@ export function TimeSheetTable(props: Props) {
         normalizeDate(timeEntry.date) === normalizeDate(endDate)
     );
     if (
-      (!endDateTimeEntry && !!timesheet && !isHoliday(endDate, timesheet) && !isSickDay(endDate, timesheet)) ||
+      (!endDateTimeEntry &&
+        !!timesheet &&
+        !isHoliday(endDate, timesheet) &&
+        !isSickDay(endDate, timesheet)) ||
       (endDateTimeEntry?.state === "OPEN" &&
         endDate >= formatDate(task.startDate) &&
         (!!task.endDate ? endDate <= formatDate(task.endDate) : true))
@@ -83,8 +88,10 @@ export function TimeSheetTable(props: Props) {
       props.setTimeEntries(timeEntries);
 
       props.setEndDate(endDate);
-      props.setOpenTimeEntryModal(true);
-      props.setIsDayEntry(true);
+      if (isNoWorkOrBankHol(endDate, timesheet?.days) !== DayType.BANK_HOLIDAY) {
+        props.setOpenTimeEntryModal(true);
+        props.setIsDayEntry(true);
+      }
     },
     onTimeEntryDrag: ({ task, timeEntries, endDate }) => {
       props.setSelectedTask(task);
@@ -204,7 +211,17 @@ export function TimeSheetTable(props: Props) {
                       ? "bg-blue-100 border-b-2 border-blue-400"
                       : "border-b-2 border-gray-300 hover:border-blue-400"
                   }
-                  ${isWeekendDay(day) ? "bg-zinc-200" : ""}`}
+                  ${
+                    isNoWorkOrBankHol(day, timesheet.days) !== DayType.WORK
+                      ? "bg-zinc-200"
+                      : ""
+                  }
+                  ${
+                    isNoWorkOrBankHol(day, timesheet.days) === DayType.BANK_HOLIDAY
+                      ? "cursor-not-allowed"
+                      : ""
+                  }
+                  `}
                 >
                   <div className={`${isMonthView ? "text-[10px]" : "text-sm"}`}>
                     {isMonthView && !props.isColumnView
@@ -221,6 +238,9 @@ export function TimeSheetTable(props: Props) {
                       timeEntries={timesheet?.timeEntries || []}
                       isMonthView={isMonthView}
                       isColumnView={props.isColumnView}
+                      isNoWorkDay={
+                        isNoWorkOrBankHol(day, timesheet.days) !== DayType.WORK
+                      }
                     />
                   </div>
                 </div>
