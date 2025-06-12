@@ -61,6 +61,7 @@ export const SpecialDayCell: React.FC<Props> = ({
           tooltip: "Task Finished",
         };
       case "closed":
+        // Closed day is implemented in TimeEntryItems
         return {
           id: `task-closed-cell-${cellId}`,
           icon: (

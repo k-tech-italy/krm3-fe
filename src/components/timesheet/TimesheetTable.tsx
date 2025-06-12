@@ -61,14 +61,11 @@ export function TimeSheetTable(props: Props) {
     task: Task,
     timeEntries: TimeEntry[]
   ) => {
-    const endDateTimeEntry = timesheet?.timeEntries.find(
+    const endDateTimeEntry = timeEntries.find(
       (timeEntry) =>
         timeEntry.task === task.id &&
         normalizeDate(timeEntry.date) === normalizeDate(endDate)
     );
-
-    console.log(!!timesheet && !isHoliday(endDate, timesheet));
-
     if (
       (!endDateTimeEntry && !!timesheet && !isHoliday(endDate, timesheet) && !isSickDay(endDate, timesheet)) ||
       (endDateTimeEntry?.state === "OPEN" &&

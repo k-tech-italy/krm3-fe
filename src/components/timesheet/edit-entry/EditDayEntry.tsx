@@ -387,6 +387,7 @@ export default function EditDayEntry({
           <WarningExistingEntry
             daysWithTimeEntries={daysWithTimeEntries}
             isCheckbox={false}
+            message="Time Entries with closed will be skipped"
           />
         )}
         {!!entryType && handleDatesChange(entryType).length === 0 && (
