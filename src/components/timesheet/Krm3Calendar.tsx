@@ -213,7 +213,8 @@ export default function Krm3Calendar({ selectedResourceId }: { selectedResourceI
             {openTimeEntryModal &&
               selectedTask &&
               startDate &&
-              endDate && (
+              endDate &&
+               (
                 <Krm3Modal
                   open={openTimeEntryModal}
                   onClose={() => {

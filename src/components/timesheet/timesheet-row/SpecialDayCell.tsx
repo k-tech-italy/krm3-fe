@@ -24,11 +24,6 @@ export const SpecialDayCell: React.FC<Props> = ({
 }) => {
   const cellId = `${day.toDateString()}-${taskId}`;
 
-  useEffect(() => {
-    if (cellId === 'Thu May 01 2025-2') {
-      console.log(type)
-    }
-  }, [cellId])
   // Define cell styling based on type
   const getCellStyles = () => {
     switch (type) {
