@@ -7,7 +7,7 @@ import { TimeSheetTable } from "./TimesheetTable";
 import EditDayEntry from "./edit-entry/EditDayEntry";
 import VisualizationActions from "./VisualizationActions";
 import { useColumnViewPreference } from "../../hooks/useView";
-import { formatDate, formatDayAndMonth, formatMonthName } from "./utils/dates";
+import {formatDate, formatDayAndMonth, formatMonthName, getFirstMondayOfMonth} from "./utils/dates";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import ErrorMessage from "./edit-entry/ErrorMessage";
 
@@ -116,6 +116,9 @@ export default function Krm3Calendar({ selectedResourceId }: { selectedResourceI
     const newDate = new Date(currentWeekStart);
     if (isMonth) {
       newDate.setMonth(currentWeekStart.getMonth() - 1);
+
+      newDate.setDate(getFirstMondayOfMonth(newDate));
+
     } else {
       newDate.setDate(currentWeekStart.getDate() - 7);
     }
@@ -126,6 +129,9 @@ export default function Krm3Calendar({ selectedResourceId }: { selectedResourceI
     const newDate = new Date(currentWeekStart);
     if (isMonth) {
       newDate.setMonth(currentWeekStart.getMonth() + 1);
+
+      newDate.setDate(getFirstMondayOfMonth(newDate));
+
     } else {
       newDate.setDate(currentWeekStart.getDate() + 7);
     }
