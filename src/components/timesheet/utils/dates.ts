@@ -93,3 +93,21 @@ export function isWeekendDay(input: Date | string): boolean {
   const day = d.getDay();
   return day === 0 || day === 6;
 }
+
+export function getFirstMondayOfMonth(inputDate: Date): number
+{
+  const firstDayOfMonth = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1)
+
+  const addToGetMonday = {
+    0: 1,
+    1: 0,
+    2: 6,
+    3: 5,
+    4: 4,
+    5: 3,
+    6: 2
+  } as const
+  type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+  return firstDayOfMonth.getDate() + addToGetMonday[firstDayOfMonth.getDay() as Weekday]
+}

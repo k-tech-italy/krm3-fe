@@ -7,7 +7,7 @@ import { TimeSheetTable } from "./TimesheetTable";
 import EditDayEntry from "./edit-entry/EditDayEntry";
 import VisualizationActions from "./VisualizationActions";
 import { useColumnViewPreference } from "../../hooks/useView";
-import { formatDate, formatDayAndMonth, formatMonthName } from "./utils/dates";
+import {formatDate, formatDayAndMonth, formatMonthName, getFirstMondayOfMonth} from "./utils/dates";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import ErrorMessage from "./edit-entry/ErrorMessage";
 
@@ -90,7 +90,6 @@ export default function Krm3Calendar({ selectedResourceId }: { selectedResourceI
     if (isMonth) {
       numberOfDays = monthLength;
     }
-    console.log(currentWeekStart)
     for (let i = 0; i < numberOfDays; i++) {
       const day = isMonth
         ? new Date(currentWeekStart.getFullYear(), currentMonth, i + 1)
@@ -117,19 +116,8 @@ export default function Krm3Calendar({ selectedResourceId }: { selectedResourceI
     const newDate = new Date(currentWeekStart);
     if (isMonth) {
       newDate.setMonth(currentWeekStart.getMonth() - 1);
-      const firstDayOfMonth = new Date(newDate.getFullYear(), newDate.getMonth(), 1)
-      const addToGetMonday = {
-        0: 1,
-        1: 0,
-        2: 6,
-        3: 5,
-        4: 4,
-        5: 3,
-        6: 2
-      } as const
 
-      type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
-      newDate.setDate(firstDayOfMonth.getDate() + addToGetMonday[firstDayOfMonth.getDay() as Weekday]);
+      newDate.setDate(getFirstMondayOfMonth(newDate));
 
     } else {
       newDate.setDate(currentWeekStart.getDate() - 7);
@@ -141,20 +129,9 @@ export default function Krm3Calendar({ selectedResourceId }: { selectedResourceI
     const newDate = new Date(currentWeekStart);
     if (isMonth) {
       newDate.setMonth(currentWeekStart.getMonth() + 1);
-      
-      const firstDayOfMonth = new Date(newDate.getFullYear(), newDate.getMonth(), 1)
-      const addToGetMonday = {
-        0: 1,
-        1: 0,
-        2: 6,
-        3: 5,
-        4: 4,
-        5: 3,
-        6: 2
-      } as const
 
-      type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
-      newDate.setDate(firstDayOfMonth.getDate() + addToGetMonday[firstDayOfMonth.getDay() as Weekday]);
+      newDate.setDate(getFirstMondayOfMonth(newDate));
+
     } else {
       newDate.setDate(currentWeekStart.getDate() + 7);
     }
