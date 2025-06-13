@@ -103,17 +103,17 @@ export default function EditTimeEntry({
 
   function getDatesToSave() {
     if (timeEntries.length === 0) {
-      return getDatesBetween(fromDate, toDate, true, noWorkingDays);
+      return getDatesBetween(fromDate, toDate);
     }
     if (keepEntries) {
-      return getDatesBetween(fromDate, toDate, true, noWorkingDays).filter(
+      return getDatesBetween(fromDate, toDate).filter(
         (date) =>
           !getDatesWithTimeEntries(fromDate, toDate, timeEntries).includes(
             normalizeDate(date)
           )
       );
     } else {
-      return getDatesBetween(fromDate, toDate, true, noWorkingDays).filter(
+      return getDatesBetween(fromDate, toDate).filter(
         (date) => daysWithTimeEntries.includes(normalizeDate(date))
       );
     }

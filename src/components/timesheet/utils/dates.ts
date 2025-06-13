@@ -81,12 +81,12 @@ export function getDateRange(start: Date | string, end: Date | string): Date[] {
 export function getDatesBetween(
   start: Date | string,
   end: Date | string,
-  skipBankHolidays?: boolean,
+  skipNoWorkingDays?: boolean,
   noWorkingDays?: Days
 ): string[] {
-  if (skipBankHolidays && noWorkingDays) {
+  if (skipNoWorkingDays && noWorkingDays) {
     return getDateRange(start, end).filter(
-      (date) => isNoWorkOrBankHol(date, noWorkingDays) !== DayType.BANK_HOLIDAY
+      (date) => isNoWorkOrBankHol(date, noWorkingDays) === DayType.WORK_DAY
     ).map(normalizeDate);
   }
   return getDateRange(start, end).map(normalizeDate);
@@ -96,7 +96,7 @@ export function getDatesBetween(
 //if is nwd ture adn hol true is bank holiday
 //if is nwd false and hol true is bank holiday
 export const enum DayType {
-  WORK = "work",
+  WORK_DAY = "work",
   NO_WORK_DAY = "nwd",
   BANK_HOLIDAY = "hol",
 }
@@ -116,10 +116,10 @@ export const enum DayType {
  */
 export function isNoWorkOrBankHol(input: Date | string, days?: Days): DayType {
   const d = normalizeDate(input);
-  if (!days) return DayType.WORK;
+  if (!days) return DayType.WORK_DAY;
   if (days[d]?.nwd && !days[d]?.hol) return DayType.NO_WORK_DAY;
   if (days[d]?.hol) return DayType.BANK_HOLIDAY;
-  return DayType.WORK;
+  return DayType.WORK_DAY;
 }
 
 export function getFirstMondayOfMonth(inputDate: Date): number

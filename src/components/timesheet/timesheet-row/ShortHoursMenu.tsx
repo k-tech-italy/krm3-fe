@@ -29,7 +29,6 @@ interface ShortHoursMenuProps {
   ) => void;
   openTimeEntryModalHandler: () => void;
   timeEntries: TimeEntry[];
-  noWorkingDays?: Days;
 }
 
 interface HourOption {
@@ -58,7 +57,6 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     setOpenShortMenu,
     openTimeEntryModalHandler,
     timeEntries,
-    noWorkingDays,
   } = props;
 
   const [openConfirmModal, setOpenConfirmModal] = useState(false);
@@ -89,7 +87,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       true
     );
 
-    const datesWithNoTimeEntries = getDatesBetween(startDate, endDate, true, noWorkingDays).filter(
+    const datesWithNoTimeEntries = getDatesBetween(startDate, endDate).filter(
       (date) => !daysWithTimeEntries.includes(normalizeDate(date))
     );
 
@@ -99,7 +97,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       isVisible,
       daysWithTimeEntries,
       datesWithNoTimeEntries,
-      selectedDates: getDatesBetween(startDate, endDate, true, noWorkingDays).filter((date) =>{
+      selectedDates: getDatesBetween(startDate, endDate).filter((date) =>{
         const closedEntries = timeEntries.filter((entry) => {
           return entry.state == 'CLOSED'
         })

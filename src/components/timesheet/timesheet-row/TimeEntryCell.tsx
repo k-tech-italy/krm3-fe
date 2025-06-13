@@ -64,7 +64,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
      ${isNoWorkDay ? "bg-zinc-100" : ""}
   `}
       >
-        {(type === TimeEntryType.HOLIDAY || type === TimeEntryType.SICK || type === TimeEntryType.FINISHED || type === TimeEntryType.BANK_HOLIDAY) && (
+        {(type === TimeEntryType.HOLIDAY || type === TimeEntryType.SICK || type === TimeEntryType.FINISHED) && (
           <div className="h-full w-full flex items-center justify-center">
             <SpecialDayCell
               day={day}

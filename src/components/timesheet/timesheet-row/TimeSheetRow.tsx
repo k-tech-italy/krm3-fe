@@ -89,8 +89,6 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
       ? TimeEntryType.SICK
       : isTaskFinished(day, task)
       ? TimeEntryType.FINISHED
-      : isNoWorkDay === DayType.BANK_HOLIDAY
-      ? TimeEntryType.BANK_HOLIDAY
       : TimeEntryType.TASK
     
 
@@ -107,7 +105,6 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             readOnly={readOnly}
             selectedResourceId={selectedResourceId}
             timeEntries={timeEntries}
-            noWorkingDays={timesheet.days}
           />
           <TimeEntryCell
             day={day}
@@ -120,7 +117,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             isInDragRange={isCellInDragRange(day, task.id)}
             colors={{ backgroundColor, borderColor }}
             readOnly={readOnly}
-            isNoWorkDay={isNoWorkDay === DayType.NO_WORK_DAY}
+            isNoWorkDay={isNoWorkDay !== DayType.WORK_DAY}
           />
         </div>
       </div>
