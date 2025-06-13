@@ -3,8 +3,11 @@ import { toast } from "react-toastify";
 import { useCreateTimeEntry } from "../../../hooks/useTimesheet";
 import { displayErrorMessage } from "../utils/utils";
 import { formatDate, getDatesBetween, normalizeDate } from "../utils/dates";
-import { Days, TimeEntry } from "../../../restapi/types";
-import { getDatesWithTimeEntries } from "../utils/timeEntry";
+import { TimeEntry } from "../../../restapi/types";
+import {
+  getDatesWithTimeEntries,
+  getDatesWithNoTimeEntries,
+} from "../utils/timeEntry";
 import Krm3Modal from "../../commons/krm3Modal";
 import Krm3Button from "../../commons/Krm3Button";
 import WarningExistingEntry from "../edit-entry/WarningExistEntry";
@@ -82,14 +85,11 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       true
     );
 
-    const datesWithNoTimeEntries = getDatesBetween(startDate, endDate).filter(
-      (date) =>
-        !daysWithTimeEntries.includes(normalizeDate(date)) &&
-        !timeEntries.some(
-          (entry) =>
-            normalizeDate(entry.date) === normalizeDate(date) &&
-            entry.state === "CLOSED"
-        )
+    const datesWithNoTimeEntries = getDatesWithNoTimeEntries(
+      startDate,
+      endDate,
+      timeEntries,
+      daysWithTimeEntries
     );
 
     return {
