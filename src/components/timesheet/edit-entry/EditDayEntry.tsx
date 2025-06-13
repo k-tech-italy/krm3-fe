@@ -46,9 +46,14 @@ export default function EditDayEntry({
     error,
   } = useCreateTimeEntry(selectedResourceId);
   const { mutateAsync: deleteDays } = useDeleteTimeEntries();
-  const startEntry = timeEntries.find(
-    (item) => normalizeDate(item.date) === normalizeDate(startDate)
-  );
+
+  const startEntry = useMemo(() => {
+    return timeEntries.find(
+      (item) =>
+        normalizeDate(item.date) === normalizeDate(startDate) &&
+        item.task === null
+    );
+  }, [timeEntries, startDate]);
 
   useEffect(() => {
     if (startEntry) {
@@ -112,7 +117,11 @@ export default function EditDayEntry({
     }
   }
 
-  const handleDatesChange = (entryType: string, startDate: Date = fromDate, endDate: Date = toDate): string[] => {
+  const handleDatesChange = (
+    entryType: string,
+    startDate: Date = fromDate,
+    endDate: Date = toDate
+  ): string[] => {
     const closedEntries = timeEntries.filter(
       (entry) => entry.state === "CLOSED"
     );
@@ -126,16 +135,9 @@ export default function EditDayEntry({
     }
   };
 
-
   const handleEntryTypeChange = (type: string) => {
     if (readOnly) return; // Prevent changes in read-only mode
     setEntryType(type);
-    if (type !== "leave") {
-      setLeaveHours(undefined); // Clear leave hours if not leave
-    }
-    if (type !== "rest") {
-      setRestHours(undefined); // Clear rest hours if not rest
-    }
   };
 
   const handleHoursChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,7 +145,7 @@ export default function EditDayEntry({
       timeEntries,
       daysWithTimeEntries
     );
-    if ((totalHours + Number(event.target.value) > 8) && entryType === "leave") {
+    if (totalHours + Number(event.target.value) > 8 && entryType === "leave") {
       setLeaveHoursError(
         "No overtime allowed when logging leave hours. Maximum allowed is 8 hours, Total hours: " +
           (totalHours + Number(event.target.value))
@@ -157,8 +159,6 @@ export default function EditDayEntry({
       setLeaveHours(Number(event.target.value));
     }
   };
-
-
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -326,17 +326,13 @@ export default function EditDayEntry({
                 id="day-entry-leave-hour-label"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Hours *
+                {entryType === "rest" ? "Rest" : "Leave"} Hours *
               </label>
               <input
                 id="day-entry-leave-hour-input"
                 type="number"
                 value={
-                  entryType === "leave"
-                    ? leaveHours || 0
-                    : entryType === "rest"
-                    ? restHours || 0
-                    : 0
+                  entryType === "leave" ? leaveHours ?? "" : restHours ?? ""
                 }
                 onChange={handleHoursChange}
                 min="0"

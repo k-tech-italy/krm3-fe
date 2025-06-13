@@ -76,7 +76,7 @@ export function getDateRange(start: Date | string, end: Date | string): Date[] {
 
 /**
  * Returns an array of 'YYYY-MM-DD' strings from `start` → `end` inclusive.
- * If `skipBankHolidays` is true and `noWorkingDays` is provided, excludes bank holidays.
+ * If `skipNoWorkingDays` is true and `noWorkingDays` is provided, excludes all non working day.
  */
 export function getDatesBetween(
   start: Date | string,
