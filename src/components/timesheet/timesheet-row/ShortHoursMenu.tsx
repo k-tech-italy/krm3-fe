@@ -1,9 +1,4 @@
-import React, {
-  useMemo,
-  useState,
-  useCallback,
-  useRef,
-} from "react";
+import React, { useMemo, useState, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
 import { useCreateTimeEntry } from "../../../hooks/useTimesheet";
 import { displayErrorMessage } from "../utils/utils";
@@ -88,7 +83,13 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     );
 
     const datesWithNoTimeEntries = getDatesBetween(startDate, endDate).filter(
-      (date) => !daysWithTimeEntries.includes(normalizeDate(date))
+      (date) =>
+        !daysWithTimeEntries.includes(normalizeDate(date)) &&
+        !timeEntries.some(
+          (entry) =>
+            normalizeDate(entry.date) === normalizeDate(date) &&
+            entry.state === "CLOSED"
+        )
     );
 
     return {
@@ -97,11 +98,11 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       isVisible,
       daysWithTimeEntries,
       datesWithNoTimeEntries,
-      selectedDates: getDatesBetween(startDate, endDate).filter((date) =>{
+      selectedDates: getDatesBetween(startDate, endDate).filter((date) => {
         const closedEntries = timeEntries.filter((entry) => {
-          return entry.state == 'CLOSED'
-        })
-        return !closedEntries.map((entry) => entry.date).includes(date)
+          return entry.state == "CLOSED";
+        });
+        return !closedEntries.map((entry) => entry.date).includes(date);
       }),
     };
   }, [openShortMenu, day, taskId, timeEntries]);

@@ -5,7 +5,7 @@ import {
   useCreateTimeEntry,
 } from "../../../hooks/useTimesheet.tsx";
 import { displayErrorMessage } from "../utils/utils.ts";
-import { getDatesBetween } from "../utils/dates.ts";
+import { formatDate, getDatesBetween } from "../utils/dates.ts";
 import { normalizeDate } from "../utils/dates.ts";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -50,7 +50,7 @@ export default function EditTimeEntry({
   const [keepEntries, setKeepEntries] = useState<boolean>(true);
 
   const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
-    getDatesWithTimeEntries(fromDate, toDate, timeEntries, true)
+    getDatesWithTimeEntries(formatDate(fromDate), formatDate(toDate), timeEntries, true)
   );
 
   function handleChangeDate(date: Date, type: "from" | "to") {
@@ -66,6 +66,16 @@ export default function EditTimeEntry({
       );
     }
   }
+
+  const datesWithNoTimeEntries = getDatesBetween(startDate, endDate).filter(
+    (date) =>
+      !daysWithTimeEntries.includes(normalizeDate(date)) &&
+      !timeEntries.some(
+        (entry) =>
+          normalizeDate(entry.date) === normalizeDate(date) &&
+          entry.state === "CLOSED"
+      )
+  );
 
   const [totalHours, setTotalHours] = useState<number>(
     startEntry
@@ -105,7 +115,7 @@ export default function EditTimeEntry({
     if (timeEntries.length === 0) {
       return getDatesBetween(fromDate, toDate);
     }
-    if (keepEntries) {
+    if (!keepEntries) {
       return getDatesBetween(fromDate, toDate).filter(
         (date) =>
           !getDatesWithTimeEntries(fromDate, toDate, timeEntries).includes(
@@ -330,6 +340,8 @@ export default function EditTimeEntry({
       </div>
       {!readOnly && (
         <WarningExistingEntry
+          disabled={datesWithNoTimeEntries.length === 0}
+          disabledTooltipMessage="No empty Days, you can only overwrite existing entries"
           daysWithTimeEntries={daysWithTimeEntries}
           keepEntries={keepEntries}
           setKeepEntries={setKeepEntries}

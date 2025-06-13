@@ -28,6 +28,7 @@ export const getDatesWithTimeEntries = (
       (timeEntry) => normalizeDate(timeEntry.date) === normalizeDate(date)
     )
   );
+  
 };
 
 export const getDatesWithoutClosedTimeEntries = (startDate: Date,
