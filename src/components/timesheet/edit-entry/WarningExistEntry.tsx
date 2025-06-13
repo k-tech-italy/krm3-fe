@@ -1,4 +1,5 @@
 import { TriangleAlert } from "lucide-react";
+import { Tooltip } from "react-tooltip";
 
 interface Props {
   daysWithTimeEntries: string[];
@@ -7,6 +8,8 @@ interface Props {
   setKeepEntries?: React.Dispatch<React.SetStateAction<boolean>>;
   style?: string;
   message?: string;
+  disabled?: boolean;
+  disabledTooltipMessage?: string;
 }
 
 const WarningExistingEntry = ({
@@ -16,6 +19,8 @@ const WarningExistingEntry = ({
   isCheckbox,
   style,
   message,
+  disabled,
+  disabledTooltipMessage,
 }: Props) => {
   return (
     <div className={style || ""}>
@@ -50,14 +55,22 @@ const WarningExistingEntry = ({
                     type="checkbox"
                     defaultChecked={keepEntries}
                     id="save-for-update-checkbox"
+                    data-tooltip-id="save-for-update-checkbox-tooltip"
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     onChange={() => {
                       setKeepEntries(!keepEntries);
                     }}
+                    disabled={disabled}
                   />
                   <label className="ml-2 text-sm text-amber-800">
                     Overwrite existing time entries
                   </label>
+                  {disabled && (
+                    <Tooltip
+                      id="save-for-update-checkbox-tooltip"
+                      content={disabledTooltipMessage}
+                    />
+                  )}
                 </div>
               )}
             </div>

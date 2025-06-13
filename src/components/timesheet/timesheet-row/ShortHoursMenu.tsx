@@ -1,15 +1,13 @@
-import React, {
-  useMemo,
-  useState,
-  useCallback,
-  useRef,
-} from "react";
+import React, { useMemo, useState, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
 import { useCreateTimeEntry } from "../../../hooks/useTimesheet";
 import { displayErrorMessage } from "../utils/utils";
 import { formatDate, getDatesBetween, normalizeDate } from "../utils/dates";
-import { Days, TimeEntry } from "../../../restapi/types";
-import { getDatesWithTimeEntries } from "../utils/timeEntry";
+import { TimeEntry } from "../../../restapi/types";
+import {
+  getDatesWithTimeEntries,
+  getDatesWithNoTimeEntries,
+} from "../utils/timeEntry";
 import Krm3Modal from "../../commons/krm3Modal";
 import Krm3Button from "../../commons/Krm3Button";
 import WarningExistingEntry from "../edit-entry/WarningExistEntry";
@@ -29,7 +27,6 @@ interface ShortHoursMenuProps {
   ) => void;
   openTimeEntryModalHandler: () => void;
   timeEntries: TimeEntry[];
-  noWorkingDays?: Days;
 }
 
 interface HourOption {
@@ -58,7 +55,6 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     setOpenShortMenu,
     openTimeEntryModalHandler,
     timeEntries,
-    noWorkingDays,
   } = props;
 
   const [openConfirmModal, setOpenConfirmModal] = useState(false);
@@ -89,8 +85,11 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       true
     );
 
-    const datesWithNoTimeEntries = getDatesBetween(startDate, endDate, true, noWorkingDays).filter(
-      (date) => !daysWithTimeEntries.includes(normalizeDate(date))
+    const datesWithNoTimeEntries = getDatesWithNoTimeEntries(
+      startDate,
+      endDate,
+      timeEntries,
+      daysWithTimeEntries
     );
 
     return {
@@ -99,11 +98,11 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       isVisible,
       daysWithTimeEntries,
       datesWithNoTimeEntries,
-      selectedDates: getDatesBetween(startDate, endDate, true, noWorkingDays).filter((date) =>{
+      selectedDates: getDatesBetween(startDate, endDate).filter((date) => {
         const closedEntries = timeEntries.filter((entry) => {
-          return entry.state == 'CLOSED'
-        })
-        return !closedEntries.map((entry) => entry.date).includes(date)
+          return entry.state == "CLOSED";
+        });
+        return !closedEntries.map((entry) => entry.date).includes(date);
       }),
     };
   }, [openShortMenu, day, taskId, timeEntries]);

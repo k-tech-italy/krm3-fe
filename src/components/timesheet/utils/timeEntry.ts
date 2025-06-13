@@ -28,6 +28,7 @@ export const getDatesWithTimeEntries = (
       (timeEntry) => normalizeDate(timeEntry.date) === normalizeDate(date)
     )
   );
+  
 };
 
 export const getDatesWithoutClosedTimeEntries = (startDate: Date,
@@ -44,4 +45,18 @@ export const getDatesWithoutClosedTimeEntries = (startDate: Date,
     );
    
 
-}
+};
+export const getDatesWithNoTimeEntries = (
+    startDate: Date,
+    endDate: Date,
+    timeEntries: TimeEntry[],
+    daysWithTimeEntries: string[]
+) => {
+    return getDatesBetween(startDate, endDate).filter(
+        (date) => !daysWithTimeEntries.includes(normalizeDate(date)) &&
+            !timeEntries.some(
+                (entry) => normalizeDate(entry.date) === normalizeDate(date) &&
+                    entry.state === "CLOSED"
+            )
+    );
+};

@@ -1,19 +1,21 @@
-import { Days, Task, TimeEntry } from "../../../restapi/types.ts";
 import { useState } from "react";
+import "react-datepicker/dist/react-datepicker.css";
+import { Days, Task, TimeEntry } from "../../../restapi/types.ts";
 import {
   useDeleteTimeEntries,
   useCreateTimeEntry,
 } from "../../../hooks/useTimesheet.tsx";
 import { displayErrorMessage } from "../utils/utils.ts";
-import { getDatesBetween } from "../utils/dates.ts";
-import { normalizeDate } from "../utils/dates.ts";
+import { formatDate, getDatesBetween, normalizeDate } from "../utils/dates.ts";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import WarningExistingEntry from "./WarningExistEntry.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
 import Krm3Button from "../../commons/Krm3Button.tsx";
 import { CheckIcon, TrashIcon } from "lucide-react";
-import { getDatesWithTimeEntries } from "../utils/timeEntry.ts";
+import {
+  getDatesWithTimeEntries,
+  getDatesWithNoTimeEntries,
+} from "../utils/timeEntry.ts";
 
 interface Props {
   task: Task;
@@ -50,7 +52,12 @@ export default function EditTimeEntry({
   const [keepEntries, setKeepEntries] = useState<boolean>(true);
 
   const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
-    getDatesWithTimeEntries(fromDate, toDate, timeEntries, true)
+    getDatesWithTimeEntries(
+      formatDate(fromDate),
+      formatDate(toDate),
+      timeEntries,
+      true
+    )
   );
 
   function handleChangeDate(date: Date, type: "from" | "to") {
@@ -103,21 +110,28 @@ export default function EditTimeEntry({
 
   function getDatesToSave() {
     if (timeEntries.length === 0) {
-      return getDatesBetween(fromDate, toDate, true, noWorkingDays);
+      return getDatesBetween(fromDate, toDate);
     }
-    if (keepEntries) {
-      return getDatesBetween(fromDate, toDate, true, noWorkingDays).filter(
+    if (!keepEntries) {
+      return getDatesBetween(fromDate, toDate).filter(
         (date) =>
           !getDatesWithTimeEntries(fromDate, toDate, timeEntries).includes(
             normalizeDate(date)
           )
       );
     } else {
-      return getDatesBetween(fromDate, toDate, true, noWorkingDays).filter(
-        (date) => daysWithTimeEntries.includes(normalizeDate(date))
+      return getDatesBetween(fromDate, toDate).filter((date) =>
+        daysWithTimeEntries.includes(normalizeDate(date))
       );
     }
   }
+
+  const daysWithoutTimeEntry = getDatesWithNoTimeEntries(
+    fromDate,
+    toDate,
+    timeEntries,
+    daysWithTimeEntries
+  );
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -330,6 +344,8 @@ export default function EditTimeEntry({
       </div>
       {!readOnly && (
         <WarningExistingEntry
+          disabled={daysWithoutTimeEntry.length === 0}
+          disabledTooltipMessage="No empty Days, you can only overwrite existing entries"
           daysWithTimeEntries={daysWithTimeEntries}
           keepEntries={keepEntries}
           setKeepEntries={setKeepEntries}

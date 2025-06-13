@@ -90,7 +90,7 @@ export function TimeSheetTable(props: Props) {
       props.setTimeEntries(timeEntries);
       props.setNoWorkingDay(timesheet.days);
       props.setEndDate(endDate);
-      if (isNoWorkOrBankHol(endDate, timesheet.days) !== DayType.BANK_HOLIDAY) {
+      if (isNoWorkOrBankHol(endDate, timesheet.days) === DayType.WORK_DAY) {
         props.setOpenTimeEntryModal(true);
         props.setIsDayEntry(true);
       }
@@ -214,13 +214,8 @@ export function TimeSheetTable(props: Props) {
                       : "border-b-2 border-gray-300 hover:border-blue-400"
                   }
                   ${
-                    isNoWorkOrBankHol(day, timesheet.days) !== DayType.WORK
-                      ? "bg-zinc-200"
-                      : ""
-                  }
-                  ${
-                    isNoWorkOrBankHol(day, timesheet.days) === DayType.BANK_HOLIDAY
-                      ? "cursor-not-allowed"
+                    isNoWorkOrBankHol(day, timesheet.days) !== DayType.WORK_DAY
+                      ? "bg-zinc-200 cursor-not-allowed"
                       : ""
                   }
                   `}
@@ -241,7 +236,7 @@ export function TimeSheetTable(props: Props) {
                       isMonthView={isMonthView}
                       isColumnView={props.isColumnView}
                       isNoWorkDay={
-                        isNoWorkOrBankHol(day, timesheet.days) !== DayType.WORK
+                        isNoWorkOrBankHol(day, timesheet.days) !== DayType.WORK_DAY
                       }
                     />
                   </div>

@@ -60,19 +60,6 @@ export const SpecialDayCell: React.FC<Props> = ({
           style: { backgroundColor: "#e5e7eb" },
           tooltip: "Task Finished",
         };
-      case "bank_holiday":
-        return {
-          id: `bank-holiday-cell-${cellId}`,
-          icon: (
-            <CalendarCheck
-              strokeWidth={2.25}
-              color="black"
-              size={isMonthView ? 12 : 20}
-            />
-          ),
-          style: { backgroundColor: "#e5e7eb" },
-          tooltip: "Sunday or Bank Holiday",
-        };
       default:
         return {};
     }
