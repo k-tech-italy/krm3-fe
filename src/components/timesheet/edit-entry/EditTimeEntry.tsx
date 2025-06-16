@@ -56,7 +56,9 @@ export default function EditTimeEntry({
       formatDate(fromDate),
       formatDate(toDate),
       timeEntries,
-      noWorkingDays
+      noWorkingDays,
+      true,
+      false
     ).withTimeEntries.filter(
       (date) => !holidayOrSickDays.includes(normalizeDate(date))
     )
@@ -70,10 +72,12 @@ export default function EditTimeEntry({
       setFromDate(date);
       setDaysWithTimeEntries(
         getDatesWithAndWithoutTimeEntries(
-          formatDate(fromDate),
+          date,
           formatDate(toDate),
           timeEntries,
-          noWorkingDays
+          noWorkingDays,
+          true,
+          false
         ).withTimeEntries.filter(
           (date) => !holidayOrSickDays.includes(normalizeDate(date))
         )
@@ -83,9 +87,11 @@ export default function EditTimeEntry({
       setDaysWithTimeEntries(
         getDatesWithAndWithoutTimeEntries(
           formatDate(fromDate),
-          formatDate(toDate),
+          date,
           timeEntries,
-          noWorkingDays
+          noWorkingDays,
+          true,
+          false
         ).withTimeEntries.filter(
           (date) => !holidayOrSickDays.includes(normalizeDate(date))
         )
