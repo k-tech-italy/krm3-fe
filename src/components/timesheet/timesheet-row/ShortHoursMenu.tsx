@@ -3,17 +3,16 @@ import { toast } from "react-toastify";
 import { useCreateTimeEntry } from "../../../hooks/useTimesheet";
 import { displayErrorMessage } from "../utils/utils";
 import { formatDate, getDatesBetween, normalizeDate } from "../utils/dates";
-import { TimeEntry } from "../../../restapi/types";
+import { Days, TimeEntry } from "../../../restapi/types";
 import {
-  getDatesWithTimeEntries,
-  getDatesWithNoTimeEntries,
+  getDatesWithAndWithoutTimeEntries,
 } from "../utils/timeEntry";
 import Krm3Modal from "../../commons/krm3Modal";
 import Krm3Button from "../../commons/Krm3Button";
 import WarningExistingEntry from "../edit-entry/WarningExistEntry";
 
 interface ShortHoursMenuProps {
-  day: Date;
+  dayToOpen: Date;
   taskId: number;
   openShortMenu?: {
     startDate: string;
@@ -27,6 +26,8 @@ interface ShortHoursMenuProps {
   ) => void;
   openTimeEntryModalHandler: () => void;
   timeEntries: TimeEntry[];
+  days: Days;
+  holidayOrSickDays: String[]
 }
 
 interface HourOption {
@@ -47,7 +48,7 @@ const READ_ONLY_OPTIONS: readonly HourOption[] = [
 
 export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
   const {
-    day,
+    dayToOpen: day,
     taskId,
     openShortMenu,
     readOnly,
@@ -55,6 +56,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     setOpenShortMenu,
     openTimeEntryModalHandler,
     timeEntries,
+    days,
   } = props;
 
   const [openConfirmModal, setOpenConfirmModal] = useState(false);
@@ -72,25 +74,29 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       return null;
     }
 
+    const selectedTimeEntryTask : TimeEntry[]  = timeEntries.filter(
+      (timeEntry) => timeEntry.task === taskId
+    ) || [] as TimeEntry[];
+
     const startDate = formatDate(openShortMenu.startDate);
     const endDate = formatDate(openShortMenu.endDate);
     const isVisible =
       normalizeDate(openShortMenu.endDate) === normalizeDate(day) &&
       Number(openShortMenu.taskId) === taskId;
 
-    const daysWithTimeEntries = getDatesWithTimeEntries(
+    const {
+      allDates,
+      withTimeEntries: daysWithTimeEntries,
+      withoutTimeEntries: datesWithNoTimeEntries,
+    } = getDatesWithAndWithoutTimeEntries(
       startDate,
       endDate,
       timeEntries,
-      true
+      days,
+      true,
+      false
     );
 
-    const datesWithNoTimeEntries = getDatesWithNoTimeEntries(
-      startDate,
-      endDate,
-      timeEntries,
-      daysWithTimeEntries
-    );
 
     return {
       startDate,
@@ -98,12 +104,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       isVisible,
       daysWithTimeEntries,
       datesWithNoTimeEntries,
-      selectedDates: getDatesBetween(startDate, endDate).filter((date) => {
-        const closedEntries = timeEntries.filter((entry) => {
-          return entry.state == "CLOSED";
-        });
-        return !closedEntries.map((entry) => entry.date).includes(date);
-      }),
+      selectedDates: allDates, //TODO HANDLE HOLIDAY ECC...
     };
   }, [openShortMenu, day, taskId, timeEntries]);
 
@@ -113,6 +114,8 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
 
   const submitHours = useCallback(
     async (value: number, selectedDates?: string[]) => {
+      console.log(menuData?.selectedDates)
+
       if (!menuData || !selectedResourceId) {
         toast.error("Invalid configuration");
         return;

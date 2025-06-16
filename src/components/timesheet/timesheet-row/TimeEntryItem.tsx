@@ -8,6 +8,7 @@ interface TimeEntryItemProps {
   taskId: number;
   isMonthView: boolean;
   backgroundColor: string;
+  isDayLocked: boolean;
 }
 
 export const TimeEntryItem: React.FC<TimeEntryItemProps> = ({
@@ -15,6 +16,7 @@ export const TimeEntryItem: React.FC<TimeEntryItemProps> = ({
   taskId,
   isMonthView,
   backgroundColor,
+  isDayLocked,
 }) => {
   const entryId = `${entry.id}-${taskId}`;
 
@@ -24,7 +26,7 @@ export const TimeEntryItem: React.FC<TimeEntryItemProps> = ({
     Number(entry.restHours) +
     Number(entry.travelHours);
 
-  const isClosed = entry.state === "CLOSED";
+  const isClosed = isDayLocked
 
   return (
     <Draggable

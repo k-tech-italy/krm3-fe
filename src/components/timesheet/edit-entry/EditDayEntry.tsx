@@ -5,11 +5,12 @@ import {
   useGetSpecialReason,
 } from "../../../hooks/useTimesheet";
 import { Days, TimeEntry } from "../../../restapi/types";
+import { displayErrorMessage } from "../utils/utils";
 import {
   calculateTotalHoursForDays,
-  displayErrorMessage,
-} from "../utils/utils";
-import { getDatesBetween } from "../utils/dates";
+  getDatesWithAndWithoutTimeEntries,
+} from "../utils/timeEntry";
+import { formatDate, getDatesBetween } from "../utils/dates";
 import { normalizeDate } from "../utils/dates";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -18,7 +19,7 @@ import ErrorMessage from "./ErrorMessage";
 import WarningExistingEntry from "./WarningExistEntry";
 import Krm3Button from "../../commons/Krm3Button";
 import { CheckIcon, TrashIcon } from "lucide-react";
-import { getDatesWithTimeEntries } from "../utils/timeEntry";
+import {} from "../utils/timeEntry";
 
 interface Props {
   startDate: Date;
@@ -27,7 +28,7 @@ interface Props {
   onClose: () => void;
   readOnly: boolean;
   selectedResourceId: number | null;
-  noWorkingDays?: Days;
+  noWorkingDays: Days;
 }
 
 export default function EditDayEntry({
@@ -99,21 +100,27 @@ export default function EditDayEntry({
     error: specialReasonError,
   } = useGetSpecialReason(normalizeDate(fromDate), normalizeDate(toDate));
 
-  const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
-    getDatesWithTimeEntries(fromDate, toDate, timeEntries, true)
+  const {
+    allDates,
+    withTimeEntries: daysWithTimeEntries,
+    withoutTimeEntries: daysWithoutTimeEntries,
+  } = useMemo(
+    () =>
+      getDatesWithAndWithoutTimeEntries(
+        formatDate(fromDate),
+        formatDate(toDate),
+        timeEntries,
+        noWorkingDays
+      ),
+
+    [fromDate, toDate, noWorkingDays]
   );
 
   function handleChangeDate(selectedDate: Date, dateType: "from" | "to") {
     if (dateType === "from") {
       setFromDate(selectedDate);
-      setDaysWithTimeEntries(
-        getDatesWithTimeEntries(selectedDate, toDate, timeEntries, true)
-      );
     } else if (dateType === "to") {
       setToDate(selectedDate);
-      setDaysWithTimeEntries(
-        getDatesWithTimeEntries(fromDate, selectedDate, timeEntries, true)
-      );
     }
   }
 
@@ -122,10 +129,8 @@ export default function EditDayEntry({
     startDate: Date = fromDate,
     endDate: Date = toDate
   ): string[] => {
-    const closedEntries = timeEntries.filter(
-      (entry) => entry.state === "CLOSED"
-    );
-    const dates = getDatesBetween(startDate, endDate, true, noWorkingDays);
+    const closedEntries = timeEntries; //TODO FIX
+    const dates = getDatesBetween(startDate, endDate, noWorkingDays);
     if (entryType === "leave" || entryType === "rest") {
       return dates;
     } else {
@@ -181,13 +186,7 @@ export default function EditDayEntry({
     event.preventDefault();
     //DELETE API with skippedTaskId
     const skippedTaskId = daysWithTimeEntries.flatMap((day) => {
-      return timeEntries
-        .filter(
-          (item) =>
-            item.state !== "CLOSED" &&
-            normalizeDate(item.date) === normalizeDate(day)
-        )
-        .map((item) => item.id);
+      return timeEntries.map((item) => item.id); //TODO FIXIT
     });
     deleteDays(skippedTaskId).then(() => {
       onClose();
