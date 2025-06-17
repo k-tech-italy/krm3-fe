@@ -49,8 +49,6 @@ export default function EditTimeEntry({
     endDate >= startDate ? endDate : startDate
   );
 
-
-
   const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
     getDatesWithAndWithoutTimeEntries(
       formatDate(fromDate),
@@ -63,9 +61,7 @@ export default function EditTimeEntry({
       (date) => !holidayOrSickDays.includes(normalizeDate(date))
     )
   );
-  const [keepEntries, setKeepEntries] = useState<boolean>(
-    daysWithTimeEntries.length ? true : false
-  );
+  const [keepEntries, setKeepEntries] = useState<boolean>(true);
 
   function handleChangeDate(date: Date, type: "from" | "to") {
     if (type === "from") {
@@ -144,14 +140,12 @@ export default function EditTimeEntry({
 
   function getDatesToSave() {
     if (daysWithTimeEntries.length === 0) {
-      return allDates.filter(
-        (date) => !holidayOrSickDays.includes(normalizeDate(date))
-      );
+      return allDates;
     }
     if (!keepEntries) {
       return withoutTimeEntries;
     } else {
-      return daysWithTimeEntries;
+      return allDates;
     }
   }
 
@@ -163,7 +157,8 @@ export default function EditTimeEntry({
         (date) =>
           normalizeDate(date) >= normalizeDate(task.startDate) &&
           !!task.endDate &&
-          normalizeDate(date) <= normalizeDate(task.endDate)
+          normalizeDate(date) <= normalizeDate(task.endDate) &&
+          !holidayOrSickDays.includes(normalizeDate(date))
       ),
       nightShiftHours: nightShiftHours,
       dayShiftHours: dayShiftHours,
@@ -373,6 +368,7 @@ export default function EditTimeEntry({
         <WarningExistingEntry
           disabled={withoutTimeEntries.length === 0}
           disabledTooltipMessage="No empty Days, you can only overwrite existing entries"
+          message="Holiday, Sick days and N/A entries will be skipped automatically."
           daysWithTimeEntries={daysWithTimeEntries}
           keepEntries={keepEntries}
           setKeepEntries={setKeepEntries}

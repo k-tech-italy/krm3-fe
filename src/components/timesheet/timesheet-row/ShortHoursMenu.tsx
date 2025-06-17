@@ -4,9 +4,7 @@ import { useCreateTimeEntry } from "../../../hooks/useTimesheet";
 import { displayErrorMessage } from "../utils/utils";
 import { formatDate, getDatesBetween, normalizeDate } from "../utils/dates";
 import { Days, TimeEntry } from "../../../restapi/types";
-import {
-  getDatesWithAndWithoutTimeEntries,
-} from "../utils/timeEntry";
+import { getDatesWithAndWithoutTimeEntries } from "../utils/timeEntry";
 import Krm3Modal from "../../commons/krm3Modal";
 import Krm3Button from "../../commons/Krm3Button";
 import WarningExistingEntry from "../edit-entry/WarningExistEntry";
@@ -27,7 +25,7 @@ interface ShortHoursMenuProps {
   openTimeEntryModalHandler: () => void;
   timeEntries: TimeEntry[];
   days: Days;
-  holidayOrSickDays: String[]
+  holidayOrSickDays: String[];
 }
 
 interface HourOption {
@@ -57,6 +55,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     openTimeEntryModalHandler,
     timeEntries,
     days,
+    holidayOrSickDays,
   } = props;
 
   const [openConfirmModal, setOpenConfirmModal] = useState(false);
@@ -73,10 +72,6 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     if (!openShortMenu) {
       return null;
     }
-
-    const selectedTimeEntryTask : TimeEntry[]  = timeEntries.filter(
-      (timeEntry) => timeEntry.task === taskId
-    ) || [] as TimeEntry[];
 
     const startDate = formatDate(openShortMenu.startDate);
     const endDate = formatDate(openShortMenu.endDate);
@@ -97,14 +92,17 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       false
     );
 
-
     return {
       startDate,
       endDate,
       isVisible,
       daysWithTimeEntries,
-      datesWithNoTimeEntries,
-      selectedDates: allDates, //TODO HANDLE HOLIDAY ECC...
+      datesWithNoTimeEntries: datesWithNoTimeEntries.filter(
+        (date) => !holidayOrSickDays.includes(normalizeDate(date))
+      ),
+      selectedDates: allDates.filter(
+        (date) => !holidayOrSickDays.includes(normalizeDate(date))
+      ),
     };
   }, [openShortMenu, day, taskId, timeEntries]);
 
@@ -114,8 +112,6 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
 
   const submitHours = useCallback(
     async (value: number, selectedDates?: string[]) => {
-      console.log(menuData?.selectedDates)
-
       if (!menuData || !selectedResourceId) {
         toast.error("Invalid configuration");
         return;
@@ -198,7 +194,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       }
       if (pendingSubmission) {
         if (overwrite) {
-          submitHours(pendingSubmission.value);
+          submitHours(pendingSubmission.value, menuData.selectedDates);
         } else {
           submitHours(pendingSubmission.value, menuData.datesWithNoTimeEntries);
           setOpenConfirmModal(false);
@@ -278,6 +274,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
             <WarningExistingEntry
               style="my-5"
               daysWithTimeEntries={menuData.daysWithTimeEntries}
+              message="Holiday, Sick days and N/A entries will be skipped automatically."
               isCheckbox={false}
               keepEntries={false}
             />

@@ -121,7 +121,9 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             openTimeEntryModalHandler={() => openTimeEntryModalHandler(task)}
             readOnly={readOnly}
             selectedResourceId={selectedResourceId}
-            timeEntries={timesheet.timeEntries}
+            timeEntries={timesheet.timeEntries.filter(
+              (timeEntry) => timeEntry.task === task.id
+            )}
           />
           <TimeEntryCell
             isLockedDay={isLockedDay}
