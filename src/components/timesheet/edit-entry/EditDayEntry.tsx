@@ -68,17 +68,13 @@ export default function EditDayEntry({
       if (startEntry.sickHours > 0) {
         setEntryType("sick");
       }
-      if (startEntry.specialLeaveHours > 0) {
-        setEntryType("special");
-        //setSpecialReason(startEntry.specialReason);
-      }
       if (startEntry.restHours > 0) {
         setEntryType("rest");
         setRestHours(startEntry.restHours);
       }
     }
   }, [startEntry]);
-
+  const [overrideEntries, setOverrideEntries] = useState<boolean>(true);
   const [entryType, setEntryType] = useState<string | null>(null);
   const [leaveHours, setLeaveHours] = useState<number | undefined>();
   const [restHours, setRestHours] = useState<number | undefined>();
@@ -104,16 +100,11 @@ export default function EditDayEntry({
     allDates,
     withTimeEntries: daysWithTimeEntries,
     withoutTimeEntries: daysWithoutTimeEntries,
-  } = useMemo(
-    () =>
-      getDatesWithAndWithoutTimeEntries(
-        formatDate(fromDate),
-        formatDate(toDate),
-        timeEntries,
-        noWorkingDays
-      ),
-
-    [fromDate, toDate, noWorkingDays]
+  } = getDatesWithAndWithoutTimeEntries(
+    formatDate(fromDate),
+    formatDate(toDate),
+    timeEntries,
+    noWorkingDays
   );
 
   function handleChangeDate(selectedDate: Date, dateType: "from" | "to") {
@@ -129,19 +120,21 @@ export default function EditDayEntry({
     startDate: Date = fromDate,
     endDate: Date = toDate
   ): string[] => {
-    const closedEntries = timeEntries; //TODO FIX
-    const dates = getDatesBetween(startDate, endDate, noWorkingDays);
-    if (entryType === "leave" || entryType === "rest") {
-      return dates;
-    } else {
-      return dates.filter((date) => {
-        return !closedEntries.map((entry) => entry.date).includes(date);
-      });
-    }
+    return getDatesBetween(startDate, endDate, noWorkingDays, true);
+    // if (entryType === "leave" || entryType === "rest") {
+    //   return dates;
+    // } else {
+    //   return dates
+    // }
   };
 
   const handleEntryTypeChange = (type: string) => {
     if (readOnly) return; // Prevent changes in read-only mode
+    if (entryType === "holiday" || entryType === "sick") {
+      setLeaveHours(undefined);
+      setRestHours(undefined);
+      setLeaveHoursError(null);
+    }
     setEntryType(type);
   };
 
@@ -173,8 +166,8 @@ export default function EditDayEntry({
         nightShiftHours: 0,
         holidayHours: entryType === "holiday" ? 8 : undefined,
         sickHours: entryType === "sick" ? 8 : undefined,
-        leaveHours: leaveHours,
-        restHours: restHours,
+        leaveHours: entryType === "holiday" || entryType === "sick" ? 0 : leaveHours,
+        restHours: entryType === "holiday" || entryType === "sick" ? 0 : restHours,
         specialReason: specialReason,
         dayShiftHours: 0, // Set dayShiftHours to 0 if 'cause is mandatory'
         comment: comment,
@@ -185,9 +178,12 @@ export default function EditDayEntry({
   function handleDeleteEntry(event: any): void {
     event.preventDefault();
     //DELETE API with skippedTaskId
-    const skippedTaskId = daysWithTimeEntries.flatMap((day) => {
-      return timeEntries.map((item) => item.id); //TODO FIXIT
-    });
+    const skippedTaskId = daysWithTimeEntries.flatMap((day) =>
+      timeEntries
+        .filter((item) => normalizeDate(item.date) === normalizeDate(day))
+        .map((item) => item.id)
+    );
+    console.log(skippedTaskId);
     deleteDays(skippedTaskId).then(() => {
       onClose();
     });
@@ -337,9 +333,9 @@ export default function EditDayEntry({
                 min="0"
                 max="8"
                 step={0.25}
+                placeholder="0.00"
                 required
                 className="w-full border  border-gray-300 rounded-md p-2"
-                placeholder="Enter hours"
                 disabled={readOnly}
               />
             </div>
@@ -398,7 +394,9 @@ export default function EditDayEntry({
           <WarningExistingEntry
             daysWithTimeEntries={daysWithTimeEntries}
             isCheckbox={false}
-            message="Time Entries with closed will be skipped"
+            overrideEntries={overrideEntries}
+            setOverrideEntries={setOverrideEntries}
+            message="Day locked and no working days will be skipped automatically"
           />
         )}
         {!!entryType && handleDatesChange(entryType).length === 0 && (

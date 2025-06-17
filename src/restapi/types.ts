@@ -180,7 +180,6 @@ export interface TimeEntry {
   travelHours: number;
   onCallHours: number;
   restHours: number;
-  specialLeaveHours: number;
   specialReason?: string;
   comment?: string;
   metaData?: JSON;

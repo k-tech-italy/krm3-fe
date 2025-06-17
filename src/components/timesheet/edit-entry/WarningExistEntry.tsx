@@ -4,8 +4,8 @@ import { Tooltip } from "react-tooltip";
 interface Props {
   daysWithTimeEntries: string[];
   isCheckbox: boolean;
-  keepEntries?: boolean;
-  setKeepEntries?: React.Dispatch<React.SetStateAction<boolean>>;
+  overrideEntries?: boolean;
+  setOverrideEntries?: React.Dispatch<React.SetStateAction<boolean>>;
   style?: string;
   message?: string;
   disabled?: boolean;
@@ -14,8 +14,8 @@ interface Props {
 
 const WarningExistingEntry = ({
   daysWithTimeEntries,
-  keepEntries,
-  setKeepEntries,
+  overrideEntries,
+  setOverrideEntries,
   isCheckbox,
   style,
   message,
@@ -49,16 +49,16 @@ const WarningExistingEntry = ({
               >
                 {message ? message : ""}
               </p>
-              {isCheckbox && setKeepEntries && (
+              {isCheckbox && setOverrideEntries && (
                 <div className="mt-3 flex items-center">
                   <input
                     type="checkbox"
-                    defaultChecked={keepEntries}
+                    defaultChecked={overrideEntries}
                     id="save-for-update-checkbox"
                     data-tooltip-id="save-for-update-checkbox-tooltip"
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     onChange={() => {
-                      setKeepEntries(!keepEntries);
+                      setOverrideEntries(!overrideEntries);
                     }}
                     disabled={disabled}
                   />

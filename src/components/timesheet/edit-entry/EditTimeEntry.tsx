@@ -61,7 +61,7 @@ export default function EditTimeEntry({
       (date) => !holidayOrSickDays.includes(normalizeDate(date))
     )
   );
-  const [keepEntries, setKeepEntries] = useState<boolean>(true);
+  const [overrideEntries, setOverrideEntries] = useState<boolean>(true);
 
   function handleChangeDate(date: Date, type: "from" | "to") {
     if (type === "from") {
@@ -142,7 +142,7 @@ export default function EditTimeEntry({
     if (daysWithTimeEntries.length === 0) {
       return allDates;
     }
-    if (!keepEntries) {
+    if (!overrideEntries) {
       return withoutTimeEntries;
     } else {
       return allDates;
@@ -370,8 +370,8 @@ export default function EditTimeEntry({
           disabledTooltipMessage="No empty Days, you can only overwrite existing entries"
           message="Holiday, Sick days and N/A entries will be skipped automatically."
           daysWithTimeEntries={daysWithTimeEntries}
-          keepEntries={keepEntries}
-          setKeepEntries={setKeepEntries}
+          overrideEntries={overrideEntries}
+          setOverrideEntries={setOverrideEntries}
           isCheckbox
         />
       )}

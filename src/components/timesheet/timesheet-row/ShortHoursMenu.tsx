@@ -276,7 +276,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
               daysWithTimeEntries={menuData.daysWithTimeEntries}
               message="Holiday, Sick days and N/A entries will be skipped automatically."
               isCheckbox={false}
-              keepEntries={false}
+              overrideEntries={false}
             />
             <div className="flex justify-between mt-2">
               <Krm3Button
