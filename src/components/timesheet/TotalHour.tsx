@@ -74,7 +74,7 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay }: Pr
           place="top"
           clickable={true}
           className="z-10 !bg-white !text-black !opacity-100  rounded shadow-lg border border-gray-300"
-          style={{ width: "16rem", maxWidth: "20rem" }}
+          style={{ width: "16rem", maxWidth: "20rem", }}
           delayShow={300}
         >
           <div className="">

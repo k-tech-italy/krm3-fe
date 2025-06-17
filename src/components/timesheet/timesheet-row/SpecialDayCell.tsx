@@ -1,8 +1,7 @@
-import React, { useEffect } from "react";
-import { CalendarCheck, FileLock2, Martini, Stethoscope } from "lucide-react";
-import { CellProps } from "./TimeEntryCell";
+import React from "react";
+import { Martini, Stethoscope, Lock } from "lucide-react";
 import { Tooltip } from "react-tooltip";
-import { TimeEntryType } from "../../../restapi/types";
+import { DayType, TimeEntryType } from "../../../restapi/types";
 
 interface Props {
   day: Date;
@@ -38,7 +37,6 @@ export const SpecialDayCell: React.FC<Props> = ({
             />
           ),
           style: { backgroundColor: colors.backgroundColor },
-          tooltip: "Holiday",
         };
       case "sick":
         return {
@@ -51,31 +49,29 @@ export const SpecialDayCell: React.FC<Props> = ({
             />
           ),
           style: { backgroundColor: colors.backgroundColor },
-          tooltip: "Sick Day",
         };
       case "finished":
         return {
           id: `task-finished-cell-${cellId}`,
           icon: <span className="text-xs text-gray-600">N/A</span>,
           style: { backgroundColor: "#e5e7eb" },
-          tooltip: "Task Finished",
         };
       default:
         return {};
     }
   };
 
-  const { id, icon, style, tooltip } = getCellStyles();
+  const { id, icon, style } = getCellStyles();
 
   return (
     <div
       id={id}
-      data-tooltip-id={`tooltip-${id}`}
       style={style}
-      className={`h-full w-full text-center flex items-center justify-center cursor-not-allowed `}
+      className={`h-full w-full text-center flex items-center justify-center cursor-not-allowed`}
     >
-      <div className={` h-full flex justify-center items-center`}>{icon}</div>
-      <Tooltip id={`tooltip-${id}`} content={tooltip} />
+      <div className={` h-full flex justify-center items-center`}>
+        {icon}
+      </div>
     </div>
   );
 };

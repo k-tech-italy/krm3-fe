@@ -18,7 +18,6 @@ export const TimeEntryItem: React.FC<TimeEntryItemProps> = ({
   backgroundColor,
   isDayLocked,
 }) => {
-  const entryId = `${entry.id}-${taskId}`;
 
   const hoursValue =
     Number(entry.dayShiftHours) +
@@ -26,27 +25,15 @@ export const TimeEntryItem: React.FC<TimeEntryItemProps> = ({
     Number(entry.restHours) +
     Number(entry.travelHours);
 
-  const isClosed = isDayLocked
-
   return (
-    <Draggable
-      id={entryId}
-      className={`h-full w-full ${isClosed ? "cursor-not-allowed" : ""}`}
-    >
+
       <div
         style={{ backgroundColor }}
         className={`h-full w-full text-center flex items-center justify-center `}
       >
-        {isClosed && (
-          <Lock
-            className="absolute -translate-y-[8px] translate-x-[8px]"
-            size={10}
-          />
-        )}
         <span className={`${isMonthView ? "text-[10px]" : "text-s"} `}>
           {hoursValue}
         </span>
       </div>
-    </Draggable>
   );
 };

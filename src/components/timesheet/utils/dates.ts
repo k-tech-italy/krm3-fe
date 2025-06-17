@@ -94,7 +94,7 @@ export function getDatesBetween(
   }
 
   return dates
-    .filter((date) => getDayType(date, days) !== DayType.LOCKED_DAY)
+    .filter((date) => getDayType(date, days) !== DayType.CLOSED_DAY)
     .map(normalizeDate);
 }
 

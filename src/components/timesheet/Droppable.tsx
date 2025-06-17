@@ -1,16 +1,24 @@
 import React from "react";
 import { useDroppable } from "@dnd-kit/core";
 
-export function Droppable(props: { children: React.ReactNode; id: string }) {
+export function Droppable(props: {
+  children: React.ReactNode;
+  id: string;
+  isDisabled?: boolean;
+}) {
   const { isOver, setNodeRef } = useDroppable({
     id: props.id,
+    disabled: props.isDisabled,
   });
-  const style = {
-    color: isOver ? "green" : undefined,
-  };
 
   return (
-    <div id={`droppable-${props.id}`}  className="w-full h-full" ref={setNodeRef} style={style}>
+    <div
+      id={`droppable-${props.id}`}
+      className={`w-full h-full relative ${
+        props.isDisabled ? "draggable-disabled" : ""
+      }`}
+      ref={setNodeRef}
+    >
       {props.children}
     </div>
   );

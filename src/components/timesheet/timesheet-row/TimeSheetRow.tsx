@@ -56,7 +56,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   const timeEntries = getTimeEntriesForTaskAndDay(task.id, timesheet);
 
   const lockedDays = scheduleDays.filter((day) => {
-    return getDayType(day, timesheet.days) === DayType.LOCKED_DAY;
+    return getDayType(day, timesheet.days) === DayType.CLOSED_DAY;
   });
 
   const isTaskFinished = (currentDay: Date, task: Task): boolean => {
@@ -104,7 +104,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
       : isTaskFinished(day, task)
       ? TimeEntryType.FINISHED
       : isLockedDay
-      ? TimeEntryType.LOCKED
+      ? TimeEntryType.CLOSED
       : TimeEntryType.TASK;
 
     return (

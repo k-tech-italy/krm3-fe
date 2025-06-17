@@ -116,7 +116,6 @@ export default function EditDayEntry({
   }
 
   const handleDatesChange = (
-    entryType: string,
     startDate: Date = fromDate,
     endDate: Date = toDate
   ): string[] => {
@@ -162,12 +161,14 @@ export default function EditDayEntry({
     event.preventDefault();
     if (entryType) {
       submitDays({
-        dates: handleDatesChange(entryType),
+        dates: handleDatesChange(),
         nightShiftHours: 0,
         holidayHours: entryType === "holiday" ? 8 : undefined,
         sickHours: entryType === "sick" ? 8 : undefined,
-        leaveHours: entryType === "holiday" || entryType === "sick" ? 0 : leaveHours,
-        restHours: entryType === "holiday" || entryType === "sick" ? 0 : restHours,
+        leaveHours:
+          entryType === "holiday" || entryType === "sick" ? 0 : leaveHours,
+        restHours:
+          entryType === "holiday" || entryType === "sick" ? 0 : restHours,
         specialReason: specialReason,
         dayShiftHours: 0, // Set dayShiftHours to 0 if 'cause is mandatory'
         comment: comment,
@@ -183,7 +184,6 @@ export default function EditDayEntry({
         .filter((item) => normalizeDate(item.date) === normalizeDate(day))
         .map((item) => item.id)
     );
-    console.log(skippedTaskId);
     deleteDays(skippedTaskId).then(() => {
       onClose();
     });
@@ -399,10 +399,10 @@ export default function EditDayEntry({
             message="Day locked and no working days will be skipped automatically"
           />
         )}
-        {!!entryType && handleDatesChange(entryType).length === 0 && (
+        {!!entryType && handleDatesChange().length === 0 && (
           <ErrorMessage
             message={
-              "You must select at least one day without closed time entries"
+              "You must select at least one day which is not locked and is a working day"
             }
           />
         )}
@@ -439,7 +439,7 @@ export default function EditDayEntry({
                 !entryType ||
                 !!leaveHoursError ||
                 readOnly ||
-                (!!entryType && handleDatesChange(entryType).length === 0)
+                (!!entryType && handleDatesChange().length === 0)
               }
               type="submit"
               style="primary"

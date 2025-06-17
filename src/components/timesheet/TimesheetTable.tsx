@@ -59,7 +59,7 @@ export function TimeSheetTable(props: Props) {
       props.setTimeEntries(timeEntries);
       props.setNoWorkingDay(timesheet.days);
       props.setEndDate(endDate);
-      if (getDayType(endDate, timesheet.days) === DayType.WORK_DAY) {
+      if (getDayType(endDate, timesheet.days) !== DayType.CLOSED_DAY) {
         props.setOpenTimeEntryModal(true);
         props.setIsDayEntry(true);
       }
@@ -71,7 +71,8 @@ export function TimeSheetTable(props: Props) {
       props.setIsDayEntry(false);
       if (
         endDate >= formatDate(task.startDate) &&
-        (!!task.endDate ? endDate <= formatDate(task.endDate) : true)
+        (!!task.endDate ? endDate <= formatDate(task.endDate) : true) &&
+        getDayType(endDate, timesheet?.days) !== DayType.CLOSED_DAY
       ) {
         setOpenShortMenu({
           startDate: normalizeDate(props.startDate!),
@@ -179,8 +180,19 @@ export function TimeSheetTable(props: Props) {
 
           {/* Day Headers */}
           {props.scheduledDays.days.map((day, index) => (
-            <Droppable key={index} id={`column-${index}`}>
-              <Draggable id={`column-${index}`}>
+            <Droppable
+              key={index}
+              id={`column-${index}`}
+              isDisabled={
+                getDayType(day, timesheet.days) === DayType.CLOSED_DAY
+              }
+            >
+              <Draggable
+                id={`column-${index}`}
+                isDisabled={
+                  getDayType(day, timesheet.days) === DayType.CLOSED_DAY
+                }
+              >
                 <div
                   className={`h-full w-fullitems-center ${
                     props.isColumnView

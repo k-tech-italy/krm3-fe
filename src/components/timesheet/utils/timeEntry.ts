@@ -104,20 +104,17 @@ export const getTimeEntriesForTaskAndDay = (
       entry.task === taskId && normalizeDate(entry.date) === normalizeDate(day)
   );
 };
-/**
- * Given a Date or date-string `input` and an optional object of bank holidays and no working days
- * `days`, returns the type of day that `input` is. If `days` is not provided,
- * `input` is assumed to be a work day.
- *
- * @param {Date|string} input A Date or date-string to check
- * @param {Days} [days] An object of bank holidays and no working days, where the keys are the dates
- * in 'YYYY-MM-DD' format, and the values are objects with a single boolean
- * property `hol` indicating whether the date is a bank holiday, and
- * boolean property `nwd` indicating whether the date is a non-working day.
- * @returns {DayType} The type of day that `input` is, which can be one of
- * `DayType.WORK`, `DayType.NO_WORK_DAY`, or `DayType.BANK_HOLIDAY`.
- */
 
+
+  /**
+   * Get the DayType for a given date, using the provided days.
+   *
+   * If no days are provided, WORK_DAY is returned.
+   *
+   * @param date the date to get the DayType for
+   * @param days the days to check against
+   * @returns the DayType for the given date
+   */
 export function getDayType(date: Date | string, days?: Days): DayType {
   const normalizedDate = normalizeDate(date);
 
@@ -127,6 +124,10 @@ export function getDayType(date: Date | string, days?: Days): DayType {
 
   const dayEntry = days[normalizedDate];
 
+  if (dayEntry?.closed) {
+    return DayType.CLOSED_DAY;
+  }
+
   if (dayEntry?.nwd && !dayEntry?.hol) {
     return DayType.NO_WORK_DAY;
   }
@@ -135,9 +136,7 @@ export function getDayType(date: Date | string, days?: Days): DayType {
     return DayType.BANK_HOLIDAY;
   }
 
-  if (dayEntry?.locked) {
-    return DayType.LOCKED_DAY;
-  }
+ 
 
   return DayType.WORK_DAY;
 }
