@@ -110,8 +110,11 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
               )}
           </div>
         </Draggable>
-        <Tooltip id={"tooltip-closed-day"} content="Closed Day" />
       </div>
+      <Tooltip
+        id={"tooltip-closed-day"}
+        content="Closed Day"
+      />
     </Droppable>
   );
 };
