@@ -110,10 +110,11 @@ export default function Krm3Calendar({
     return { days, numberOfDays };
   }, [currentWeekStart, isMonth]);
 
-  const isToday =
-    currentWeekStart <= new Date() &&
-    new Date() <=
-      new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000);
+  const isCurrentPeriod = isMonth
+    ? currentWeekStart.getMonth() === new Date().getMonth()
+    : currentWeekStart <= new Date() &&
+      new Date() <=
+        new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000);
 
   const navigatePrev = () => {
     const newDate = new Date(currentWeekStart);
@@ -177,8 +178,7 @@ export default function Krm3Calendar({
                 <ChevronRight />
               </button>
             </div>
-            <button
-              id="today-btn"
+            <Krm3Button
               onClick={() =>
                 setCurrentWeekStart(() => {
                   const today = new Date();
@@ -187,13 +187,11 @@ export default function Krm3Calendar({
                   return new Date(today.setDate(diff));
                 })
               }
-              className={`${
-                isToday ? "bg-gray-500 cursor-not-allowed " : "bg-yellow-500"
-              } rounded px-4 py-2  text-white `}
-              disabled={isToday}
-            >
-              {isMonth ? "This month" : "This week"}
-            </button>
+              type="button"
+              style="primary"
+              label={isMonth ? "This month" : "This week"}
+              disabled={isCurrentPeriod}
+            />
           </div>
           <VisualizationActions
             isMonth={isMonth}

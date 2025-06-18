@@ -10,7 +10,6 @@ import LoadSpinner from "../commons/LoadSpinner";
 import { DragCallbacks, useDragAndDrop } from "../../hooks/useDragAndDrop";
 import { getHolidayAndSickDays } from "./utils/utils";
 import TimeSheetHeaders from "./timesheet-headers/TimeSheetHeaders";
-import Krm3Button from "../commons/Krm3Button";
 
 interface Props {
   setOpenTimeEntryModal: (open: boolean) => void;
