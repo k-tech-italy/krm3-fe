@@ -1,6 +1,6 @@
 import React from "react";
 import { Tooltip } from "react-tooltip";
-import { Days, DayType, TimeEntry, Timesheet } from "../../../restapi/types";
+import { DayType, TimeEntry, Timesheet } from "../../../restapi/types";
 import { Draggable } from "../Draggable";
 import { Droppable } from "../Droppable";
 import { formatDay, formatDayOfWeek, normalizeDate } from "../utils/dates";
@@ -24,12 +24,10 @@ function TimeSheetHeaders({
   isColumnActive,
   isColumnHighlighted,
 }: Props) {
-
-   
   return (
     <>
       {scheduledDays.days.map((day, index) => (
-        <>
+        <React.Fragment key={index}>
           <Droppable
             key={index}
             id={`column-${index}`}
@@ -96,7 +94,7 @@ function TimeSheetHeaders({
                 ))}
             </div>
           </Tooltip>
-        </>
+        </React.Fragment>
       ))}
     </>
   );

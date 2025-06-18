@@ -16,6 +16,7 @@ import {
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import ErrorMessage from "./edit-entry/ErrorMessage";
 import { getHolidayAndSickDays } from "./utils/utils";
+import Krm3Button from "../commons/Krm3Button";
 
 export default function Krm3Calendar({
   selectedResourceId,
@@ -215,6 +216,16 @@ export default function Krm3Calendar({
             selectedResourceId={selectedResourceId}
             readOnly={readOnly}
           />
+          <div className="flex justify-end items-center mt-4">
+            <Krm3Button
+              onClick={() => console.log("Submit Timesheet")}
+              type="button"
+              style="primary"
+              label="Submit Timesheet"
+              disabled={!isMonth}
+              disabledTooltipMessage="Only available for month view"
+            />
+          </div>
           {openTimeEntryModal &&
             selectedTask &&
             startDate &&

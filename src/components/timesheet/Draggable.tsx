@@ -14,7 +14,7 @@ export function Draggable(props: {
 
   return (
     <div
-      id={`draggable-${props.id}`}
+      id={`${props.id}`}
       ref={setNodeRef}
       className={`w-full h-full  ${
         props.isDisabled

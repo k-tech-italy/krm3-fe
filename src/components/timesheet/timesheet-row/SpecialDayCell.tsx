@@ -33,7 +33,7 @@ export const SpecialDayCell: React.FC<Props> = ({
             <Martini
               strokeWidth={2.25}
               color="black"
-              size={isMonthView ? 12 : 20}
+              size={isMonthView ? 12 : 18}
             />
           ),
           style: { backgroundColor: colors.backgroundColor },
@@ -45,7 +45,7 @@ export const SpecialDayCell: React.FC<Props> = ({
             <Stethoscope
               strokeWidth={2.25}
               color="black"
-              size={isMonthView ? 12 : 20}
+              size={isMonthView ? 12 : 18}
             />
           ),
           style: { backgroundColor: colors.backgroundColor },

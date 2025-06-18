@@ -1,7 +1,6 @@
 import { Info } from "lucide-react";
 import { TimeEntry } from "../../../restapi/types";
 import { normalizeDate } from "../utils/dates";
-import { Tooltip } from "react-tooltip";
 
 interface Props {
   day: Date;

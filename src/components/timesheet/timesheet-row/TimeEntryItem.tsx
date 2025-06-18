@@ -31,7 +31,7 @@ export const TimeEntryItem: React.FC<TimeEntryItemProps> = ({
         style={{ backgroundColor }}
         className={`h-full w-full text-center flex items-center justify-center `}
       >
-        <span className={`${isMonthView ? "text-[10px]" : "text-s"} `}>
+        <span className={`${isMonthView ? "text-[12px]" : "text-[18px]"} `}>
           {hoursValue}
         </span>
       </div>

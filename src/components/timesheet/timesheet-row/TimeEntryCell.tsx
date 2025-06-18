@@ -44,7 +44,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   onClick,
 }) => {
   const cellId = `${day.toDateString()}-${taskId}`;
-  const draggableId = `${day.toDateString()}-${taskId}-draggable`;
+  const draggableId = `${day.toDateString()}-${taskId}-${timeEntry?.id}`;
 
   const borderColorClass = isColumnView
     ? "border-l-[var(--border-color)]"
@@ -111,10 +111,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
           </div>
         </Draggable>
       </div>
-      <Tooltip
-        id={"tooltip-closed-day"}
-        content="Closed Day"
-      />
+      <Tooltip id={"tooltip-closed-day"} content="Closed Day" />
     </Droppable>
   );
 };

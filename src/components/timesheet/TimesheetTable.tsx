@@ -1,24 +1,16 @@
 import { useState } from "react";
 import { DndContext, closestCenter } from "@dnd-kit/core";
-import { TimeEntry, Task, Timesheet, Days } from "../../restapi/types";
-import { Draggable } from "./Draggable";
+import { TimeEntry, Task, Days } from "../../restapi/types";
 import { useGetTimesheet } from "../../hooks/useTimesheet";
-import { Droppable } from "./Droppable";
-import { TotalHourCell, TotalHourForTask } from "./timesheet-headers/TotalHour";
 import { TimeSheetRow } from "./timesheet-row/TimeSheetRow";
-import {
-  formatDate,
-  formatDay,
-  formatDayOfWeek,
-  normalizeDate,
-} from "./utils/dates";
+import { formatDate, normalizeDate } from "./utils/dates";
 import { DayType } from "../../restapi/types";
 import { getDayType } from "./utils/timeEntry";
 import LoadSpinner from "../commons/LoadSpinner";
 import { DragCallbacks, useDragAndDrop } from "../../hooks/useDragAndDrop";
 import { getHolidayAndSickDays } from "./utils/utils";
-import { Tooltip } from "react-tooltip";
 import TimeSheetHeaders from "./timesheet-headers/TimeSheetHeaders";
+import Krm3Button from "../commons/Krm3Button";
 
 interface Props {
   setOpenTimeEntryModal: (open: boolean) => void;
@@ -181,14 +173,14 @@ export function TimeSheetTable(props: Props) {
           </div>
 
           {/* Day Headers */}
-            <TimeSheetHeaders
-              timesheet={timesheet}
-              scheduledDays={props.scheduledDays}
-              isColumnView={props.isColumnView}
-              isMonthView={isMonthView}
-              isColumnActive={isColumnActive}
-              isColumnHighlighted={isColumnHighlighted}
-            />
+          <TimeSheetHeaders
+            timesheet={timesheet}
+            scheduledDays={props.scheduledDays}
+            isColumnView={props.isColumnView}
+            isMonthView={isMonthView}
+            isColumnActive={isColumnActive}
+            isColumnHighlighted={isColumnHighlighted}
+          />
 
           {/* Tasks */}
           {!timesheet?.tasks || timesheet.tasks.length === 0 ? (
@@ -216,6 +208,7 @@ export function TimeSheetTable(props: Props) {
           )}
         </div>
       </DndContext>
+      
     </div>
   );
 }
