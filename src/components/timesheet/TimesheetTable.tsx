@@ -4,7 +4,7 @@ import { TimeEntry, Task, Timesheet, Days } from "../../restapi/types";
 import { Draggable } from "./Draggable";
 import { useGetTimesheet } from "../../hooks/useTimesheet";
 import { Droppable } from "./Droppable";
-import { TotalHourCell } from "./TotalHour";
+import { TotalHourCell, TotalHourForTask } from "./timesheet-headers/TotalHour";
 import { TimeSheetRow } from "./timesheet-row/TimeSheetRow";
 import {
   formatDate,
@@ -18,6 +18,7 @@ import LoadSpinner from "../commons/LoadSpinner";
 import { DragCallbacks, useDragAndDrop } from "../../hooks/useDragAndDrop";
 import { getHolidayAndSickDays } from "./utils/utils";
 import { Tooltip } from "react-tooltip";
+import TimeSheetHeaders from "./timesheet-headers/TimeSheetHeaders";
 
 interface Props {
   setOpenTimeEntryModal: (open: boolean) => void;
@@ -180,73 +181,14 @@ export function TimeSheetTable(props: Props) {
           </div>
 
           {/* Day Headers */}
-          {props.scheduledDays.days.map((day, index) => (
-            <>
-              <Droppable
-                key={index}
-                id={`column-${index}`}
-                isDisabled={
-                  getDayType(day, timesheet.days) === DayType.CLOSED_DAY
-                }
-              >
-                <Draggable
-                  id={`column-${index}`}
-                  isDisabled={
-                    getDayType(day, timesheet.days) === DayType.CLOSED_DAY
-                  }
-                >
-                  <div
-                    className={`h-full w-fullitems-center ${
-                      props.isColumnView
-                        ? "flex justify-between py-2"
-                        : "flex-col "
-                    } bg-gray-100 font-semibold ${
-                      isMonthView ? "text-xs p-1" : "text-sm p-2"
-                    } text-center cursor-grab
-                  ${isColumnActive(index) ? "bg-blue-200" : ""}
-                  ${
-                    isColumnHighlighted(index)
-                      ? "bg-blue-100 border-b-2 border-blue-400"
-                      : "border-b-2 border-gray-300 hover:border-blue-400"
-                  }
-                  ${
-                    getDayType(day, timesheet.days) !== DayType.WORK_DAY
-                      ? "bg-zinc-200 cursor-not-allowed"
-                      : ""
-                  }
-                  `}
-                  >
-                    <div
-                      className={`${isMonthView ? "text-[10px]" : "text-sm"}`}
-                    >
-                      {isMonthView && !props.isColumnView
-                        ? formatDay(day)
-                        : formatDayOfWeek(day)}
-                    </div>
-                    <div
-                      className={`bg-gray-100 font-semibold ${
-                        isMonthView ? "text-[10px]" : "text-sm"
-                      } text-center`}
-                    >
-                      <TotalHourCell
-                        day={day}
-                        timeEntries={timesheet?.timeEntries || []}
-                        isMonthView={isMonthView}
-                        isColumnView={props.isColumnView}
-                        isNoWorkDay={
-                          getDayType(day, timesheet.days) !== DayType.WORK_DAY
-                        }
-                      />
-                    </div>
-                  </div>
-                </Draggable>
-              </Droppable>
-              <Tooltip
-                id={`tooltip-hours-${normalizeDate(day)}`}
-                content="TODO move tooltip from TotalHours"
-              />
-            </>
-          ))}
+            <TimeSheetHeaders
+              timesheet={timesheet}
+              scheduledDays={props.scheduledDays}
+              isColumnView={props.isColumnView}
+              isMonthView={isMonthView}
+              isColumnActive={isColumnActive}
+              isColumnHighlighted={isColumnHighlighted}
+            />
 
           {/* Tasks */}
           {!timesheet?.tasks || timesheet.tasks.length === 0 ? (
