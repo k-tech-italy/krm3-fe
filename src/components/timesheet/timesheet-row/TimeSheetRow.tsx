@@ -57,6 +57,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   );
   const timeEntries = getTimeEntriesForTaskAndDay(task.id, timesheet);
 
+
   const lockedDays = scheduledDays.filter((day) => {
     return getDayType(day, timesheet.days) === DayType.CLOSED_DAY;
   });
@@ -140,7 +141,9 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             colors={{ backgroundColor, borderColor }}
             readOnly={readOnly}
             isNoWorkDay={isNoWorkDay !== DayType.WORK_DAY}
-            isInSelectedWeekdays={isMonthView || (!!selectedWeekdays && selectedWeekdays.includes(day))}
+            isInSelectedWeekdays={isMonthView || (!!selectedWeekdays && !!selectedWeekdays.find(
+              (d) => normalizeDate(d) === normalizeDate(day)
+            ))}
           />
         </div>
       </div>

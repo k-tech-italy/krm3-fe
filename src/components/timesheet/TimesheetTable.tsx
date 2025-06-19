@@ -5,17 +5,23 @@ import { useGetTimesheet } from "../../hooks/useTimesheet";
 import { TimeSheetRow } from "./timesheet-row/TimeSheetRow";
 import {
   formatDate,
+  getDatesBetween,
   getFilteredWeekDates,
   normalizeDate,
 } from "./utils/dates";
 import LoadSpinner from "../commons/LoadSpinner";
 import { DragCallbacks, useDragAndDrop } from "../../hooks/useDragAndDrop";
-import { WeekRange } from "../../restapi/types"
+import { WeekRange } from "../../restapi/types";
 import { DayType } from "../../restapi/types";
-import { getDayType } from "./utils/timeEntry";
+import {
+  getDatesWithAndWithoutTimeEntries,
+  getDayType,
+  isHoliday,
+  isSickDay,
+} from "./utils/timeEntry";
 import { getHolidayAndSickDays } from "./utils/utils";
 import TimeSheetHeaders from "./timesheet-headers/TimeSheetHeaders";
-
+import { get } from "https";
 
 interface Props {
   setOpenTimeEntryModal: (open: boolean) => void;
@@ -40,7 +46,11 @@ export function TimeSheetTable(props: Props) {
   const endScheduled = normalizeDate(
     props.scheduledDays.days[props.scheduledDays.numberOfDays - 1]
   );
-  const selectedWeekdays = getFilteredWeekDates(props.selectedWeekRange, isMonthView, props.scheduledDays.days)
+  const selectedWeekdays = getFilteredWeekDates(
+    props.selectedWeekRange,
+    isMonthView,
+    props.scheduledDays.days
+  );
 
   const { data: timesheet, isLoading: isLoadingTimesheet } = useGetTimesheet(
     startScheduled,
@@ -51,6 +61,35 @@ export function TimeSheetTable(props: Props) {
   const [openShortMenu, setOpenShortMenu] = useState<
     { startDate: string; endDate: string; taskId: string } | undefined
   >();
+
+  function handleOpenShortMenu(endDate: Date, task: Task) {
+    if (!timesheet || !props.startDate) return;
+
+    const isHolidayOrSickDay = getDatesBetween(
+      props.startDate,
+      endDate,
+      timesheet.days,
+      true
+    ).every((date) => {
+      return (
+        isHoliday(date, timesheet.timeEntries) ||
+        isSickDay(date, timesheet.timeEntries)
+      );
+    });
+
+    if (
+      endDate >= formatDate(task.startDate) &&
+      (!!task.endDate ? endDate <= formatDate(task.endDate) : true) &&
+      getDayType(endDate, timesheet?.days) !== DayType.CLOSED_DAY &&
+      !isHolidayOrSickDay
+    ) {
+      setOpenShortMenu({
+        startDate: normalizeDate(props.startDate!),
+        endDate: normalizeDate(endDate),
+        taskId: task.id.toString(),
+      });
+    }
+  }
 
   // Drag and drop callbacks
   const dragCallbacks: DragCallbacks = {
@@ -70,17 +109,7 @@ export function TimeSheetTable(props: Props) {
       props.setTimeEntries(timeEntries);
       props.setEndDate(endDate);
       props.setIsDayEntry(false);
-      if (
-        endDate >= formatDate(task.startDate) &&
-        (!!task.endDate ? endDate <= formatDate(task.endDate) : true) &&
-        getDayType(endDate, timesheet?.days) !== DayType.CLOSED_DAY
-      ) {
-        setOpenShortMenu({
-          startDate: normalizeDate(props.startDate!),
-          endDate: normalizeDate(endDate),
-          taskId: task.id.toString(),
-        });
-      }
+      handleOpenShortMenu(endDate, task);
     },
     onDragStart: ({ startDate }) => {
       props.setStartDate(formatDate(startDate));
@@ -217,7 +246,6 @@ export function TimeSheetTable(props: Props) {
           )}
         </div>
       </DndContext>
-      
     </div>
   );
 }

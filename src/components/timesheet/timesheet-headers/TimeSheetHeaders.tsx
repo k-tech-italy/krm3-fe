@@ -38,9 +38,8 @@ function TimeSheetHeaders({
           >
             <Draggable
               id={`column-${index}`}
-              isDisabled={
-                getDayType(day, timesheet.days) === DayType.CLOSED_DAY
-              }
+              isDisabled={(getDayType(day, timesheet.days) === DayType.CLOSED_DAY) || (!isMonthView && !selectedWeekdays?.some(
+                (date) => date.getTime() === day.getTime()))}
             >
               <div
                 className={`h-full w-fullitems-center ${

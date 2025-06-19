@@ -1,4 +1,4 @@
-import { Days, Task, TimeEntry, DayType } from "../../restapi/types";
+import { Days, Task, TimeEntry } from "../../restapi/types";
 import { useState, useMemo, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Krm3Modal from "../commons/krm3Modal";
@@ -40,6 +40,7 @@ export default function Krm3Calendar({
     const diff = today.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(today.setDate(diff));
   });
+
 
   const [selectedWeekRange, setSelectedWeekRange] = useState<WeekRange>(
     isOverlappingWeek(currentWeekStart) ? "startOfWeek" : "whole"
@@ -224,43 +225,22 @@ export default function Krm3Calendar({
                 <ChevronRight />
               </button>
             </div>
-            <button
-              id="nav-prev-btn"
-              onClick={navigatePrev}
-              className="cursor-pointer"
-            >
-              <ChevronLeft />
-            </button>
-            <span className="font-medium" id="date-range-display">
-              {isMonth
-                ? formatMonthName(scheduledDays.days[0])
-                : `${formatDayAndMonth(
-                    scheduledDays.days[0]
-                  )} - ${formatDayAndMonth(scheduledDays.days[6])}`}
-            </span>
-            <button
-              onClick={navigateNext}
-              className="cursor-pointer"
-              id="nav-next-btn"
-            >
-              <ChevronRight />
-            </button>
-          </div>
-          <Krm3Button
-            onClick={() =>
-              setCurrentWeekStart(() => {
-                const today = new Date();
-                const day = today.getDay();
-                const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-                return new Date(today.setDate(diff));
-              })
-            }
-            type="button"
-            style="primary"
-            label={isMonth ? "This month" : "This week"}
-            disabled={isCurrentPeriod}
-          />
 
+            <Krm3Button
+              onClick={() =>
+                setCurrentWeekStart(() => {
+                  const today = new Date();
+                  const day = today.getDay();
+                  const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+                  return new Date(today.setDate(diff));
+                })
+              }
+              type="button"
+              style="primary"
+              label={isMonth ? "This month" : "This week"}
+              disabled={isCurrentPeriod}
+            />
+          </div>
           <VisualizationActions
             isMonth={isMonth}
             setIsMonth={setIsMonth}

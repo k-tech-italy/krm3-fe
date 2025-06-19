@@ -54,7 +54,7 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isIn
         className={`bg-gray-100 items-center font-semibold ${
           isMonthView ? "text-[10px]" : "text-sm"
         } flex justify-center  h-full w-full ${getTextColorClass(totalHour)} ${
-          isNoWorkDay || !isInSelectedWeekdays ? "bg-zinc-200" : ""
+          isNoWorkDay || isInSelectedWeekdays ? "bg-zinc-200" : ""
         }`}
       >
         {totalHour}h
