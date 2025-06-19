@@ -293,8 +293,6 @@ export function useDragAndDrop({
   const handleCellDragEnd = (over: any) => {
     const [targetDate, targetTaskId] = over.id.split("-");
 
-    console.log(targetDate, targetTaskId);
-
     if (
       !activeDragData?.taskId ||
       Number(targetTaskId) !== activeDragData.taskId

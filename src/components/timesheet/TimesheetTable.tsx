@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import { TimeEntry, Task, Days } from "../../restapi/types";
 import { useGetTimesheet } from "../../hooks/useTimesheet";
@@ -13,15 +13,9 @@ import LoadSpinner from "../commons/LoadSpinner";
 import { DragCallbacks, useDragAndDrop } from "../../hooks/useDragAndDrop";
 import { WeekRange } from "../../restapi/types";
 import { DayType } from "../../restapi/types";
-import {
-  getDatesWithAndWithoutTimeEntries,
-  getDayType,
-  isHoliday,
-  isSickDay,
-} from "./utils/timeEntry";
+import { getDayType, isHoliday, isSickDay } from "./utils/timeEntry";
 import { getHolidayAndSickDays } from "./utils/utils";
 import TimeSheetHeaders from "./timesheet-headers/TimeSheetHeaders";
-import { get } from "https";
 
 interface Props {
   setOpenTimeEntryModal: (open: boolean) => void;
@@ -57,6 +51,12 @@ export function TimeSheetTable(props: Props) {
     endScheduled,
     props.selectedResourceId
   );
+
+  useEffect(() => {
+    if (!isLoadingTimesheet && timesheet) {
+      props.setNoWorkingDay(timesheet.days);
+    }
+  }, [isLoadingTimesheet, timesheet, props.setNoWorkingDay]);
 
   const [openShortMenu, setOpenShortMenu] = useState<
     { startDate: string; endDate: string; taskId: string } | undefined
