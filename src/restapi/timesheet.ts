@@ -56,7 +56,7 @@ export function submitTimesheet(
   startDate: string,
   endDate: string
 ) {
-  return restapi.post(`timesheet/timesheet/`, {
+  return restapi.post(`core/timesheet/`, {
     resource: resourceId,
     period: [startDate, endDate],
   });
