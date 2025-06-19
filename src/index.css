@@ -114,3 +114,15 @@ h2,
 .grid-rows-32 {
 	grid-template-rows: repeat(32, minmax(0, 1fr));
 }
+
+.linear-gradient-disabled {
+	cursor: not-allowed !important;
+	opacity: 0.7;
+	background-image: repeating-linear-gradient(
+	  45deg, 
+	  rgba(0, 0, 0, 0.1) 0px, 
+	  rgba(0, 0, 0, 0.1) 6px, 
+	  transparent 6px, 
+	  transparent 12px
+	);
+  }

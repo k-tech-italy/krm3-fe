@@ -4,6 +4,8 @@ import { TimeEntryItem } from "./TimeEntryItem";
 import { EmptyCell } from "./EmptyCell";
 import { TimeEntry, TimeEntryType } from "../../../restapi/types";
 import { SpecialDayCell } from "./SpecialDayCell";
+import { Tooltip } from "react-tooltip";
+import { Draggable } from "../Draggable";
 
 export interface CellProps {
   day: Date;
@@ -24,6 +26,7 @@ export interface TimeEntryCellProps extends CellProps {
   isColumnView: boolean;
   readOnly: boolean;
   isNoWorkDay: boolean;
+  isLockedDay: boolean;
 }
 export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   day,
@@ -37,17 +40,21 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   type,
   readOnly,
   isNoWorkDay,
+  isLockedDay,
   onClick,
 }) => {
   const cellId = `${day.toDateString()}-${taskId}`;
+  const draggableId = `${day.toDateString()}-${taskId}-${timeEntry?.id}`;
 
   const borderColorClass = isColumnView
     ? "border-l-[var(--border-color)]"
     : "border-b-[var(--border-color)]";
 
   return (
-    <Droppable id={cellId}>
+    <Droppable id={cellId} isDisabled={isLockedDay}>
       <div
+        data-tooltip-id="tooltip-closed-day"
+        data-tooltip-hidden={!isLockedDay}
         onClick={onClick}
         style={{ "--border-color": colors.borderColor } as React.CSSProperties}
         className={`
@@ -64,31 +71,47 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
      ${isNoWorkDay ? "bg-zinc-100" : ""}
   `}
       >
-        {(type === TimeEntryType.HOLIDAY || type === TimeEntryType.SICK || type === TimeEntryType.FINISHED) && (
+        <Draggable id={draggableId} isDisabled={isLockedDay}>
           <div className="h-full w-full flex items-center justify-center">
-            <SpecialDayCell
-              day={day}
-              taskId={taskId}
-              type={type}
-              isMonthView={isMonthView}
-              colors={colors}
-            />
+            {(type === TimeEntryType.HOLIDAY ||
+              type === TimeEntryType.SICK ||
+              type === TimeEntryType.FINISHED) && (
+              <SpecialDayCell
+                day={day}
+                taskId={taskId}
+                type={type}
+                isMonthView={isMonthView}
+                colors={colors}
+              />
+            )}
+            {timeEntry && (
+              <div
+                key={timeEntry.id}
+                className={`h-full w-full flex items-center`}
+              >
+                <TimeEntryItem
+                  isDayLocked={isLockedDay}
+                  entry={timeEntry}
+                  taskId={taskId}
+                  isMonthView={isMonthView}
+                  backgroundColor={colors.backgroundColor}
+                />
+              </div>
+            )}
+            {!timeEntry &&
+              (type === TimeEntryType.TASK ||
+                type === TimeEntryType.CLOSED) && (
+                <EmptyCell
+                  isDayLocked={isLockedDay}
+                  day={day}
+                  taskId={taskId}
+                  isMonthView={isMonthView}
+                />
+              )}
           </div>
-        )}
-        {timeEntry && (
-          <div key={timeEntry.id} className={`h-full w-full flex items-center`}>
-            <TimeEntryItem
-              entry={timeEntry}
-              taskId={taskId}
-              isMonthView={isMonthView}
-              backgroundColor={colors.backgroundColor}
-            />
-          </div>
-        )}
-        {!timeEntry && type === TimeEntryType.TASK && (
-          <EmptyCell day={day} taskId={taskId} isMonthView={isMonthView} />
-        )}
+        </Draggable>
       </div>
+      <Tooltip id={"tooltip-closed-day"} content="Closed Day" />
     </Droppable>
   );
 };

@@ -1,22 +1,15 @@
 import { useState } from "react";
 import { DndContext, closestCenter } from "@dnd-kit/core";
-import { TimeEntry, Task, Timesheet, Days } from "../../restapi/types";
-import { Draggable } from "./Draggable";
+import { TimeEntry, Task, Days } from "../../restapi/types";
 import { useGetTimesheet } from "../../hooks/useTimesheet";
-import { Droppable } from "./Droppable";
-import { TotalHourCell } from "./TotalHour";
 import { TimeSheetRow } from "./timesheet-row/TimeSheetRow";
-import {
-  DayType,
-  formatDate,
-  formatDay,
-  formatDayOfWeek,
-  normalizeDate,
-} from "./utils/dates";
-import { isNoWorkOrBankHol } from "./utils/dates";
+import { formatDate, normalizeDate } from "./utils/dates";
+import { DayType } from "../../restapi/types";
+import { getDayType } from "./utils/timeEntry";
 import LoadSpinner from "../commons/LoadSpinner";
 import { DragCallbacks, useDragAndDrop } from "../../hooks/useDragAndDrop";
-import { isHoliday, isSickDay } from "./utils/utils";
+import { getHolidayAndSickDays } from "./utils/utils";
+import TimeSheetHeaders from "./timesheet-headers/TimeSheetHeaders";
 
 interface Props {
   setOpenTimeEntryModal: (open: boolean) => void;
@@ -26,7 +19,7 @@ interface Props {
   setEndDate: (date: Date) => void;
   setTimeEntries: (entries: TimeEntry[]) => void;
   setNoWorkingDay: (days: Days) => void;
-  scheduleDays: { days: Date[]; numberOfDays: number };
+  scheduledDays: { days: Date[]; numberOfDays: number };
   isColumnView: boolean;
   startDate?: Date;
   endDate?: Date;
@@ -35,10 +28,10 @@ interface Props {
 }
 
 export function TimeSheetTable(props: Props) {
-  const isMonthView = props.scheduleDays.numberOfDays > 7;
-  const startScheduled = normalizeDate(props.scheduleDays.days[0]);
+  const isMonthView = props.scheduledDays.numberOfDays > 7;
+  const startScheduled = normalizeDate(props.scheduledDays.days[0]);
   const endScheduled = normalizeDate(
-    props.scheduleDays.days[props.scheduleDays.numberOfDays - 1]
+    props.scheduledDays.days[props.scheduledDays.numberOfDays - 1]
   );
 
   const { data: timesheet, isLoading: isLoadingTimesheet } = useGetTimesheet(
@@ -51,46 +44,15 @@ export function TimeSheetTable(props: Props) {
     { startDate: string; endDate: string; taskId: string } | undefined
   >();
 
-  const openTimeEntryModalHandler = (task: Task) => {
-    if(!timesheet) return
-    props.setSelectedTask(task);
-    props.setTimeEntries(timesheet.timeEntries);
-    props.setNoWorkingDay(timesheet.days);
-    props.setOpenTimeEntryModal(true);
-  };
-
-  const openShortMenuHandler = (
-    endDate: Date,
-    task: Task,
-    timeEntries: TimeEntry[]
-  ) => {
-    const endDateTimeEntry = timeEntries.find(
-      (timeEntry) =>
-        timeEntry.task === task.id &&
-        normalizeDate(timeEntry.date) === normalizeDate(endDate)
-    );
-    if (
-      (!endDateTimeEntry &&
-        !!timesheet &&
-        !isHoliday(endDate, timesheet) &&
-        !isSickDay(endDate, timesheet)) ||
-      (endDateTimeEntry?.state === "OPEN" &&
-        endDate >= formatDate(task.startDate) &&
-        (!!task.endDate ? endDate <= formatDate(task.endDate) : true))
-    ) {
-      return true;
-    }
-  };
-
   // Drag and drop callbacks
   const dragCallbacks: DragCallbacks = {
     onColumnDrag: ({ task, timeEntries, endDate }) => {
-      if(!timesheet) return
+      if (!timesheet) return;
       props.setSelectedTask(task);
       props.setTimeEntries(timeEntries);
       props.setNoWorkingDay(timesheet.days);
       props.setEndDate(endDate);
-      if (isNoWorkOrBankHol(endDate, timesheet.days) === DayType.WORK_DAY) {
+      if (getDayType(endDate, timesheet.days) !== DayType.CLOSED_DAY) {
         props.setOpenTimeEntryModal(true);
         props.setIsDayEntry(true);
       }
@@ -100,7 +62,11 @@ export function TimeSheetTable(props: Props) {
       props.setTimeEntries(timeEntries);
       props.setEndDate(endDate);
       props.setIsDayEntry(false);
-      if (openShortMenuHandler(endDate, task, timeEntries)) {
+      if (
+        endDate >= formatDate(task.startDate) &&
+        (!!task.endDate ? endDate <= formatDate(task.endDate) : true) &&
+        getDayType(endDate, timesheet?.days) !== DayType.CLOSED_DAY
+      ) {
         setOpenShortMenu({
           startDate: normalizeDate(props.startDate!),
           endDate: normalizeDate(endDate),
@@ -122,7 +88,7 @@ export function TimeSheetTable(props: Props) {
     isColumnActive,
     isColumnHighlighted,
   } = useDragAndDrop({
-    scheduleDays: props.scheduleDays.days,
+    scheduleDays: props.scheduledDays.days,
     timesheet: timesheet!, //TODO: Remove !
     callbacks: dragCallbacks,
   });
@@ -142,6 +108,16 @@ export function TimeSheetTable(props: Props) {
       </div>
     );
   }
+  const holidayOrSickDays = getHolidayAndSickDays(
+    timesheet?.timeEntries,
+    props.scheduledDays.days
+  );
+  const openTimeEntryModalHandler = (task: Task) => {
+    props.setSelectedTask(task);
+    props.setTimeEntries(timesheet.timeEntries);
+    props.setNoWorkingDay(timesheet.days);
+    props.setOpenTimeEntryModal(true);
+  };
 
   return (
     <div className="flex-col">
@@ -164,9 +140,9 @@ export function TimeSheetTable(props: Props) {
           style={{
             gridTemplateColumns: props.isColumnView
               ? undefined
-              : `160px repeat(${props.scheduleDays.numberOfDays + 1}, 1fr)`,
+              : `160px repeat(${props.scheduledDays.numberOfDays + 1}, 1fr)`,
             gridTemplateRows: props.isColumnView
-              ? `repeat(${props.scheduleDays.numberOfDays + 2}, auto)`
+              ? `repeat(${props.scheduledDays.numberOfDays + 2}, auto)`
               : undefined,
             gridAutoFlow: props.isColumnView ? "column" : "row",
           }}
@@ -196,54 +172,14 @@ export function TimeSheetTable(props: Props) {
           </div>
 
           {/* Day Headers */}
-          {props.scheduleDays.days.map((day, index) => (
-            <Droppable key={index} id={`column-${index}`}>
-              <Draggable id={`column-${index}`}>
-                <div
-                  className={`h-full w-fullitems-center ${
-                    props.isColumnView
-                      ? "flex justify-between py-2"
-                      : "flex-col "
-                  } bg-gray-100 font-semibold ${
-                    isMonthView ? "text-xs p-1" : "text-sm p-2"
-                  } text-center cursor-grab
-                  ${isColumnActive(index) ? "bg-blue-200" : ""}
-                  ${
-                    isColumnHighlighted(index)
-                      ? "bg-blue-100 border-b-2 border-blue-400"
-                      : "border-b-2 border-gray-300 hover:border-blue-400"
-                  }
-                  ${
-                    isNoWorkOrBankHol(day, timesheet.days) !== DayType.WORK_DAY
-                      ? "bg-zinc-200 cursor-not-allowed"
-                      : ""
-                  }
-                  `}
-                >
-                  <div className={`${isMonthView ? "text-[10px]" : "text-sm"}`}>
-                    {isMonthView && !props.isColumnView
-                      ? formatDay(day)
-                      : formatDayOfWeek(day)}
-                  </div>
-                  <div
-                    className={`bg-gray-100 font-semibold ${
-                      isMonthView ? "text-[10px]" : "text-sm"
-                    } text-center`}
-                  >
-                    <TotalHourCell
-                      day={day}
-                      timeEntries={timesheet?.timeEntries || []}
-                      isMonthView={isMonthView}
-                      isColumnView={props.isColumnView}
-                      isNoWorkDay={
-                        isNoWorkOrBankHol(day, timesheet.days) !== DayType.WORK_DAY
-                      }
-                    />
-                  </div>
-                </div>
-              </Draggable>
-            </Droppable>
-          ))}
+          <TimeSheetHeaders
+            timesheet={timesheet}
+            scheduledDays={props.scheduledDays}
+            isColumnView={props.isColumnView}
+            isMonthView={isMonthView}
+            isColumnActive={isColumnActive}
+            isColumnHighlighted={isColumnHighlighted}
+          />
 
           {/* Tasks */}
           {!timesheet?.tasks || timesheet.tasks.length === 0 ? (
@@ -251,11 +187,12 @@ export function TimeSheetTable(props: Props) {
           ) : (
             timesheet.tasks.map((task, index) => (
               <TimeSheetRow
+                holidayOrSickDays={holidayOrSickDays}
                 timesheet={timesheet}
                 index={index}
                 key={task.id}
                 task={task}
-                scheduleDays={props.scheduleDays.days}
+                scheduleDays={props.scheduledDays.days}
                 isMonthView={isMonthView}
                 isCellInDragRange={isCellInDragRange}
                 isColumnHighlighted={isColumnHighlighted}
@@ -270,6 +207,7 @@ export function TimeSheetTable(props: Props) {
           )}
         </div>
       </DndContext>
+      
     </div>
   );
 }

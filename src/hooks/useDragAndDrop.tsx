@@ -106,24 +106,15 @@ export function useDragAndDrop({
     }
 
     const parts = activeId.split("-");
-    if (parts.length === 2) {
-      // TimeEntry drag: entryId-taskId
-      return {
-        type: "timeEntry" as const,
-        entryId: Number(parts[0]),
-        taskId: Number(parts[1]),
-      };
-    }
-
     if (parts.length === 3) {
-      // Empty cell drag: date-taskId-empty
+      // TimeEntry drag: date-taskId-entryId
+      // Empty cell drag: date-taskId-undefined
       return {
-        type: "emptyCell" as const,
         date: parts[0],
         taskId: Number(parts[1]),
+        entryId: Number(parts[2]),
       };
     }
-
     return null;
   };
 
@@ -160,18 +151,17 @@ export function useDragAndDrop({
   const handleCellDragStart = (parsedId: any) => {
     let dragData: DragData = {};
     let startDate = "";
+    
 
-    if (parsedId.type === "timeEntry") {
-      const timeEntry = findTimeEntry(parsedId.entryId, parsedId.taskId);
-      if (!timeEntry) return false;
-
+    const timeEntry = findTimeEntry(parsedId.entryId, parsedId.taskId);
+    if (timeEntry) {
       startDate = timeEntry.date;
       dragData = {
         timeEntry,
         taskId: parsedId.taskId,
         startDate,
       };
-    } else if (parsedId.type === "emptyCell") {
+    } else {
       startDate = parsedId.date;
       dragData = {
         taskId: parsedId.taskId,

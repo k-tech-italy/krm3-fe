@@ -12,10 +12,7 @@ import WarningExistingEntry from "./WarningExistEntry.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
 import Krm3Button from "../../commons/Krm3Button.tsx";
 import { CheckIcon, TrashIcon } from "lucide-react";
-import {
-  getDatesWithTimeEntries,
-  getDatesWithNoTimeEntries,
-} from "../utils/timeEntry.ts";
+import { getDatesWithAndWithoutTimeEntries } from "../utils/timeEntry.ts";
 
 interface Props {
   task: Task;
@@ -25,7 +22,8 @@ interface Props {
   closeModal: () => void;
   readOnly: boolean;
   selectedResourceId: number | null;
-  noWorkingDays?: Days;
+  holidayOrSickDays: String[];
+  noWorkingDays: Days;
 }
 
 export default function EditTimeEntry({
@@ -36,6 +34,7 @@ export default function EditTimeEntry({
   endDate,
   readOnly,
   selectedResourceId,
+  holidayOrSickDays,
   noWorkingDays,
 }: Props) {
   const startEntry: TimeEntry | undefined = timeEntries.find(
@@ -49,27 +48,49 @@ export default function EditTimeEntry({
   const [toDate, setToDate] = useState<Date>(
     endDate >= startDate ? endDate : startDate
   );
-  const [keepEntries, setKeepEntries] = useState<boolean>(true);
 
   const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
-    getDatesWithTimeEntries(
+    getDatesWithAndWithoutTimeEntries(
       formatDate(fromDate),
       formatDate(toDate),
       timeEntries,
-      true
+      noWorkingDays,
+      true,
+      false
+    ).withTimeEntries.filter(
+      (date) => !holidayOrSickDays.includes(normalizeDate(date))
     )
   );
+  const [overrideEntries, setOverrideEntries] = useState<boolean>(true);
 
   function handleChangeDate(date: Date, type: "from" | "to") {
     if (type === "from") {
       setFromDate(date);
       setDaysWithTimeEntries(
-        getDatesWithTimeEntries(date, toDate, timeEntries, true)
+        getDatesWithAndWithoutTimeEntries(
+          date,
+          formatDate(toDate),
+          timeEntries,
+          noWorkingDays,
+          true,
+          false
+        ).withTimeEntries.filter(
+          (date) => !holidayOrSickDays.includes(normalizeDate(date))
+        )
       );
     } else {
       setToDate(date);
       setDaysWithTimeEntries(
-        getDatesWithTimeEntries(fromDate, date, timeEntries, true)
+        getDatesWithAndWithoutTimeEntries(
+          formatDate(fromDate),
+          date,
+          timeEntries,
+          noWorkingDays,
+          true,
+          false
+        ).withTimeEntries.filter(
+          (date) => !holidayOrSickDays.includes(normalizeDate(date))
+        )
       );
     }
   }
@@ -108,36 +129,37 @@ export default function EditTimeEntry({
   const { mutateAsync: createTimeEntries, error: creationError } =
     useCreateTimeEntry(selectedResourceId);
 
+  const { withoutTimeEntries, allDates } = getDatesWithAndWithoutTimeEntries(
+    formatDate(fromDate),
+    formatDate(toDate),
+    timeEntries,
+    noWorkingDays,
+    true,
+    false
+  );
+
   function getDatesToSave() {
-    if (timeEntries.length === 0) {
-      return getDatesBetween(fromDate, toDate);
+    if (daysWithTimeEntries.length === 0) {
+      return allDates;
     }
-    if (!keepEntries) {
-      return getDatesBetween(fromDate, toDate).filter(
-        (date) =>
-          !getDatesWithTimeEntries(fromDate, toDate, timeEntries).includes(
-            normalizeDate(date)
-          )
-      );
+    if (!overrideEntries) {
+      return withoutTimeEntries;
     } else {
-      return getDatesBetween(fromDate, toDate).filter((date) =>
-        daysWithTimeEntries.includes(normalizeDate(date))
-      );
+      return allDates;
     }
   }
-
-  const daysWithoutTimeEntry = getDatesWithNoTimeEntries(
-    fromDate,
-    toDate,
-    timeEntries,
-    daysWithTimeEntries
-  );
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     createTimeEntries({
       taskId: task.id,
-      dates: getDatesToSave(),
+      dates: getDatesToSave().filter(
+        (date) =>
+          normalizeDate(date) >= normalizeDate(task.startDate) &&
+          !!task.endDate &&
+          normalizeDate(date) <= normalizeDate(task.endDate) &&
+          !holidayOrSickDays.includes(normalizeDate(date))
+      ),
       nightShiftHours: nightShiftHours,
       dayShiftHours: dayShiftHours,
       onCallHours: onCallHours,
@@ -150,9 +172,9 @@ export default function EditTimeEntry({
     const timeEntriesIds = timeEntries
       .filter(
         (timeEntry) =>
-          timeEntry.state !== "CLOSED" &&
           normalizeDate(fromDate) <= normalizeDate(timeEntry.date) &&
-          normalizeDate(toDate) >= normalizeDate(timeEntry.date)
+          normalizeDate(toDate) >= normalizeDate(timeEntry.date) &&
+          task.id === timeEntry.task
       )
       .map((timeEntry) => timeEntry.id);
     deleteTimeEntries(timeEntriesIds).then(() => closeModal());
@@ -344,11 +366,12 @@ export default function EditTimeEntry({
       </div>
       {!readOnly && (
         <WarningExistingEntry
-          disabled={daysWithoutTimeEntry.length === 0}
+          disabled={withoutTimeEntries.length === 0}
           disabledTooltipMessage="No empty Days, you can only overwrite existing entries"
+          message="Holiday, Sick days and N/A entries will be skipped automatically."
           daysWithTimeEntries={daysWithTimeEntries}
-          keepEntries={keepEntries}
-          setKeepEntries={setKeepEntries}
+          overrideEntries={overrideEntries}
+          setOverrideEntries={setOverrideEntries}
           isCheckbox
         />
       )}

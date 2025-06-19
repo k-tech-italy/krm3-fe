@@ -1,15 +1,17 @@
 import React, { useMemo } from "react";
 import { TaskHeader } from "./TaskCell";
 import { TimeEntryCell } from "./TimeEntryCell";
+import { getTaskColor } from "../utils/utils";
 import {
-  getTaskColor,
   getTimeEntriesForTaskAndDay,
   isHoliday,
   isSickDay,
-} from "../utils/utils";
+} from "../utils/timeEntry";
 import { Task, TimeEntryType, Timesheet } from "../../../restapi/types";
 import { ShortHoursMenu } from "./ShortHoursMenu";
-import { DayType, isNoWorkOrBankHol, normalizeDate } from "../utils/dates";
+import { normalizeDate } from "../utils/dates";
+import { getDayType } from "../utils/timeEntry";
+import { DayType } from "../../../restapi/types";
 
 export interface TimeSheetRowProps {
   timesheet: Timesheet;
@@ -27,6 +29,7 @@ export interface TimeSheetRowProps {
   ) => void;
   readOnly: boolean;
   selectedResourceId: number | null;
+  holidayOrSickDays: String[]
 }
 
 export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
@@ -43,6 +46,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   setOpenShortMenu,
   readOnly,
   selectedResourceId,
+  holidayOrSickDays
 }) => {
   // Generate color once per task row
   const { backgroundColor, borderColor } = useMemo(
@@ -50,6 +54,10 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
     [task.id]
   );
   const timeEntries = getTimeEntriesForTaskAndDay(task.id, timesheet);
+
+  const lockedDays = scheduleDays.filter((day) => {
+    return getDayType(day, timesheet.days) === DayType.CLOSED_DAY;
+  });
 
   const isTaskFinished = (currentDay: Date, task: Task): boolean => {
     const currentDateString = normalizeDate(currentDay);
@@ -75,28 +83,37 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
     ? "border-l-[var(--border-color)]"
     : "border-b-[var(--border-color)]";
 
-  const renderDayCell = (day: Date, dayIndex: number) => {
-    
+  const renderDayCell = (
+    day: Date,
+    dayIndex: number,
+    lockedDays: Date[]
+  ) => {
     const timeEntry = timeEntries.find(
       (entry) => normalizeDate(entry.date) === normalizeDate(day)
     );
-    const isNoWorkDay = isNoWorkOrBankHol(day, timesheet.days);
+    const isNoWorkDay = getDayType(day, timesheet.days);
 
+    const isLockedDay = lockedDays.some(
+      (lockedDay) => normalizeDate(lockedDay) === normalizeDate(day)
+    );
 
-    const type: TimeEntryType = isHoliday(day, timesheet)
+    const type: TimeEntryType = isHoliday(day, timesheet.timeEntries)
       ? TimeEntryType.HOLIDAY
-      : isSickDay(day, timesheet)
+      : isSickDay(day, timesheet.timeEntries)
       ? TimeEntryType.SICK
       : isTaskFinished(day, task)
       ? TimeEntryType.FINISHED
-      : TimeEntryType.TASK
-    
+      : isLockedDay
+      ? TimeEntryType.CLOSED
+      : TimeEntryType.TASK;
 
     return (
       <div key={dayIndex} className="w-full h-full">
         <div className="w-full h-full cursor-pointer relative">
           <ShortHoursMenu
-            day={day}
+            holidayOrSickDays={holidayOrSickDays}
+            days={timesheet.days}
+            dayToOpen={day}
             taskId={task.id}
             key={dayIndex}
             openShortMenu={openShortMenu}
@@ -104,9 +121,12 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             openTimeEntryModalHandler={() => openTimeEntryModalHandler(task)}
             readOnly={readOnly}
             selectedResourceId={selectedResourceId}
-            timeEntries={timeEntries}
+            timeEntries={timesheet.timeEntries.filter(
+              (timeEntry) => timeEntry.task === task.id
+            )}
           />
           <TimeEntryCell
+            isLockedDay={isLockedDay}
             day={day}
             taskId={task.id}
             type={type}
@@ -152,7 +172,9 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
       >
         {totalHours}
       </div>
-      {scheduleDays.map((day, dayIndex) => renderDayCell(day, dayIndex))}
+      {scheduleDays.map((day, dayIndex) =>
+        renderDayCell(day, dayIndex, lockedDays)
+      )}
     </React.Fragment>
   );
 };

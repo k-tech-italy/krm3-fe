@@ -1,7 +1,6 @@
 import { Info } from "lucide-react";
-import { TimeEntry } from "../../restapi/types";
-import { normalizeDate } from "./utils/dates";
-import { Tooltip } from "react-tooltip";
+import { TimeEntry } from "../../../restapi/types";
+import { normalizeDate } from "../utils/dates";
 
 interface Props {
   day: Date;
@@ -11,7 +10,12 @@ interface Props {
   isNoWorkDay?: boolean;
 }
 
-export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay }: Props) {
+export function TotalHourCell({
+  day,
+  timeEntries,
+  isMonthView,
+  isNoWorkDay,
+}: Props) {
   if (!timeEntries) {
     return <div className="bg-gray-100">0h</div>;
   }
@@ -35,9 +39,7 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay }: Pr
   }, 0);
 
   // Get entries for this day for tooltip display
-  const dayEntries = timeEntries.filter(
-    (entry) => normalizeDate(entry.date) === formattedDay
-  );
+  
 
   const getTextColorClass = (totalHours: number): string => {
     if (totalHours > 8) return "text-red-500";
@@ -52,6 +54,7 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay }: Pr
     <div className={`relative flex justify-center items-center h-full w-full`}>
       <div
         data-tooltip-id={tooltipId}
+        data-tooltip-hidden={totalHour === 0}
         className={`bg-gray-100 items-center font-semibold ${
           isMonthView ? "text-[10px]" : "text-sm"
         } flex justify-center  h-full w-full ${getTextColorClass(totalHour)} ${
@@ -67,30 +70,11 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay }: Pr
           />
         )}
       </div>
-
-      {totalHour > 0 && dayEntries.length > 0 && (
-        <Tooltip
-          id={tooltipId}
-          place="top"
-          clickable={true}
-          className="z-10 !bg-white !text-black !opacity-100  rounded shadow-lg border border-gray-300"
-          style={{ width: "16rem", maxWidth: "20rem" }}
-          delayShow={300}
-        >
-          <div className="">
-            {dayEntries.map((timeEntry: TimeEntry, index: number) => (
-              <div key={index} className="mb-2 last:mb-0">
-                <TotalHourForTask timeEntry={timeEntry} />
-              </div>
-            ))}
-          </div>
-        </Tooltip>
-      )}
     </div>
   );
 }
 
-const TotalHourForTask = ({ timeEntry }: { timeEntry: TimeEntry }) => {
+export const TotalHourForTask = ({ timeEntry }: { timeEntry: TimeEntry }) => {
   const hours = [
     { label: "Daytime", value: timeEntry.dayShiftHours },
     { label: "Nighttime", value: timeEntry.nightShiftHours },

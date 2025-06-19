@@ -3,17 +3,14 @@ import { toast } from "react-toastify";
 import { useCreateTimeEntry } from "../../../hooks/useTimesheet";
 import { displayErrorMessage } from "../utils/utils";
 import { formatDate, getDatesBetween, normalizeDate } from "../utils/dates";
-import { TimeEntry } from "../../../restapi/types";
-import {
-  getDatesWithTimeEntries,
-  getDatesWithNoTimeEntries,
-} from "../utils/timeEntry";
+import { Days, TimeEntry } from "../../../restapi/types";
+import { getDatesWithAndWithoutTimeEntries } from "../utils/timeEntry";
 import Krm3Modal from "../../commons/krm3Modal";
 import Krm3Button from "../../commons/Krm3Button";
 import WarningExistingEntry from "../edit-entry/WarningExistEntry";
 
 interface ShortHoursMenuProps {
-  day: Date;
+  dayToOpen: Date;
   taskId: number;
   openShortMenu?: {
     startDate: string;
@@ -27,6 +24,8 @@ interface ShortHoursMenuProps {
   ) => void;
   openTimeEntryModalHandler: () => void;
   timeEntries: TimeEntry[];
+  days: Days;
+  holidayOrSickDays: String[];
 }
 
 interface HourOption {
@@ -47,7 +46,7 @@ const READ_ONLY_OPTIONS: readonly HourOption[] = [
 
 export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
   const {
-    day,
+    dayToOpen: day,
     taskId,
     openShortMenu,
     readOnly,
@@ -55,6 +54,8 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     setOpenShortMenu,
     openTimeEntryModalHandler,
     timeEntries,
+    days,
+    holidayOrSickDays,
   } = props;
 
   const [openConfirmModal, setOpenConfirmModal] = useState(false);
@@ -78,18 +79,17 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       normalizeDate(openShortMenu.endDate) === normalizeDate(day) &&
       Number(openShortMenu.taskId) === taskId;
 
-    const daysWithTimeEntries = getDatesWithTimeEntries(
+    const {
+      allDates,
+      withTimeEntries: daysWithTimeEntries,
+      withoutTimeEntries: datesWithNoTimeEntries,
+    } = getDatesWithAndWithoutTimeEntries(
       startDate,
       endDate,
       timeEntries,
-      true
-    );
-
-    const datesWithNoTimeEntries = getDatesWithNoTimeEntries(
-      startDate,
-      endDate,
-      timeEntries,
-      daysWithTimeEntries
+      days,
+      true,
+      false
     );
 
     return {
@@ -97,13 +97,12 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       endDate,
       isVisible,
       daysWithTimeEntries,
-      datesWithNoTimeEntries,
-      selectedDates: getDatesBetween(startDate, endDate).filter((date) => {
-        const closedEntries = timeEntries.filter((entry) => {
-          return entry.state == "CLOSED";
-        });
-        return !closedEntries.map((entry) => entry.date).includes(date);
-      }),
+      datesWithNoTimeEntries: datesWithNoTimeEntries.filter(
+        (date) => !holidayOrSickDays.includes(normalizeDate(date))
+      ),
+      selectedDates: allDates.filter(
+        (date) => !holidayOrSickDays.includes(normalizeDate(date))
+      ),
     };
   }, [openShortMenu, day, taskId, timeEntries]);
 
@@ -195,7 +194,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       }
       if (pendingSubmission) {
         if (overwrite) {
-          submitHours(pendingSubmission.value);
+          submitHours(pendingSubmission.value, menuData.selectedDates);
         } else {
           submitHours(pendingSubmission.value, menuData.datesWithNoTimeEntries);
           setOpenConfirmModal(false);
@@ -275,8 +274,9 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
             <WarningExistingEntry
               style="my-5"
               daysWithTimeEntries={menuData.daysWithTimeEntries}
+              message="Holiday, Sick days and N/A entries will be skipped automatically."
               isCheckbox={false}
-              keepEntries={false}
+              overrideEntries={false}
             />
             <div className="flex justify-between mt-2">
               <Krm3Button

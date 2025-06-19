@@ -180,9 +180,7 @@ export interface TimeEntry {
   travelHours: number;
   onCallHours: number;
   restHours: number;
-  specialLeaveHours: number;
   specialReason?: string;
-  state: string;
   comment?: string;
   metaData?: JSON;
 }
@@ -193,7 +191,7 @@ export interface Timesheet {
 }
 
 export interface Days {
-  [key: string]: { hol: boolean, nwd: boolean };
+  [key: string]: { hol: boolean, nwd: boolean, closed: boolean };
 }
 export interface SpecialReason {
     id: number,
@@ -208,4 +206,15 @@ export const enum TimeEntryType {
   SICK = "sick",
   FINISHED = "finished",
   BANK_HOLIDAY = "bank_holiday",
+  CLOSED = "closed"
+}
+//if is nwd true and hol false is nwd
+//if is nwd ture adn hol true is bank holiday
+//if is nwd false and hol true is bank holiday
+
+export const enum DayType {
+  WORK_DAY = "work",
+  NO_WORK_DAY = "nwd",
+  BANK_HOLIDAY = "hol",
+  CLOSED_DAY = "closed"
 }

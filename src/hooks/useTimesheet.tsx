@@ -1,12 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import {
-  getMission,
-  getResources,
-  getClients,
-  getProjects,
-  getCountries,
-  getCities,
-} from "../restapi/mission";
+
 import { AxiosError, AxiosResponse } from "axios";
 import { useGetCurrentUser } from "./useAuth";
 import {
@@ -15,6 +8,7 @@ import {
   deleteTimeEntries,
   getSpecialReason,
 } from "../restapi/timesheet";
+import { TimeEntry, Timesheet } from "../restapi/types";
 
 export function useCreateTimeEntry(selectedResourceId: number | null) {
   const { data: currentUser } = useGetCurrentUser();
@@ -92,38 +86,6 @@ export function useDeleteTimeEntries() {
       onError: (error: AxiosError) => {},
     }
   );
-}
-export function useGetResources() {
-  const resources = useQuery("resources", () => getResources());
-  return resources.data;
-}
-
-export function useGetClients() {
-  const resources = useQuery("clients", () => getClients());
-  return resources.data;
-}
-
-export function useGetCountries() {
-  const resources = useQuery("countries", () => getCountries());
-  return resources.data;
-}
-
-export function useGetCitiess() {
-  const resources = useQuery("cities", () => getCities());
-  return resources.data;
-}
-
-export function useGetProjects() {
-  const resources = useQuery("projects", () => getProjects());
-  return resources.data;
-}
-
-export function useGetMission(id: number) {
-  return useQuery("mission", () => getMission(id), {
-    onError: (error) => {
-      return error;
-    },
-  });
 }
 
 export function useGetSpecialReason(fromDate: string, toDate: string) {

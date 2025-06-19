@@ -1,5 +1,6 @@
-import { TimeEntry, Timesheet } from "../../../restapi/types";
+import { TimeEntry } from "../../../restapi/types";
 import { normalizeDate } from "./dates";
+import { isHoliday, isSickDay } from "./timeEntry";
 
 export const defaultColors: string[] = [
   "#fd8a8a",
@@ -44,69 +45,8 @@ export function displayErrorMessage(error?: any): string | undefined {
   }
 }
 
-//Calculate the total hours for a list of dates. This function takes a list of
-export function calculateTotalHoursForDays(
-  timeEntries: TimeEntry[],
-  dates: string[]
-): number {
-  return dates.reduce(
-    // Use the maximum total hours for each day.
-    // This is done to prevent a situation where a day has both day and night
-    // shift hours, and the total hours for the day are calculated as the
-    // maximum of the two.
-    (totalHours, date) =>
-      Math.max(
-        totalHours,
-        // Filter time entries for the current date
-        timeEntries
-          .filter((entry) => normalizeDate(entry.date) === date)
-          // Calculate the total hours for the day
-          .reduce(
-            (dailyTotal, entry) =>
-              dailyTotal +
-              (Number(entry.dayShiftHours) || 0) +
-              (Number(entry.nightShiftHours) || 0) +
-              (Number(entry.travelHours) || 0) +
-              (Number(entry.restHours) || 0) +
-              (Number(entry.leaveHours) || 0),
-            0
-          )
-      ),
-    0
-  );
+export function getHolidayAndSickDays(timeEntries: TimeEntry[], dates: Date[]): string[] {
+  return dates
+    .filter((date) => isHoliday(date, timeEntries) || isSickDay(date, timeEntries))
+    .map(normalizeDate);
 }
-
-export const isHoliday = (day: Date, timesheet: Timesheet): boolean => {
-  return (
-    timesheet.timeEntries?.some((entry) => {
-      if (!entry.holidayHours || entry.holidayHours <= 0) return false;
-      const entryDate = new Date(entry.date);
-      return entryDate.toDateString() === day.toDateString();
-    }) ?? false
-  );
-};
-
-export const isSickDay = (day: Date, timesheet: Timesheet): boolean => {
-  return (
-    timesheet?.timeEntries?.some((entry) => {
-      if (!entry.sickHours || entry.sickHours <= 0) return false;
-      const entryDate = new Date(entry.date);
-      return entryDate.toDateString() === day.toDateString();
-    }) ?? false
-  );
-};
-
-export const getTimeEntriesForTaskAndDay = (
-  taskId: number,
-  timesheet: Timesheet,
-  day?: Date
-): TimeEntry[] => {
-  if (!timesheet.timeEntries) return [];
-  if (!day) {
-    return timesheet.timeEntries.filter((entry) => entry.task === taskId);
-  }
-  return timesheet.timeEntries.filter(
-    (entry) =>
-      entry.task === taskId && normalizeDate(entry.date) === normalizeDate(day)
-  );
-};
