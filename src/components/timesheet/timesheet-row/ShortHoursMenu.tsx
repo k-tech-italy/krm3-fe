@@ -8,6 +8,7 @@ import { getDatesWithAndWithoutTimeEntries } from "../utils/timeEntry";
 import Krm3Modal from "../../commons/krm3Modal";
 import Krm3Button from "../../commons/Krm3Button";
 import WarningExistingEntry from "../edit-entry/WarningExistEntry";
+import { useGetCurrentUser } from "../../../hooks/useAuth";
 
 interface ShortHoursMenuProps {
   dayToOpen: Date;
@@ -63,7 +64,6 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     label: string;
     value: number;
   } | null>(null);
-
   const menuRef = useRef<HTMLDivElement>(null);
   const { mutateAsync: createTimeEntries, error } =
     useCreateTimeEntry(selectedResourceId);
@@ -112,7 +112,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
 
   const submitHours = useCallback(
     async (value: number, selectedDates?: string[]) => {
-      if (!menuData || !selectedResourceId) {
+      if (!menuData) {
         toast.error("Invalid configuration");
         return;
       }
