@@ -15,7 +15,7 @@ export function Droppable(props: {
     <div
       id={`droppable-${props.id}`}
       className={`w-full h-full relative ${
-        props.isDisabled ? "draggable-disabled" : ""
+        props.isDisabled ? "linear-gradient-disabled" : ""
       }`}
       ref={setNodeRef}
     >

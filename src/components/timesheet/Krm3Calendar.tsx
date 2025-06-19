@@ -73,12 +73,7 @@ export default function Krm3Calendar({
     return readOnlyPermission && !readWritePermission;
   }, [readOnlyPermission, readWritePermission]);
 
-  const currentMonth = useMemo(() => {
-    // currentWeekStart.getMonth();
-    const month = new Date();
-    month.getMonth();
-    return month.getMonth();
-  }, [currentWeekStart]);
+ 
 
   const scheduledDays = useMemo(() => {
     const days = [];

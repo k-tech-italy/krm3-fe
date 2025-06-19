@@ -18,7 +18,7 @@ export function Draggable(props: {
       ref={setNodeRef}
       className={`w-full h-full  ${
         props.isDisabled
-          ? "draggable-disabled"
+          ? "linear-gradient-disabled"
           : "cursor-grab active:cursor-grabbing"
       } ${props.className ? props.className : ""}`}
       {...(props.isDisabled ? {} : listeners)} // Only apply listeners when not disabled
