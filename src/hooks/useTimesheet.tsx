@@ -7,8 +7,8 @@ import {
   getTimesheet,
   deleteTimeEntries,
   getSpecialReason,
+  submitTimesheet,
 } from "../restapi/timesheet";
-import { TimeEntry, Timesheet } from "../restapi/types";
 
 export function useCreateTimeEntry(selectedResourceId: number | null) {
   const { data: currentUser } = useGetCurrentUser();
@@ -41,6 +41,25 @@ export function useCreateTimeEntry(selectedResourceId: number | null) {
     }
   );
 }
+
+
+export function useSubmitTimesheet() {
+  const queryClient = useQueryClient();
+  return useMutation(
+    (params: {
+      resourceId: number;
+      startDate: string;
+      endDate: string;
+    }) => submitTimesheet(params.resourceId, params.startDate, params.endDate),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["timesheet"] });
+      },
+      onError: (error: AxiosError) => {},
+    }
+  );
+}
+
 
 export function useGetTimesheet(
   startDate: string, 

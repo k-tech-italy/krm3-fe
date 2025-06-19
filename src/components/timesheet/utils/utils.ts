@@ -40,13 +40,20 @@ export function getTaskColor(
  */
 export function displayErrorMessage(error?: any): string | undefined {
   // Check if the error has a response with data and take the first error field
-  if (!!error && error.response) {
+  if (!!error && error.response && error.response.data && error.response.data["error"]) {
     return error.response.data["error"];
+  } else {
+    return "an error occurred";
   }
 }
 
-export function getHolidayAndSickDays(timeEntries: TimeEntry[], dates: Date[]): string[] {
+export function getHolidayAndSickDays(
+  timeEntries: TimeEntry[],
+  dates: Date[]
+): string[] {
   return dates
-    .filter((date) => isHoliday(date, timeEntries) || isSickDay(date, timeEntries))
+    .filter(
+      (date) => isHoliday(date, timeEntries) || isSickDay(date, timeEntries)
+    )
     .map(normalizeDate);
 }

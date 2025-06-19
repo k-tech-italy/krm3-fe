@@ -13,12 +13,15 @@ import {
   formatMonthName,
   getFirstMondayOfMonth,
   isOverlappingWeek,
+  normalizeDate,
 } from "./utils/dates";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import ErrorMessage from "./edit-entry/ErrorMessage";
 import { WeekRange } from "../../restapi/types";
-import { getHolidayAndSickDays } from "./utils/utils";
+import { displayErrorMessage, getHolidayAndSickDays } from "./utils/utils";
 import Krm3Button from "../commons/Krm3Button";
+import { useSubmitTimesheet } from "../../hooks/useTimesheet";
+import { toast } from "react-toastify";
 
 export default function Krm3Calendar({
   selectedResourceId,
@@ -27,7 +30,7 @@ export default function Krm3Calendar({
 }) {
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
-  const [noWorkingDays, setNoWorkingDay] = useState<Days>();
+  const [typeDays, setTypeDays] = useState<Days>();
   const [openTimeEntryModal, setOpenTimeEntryModal] = useState<boolean>(false);
   const [isDayEntry, setIsDayEntry] = useState<boolean>(false);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
@@ -51,7 +54,9 @@ export default function Krm3Calendar({
     }
   }, [currentWeekStart]);
 
+
   const { data, userCan } = useGetCurrentUser();
+  const { mutateAsync: mutateSubmitTimesheet, error: submitTimesheetError } = useSubmitTimesheet();
 
   const isEditViewAnotherUser = useMemo(() => {
     return data?.resource?.id !== selectedResourceId;
@@ -176,6 +181,33 @@ export default function Krm3Calendar({
     scheduledDays.days
   );
 
+  async function handleSubmitTimesheet() {
+    if (data && scheduledDays.days) {
+      const promise = mutateSubmitTimesheet({
+        resourceId: selectedResourceId || data?.resource.id,
+        startDate: normalizeDate(scheduledDays.days[0]),
+        endDate: normalizeDate(
+          scheduledDays.days[scheduledDays.days.length - 1]
+        ),
+      });
+
+      await toast.promise(
+        promise,
+        {
+          pending: "Submitting timesheet...",
+          success: "Timesheet submitted successfully",
+          error: displayErrorMessage(submitTimesheetError),
+        },
+        {
+          autoClose: 2000,
+          theme: "light",
+          hideProgressBar: false,
+          draggable: true,
+        }
+      );
+    }
+  }
+
   return (
     <>
       {accessDenied ? (
@@ -252,7 +284,7 @@ export default function Krm3Calendar({
             setOpenTimeEntryModal={setOpenTimeEntryModal}
             setSelectedTask={setSelectedTask}
             setTimeEntries={setTimeEntries}
-            setNoWorkingDay={setNoWorkingDay}
+            setNoWorkingDay={setTypeDays}
             setIsDayEntry={setIsDayEntry}
             setStartDate={setStartDate}
             setEndDate={setEndDate}
@@ -265,11 +297,11 @@ export default function Krm3Calendar({
           />
           <div className="flex justify-end items-center mt-4">
             <Krm3Button
-              onClick={() => console.log("Submit Timesheet")}
+              onClick={() => handleSubmitTimesheet()}
               type="button"
               style="primary"
               label="Submit Timesheet"
-              disabled={!isMonth}
+              disabled={!isMonth || (!!typeDays && Object.values(typeDays).every((day) => day.closed === true))}
               disabledTooltipMessage="Only available for month view"
             />
           </div>
@@ -278,7 +310,7 @@ export default function Krm3Calendar({
             selectedTask &&
             startDate &&
             endDate &&
-            noWorkingDays && (
+            typeDays && (
               <Krm3Modal
                 open={openTimeEntryModal}
                 onClose={() => {
@@ -296,12 +328,12 @@ export default function Krm3Calendar({
                         timeEntries={timeEntries}
                         readOnly={readOnly}
                         selectedResourceId={selectedResourceId}
-                        noWorkingDays={noWorkingDays}
+                        noWorkingDays={typeDays}
                       />
                     ) : (
                       <EditTimeEntry
                         holidayOrSickDays={holidayOrSickDays}
-                        noWorkingDays={noWorkingDays}
+                        noWorkingDays={typeDays}
                         startDate={startDate}
                         endDate={endDate}
                         task={selectedTask}
