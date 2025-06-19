@@ -26,7 +26,6 @@ export const TimeEntryItem: React.FC<TimeEntryItemProps> = ({
     Number(entry.travelHours);
 
   return (
-
       <div
         style={{ backgroundColor }}
         className={`h-full w-full text-center flex items-center justify-center `}

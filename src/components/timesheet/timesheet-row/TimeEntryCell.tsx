@@ -27,6 +27,7 @@ export interface TimeEntryCellProps extends CellProps {
   readOnly: boolean;
   isNoWorkDay: boolean;
   isLockedDay: boolean;
+  isInSelectedWeekdays: boolean;
 }
 export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   day,
@@ -41,6 +42,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   readOnly,
   isNoWorkDay,
   isLockedDay,
+  isInSelectedWeekdays,
   onClick,
 }) => {
   const cellId = `${day.toDateString()}-${taskId}`;
@@ -51,7 +53,10 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
     : "border-b-[var(--border-color)]";
 
   return (
-    <Droppable id={cellId} isDisabled={isLockedDay}>
+    <Droppable
+      id={cellId}
+      isDisabled={(!isMonthView && !isInSelectedWeekdays) || isLockedDay}
+    >
       <div
         data-tooltip-id="tooltip-closed-day"
         data-tooltip-hidden={!isLockedDay}
@@ -69,9 +74,13 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
       (isColumnView ? "border-l-blue-500" : "border-b-blue-500")
     }
      ${isNoWorkDay ? "bg-zinc-100" : ""}
+     ${!isInSelectedWeekdays ? "bg-zinc-100 cursor-not-allowed!" : ""}
   `}
       >
-        <Draggable id={draggableId} isDisabled={isLockedDay}>
+        <Draggable
+          id={draggableId}
+          isDisabled={(!isMonthView && !isInSelectedWeekdays) || isLockedDay}
+        >
           <div className="h-full w-full flex items-center justify-center">
             {(type === TimeEntryType.HOLIDAY ||
               type === TimeEntryType.SICK ||

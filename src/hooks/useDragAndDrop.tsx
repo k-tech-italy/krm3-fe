@@ -29,7 +29,7 @@ export interface DragCallbacks {
 }
 
 export interface UseDragAndDropProps {
-  scheduleDays: Date[];
+  scheduledDays: Date[];
   timesheet: Timesheet;
   callbacks: DragCallbacks;
 }
@@ -42,7 +42,7 @@ export interface UseDragAndDropProps {
  * and for handling the different types of drag operations (cell or column).
  *
  * The hook takes the following props:
- *   - `scheduleDays`: an array of dates representing the schedule
+ *   - `scheduledDays`: an array of dates representing the schedule
  *   - `timesheet`: an object representing the timesheet
  *   - `callbacks`: an object with callback functions for drag and drop events
  *
@@ -60,7 +60,7 @@ export interface UseDragAndDropProps {
  *   - `resetDragState`: a function to reset the drag state
  */
 export function useDragAndDrop({
-  scheduleDays,
+  scheduledDays,
   timesheet,
   callbacks,
 }: UseDragAndDropProps) {
@@ -136,7 +136,7 @@ export function useDragAndDrop({
   };
 
   const handleColumnDragStart = (dayIndex: number) => {
-    const columnDay = scheduleDays[dayIndex];
+    const columnDay = scheduledDays[dayIndex];
 
     setActiveDragData({ columnDay });
     setDragType("column");
@@ -220,7 +220,7 @@ export function useDragAndDrop({
     const columnsToHighlight = [];
 
     for (let i = start; i <= end; i++) {
-      daysToHighlight.push(scheduleDays[i]);
+      daysToHighlight.push(scheduledDays[i]);
       columnsToHighlight.push(i);
     }
 
@@ -272,7 +272,7 @@ export function useDragAndDrop({
     if (!over.id.startsWith("column-") || !activeDragData?.columnDay) return;
 
     const targetDayIndex = Number(over.id.replace("column-", ""));
-    const targetDay = normalizeDate(scheduleDays[targetDayIndex]);
+    const targetDay = normalizeDate(scheduledDays[targetDayIndex]);
 
     if (!timesheet.tasks?.length) return;
 
@@ -292,6 +292,8 @@ export function useDragAndDrop({
 
   const handleCellDragEnd = (over: any) => {
     const [targetDate, targetTaskId] = over.id.split("-");
+
+    console.log(targetDate, targetTaskId);
 
     if (
       !activeDragData?.taskId ||

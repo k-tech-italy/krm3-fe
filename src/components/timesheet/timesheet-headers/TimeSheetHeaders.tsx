@@ -14,6 +14,7 @@ interface Props {
   isMonthView: boolean;
   isColumnActive: (index: number) => boolean;
   isColumnHighlighted: (index: number) => boolean;
+  selectedWeekdays?: Date[]
 }
 
 function TimeSheetHeaders({
@@ -23,6 +24,7 @@ function TimeSheetHeaders({
   isMonthView,
   isColumnActive,
   isColumnHighlighted,
+  selectedWeekdays
 }: Props) {
   return (
     <>
@@ -31,13 +33,13 @@ function TimeSheetHeaders({
           <Droppable
             key={index}
             id={`column-${index}`}
-            isDisabled={getDayType(day, timesheet.days) === DayType.CLOSED_DAY}
+            isDisabled={(getDayType(day, timesheet.days) === DayType.CLOSED_DAY) || (!isMonthView && !selectedWeekdays?.some(
+              (date) => date.getTime() === day.getTime()))}
           >
             <Draggable
               id={`column-${index}`}
-              isDisabled={
-                getDayType(day, timesheet.days) === DayType.CLOSED_DAY
-              }
+              isDisabled={(getDayType(day, timesheet.days) === DayType.CLOSED_DAY) || (!isMonthView && !selectedWeekdays?.some(
+                (date) => date.getTime() === day.getTime()))}
             >
               <div
                 className={`h-full w-fullitems-center ${

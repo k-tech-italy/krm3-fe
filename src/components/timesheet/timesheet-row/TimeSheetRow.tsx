@@ -16,7 +16,7 @@ import { DayType } from "../../../restapi/types";
 export interface TimeSheetRowProps {
   timesheet: Timesheet;
   index: number;
-  scheduleDays: Date[];
+  scheduledDays: Date[];
   task: Task;
   isMonthView: boolean;
   isColumnView: boolean;
@@ -30,12 +30,13 @@ export interface TimeSheetRowProps {
   readOnly: boolean;
   selectedResourceId: number | null;
   holidayOrSickDays: String[]
+  selectedWeekdays?: Date[] 
 }
 
 export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   timesheet,
   index,
-  scheduleDays,
+  scheduledDays,
   task,
   isMonthView,
   isColumnView,
@@ -46,7 +47,8 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   setOpenShortMenu,
   readOnly,
   selectedResourceId,
-  holidayOrSickDays
+  holidayOrSickDays,
+  selectedWeekdays
 }) => {
   // Generate color once per task row
   const { backgroundColor, borderColor } = useMemo(
@@ -55,7 +57,8 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   );
   const timeEntries = getTimeEntriesForTaskAndDay(task.id, timesheet);
 
-  const lockedDays = scheduleDays.filter((day) => {
+
+  const lockedDays = scheduledDays.filter((day) => {
     return getDayType(day, timesheet.days) === DayType.CLOSED_DAY;
   });
 
@@ -138,6 +141,9 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             colors={{ backgroundColor, borderColor }}
             readOnly={readOnly}
             isNoWorkDay={isNoWorkDay !== DayType.WORK_DAY}
+            isInSelectedWeekdays={isMonthView || (!!selectedWeekdays && !!selectedWeekdays.find(
+              (d) => normalizeDate(d) === normalizeDate(day)
+            ))}
           />
         </div>
       </div>
@@ -172,7 +178,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
       >
         {totalHours}
       </div>
-      {scheduleDays.map((day, dayIndex) =>
+      {scheduledDays.map((day, dayIndex) =>
         renderDayCell(day, dayIndex, lockedDays)
       )}
     </React.Fragment>

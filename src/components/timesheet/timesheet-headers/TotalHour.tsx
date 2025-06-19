@@ -8,14 +8,10 @@ interface Props {
   isMonthView?: boolean;
   isColumnView?: boolean;
   isNoWorkDay?: boolean;
+  isInSelectedWeekdays? :boolean
 }
 
-export function TotalHourCell({
-  day,
-  timeEntries,
-  isMonthView,
-  isNoWorkDay,
-}: Props) {
+export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isInSelectedWeekdays }: Props) {
   if (!timeEntries) {
     return <div className="bg-gray-100">0h</div>;
   }
@@ -58,7 +54,7 @@ export function TotalHourCell({
         className={`bg-gray-100 items-center font-semibold ${
           isMonthView ? "text-[10px]" : "text-sm"
         } flex justify-center  h-full w-full ${getTextColorClass(totalHour)} ${
-          isNoWorkDay ? "bg-zinc-200" : ""
+          isNoWorkDay || isInSelectedWeekdays ? "bg-zinc-200" : ""
         }`}
       >
         {totalHour}h
