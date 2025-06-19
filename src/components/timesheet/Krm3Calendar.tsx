@@ -13,12 +13,16 @@ import {
   formatMonthName,
   getFirstMondayOfMonth,
   isOverlappingWeek,
+  normalizeDate,
 } from "./utils/dates";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import ErrorMessage from "./edit-entry/ErrorMessage";
 import { WeekRange } from "../../restapi/types";
-import { getHolidayAndSickDays } from "./utils/utils";
+import { displayErrorMessage, getHolidayAndSickDays } from "./utils/utils";
 import Krm3Button from "../commons/Krm3Button";
+import { submitTimesheet } from "../../restapi/timesheet";
+import { useSubmitTimesheet } from "../../hooks/useTimesheet";
+import { toast } from "react-toastify";
 
 export default function Krm3Calendar({
   selectedResourceId,
@@ -41,7 +45,6 @@ export default function Krm3Calendar({
     return new Date(today.setDate(diff));
   });
 
-
   const [selectedWeekRange, setSelectedWeekRange] = useState<WeekRange>(
     isOverlappingWeek(currentWeekStart) ? "startOfWeek" : "whole"
   );
@@ -52,6 +55,7 @@ export default function Krm3Calendar({
   }, [currentWeekStart]);
 
   const { data, userCan } = useGetCurrentUser();
+  const { mutateAsync: mutateSubmitTimesheet, error: submitTimesheetError } = useSubmitTimesheet();
 
   const isEditViewAnotherUser = useMemo(() => {
     return data?.resource?.id !== selectedResourceId;
@@ -176,6 +180,34 @@ export default function Krm3Calendar({
     scheduledDays.days
   );
 
+  async function handleSubmitTimesheet() {
+    console.log("submit timesheet", scheduledDays);
+    if (data && scheduledDays.days) {
+      const promise = mutateSubmitTimesheet({
+        resourceId: selectedResourceId || data?.resource.id,
+        startDate: normalizeDate(scheduledDays.days[0]),
+        endDate: normalizeDate(
+          scheduledDays.days[scheduledDays.days.length - 1]
+        ),
+      });
+
+      await toast.promise(
+        promise,
+        {
+          pending: "Submitting timesheet...",
+          success: "Timesheet submitted successfully",
+          error: displayErrorMessage(submitTimesheetError),
+        },
+        {
+          autoClose: 2000,
+          theme: "light",
+          hideProgressBar: false,
+          draggable: true,
+        }
+      );
+    }
+  }
+
   return (
     <>
       {accessDenied ? (
@@ -265,7 +297,7 @@ export default function Krm3Calendar({
           />
           <div className="flex justify-end items-center mt-4">
             <Krm3Button
-              onClick={() => console.log("Submit Timesheet")}
+              onClick={() => handleSubmitTimesheet()}
               type="button"
               style="primary"
               label="Submit Timesheet"

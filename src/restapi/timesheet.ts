@@ -15,11 +15,10 @@ export function getTimesheet(params: {
   startDate: string;
   endDate: string;
 }): Promise<Timesheet> {
-  return restapi
-    .get<Timesheet>(`timesheet/`, { params })
-    .then((res) => {
-      res.data.days = sanitzeDays(res.data.days);
-      return res.data});
+  return restapi.get<Timesheet>(`timesheet/`, { params }).then((res) => {
+    res.data.days = sanitzeDays(res.data.days);
+    return res.data;
+  });
 }
 
 export function createTimeEntry(params: {
@@ -43,8 +42,22 @@ export function deleteTimeEntries(ids: number[]) {
   return restapi.post("timesheet/time-entry/clear/", { ids: ids });
 }
 
-export function getSpecialReason(from: string, to: string): Promise<SpecialReason[]> {
+export function getSpecialReason(
+  from: string,
+  to: string
+): Promise<SpecialReason[]> {
   return restapi
     .get("timesheet/special-leave-reason/", { params: { from, to } })
     .then((res) => res.data);
+}
+
+export function submitTimesheet(
+  resourceId: number,
+  startDate: string,
+  endDate: string
+) {
+  return restapi.post(`timesheet/timesheet/`, {
+    resource: resourceId,
+    period: [startDate, endDate],
+  });
 }
