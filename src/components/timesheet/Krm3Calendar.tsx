@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Days, DayType, Task, TimeEntry } from "../../restapi/types";
+import { Days, Task, TimeEntry, DayType } from "../../restapi/types";
+import { useState, useMemo, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Krm3Modal from "../commons/krm3Modal";
 import EditTimeEntry from "./edit-entry/EditTimeEntry";
@@ -12,9 +12,11 @@ import {
   formatDayAndMonth,
   formatMonthName,
   getFirstMondayOfMonth,
+  isOverlappingWeek,
 } from "./utils/dates";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import ErrorMessage from "./edit-entry/ErrorMessage";
+import { WeekRange } from "../../restapi/types";
 import { getHolidayAndSickDays } from "./utils/utils";
 import Krm3Button from "../commons/Krm3Button";
 
@@ -38,6 +40,15 @@ export default function Krm3Calendar({
     const diff = today.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(today.setDate(diff));
   });
+
+  const [selectedWeekRange, setSelectedWeekRange] = useState<WeekRange>(
+    isOverlappingWeek(currentWeekStart) ? "startOfWeek" : "whole"
+  );
+  useEffect(() => {
+    if (!isOverlappingWeek(currentWeekStart)) {
+      setSelectedWeekRange("whole");
+    }
+  }, [currentWeekStart]);
 
   const { data, userCan } = useGetCurrentUser();
 
@@ -72,8 +83,6 @@ export default function Krm3Calendar({
   const readOnly = useMemo(() => {
     return readOnlyPermission && !readWritePermission;
   }, [readOnlyPermission, readWritePermission]);
-
- 
 
   const scheduledDays = useMemo(() => {
     const days = [];
@@ -118,7 +127,20 @@ export default function Krm3Calendar({
 
       newDate.setDate(getFirstMondayOfMonth(newDate));
     } else {
-      newDate.setDate(currentWeekStart.getDate() - 7);
+      if (selectedWeekRange == "whole") {
+        const previousWeekStart = new Date(currentWeekStart);
+        previousWeekStart.setDate(currentWeekStart.getDate() - 7);
+
+        if (isOverlappingWeek(previousWeekStart)) {
+          setSelectedWeekRange("endOfWeek");
+        }
+        newDate.setDate(currentWeekStart.getDate() - 7);
+      } else if (selectedWeekRange == "endOfWeek") {
+        setSelectedWeekRange("startOfWeek");
+      } else {
+        newDate.setDate(currentWeekStart.getDate() - 7);
+        setSelectedWeekRange("whole");
+      }
     }
     setCurrentWeekStart(newDate);
   };
@@ -130,7 +152,20 @@ export default function Krm3Calendar({
 
       newDate.setDate(getFirstMondayOfMonth(newDate));
     } else {
-      newDate.setDate(currentWeekStart.getDate() + 7);
+      if (selectedWeekRange == "whole") {
+        const nextWeekStart = new Date(currentWeekStart);
+        nextWeekStart.setDate(currentWeekStart.getDate() + 7);
+
+        if (isOverlappingWeek(nextWeekStart)) {
+          setSelectedWeekRange("startOfWeek");
+        }
+        newDate.setDate(currentWeekStart.getDate() + 7);
+      } else if (selectedWeekRange == "startOfWeek") {
+        setSelectedWeekRange("endOfWeek");
+      } else {
+        newDate.setDate(currentWeekStart.getDate() + 7);
+        setSelectedWeekRange("whole");
+      }
     }
     setCurrentWeekStart(newDate);
   };
@@ -159,11 +194,27 @@ export default function Krm3Calendar({
                 <ChevronLeft />
               </button>
               <span className="font-medium" id="date-range-display">
-                {isMonth
-                  ? formatMonthName(scheduledDays.days[0])
-                  : `${formatDayAndMonth(
-                      scheduledDays.days[0]
-                    )} - ${formatDayAndMonth(scheduledDays.days[6])}`}
+                {isMonth ? (
+                  formatMonthName(scheduledDays.days[0])
+                ) : (
+                  <div>
+                    <span
+                      className={`${
+                        selectedWeekRange == "startOfWeek" ? "font-bold" : ""
+                      }`}
+                    >
+                      {formatDayAndMonth(scheduledDays.days[0])}
+                    </span>{" "}
+                    -{" "}
+                    <span
+                      className={`${
+                        selectedWeekRange == "endOfWeek" ? "font-bold" : ""
+                      }`}
+                    >
+                      {formatDayAndMonth(scheduledDays.days[6])}
+                    </span>
+                  </div>
+                )}
               </span>
               <button
                 onClick={navigateNext}
@@ -173,21 +224,43 @@ export default function Krm3Calendar({
                 <ChevronRight />
               </button>
             </div>
-            <Krm3Button
-              onClick={() =>
-                setCurrentWeekStart(() => {
-                  const today = new Date();
-                  const day = today.getDay();
-                  const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-                  return new Date(today.setDate(diff));
-                })
-              }
-              type="button"
-              style="primary"
-              label={isMonth ? "This month" : "This week"}
-              disabled={isCurrentPeriod}
-            />
+            <button
+              id="nav-prev-btn"
+              onClick={navigatePrev}
+              className="cursor-pointer"
+            >
+              <ChevronLeft />
+            </button>
+            <span className="font-medium" id="date-range-display">
+              {isMonth
+                ? formatMonthName(scheduledDays.days[0])
+                : `${formatDayAndMonth(
+                    scheduledDays.days[0]
+                  )} - ${formatDayAndMonth(scheduledDays.days[6])}`}
+            </span>
+            <button
+              onClick={navigateNext}
+              className="cursor-pointer"
+              id="nav-next-btn"
+            >
+              <ChevronRight />
+            </button>
           </div>
+          <Krm3Button
+            onClick={() =>
+              setCurrentWeekStart(() => {
+                const today = new Date();
+                const day = today.getDay();
+                const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+                return new Date(today.setDate(diff));
+              })
+            }
+            type="button"
+            style="primary"
+            label={isMonth ? "This month" : "This week"}
+            disabled={isCurrentPeriod}
+          />
+
           <VisualizationActions
             isMonth={isMonth}
             setIsMonth={setIsMonth}
@@ -208,6 +281,7 @@ export default function Krm3Calendar({
             endDate={endDate}
             selectedResourceId={selectedResourceId}
             readOnly={readOnly}
+            selectedWeekRange={selectedWeekRange}
           />
           <div className="flex justify-end items-center mt-4">
             <Krm3Button
@@ -219,6 +293,7 @@ export default function Krm3Calendar({
               disabledTooltipMessage="Only available for month view"
             />
           </div>
+
           {openTimeEntryModal &&
             selectedTask &&
             startDate &&

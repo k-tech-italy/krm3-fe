@@ -98,6 +98,12 @@ export function getDatesBetween(
     .map(normalizeDate);
 }
 
+export function isOverlappingWeek(weekStart: Date): boolean {
+  const weekEnd = new Date(weekStart)
+  weekEnd.setDate(weekEnd.getDate() + 6)
+  return weekStart.getMonth() !== weekEnd.getMonth()
+}
+
 export function getFirstMondayOfMonth(inputDate: Date): number {
   const firstDayOfMonth = new Date(
     inputDate.getFullYear(),
@@ -120,4 +126,22 @@ export function getFirstMondayOfMonth(inputDate: Date): number {
     firstDayOfMonth.getDate() +
     addToGetMonday[firstDayOfMonth.getDay() as Weekday]
   );
+}
+
+export function getFilteredWeekDates(
+  selectedWeekRange: 'startOfWeek' | 'endOfWeek' | 'whole',
+  isMonthView: boolean,
+  days: Date[]
+): Date[] | undefined {
+
+return days.filter((date) => {
+  if (!isMonthView && selectedWeekRange !== 'whole') {
+    if (selectedWeekRange === 'startOfWeek') {
+      return date.getMonth() === days[0].getMonth();
+    } else {
+      return date.getMonth() !== days[0].getMonth();
+    }
+  }
+  return true;
+});
 }

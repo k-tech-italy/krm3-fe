@@ -218,3 +218,7 @@ export const enum DayType {
   BANK_HOLIDAY = "hol",
   CLOSED_DAY = "closed"
 }
+export type WeekRange =
+    | 'whole'
+    | 'startOfWeek'
+    | 'endOfWeek';
