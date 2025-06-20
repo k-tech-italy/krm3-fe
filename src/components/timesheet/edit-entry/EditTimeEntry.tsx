@@ -139,27 +139,31 @@ export default function EditTimeEntry({
   );
 
   function getDatesToSave() {
-    if (daysWithTimeEntries.length === 0) {
-      return allDates;
-    }
     if (!overrideEntries) {
-      return withoutTimeEntries;
+      return withoutTimeEntries.filter(filterDatesToSave);
     } else {
-      return allDates;
+      return allDates.filter(filterDatesToSave);
     }
+  }
+
+  function filterDatesToSave(date: string) {
+    if (holidayOrSickDays.includes(normalizeDate(date))) {
+      return false;
+    }
+    if (normalizeDate(date) < normalizeDate(task.startDate)) {
+      return false;
+    }
+    if (!!task.endDate && normalizeDate(date) > normalizeDate(task.endDate)) {
+      return false;
+    }
+    return true;
   }
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     createTimeEntries({
       taskId: task.id,
-      dates: getDatesToSave().filter(
-        (date) =>
-          normalizeDate(date) >= normalizeDate(task.startDate) &&
-          !!task.endDate &&
-          normalizeDate(date) <= normalizeDate(task.endDate) &&
-          !holidayOrSickDays.includes(normalizeDate(date))
-      ),
+      dates: getDatesToSave(),
       nightShiftHours: nightShiftHours,
       dayShiftHours: dayShiftHours,
       onCallHours: onCallHours,
@@ -366,7 +370,7 @@ export default function EditTimeEntry({
       </div>
       {!readOnly && (
         <WarningExistingEntry
-          disabled={withoutTimeEntries.length === 0}
+          disabled={withoutTimeEntries.filter(filterDatesToSave).length === 0}
           disabledTooltipMessage="No empty Days, you can only overwrite existing entries"
           message="Holiday, Sick days and N/A entries will be skipped automatically."
           daysWithTimeEntries={daysWithTimeEntries}

@@ -23,14 +23,13 @@ export const getDatesWithAndWithoutTimeEntries = (
       ? !isHoliday(date, timeEntries) && !isSickDay(date, timeEntries)
       : true
   );
-  const withTimeEntries = dates.filter((date) =>
-    timeEntries.some(
-      (timeEntry) => normalizeDate(timeEntry.date) === normalizeDate(date)
-    )
-  );
-  const withoutTimeEntries = dates.filter(
-    (date) => !withTimeEntries.includes(normalizeDate(date))
-  );
+
+  // Build a Set of all normalized time entry dates for O(1) lookup
+  const entryDateSet = new Set(timeEntries.map(e => normalizeDate(e.date)));
+
+  const withTimeEntries = dates.filter(date => entryDateSet.has(normalizeDate(date)));
+  const withoutTimeEntries = dates.filter(date => !entryDateSet.has(normalizeDate(date)));
+
   return { allDates: dates, withTimeEntries, withoutTimeEntries };
 };
 
@@ -39,31 +38,28 @@ export function calculateTotalHoursForDays(
   timeEntries: TimeEntry[],
   dates: string[]
 ): number {
-  return dates.reduce(
-    // Use the maximum total hours for each day.
-    // This is done to prevent a situation where a day has both day and night
-    // shift hours, and the total hours for the day are calculated as the
-    // maximum of the two.
-    (totalHours, date) =>
-      Math.max(
-        totalHours,
-        // Filter time entries for the current date
-        timeEntries
-          .filter((entry) => normalizeDate(entry.date) === date)
-          // Calculate the total hours for the day
-          .reduce(
-            (dailyTotal, entry) =>
-              dailyTotal +
-              (Number(entry.dayShiftHours) || 0) +
-              (Number(entry.nightShiftHours) || 0) +
-              (Number(entry.travelHours) || 0) +
-              (Number(entry.restHours) || 0) +
-              (Number(entry.leaveHours) || 0),
-            0
-          )
-      ),
-    0
-  );
+  // Group time entries by normalized date for O(1) lookup
+  const entriesByDate: Record<string, TimeEntry[]> = {};
+  for (const entry of timeEntries) {
+    const date = normalizeDate(entry.date);
+    if (!entriesByDate[date]) entriesByDate[date] = [];
+    entriesByDate[date].push(entry);
+  }
+
+  return dates.reduce((totalHours, date) => {
+    const entries = entriesByDate[date] || [];
+    const dailyTotal = entries.reduce(
+      (sum, entry) =>
+        sum +
+        (Number(entry.dayShiftHours) || 0) +
+        (Number(entry.nightShiftHours) || 0) +
+        (Number(entry.travelHours) || 0) +
+        (Number(entry.restHours) || 0) +
+        (Number(entry.leaveHours) || 0),
+      0
+    );
+    return Math.max(totalHours, dailyTotal);
+  }, 0);
 }
 
 export const isHoliday = (
@@ -139,4 +135,30 @@ export function getDayType(date: Date | string, days?: Days): DayType {
  
 
   return DayType.WORK_DAY;
+}
+
+// Optimized batch lookup helpers for use in loops
+export function createHolidaySickDayMaps(timeEntries: TimeEntry[]) {
+  const holidaySet = new Set<string>();
+  const sickSet = new Set<string>();
+  const entriesByTaskAndDate: Record<string, Record<string, TimeEntry[]>> = {};
+
+  for (const entry of timeEntries) {
+    const date = normalizeDate(entry.date);
+    if (entry.holidayHours && entry.holidayHours > 0) holidaySet.add(date);
+    if (entry.sickHours && entry.sickHours > 0) sickSet.add(date);
+    // For getTimeEntriesForTaskAndDay
+    if (!entriesByTaskAndDate[entry.task]) entriesByTaskAndDate[entry.task] = {};
+    if (!entriesByTaskAndDate[entry.task][date]) entriesByTaskAndDate[entry.task][date] = [];
+    entriesByTaskAndDate[entry.task][date].push(entry);
+  }
+
+  return {
+    isHoliday: (date: Date | string) => holidaySet.has(normalizeDate(date)),
+    isSickDay: (date: Date | string) => sickSet.has(normalizeDate(date)),
+    getTimeEntriesForTaskAndDay: (taskId: number, day?: Date) => {
+      if (!day) return Object.values(entriesByTaskAndDate[taskId] || {}).flat();
+      return entriesByTaskAndDate[taskId]?.[normalizeDate(day)] || [];
+    },
+  };
 }

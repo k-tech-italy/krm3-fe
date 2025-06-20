@@ -69,7 +69,7 @@ export function TimeSheetTable(props: Props) {
       props.startDate,
       endDate,
       timesheet.days,
-      true
+      false
     ).every((date) => {
       return (
         isHoliday(date, timesheet.timeEntries) ||
