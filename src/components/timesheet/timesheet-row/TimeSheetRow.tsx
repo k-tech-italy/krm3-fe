@@ -12,7 +12,6 @@ import { ShortHoursMenu } from "./ShortHoursMenu";
 import { normalizeDate } from "../utils/dates";
 import { getDayType } from "../utils/timeEntry";
 import { DayType } from "../../../restapi/types";
-import { Tooltip } from "react-tooltip";
 
 export interface TimeSheetRowProps {
   timesheet: Timesheet;
@@ -21,8 +20,8 @@ export interface TimeSheetRowProps {
   task: Task;
   isMonthView: boolean;
   isColumnView: boolean;
-  // isCellInDragRange: (day: Date, taskId: number) => boolean;
-  // isColumnHighlighted: (dayIndex: number) => boolean;
+  isCellInDragRange: (day: Date, taskId: number) => boolean;
+  isColumnHighlighted: (dayIndex: number) => boolean;
   openTimeEntryModalHandler: (task: Task) => void;
   openShortMenu?: { startDate: string; endDate: string; taskId: string };
   setOpenShortMenu?: (
@@ -41,8 +40,8 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   task,
   isMonthView,
   isColumnView,
-  // isCellInDragRange,
-  // isColumnHighlighted,
+  isCellInDragRange,
+  isColumnHighlighted,
   openTimeEntryModalHandler,
   openShortMenu,
   setOpenShortMenu,
@@ -134,8 +133,8 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             timeEntry={timeEntry}
             isMonthView={isMonthView}
             isColumnView={isColumnView}
-            // isColumnHighlighted={isColumnHighlighted(dayIndex)}
-            // isInDragRange={isCellInDragRange(day, task.id)}
+            isColumnHighlighted={isColumnHighlighted(dayIndex)}
+            isInDragRange={isCellInDragRange(day, task.id)}
             colors={{ backgroundColor, borderColor }}
             readOnly={readOnly}
             isNoWorkDay={isNoWorkDay !== DayType.WORK_DAY}

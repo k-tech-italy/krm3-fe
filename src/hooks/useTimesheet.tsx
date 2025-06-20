@@ -12,7 +12,9 @@ import {
 
 export function useCreateTimeEntry(selectedResourceId: number | null) {
   const { data: currentUser } = useGetCurrentUser();
-  const resourceId = selectedResourceId ? selectedResourceId : currentUser?.resource.id;
+  const resourceId = selectedResourceId
+    ? selectedResourceId
+    : currentUser?.resource.id;
   const queryClient = useQueryClient();
   if (resourceId === undefined) {
     throw new Error("Resource ID is undefined");
@@ -37,20 +39,15 @@ export function useCreateTimeEntry(selectedResourceId: number | null) {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["timesheet"] });
       },
-      onError: (error: AxiosError) => {},
     }
   );
 }
 
-
 export function useSubmitTimesheet() {
   const queryClient = useQueryClient();
   return useMutation(
-    (params: {
-      resourceId: number;
-      startDate: string;
-      endDate: string;
-    }) => submitTimesheet(params.resourceId, params.startDate, params.endDate),
+    (params: { resourceId: number; startDate: string; endDate: string }) =>
+      submitTimesheet(params.resourceId, params.startDate, params.endDate),
     {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["timesheet"] });
@@ -60,14 +57,15 @@ export function useSubmitTimesheet() {
   );
 }
 
-
 export function useGetTimesheet(
-  startDate: string, 
-  endDate: string, 
+  startDate: string,
+  endDate: string,
   selectedResourceId: number | null
 ) {
   const { data } = useGetCurrentUser();
-  const resourceId = selectedResourceId ? selectedResourceId : data?.resource?.id;
+  const resourceId = selectedResourceId
+    ? selectedResourceId
+    : data?.resource?.id;
 
   return useQuery(
     ["timesheet", resourceId, startDate, endDate],
@@ -88,7 +86,7 @@ export function useGetTimesheet(
       useErrorBoundary: false,
       onError: (error) => {
         console.error("Timesheet fetch failed:", error);
-        return "error";
+        return error;
       },
     }
   );

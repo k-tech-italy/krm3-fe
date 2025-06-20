@@ -121,33 +121,33 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
         );
         return;
       }
-      try {
-        const promise = createTimeEntries({
-          dates: selectedDates ? selectedDates : menuData.selectedDates,
-          taskId,
-          dayShiftHours: value,
-        });
 
-        await toast.promise(
-          promise,
-          {
-            pending: "Adding hours...",
-            success: "Hours added successfully",
-            error: displayErrorMessage(error),
+      const promise = createTimeEntries({
+        dates: selectedDates ? selectedDates : menuData.selectedDates,
+        taskId,
+        dayShiftHours: value,
+      });
+
+      await toast.promise(
+        promise,
+        {
+          pending: "Adding hours...",
+          success: "Hours added successfully",
+          error: {
+            render({ data }) {
+              // When the promise reject, data will contains the error
+              return <div> {displayErrorMessage(data)} </div>;
+            },
           },
-          {
-            autoClose: 2000,
-            theme: "light",
-            hideProgressBar: false,
-            draggable: true,
-          }
-        );
-
-        setOpenShortMenu?.(undefined);
-      } catch (err) {
-        console.error("Failed to submit hours:", err);
-        toast.error("Failed to add hours");
-      }
+        },
+        {
+          autoClose: 2000,
+          theme: "light",
+          hideProgressBar: false,
+          draggable: true,
+        }
+      );
+      setOpenShortMenu?.(undefined);
     },
     [
       menuData,

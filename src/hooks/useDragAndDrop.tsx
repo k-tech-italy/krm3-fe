@@ -214,28 +214,28 @@ export function useDragAndDrop({
   };
 
   // --- Utilities for UI ---
-  // const isCellInDragRange = (day: Date, taskId: number): boolean => {
+  const isCellInDragRange = (day: Date, taskId: number): boolean => {
 
-  //   return (
-  //     !!activeDragData.current?.taskId &&
-  //     activeDragData.current.taskId === taskId &&
-  //     draggedOverCells.some(
-  //       (draggedDay) => draggedDay.toDateString() === day.toDateString()
-  //     )
-  //   );
-  // };
+    return (
+      !!activeDragData.current?.taskId &&
+      activeDragData.current.taskId === taskId &&
+      draggedOverCells.some(
+        (draggedDay) => draggedDay.toDateString() === day.toDateString()
+      )
+    );
+  };
 
-  // const isColumnActive = (dayIndex: number): boolean =>
-  //   activeId === `column-${dayIndex}`;
-  // const isColumnHighlighted = (dayIndex: number): boolean => {
-  //   // A column is highlighted if its day is in draggedOverCells
-  //   return (
-  //     dragType === "column" &&
-  //     draggedOverCells.some(
-  //       (day) => scheduledDays[dayIndex].toDateString() === day.toDateString()
-  //     )
-  //   );
-  // };
+  const isColumnActive = (dayIndex: number): boolean =>
+    activeId === `column-${dayIndex}`;
+  const isColumnHighlighted = (dayIndex: number): boolean => {
+    // A column is highlighted if its day is in draggedOverCells
+    return (
+      dragType === "column" &&
+      draggedOverCells.some(
+        (day) => scheduledDays[dayIndex].toDateString() === day.toDateString()
+      )
+    );
+  };
 
   return {
     activeId,
@@ -244,9 +244,9 @@ export function useDragAndDrop({
     handleDragStart,
     handleDragMove,
     handleDragEnd,
-    // isCellInDragRange,
-    // isColumnActive,
-    // isColumnHighlighted,
+    isCellInDragRange,
+    isColumnActive,
+    isColumnHighlighted,
     resetDragState,
   };
 }

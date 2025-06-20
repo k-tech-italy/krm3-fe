@@ -4,14 +4,13 @@ import { TimeEntryItem } from "./TimeEntryItem";
 import { EmptyCell } from "./EmptyCell";
 import { TimeEntry, TimeEntryType } from "../../../restapi/types";
 import { SpecialDayCell } from "./SpecialDayCell";
-import { Tooltip } from "react-tooltip";
 import { Draggable } from "../Draggable";
 
 export interface CellProps {
   day: Date;
   taskId: number;
   isMonthView: boolean;
-  // isColumnHighlighted: boolean;
+  isColumnHighlighted: boolean;
   colors: {
     backgroundColor: string;
     borderColor: string;
@@ -20,14 +19,14 @@ export interface CellProps {
 
 export interface TimeEntryCellProps extends CellProps {
   timeEntry?: TimeEntry;
-  onClick?: () => void;
-  // isInDragRange: boolean;
+  isInDragRange: boolean;
   type: TimeEntryType;
   isColumnView: boolean;
   readOnly: boolean;
   isNoWorkDay: boolean;
   isLockedDay: boolean;
   isInSelectedWeekdays: boolean;
+
 }
 export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   day,
@@ -35,15 +34,14 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   timeEntry,
   isMonthView,
   isColumnView,
-  // isColumnHighlighted,
-  // isInDragRange,
+  isColumnHighlighted,
+  isInDragRange,
   colors,
   type,
   readOnly,
   isNoWorkDay,
   isLockedDay,
   isInSelectedWeekdays,
-  onClick,
 }) => {
   const cellId = `${day.toDateString()}-${taskId}`;
   const draggableId = `${day.toDateString()}-${taskId}-${timeEntry?.id}`;
@@ -52,20 +50,12 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
     ? "border-l-[var(--border-color)]"
     : "border-b-[var(--border-color)]";
 
-
-    // ${isInDragRange || isColumnHighlighted ? "bg-blue-50" : ""}
-    // ${
-    //   (isInDragRange || isColumnHighlighted) &&
-    //   (isColumnView ? "border-l-blue-500" : "border-b-blue-500")
-    // }
-
   return (
     <Droppable
       id={cellId}
       isDisabled={(!isMonthView && !isInSelectedWeekdays) || isLockedDay}
     >
       <div
-        onClick={onClick}
         style={{ "--border-color": colors.borderColor } as React.CSSProperties}
         className={`
     h-full w-full cursor-pointer
@@ -76,13 +66,23 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
  
      ${isNoWorkDay ? "bg-zinc-100" : ""}
      ${!isInSelectedWeekdays ? "bg-zinc-100 cursor-not-allowed!" : ""}
+
+    ${isInDragRange || isColumnHighlighted ? "bg-blue-50" : ""}
+    ${
+      (isInDragRange || isColumnHighlighted) &&
+      (isColumnView ? "border-l-blue-500" : "border-b-blue-500")
+    }
+
   `}
       >
         <Draggable
           id={draggableId}
           isDisabled={(!isMonthView && !isInSelectedWeekdays) || isLockedDay}
         >
-          <div className="h-full w-full flex items-center justify-center">
+          <div
+         
+            className="h-full w-full flex items-center justify-center"
+          >
             {(type === TimeEntryType.HOLIDAY ||
               type === TimeEntryType.SICK ||
               type === TimeEntryType.FINISHED) && (

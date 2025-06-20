@@ -121,8 +121,9 @@ export function TimeSheetTable(props: Props) {
     handleDragStart,
     handleDragMove,
     handleDragEnd,
-      // isColumnActive,
-      // isColumnHighlighted,
+    isCellInDragRange,
+    isColumnActive,
+    isColumnHighlighted,
   } = useDragAndDrop({
     scheduledDays: props.scheduledDays.days,
     timesheet: timesheet!, //TODO: Remove !
@@ -213,8 +214,8 @@ export function TimeSheetTable(props: Props) {
             scheduledDays={props.scheduledDays}
             isColumnView={props.isColumnView}
             isMonthView={isMonthView}
-            // isColumnActive={isColumnActive}
-            // isColumnHighlighted={isColumnHighlighted}
+            isColumnActive={isColumnActive}
+            isColumnHighlighted={isColumnHighlighted}
             selectedWeekdays={selectedWeekdays}
           />
 
@@ -231,8 +232,8 @@ export function TimeSheetTable(props: Props) {
                 task={task}
                 scheduledDays={props.scheduledDays.days}
                 isMonthView={isMonthView}
-                // isCellInDragRange={isCellInDragRange}
-                // isColumnHighlighted={isColumnHighlighted}
+                isCellInDragRange={isCellInDragRange}
+                isColumnHighlighted={isColumnHighlighted}
                 isColumnView={props.isColumnView}
                 openTimeEntryModalHandler={openTimeEntryModalHandler}
                 openShortMenu={openShortMenu}
