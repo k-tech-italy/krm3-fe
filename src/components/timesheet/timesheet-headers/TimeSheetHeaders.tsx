@@ -14,7 +14,7 @@ interface Props {
   isMonthView: boolean;
   isColumnActive: (index: number) => boolean;
   isColumnHighlighted: (index: number) => boolean;
-  selectedWeekdays?: Date[]
+  selectedWeekdays?: Date[];
 }
 
 function TimeSheetHeaders({
@@ -24,7 +24,7 @@ function TimeSheetHeaders({
   isMonthView,
   isColumnActive,
   isColumnHighlighted,
-  selectedWeekdays
+  selectedWeekdays,
 }: Props) {
   return (
     <>
@@ -33,13 +33,23 @@ function TimeSheetHeaders({
           <Droppable
             key={index}
             id={`column-${index}`}
-            isDisabled={(getDayType(day, timesheet.days) === DayType.CLOSED_DAY) || (!isMonthView && !selectedWeekdays?.some(
-              (date) => date.getTime() === day.getTime()))}
+            isDisabled={
+              getDayType(day, timesheet.days) === DayType.CLOSED_DAY ||
+              (!isMonthView &&
+                !selectedWeekdays?.some(
+                  (date) => date.getTime() === day.getTime()
+                ))
+            }
           >
             <Draggable
               id={`column-${index}`}
-              isDisabled={(getDayType(day, timesheet.days) === DayType.CLOSED_DAY) || (!isMonthView && !selectedWeekdays?.some(
-                (date) => date.getTime() === day.getTime()))}
+              isDisabled={
+                getDayType(day, timesheet.days) === DayType.CLOSED_DAY ||
+                (!isMonthView &&
+                  !selectedWeekdays?.some(
+                    (date) => date.getTime() === day.getTime()
+                  ))
+              }
             >
               <div
                 className={`h-full w-fullitems-center ${
@@ -47,16 +57,17 @@ function TimeSheetHeaders({
                 } bg-gray-100 font-semibold ${
                   isMonthView ? "text-xs p-1" : "text-sm p-2"
                 } text-center cursor-grab
-              ${isColumnActive(index) ? "bg-blue-200" : ""}
-              ${
-                isColumnHighlighted(index)
-                  ? "bg-blue-100 border-b-2 border-blue-400"
-                  : "border-b-2 border-gray-300 hover:border-blue-400"
-              }
+   
               ${
                 getDayType(day, timesheet.days) !== DayType.WORK_DAY
                   ? "bg-zinc-200 cursor-not-allowed"
                   : ""
+              }
+               ${isColumnActive(index) ? "bg-blue-200" : ""}
+              ${
+                isColumnHighlighted(index)
+                  ? "bg-blue-100 border-b-2 border-blue-400"
+                  : "border-b-2 border-gray-300 hover:border-blue-400"
               }
               `}
               >

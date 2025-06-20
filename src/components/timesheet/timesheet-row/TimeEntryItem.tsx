@@ -1,7 +1,5 @@
 import React from "react";
-import { Draggable } from "../Draggable";
 import { TimeEntry } from "../../../restapi/types";
-import { Lock } from "lucide-react";
 
 interface TimeEntryItemProps {
   entry: TimeEntry;
@@ -13,12 +11,9 @@ interface TimeEntryItemProps {
 
 export const TimeEntryItem: React.FC<TimeEntryItemProps> = ({
   entry,
-  taskId,
   isMonthView,
   backgroundColor,
-  isDayLocked,
 }) => {
-
   const hoursValue =
     Number(entry.dayShiftHours) +
     Number(entry.nightShiftHours) +
@@ -26,13 +21,13 @@ export const TimeEntryItem: React.FC<TimeEntryItemProps> = ({
     Number(entry.travelHours);
 
   return (
-      <div
-        style={{ backgroundColor }}
-        className={`h-full w-full text-center flex items-center justify-center `}
-      >
-        <span className={`${isMonthView ? "text-[12px]" : "text-[18px]"} `}>
-          {hoursValue}
-        </span>
-      </div>
+    <div
+      style={{ backgroundColor }}
+      className={`h-full w-full text-center flex items-center justify-center `}
+    >
+      <span className={`${isMonthView ? "text-[12px]" : "text-[18px]"} `}>
+        {hoursValue}
+      </span>
+    </div>
   );
 };

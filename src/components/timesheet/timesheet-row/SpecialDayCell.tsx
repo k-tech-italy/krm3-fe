@@ -1,7 +1,6 @@
 import React from "react";
-import { Martini, Stethoscope, Lock } from "lucide-react";
-import { Tooltip } from "react-tooltip";
-import { DayType, TimeEntryType } from "../../../restapi/types";
+import { Martini, Stethoscope } from "lucide-react";
+import { TimeEntryType } from "../../../restapi/types";
 
 interface Props {
   day: Date;
