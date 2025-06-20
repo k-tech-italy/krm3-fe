@@ -408,12 +408,10 @@ export default function EditDayEntry({
         )}
 
         {isLoading && <LoadSpinner />}
-        {error && (
-          <ErrorMessage
-            message={displayErrorMessage(error) || "Something went wrong"}
-          />
-        )}
         {leaveHoursError && <ErrorMessage message={leaveHoursError} />}
+
+        {!!error && <ErrorMessage message={displayErrorMessage(error)} />}
+        {!!specialReasonError && <ErrorMessage message={displayErrorMessage(specialReasonError)} />}
 
         <div className="flex items-center justify-between pt-6 border-t border-gray-200">
           <Krm3Button

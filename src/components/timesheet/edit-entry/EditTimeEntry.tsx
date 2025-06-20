@@ -190,12 +190,6 @@ export default function EditTimeEntry({
       className="space-y-6"
       id="edit-time-entry-container"
     >
-      {/* Header
-        <div className="border-b border-gray-200 pb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Edit Time Entry</h2>
-          <p className="text-sm text-gray-600 mt-1">Task: {task.title}</p>
-        </div> */}
-
       {/* Date Selection Section */}
       <div className="space-y-4" id="datepickers-container">
         <h3 className="text-lg font-medium text-gray-900">Date Range</h3>
@@ -368,6 +362,7 @@ export default function EditTimeEntry({
           disabled={readOnly}
         />
       </div>
+
       {!readOnly && (
         <WarningExistingEntry
           disabled={withoutTimeEntries.filter(filterDatesToSave).length === 0}
@@ -379,16 +374,18 @@ export default function EditTimeEntry({
           isCheckbox
         />
       )}
+
       {totalHours > 24 && (
         <ErrorMessage message="Total hours cannot exceed 24 hours per day." />
       )}
 
-      {creationError && (
+      {!!creationError && (
         <ErrorMessage
           message={displayErrorMessage(creationError) || "Creation Error"}
         />
       )}
-      {deletionError && (
+
+      {!!deletionError && (
         <ErrorMessage
           message={displayErrorMessage(deletionError) || "Deletion Error"}
         />
