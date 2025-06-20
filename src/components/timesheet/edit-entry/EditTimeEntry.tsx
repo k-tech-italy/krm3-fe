@@ -1,18 +1,18 @@
-import { Task, TimeEntry } from "../../../restapi/types.ts";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import "react-datepicker/dist/react-datepicker.css";
+import { Days, Task, TimeEntry } from "../../../restapi/types.ts";
 import {
   useDeleteTimeEntries,
   useCreateTimeEntry,
 } from "../../../hooks/useTimesheet.tsx";
 import { displayErrorMessage } from "../utils/utils.ts";
-import { getDatesBetween } from "../utils/dates.ts";
-import { normalizeDate } from "../utils/dates.ts";
+import { formatDate, getDatesBetween, normalizeDate } from "../utils/dates.ts";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import WarningExistingEntry from "./WarningExistEntry.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
 import Krm3Button from "../../commons/Krm3Button.tsx";
-import { CheckIcon, SaveIcon, TrashIcon } from "lucide-react";
+import { CheckIcon, TrashIcon } from "lucide-react";
+import { getDatesWithAndWithoutTimeEntries } from "../utils/timeEntry.ts";
 
 interface Props {
   task: Task;
@@ -22,6 +22,8 @@ interface Props {
   closeModal: () => void;
   readOnly: boolean;
   selectedResourceId: number | null;
+  holidayOrSickDays: String[];
+  noWorkingDays: Days;
 }
 
 export default function EditTimeEntry({
@@ -32,9 +34,13 @@ export default function EditTimeEntry({
   endDate,
   readOnly,
   selectedResourceId,
+  holidayOrSickDays,
+  noWorkingDays,
 }: Props) {
-  const startEntry = timeEntries.find(
-    (item) => item.date === normalizeDate(startDate) && item.task == task.id
+  const startEntry: TimeEntry | undefined = timeEntries.find(
+    (item) =>
+      normalizeDate(item.date) === normalizeDate(startDate) &&
+      item.task == task.id
   );
   const [fromDate, setFromDate] = useState<Date>(
     startDate <= endDate ? startDate : endDate
@@ -42,57 +48,76 @@ export default function EditTimeEntry({
   const [toDate, setToDate] = useState<Date>(
     endDate >= startDate ? endDate : startDate
   );
-  const [keepEntries, setKeepEntries] = useState<boolean>(true);
-  const updateDaysWithTimeEntries = (
-    startDate: Date,
-    endDate: Date
-  ): string[] => {
-    const dates = getDatesBetween(startDate, endDate);
-    const datesWithTimeEntries = dates.filter((date) =>
-      timeEntries.some(
-        (timeEntry) => normalizeDate(timeEntry.date) === normalizeDate(date)
-      )
-    );
-    return datesWithTimeEntries;
-  };
 
   const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
-    updateDaysWithTimeEntries(fromDate, toDate)
+    getDatesWithAndWithoutTimeEntries(
+      formatDate(fromDate),
+      formatDate(toDate),
+      timeEntries,
+      noWorkingDays,
+      true,
+      false
+    ).withTimeEntries.filter(
+      (date) => !holidayOrSickDays.includes(normalizeDate(date))
+    )
   );
+  const [overrideEntries, setOverrideEntries] = useState<boolean>(true);
 
   function handleChangeDate(date: Date, type: "from" | "to") {
     if (type === "from") {
       setFromDate(date);
-      setDaysWithTimeEntries(updateDaysWithTimeEntries(date, toDate));
+      setDaysWithTimeEntries(
+        getDatesWithAndWithoutTimeEntries(
+          date,
+          formatDate(toDate),
+          timeEntries,
+          noWorkingDays,
+          true,
+          false
+        ).withTimeEntries.filter(
+          (date) => !holidayOrSickDays.includes(normalizeDate(date))
+        )
+      );
     } else {
       setToDate(date);
-      setDaysWithTimeEntries(updateDaysWithTimeEntries(fromDate, date));
+      setDaysWithTimeEntries(
+        getDatesWithAndWithoutTimeEntries(
+          formatDate(fromDate),
+          date,
+          timeEntries,
+          noWorkingDays,
+          true,
+          false
+        ).withTimeEntries.filter(
+          (date) => !holidayOrSickDays.includes(normalizeDate(date))
+        )
+      );
     }
   }
 
-  const [totalHours, setTotalHours] = useState(
+  const [totalHours, setTotalHours] = useState<number>(
     startEntry
       ? Number(startEntry.dayShiftHours) +
-      Number(startEntry.nightShiftHours) +
-      Number(startEntry.travelHours) +
-      Number(startEntry.onCallHours)
+          Number(startEntry.nightShiftHours) +
+          Number(startEntry.travelHours) +
+          Number(startEntry.onCallHours)
       : 0
-  ); // SHOULD ON CALL HOURS BE ADDED TO TOTAL HOURS???
+  );
 
-  const [dayShiftHours, setDayShiftHours] = useState(
+  const [dayShiftHours, setDayShiftHours] = useState<number>(
     startEntry ? Number(startEntry.dayShiftHours) : 0
   );
-  const [nightShiftHours, setNightShiftHours] = useState(
+  const [nightShiftHours, setNightShiftHours] = useState<number>(
     startEntry ? Number(startEntry.nightShiftHours) : 0
   );
-  const [onCallHours, setOnCallHours] = useState(
+  const [onCallHours, setOnCallHours] = useState<number>(
     startEntry ? Number(startEntry.onCallHours) : 0
   );
-  const [travelHours, setTravelHours] = useState(
+  const [travelHours, setTravelHours] = useState<number>(
     startEntry ? Number(startEntry.travelHours) : 0
   );
 
-  const [comment, setComment] = useState(
+  const [comment, setComment] = useState<string>(
     startEntry && startEntry.comment ? startEntry.comment : ""
   );
 
@@ -104,15 +129,34 @@ export default function EditTimeEntry({
   const { mutateAsync: createTimeEntries, error: creationError } =
     useCreateTimeEntry(selectedResourceId);
 
+  const { withoutTimeEntries, allDates } = getDatesWithAndWithoutTimeEntries(
+    formatDate(fromDate),
+    formatDate(toDate),
+    timeEntries,
+    noWorkingDays,
+    true,
+    false
+  );
+
   function getDatesToSave() {
-    if (keepEntries) {
-      return getDatesBetween(fromDate, toDate);
+    if (!overrideEntries) {
+      return withoutTimeEntries.filter(filterDatesToSave);
     } else {
-      const datesWithNoTimeEntries = getDatesBetween(fromDate, toDate).filter(
-        (date) => !daysWithTimeEntries.includes(normalizeDate(date))
-      );
-      return datesWithNoTimeEntries;
+      return allDates.filter(filterDatesToSave);
     }
+  }
+
+  function filterDatesToSave(date: string) {
+    if (holidayOrSickDays.includes(normalizeDate(date))) {
+      return false;
+    }
+    if (normalizeDate(date) < normalizeDate(task.startDate)) {
+      return false;
+    }
+    if (!!task.endDate && normalizeDate(date) > normalizeDate(task.endDate)) {
+      return false;
+    }
+    return true;
   }
 
   const submit = (event: React.FormEvent) => {
@@ -133,7 +177,8 @@ export default function EditTimeEntry({
       .filter(
         (timeEntry) =>
           normalizeDate(fromDate) <= normalizeDate(timeEntry.date) &&
-          normalizeDate(toDate) >= normalizeDate(timeEntry.date)
+          normalizeDate(toDate) >= normalizeDate(timeEntry.date) &&
+          task.id === timeEntry.task
       )
       .map((timeEntry) => timeEntry.id);
     deleteTimeEntries(timeEntriesIds).then(() => closeModal());
@@ -145,12 +190,6 @@ export default function EditTimeEntry({
       className="space-y-6"
       id="edit-time-entry-container"
     >
-      {/* Header
-        <div className="border-b border-gray-200 pb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Edit Time Entry</h2>
-          <p className="text-sm text-gray-600 mt-1">Task: {task.title}</p>
-        </div> */}
-
       {/* Date Selection Section */}
       <div className="space-y-4" id="datepickers-container">
         <h3 className="text-lg font-medium text-gray-900">Date Range</h3>
@@ -323,21 +362,32 @@ export default function EditTimeEntry({
           disabled={readOnly}
         />
       </div>
+
       {!readOnly && (
         <WarningExistingEntry
+          disabled={withoutTimeEntries.filter(filterDatesToSave).length === 0}
+          disabledTooltipMessage="No empty Days, you can only overwrite existing entries"
+          message="Holiday, Sick days and N/A entries will be skipped automatically."
           daysWithTimeEntries={daysWithTimeEntries}
-          keepEntries={keepEntries}
-          setKeepEntries={setKeepEntries}
+          overrideEntries={overrideEntries}
+          setOverrideEntries={setOverrideEntries}
           isCheckbox
         />
       )}
+
       {totalHours > 24 && (
         <ErrorMessage message="Total hours cannot exceed 24 hours per day." />
       )}
 
-      {creationError && (
+      {!!creationError && (
         <ErrorMessage
           message={displayErrorMessage(creationError) || "Creation Error"}
+        />
+      )}
+
+      {!!deletionError && (
+        <ErrorMessage
+          message={displayErrorMessage(deletionError) || "Deletion Error"}
         />
       )}
 

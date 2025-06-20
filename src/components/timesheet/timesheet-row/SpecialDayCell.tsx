@@ -1,19 +1,27 @@
 import React from "react";
 import { Martini, Stethoscope } from "lucide-react";
-import { CellProps } from "./TimeEntryCell";
+import { TimeEntryType } from "../../../restapi/types";
 
-export interface SpecialDayCellProps extends CellProps {
-  type: "holiday" | "sick" | "finished";
+interface Props {
+  day: Date;
+  taskId: number;
+  isMonthView: boolean;
+  colors: {
+    backgroundColor: string;
+    borderColor: string;
+  };
+  type: TimeEntryType;
 }
-export const SpecialDayCell: React.FC<SpecialDayCellProps> = ({
+
+export const SpecialDayCell: React.FC<Props> = ({
   day,
   taskId,
   type,
   isMonthView,
-  isColumnHighlighted,
   colors,
 }) => {
   const cellId = `${day.toDateString()}-${taskId}`;
+
   // Define cell styling based on type
   const getCellStyles = () => {
     switch (type) {
@@ -24,7 +32,7 @@ export const SpecialDayCell: React.FC<SpecialDayCellProps> = ({
             <Martini
               strokeWidth={2.25}
               color="black"
-              size={isMonthView ? 12 : 20}
+              size={isMonthView ? 12 : 18}
             />
           ),
           style: { backgroundColor: colors.backgroundColor },
@@ -36,7 +44,7 @@ export const SpecialDayCell: React.FC<SpecialDayCellProps> = ({
             <Stethoscope
               strokeWidth={2.25}
               color="black"
-              size={isMonthView ? 12 : 20}
+              size={isMonthView ? 12 : 18}
             />
           ),
           style: { backgroundColor: colors.backgroundColor },
@@ -58,9 +66,11 @@ export const SpecialDayCell: React.FC<SpecialDayCellProps> = ({
     <div
       id={id}
       style={style}
-      className={`h-full w-full text-center flex items-center justify-center cursor-not-allowed `}
+      className={`h-full w-full text-center flex items-center justify-center cursor-not-allowed`}
     >
-      <div className={` h-full flex justify-center items-center`}>{icon}</div>
+      <div className={` h-full flex justify-center items-center`}>
+        {icon}
+      </div>
     </div>
   );
 };

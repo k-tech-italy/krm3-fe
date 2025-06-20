@@ -2,9 +2,9 @@ import React from "react";
 import { Droppable } from "../Droppable";
 import { TimeEntryItem } from "./TimeEntryItem";
 import { EmptyCell } from "./EmptyCell";
-import { TimeEntry } from "../../../restapi/types";
+import { TimeEntry, TimeEntryType } from "../../../restapi/types";
 import { SpecialDayCell } from "./SpecialDayCell";
-import { isWeekendDay } from "../utils/dates";
+import { Draggable } from "../Draggable";
 
 export interface CellProps {
   day: Date;
@@ -19,13 +19,15 @@ export interface CellProps {
 
 export interface TimeEntryCellProps extends CellProps {
   timeEntry?: TimeEntry;
-  onClick?: () => void;
   isInDragRange: boolean;
-  type: "task" | "holiday" | "sick" | "finished";
+  type: TimeEntryType;
   isColumnView: boolean;
   readOnly: boolean;
-}
+  isNoWorkDay: boolean;
+  isLockedDay: boolean;
+  isInSelectedWeekdays: boolean;
 
+}
 export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   day,
   taskId,
@@ -37,18 +39,23 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   colors,
   type,
   readOnly,
-  onClick,
+  isNoWorkDay,
+  isLockedDay,
+  isInSelectedWeekdays,
 }) => {
   const cellId = `${day.toDateString()}-${taskId}`;
+  const draggableId = `${day.toDateString()}-${taskId}-${timeEntry?.id}`;
 
   const borderColorClass = isColumnView
     ? "border-l-[var(--border-color)]"
     : "border-b-[var(--border-color)]";
 
   return (
-    <Droppable id={cellId}>
+    <Droppable
+      id={cellId}
+      isDisabled={(!isMonthView && !isInSelectedWeekdays) || isLockedDay}
+    >
       <div
-        onClick={onClick}
         style={{ "--border-color": colors.borderColor } as React.CSSProperties}
         className={`
     h-full w-full cursor-pointer
@@ -56,39 +63,63 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
 
     ${isColumnView ? "border-l-3" : "border-b-3"}
     ${isColumnView ? "hover:border-l-blue-500" : "hover:border-b-blue-500"}
+ 
+     ${isNoWorkDay ? "bg-zinc-100" : ""}
+     ${!isInSelectedWeekdays ? "bg-zinc-100 cursor-not-allowed!" : ""}
+
     ${isInDragRange || isColumnHighlighted ? "bg-blue-50" : ""}
     ${
       (isInDragRange || isColumnHighlighted) &&
       (isColumnView ? "border-l-blue-500" : "border-b-blue-500")
     }
-    ${isWeekendDay(day) ? "bg-zinc-100" : ""}
+
   `}
       >
-        {(type === "holiday" || type === "sick" || type === "finished") && (
-          <div className="h-full w-full flex items-center justify-center">
-            <SpecialDayCell
-              day={day}
-              taskId={taskId}
-              type={type}
-              isMonthView={isMonthView}
-              isColumnHighlighted={isColumnHighlighted}
-              colors={colors}
-            />
+        <Draggable
+          id={draggableId}
+          isDisabled={(!isMonthView && !isInSelectedWeekdays) || isLockedDay}
+        >
+          <div
+         
+            className="h-full w-full flex items-center justify-center"
+          >
+            {(type === TimeEntryType.HOLIDAY ||
+              type === TimeEntryType.SICK ||
+              type === TimeEntryType.FINISHED) && (
+              <SpecialDayCell
+                day={day}
+                taskId={taskId}
+                type={type}
+                isMonthView={isMonthView}
+                colors={colors}
+              />
+            )}
+            {timeEntry && (
+              <div
+                key={timeEntry.id}
+                className={`h-full w-full flex items-center`}
+              >
+                <TimeEntryItem
+                  isDayLocked={isLockedDay}
+                  entry={timeEntry}
+                  taskId={taskId}
+                  isMonthView={isMonthView}
+                  backgroundColor={colors.backgroundColor}
+                />
+              </div>
+            )}
+            {!timeEntry &&
+              (type === TimeEntryType.TASK ||
+                type === TimeEntryType.CLOSED) && (
+                <EmptyCell
+                  isDayLocked={isLockedDay}
+                  day={day}
+                  taskId={taskId}
+                  isMonthView={isMonthView}
+                />
+              )}
           </div>
-        )}
-        {timeEntry && (
-          <div key={timeEntry.id} className={`h-full w-full flex items-center`}>
-            <TimeEntryItem
-              entry={timeEntry}
-              taskId={taskId}
-              isMonthView={isMonthView}
-              backgroundColor={colors.backgroundColor}
-            />
-          </div>
-        )}
-        {!timeEntry && type === "task" && (
-          <EmptyCell day={day} taskId={taskId} isMonthView={isMonthView} />
-        )}
+        </Draggable>
       </div>
     </Droppable>
   );

@@ -1,19 +1,22 @@
+import { Tooltip } from "react-tooltip";
+
 interface Props {
   disabled?: boolean;
   onClick?: (e?: React.MouseEvent) => void;
   type?: "button" | "submit";
   style?: "primary" | "secondary" | "danger";
   icon?: React.ReactNode;
+  disabledTooltipMessage?: string;
   label: string;
 }
 
-const Krm3Button = ({ disabled, onClick, type, style, icon, label }: Props) => {
+const Krm3Button = ({ disabled, onClick, type, style, icon, label, disabledTooltipMessage }: Props) => {
   const styles = {
     primary: {
       buttonStyle:
         "text-white border-transparent bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-yellow-500",
       disabledStyle:
-        " text-white border-transparent bg-gray-300 cursor-not-allowed",
+        "text-white border-transparent bg-gray-300 cursor-not-allowed",
     },
     secondary: {
       buttonStyle:
@@ -29,7 +32,7 @@ const Krm3Button = ({ disabled, onClick, type, style, icon, label }: Props) => {
     },
     default: {
       buttonStyle:
-        "border-transparent bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-yellow-500",
+        "text-white border-transparent bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-yellow-500",
       disabledStyle:
         "text-white border-transparent bg-gray-300 cursor-not-allowed",
     },
@@ -38,18 +41,24 @@ const Krm3Button = ({ disabled, onClick, type, style, icon, label }: Props) => {
   const { buttonStyle, disabledStyle } = styles[style || "default"];
 
   return (
-    <button
-      className={`inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md  transition-colors duration-200 focus:ring-2 focus:ring-offset-2 ${
-        disabled ? disabledStyle : buttonStyle
-      }`}
-      id="delete-button"
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-    >
-      {icon && <span className="mr-2">{icon}</span>}
-      <span>{label}</span>
-    </button>
+    <>
+      <button
+        data-tooltip-id={`tooltip-${label}`}
+        className={`inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md  transition-colors duration-200 focus:ring-2 focus:ring-offset-2 ${
+          disabled ? disabledStyle : buttonStyle
+        }`}
+        id="delete-button"
+        type={type}
+        onClick={onClick}
+        disabled={disabled}
+      >
+        {icon && <span className="mr-2">{icon}</span>}
+        <span>{label}</span>
+      </button>
+      {disabled && (
+        <Tooltip id={`tooltip-${label}`} content={disabledTooltipMessage} />
+      )}
+    </>
   );
 };
 export default Krm3Button;

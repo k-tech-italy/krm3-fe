@@ -1,19 +1,28 @@
 import React from "react";
 import { useDraggable } from "@dnd-kit/core";
 
-export function Draggable(props: { children: React.ReactNode; id: string, className?: string }) {
+export function Draggable(props: {
+  children: React.ReactNode;
+  id: string;
+  className?: string;
+  isDisabled?: boolean;
+}) {
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: props.id,
+    disabled: props.isDisabled,
   });
-  
 
   return (
     <div
-      id={`draggable-${props.id}`}
+      id={`${props.id}`}
       ref={setNodeRef}
-      className={`h-full w-full cursor-grabbing` + props.className || ""}
-      {...listeners}
-      {...attributes}
+      className={`w-full h-full  ${
+        props.isDisabled
+          ? "linear-gradient-disabled"
+          : "cursor-grab active:cursor-grabbing"
+      } ${props.className ? props.className : ""}`}
+      {...(props.isDisabled ? {} : listeners)} // Only apply listeners when not disabled
+      {...(props.isDisabled ? {} : attributes)} // Only apply attributes when not disabled
     >
       {props.children}
     </div>

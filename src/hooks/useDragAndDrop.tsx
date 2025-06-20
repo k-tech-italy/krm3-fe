@@ -1,9 +1,5 @@
-import { useState } from "react";
-import {
-  formatDate,
-  getDateRange,
-  normalizeDate,
-} from "../components/timesheet/utils/dates";
+import { useState, useRef } from "react";
+import { getDateRange } from "../components/timesheet/utils/dates";
 import { TimeEntry, Task, Timesheet } from "../restapi/types";
 
 export interface DragData {
@@ -11,7 +7,6 @@ export interface DragData {
   taskId?: number;
   startDate?: string;
   columnDay?: Date;
-  draggedOverColumns?: string[];
 }
 
 export interface DragCallbacks {
@@ -29,74 +24,31 @@ export interface DragCallbacks {
 }
 
 export interface UseDragAndDropProps {
-  scheduleDays: Date[];
+  scheduledDays: Date[];
   timesheet: Timesheet;
   callbacks: DragCallbacks;
 }
+
 /**
- * Provides state and functions for managing drag-and-drop operations.
- *
- * @remarks
- * This hook is used in the Timesheet component to handle drag-and-drop
- * operations. It provides state and functions for managing the drag state,
- * and for handling the different types of drag operations (cell or column).
- *
- * The hook takes the following props:
- *   - `scheduleDays`: an array of dates representing the schedule
- *   - `timesheet`: an object representing the timesheet
- *   - `callbacks`: an object with callback functions for drag and drop events
- *
- * The hook returns an object with the following properties:
- *   - `activeId`: a string representing the currently active cell or column
- *   - `draggedOverCells`: an array of dates representing the cells currently
- *     being dragged over
- *   - `dragType`: a string representing the type of drag operation (cell or column)
- *   - `handleDragStart`: a function to handle the start of a drag operation
- *   - `handleDragMove`: a function to handle the movement of a drag operation
- *   - `handleDragEnd`: a function to handle the end of a drag operation
- *   - `isCellInDragRange`: a function to check if a cell is in the drag range
- *   - `isColumnActive`: a function to check if a column is active
- *   - `isColumnHighlighted`: a function to check if a column is highlighted
- *   - `resetDragState`: a function to reset the drag state
+ * Minimal, performant drag-and-drop hook for timesheet.
+ * Only keeps state that must trigger a re-render.
+ * Uses refs for transient drag data.
  */
 export function useDragAndDrop({
-  scheduleDays,
+  scheduledDays,
   timesheet,
   callbacks,
 }: UseDragAndDropProps) {
-  // State management
+  // State for UI
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [activeDragData, setActiveDragData] = useState<DragData | null>(null);
-  const [draggedOverCells, setDraggedOverCells] = useState<Date[]>([]);
   const [dragType, setDragType] = useState<"cell" | "column" | null>(null);
-  const [highlightedColumnIndexes, setHighlightedColumnIndexes] = useState<
-    number[]
-  >([]);
-  const [draggedColumnIndex, setDraggedColumnIndex] = useState<number | null>(
-    null
-  );
+  const [draggedOverCells, setDraggedOverCells] = useState<Date[]>([]);
 
-  // Helper functions
-  const resetDragState = () => {
-    setActiveId(null);
-    setActiveDragData(null);
-    setDraggedOverCells([]);
-    setDragType(null);
-    setDraggedColumnIndex(null);
-    setHighlightedColumnIndexes([]);
-  };
+  // Refs for transient drag data
+  const activeDragData = useRef<DragData | null>(null);
+  const draggedColumnIndex = useRef<number | null>(null);
 
-  /**
-   * Parses the given activeId string to determine the type of drag operation and its associated data.
-   *
-   * @param {string} activeId - The ID representing the current active item being dragged.
-   * @returns {Object|null} An object containing the type of drag operation and relevant information:
-   *   - If the ID starts with "column-", returns an object with type "column" and the dayIndex.
-   *   - If the ID has two parts separated by "-", returns an object with type "timeEntry", entryId, and taskId.
-   *   - If the ID has three parts separated by "-", returns an object with type "emptyCell", date, and taskId.
-   *   - Returns null if the ID does not match any expected format.
-   */
-
+  // Parse drag id (column or cell)
   const parseActiveId = (activeId: string) => {
     if (activeId.startsWith("column-")) {
       return {
@@ -104,114 +56,79 @@ export function useDragAndDrop({
         dayIndex: Number(activeId.replace("column-", "")),
       };
     }
-
     const parts = activeId.split("-");
-    if (parts.length === 2) {
-      // TimeEntry drag: entryId-taskId
-      return {
-        type: "timeEntry" as const,
-        entryId: Number(parts[0]),
-        taskId: Number(parts[1]),
-      };
-    }
-
     if (parts.length === 3) {
-      // Empty cell drag: date-taskId-empty
       return {
-        type: "emptyCell" as const,
         date: parts[0],
         taskId: Number(parts[1]),
+        entryId: Number(parts[2]),
       };
     }
-
     return null;
   };
 
-  /**
-   * Finds a time entry in the timesheet by entryId and taskId.
-   *
-   * @param {number} entryId - The ID of the time entry to find.
-   * @param {number} taskId - The ID of the task associated with the time entry.
-   * @returns {TimeEntry | undefined} The matching TimeEntry object, or undefined if not found.
-   */
+  // Find a time entry by entryId and taskId
   const findTimeEntry = (
     entryId: number,
     taskId: number
-  ): TimeEntry | undefined => {
-    // Search for the time entry in the timesheet's timeEntries array
-    return timesheet?.timeEntries?.find(
-      (entry: TimeEntry) => entry.id === entryId && entry.task === taskId
+  ): TimeEntry | undefined =>
+    timesheet?.timeEntries?.find(
+      (entry) => entry.id === entryId && entry.task === taskId
     );
+
+  // Reset all drag state
+  const resetDragState = () => {
+    setActiveId(null);
+    setDragType(null);
+    setDraggedOverCells([]);
+    activeDragData.current = null;
+    draggedColumnIndex.current = null;
   };
 
+  // --- Drag Start ---
   const handleColumnDragStart = (dayIndex: number) => {
-    const columnDay = scheduleDays[dayIndex];
-
-    setActiveDragData({ columnDay });
+    const columnDay = scheduledDays[dayIndex];
+    activeDragData.current = { columnDay };
     setDragType("column");
-    setDraggedColumnIndex(dayIndex);
-    setHighlightedColumnIndexes([dayIndex]);
+    draggedColumnIndex.current = dayIndex;
     setDraggedOverCells([columnDay]);
-
-    // Notify parent component about start date
     callbacks.onDragStart({ startDate: columnDay });
   };
 
   const handleCellDragStart = (parsedId: any) => {
     let dragData: DragData = {};
     let startDate = "";
-
-    if (parsedId.type === "timeEntry") {
-      const timeEntry = findTimeEntry(parsedId.entryId, parsedId.taskId);
-      if (!timeEntry) return false;
-
+    const timeEntry = findTimeEntry(parsedId.entryId, parsedId.taskId);
+    if (timeEntry) {
       startDate = timeEntry.date;
-      dragData = {
-        timeEntry,
-        taskId: parsedId.taskId,
-        startDate,
-      };
-    } else if (parsedId.type === "emptyCell") {
+      dragData = { timeEntry, taskId: parsedId.taskId, startDate };
+    } else {
       startDate = parsedId.date;
-      dragData = {
-        taskId: parsedId.taskId,
-        startDate,
-      };
+      dragData = { taskId: parsedId.taskId, startDate };
     }
-
-    setActiveDragData(dragData);
+    activeDragData.current = dragData;
     setDragType("cell");
     setDraggedOverCells([new Date(startDate)]);
-
-    // Notify parent component about start date
     callbacks.onDragStart({ startDate: new Date(startDate) });
-
     return true;
   };
 
-  // Main drag handlers
+  // --- Main Drag Handlers ---
   const handleDragStart = (event: any) => {
     const { active } = event;
     const parsedId = parseActiveId(active.id);
-
     if (!parsedId) return;
-
     setActiveId(active.id);
-
     if (parsedId.type === "column") {
       handleColumnDragStart(parsedId.dayIndex);
     } else {
-      const success = handleCellDragStart(parsedId);
-      if (!success) {
-        resetDragState();
-      }
+      if (!handleCellDragStart(parsedId)) resetDragState();
     }
   };
 
   const handleDragMove = (event: any) => {
     const { over } = event;
-    if (!over || !activeDragData) return;
-
+    if (!over || !activeDragData.current) return;
     if (dragType === "column") {
       handleColumnDragMove(over);
     } else {
@@ -219,54 +136,41 @@ export function useDragAndDrop({
     }
   };
 
+  // --- Drag Move Logic ---
   const handleColumnDragMove = (over: any) => {
-    if (!over.id.startsWith("column-") || draggedColumnIndex === null) return;
-
+    if (!over.id.startsWith("column-") || draggedColumnIndex.current === null)
+      return;
     const targetIndex = Number(over.id.replace("column-", ""));
-    const start = Math.min(draggedColumnIndex, targetIndex);
-    const end = Math.max(draggedColumnIndex, targetIndex);
-
-    const daysToHighlight = [];
-    const columnsToHighlight = [];
-
-    for (let i = start; i <= end; i++) {
-      daysToHighlight.push(scheduleDays[i]);
-      columnsToHighlight.push(i);
-    }
-
-    setHighlightedColumnIndexes(columnsToHighlight);
+    const start = Math.min(draggedColumnIndex.current, targetIndex);
+    const end = Math.max(draggedColumnIndex.current, targetIndex);
+    const daysToHighlight = scheduledDays.slice(start, end + 1);
     setDraggedOverCells(daysToHighlight);
   };
 
   const handleCellDragMove = (over: any) => {
     const [targetDate, targetTaskId] = over.id.split("-");
-
-    if (
-      !activeDragData?.taskId ||
-      Number(targetTaskId) !== activeDragData.taskId
-    ) {
+    if (draggedOverCells.length === 0) {
       return;
     }
 
-    const startDate = activeDragData.startDate;
+    if (
+      !activeDragData.current?.taskId ||
+      Number(targetTaskId) !== activeDragData.current.taskId
+    )
+      return;
+    const startDate = activeDragData.current.startDate;
     if (!startDate) return;
-
-    const allDays =
-      new Date(startDate) <= new Date(targetDate)
-        ? getDateRange(startDate, targetDate)
-        : getDateRange(targetDate, startDate);
-
+    const allDays = getDateRange(startDate, targetDate);
     setDraggedOverCells(allDays);
   };
 
+  // --- Drag End ---
   const handleDragEnd = (event: any) => {
     const { over } = event;
-
-    if (!over || !activeDragData || !timesheet) {
+    if (!over || !activeDragData.current || !timesheet) {
       resetDragState();
       return;
     }
-
     try {
       if (dragType === "column") {
         handleColumnDragEnd(over);
@@ -279,87 +183,70 @@ export function useDragAndDrop({
   };
 
   const handleColumnDragEnd = (over: any) => {
-    if (!over.id.startsWith("column-") || !activeDragData?.columnDay) return;
-
+    if (!over.id.startsWith("column-") || !activeDragData.current?.columnDay)
+      return;
     const targetDayIndex = Number(over.id.replace("column-", ""));
-    const targetDay = normalizeDate(scheduleDays[targetDayIndex]);
-
+    const targetDay = scheduledDays[targetDayIndex];
     if (!timesheet.tasks?.length) return;
-
-    // const filteredCells = draggedOverCells.filter((day) => {
-    //   const hasTimeEntry = timesheet.timeEntries?.some(
-    //     (entry: TimeEntry) => normalizeDate(entry.date) === normalizeDate(day)
-    //   );
-    //   return !isHoliday(day) && !hasTimeEntry;
-    // });
-
     callbacks.onColumnDrag({
       task: timesheet.tasks[0],
       timeEntries: timesheet.timeEntries || [],
-      endDate: formatDate(targetDay),
+      endDate: targetDay,
     });
   };
 
   const handleCellDragEnd = (over: any) => {
     const [targetDate, targetTaskId] = over.id.split("-");
-
+    const dragData = activeDragData.current;
     if (
-      !activeDragData?.taskId ||
-      Number(targetTaskId) !== activeDragData.taskId
-    ) {
+      !dragData ||
+      !dragData.taskId ||
+      Number(targetTaskId) !== dragData.taskId
+    )
       return;
-    }
-
-    const task = timesheet.tasks?.find(
-      (t: Task) => t.id === activeDragData.taskId
-    );
-    if (!task || !activeDragData.startDate) return;
-
-    // const filteredCells = draggedOverCells.filter(
-    //   (day) => !isHoliday(day) && !isSickday(day)
-    // );
+    const task = timesheet.tasks?.find((t: Task) => t.id === dragData.taskId);
+    if (!task || !dragData.startDate) return;
     callbacks.onTimeEntryDrag({
       task,
       timeEntries: timesheet.timeEntries || [],
-      endDate: formatDate(targetDate),
+      endDate: new Date(targetDate),
     });
   };
 
-  // Utility functions for component
+  // --- Utilities for UI ---
   const isCellInDragRange = (day: Date, taskId: number): boolean => {
+
     return (
-      activeDragData?.taskId === taskId &&
+      !!activeDragData.current?.taskId &&
+      activeDragData.current.taskId === taskId &&
       draggedOverCells.some(
         (draggedDay) => draggedDay.toDateString() === day.toDateString()
       )
     );
   };
 
-  const isColumnActive = (dayIndex: number): boolean => {
-    return activeId === `column-${dayIndex}`;
-  };
-
+  const isColumnActive = (dayIndex: number): boolean =>
+    activeId === `column-${dayIndex}`;
   const isColumnHighlighted = (dayIndex: number): boolean => {
-    return dragType === "column" && highlightedColumnIndexes.includes(dayIndex);
+    // A column is highlighted if its day is in draggedOverCells
+    return (
+      dragType === "column" &&
+      draggedOverCells.some(
+        (day) => scheduledDays[dayIndex].toDateString() === day.toDateString()
+      )
+    );
   };
 
   return {
-    // State
     activeId,
     draggedOverCells,
     dragType,
-
-    // Handlers
     handleDragStart,
     handleDragMove,
     handleDragEnd,
-
-    // Utility functions
     isCellInDragRange,
     isColumnActive,
     isColumnHighlighted,
-
-    // Reset function (useful for cleanup)
     resetDragState,
   };
 }

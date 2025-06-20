@@ -1,12 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import {
-  getMission,
-  getResources,
-  getClients,
-  getProjects,
-  getCountries,
-  getCities,
-} from "../restapi/mission";
+
 import { AxiosError, AxiosResponse } from "axios";
 import { useGetCurrentUser } from "./useAuth";
 import {
@@ -14,11 +7,14 @@ import {
   getTimesheet,
   deleteTimeEntries,
   getSpecialReason,
+  submitTimesheet,
 } from "../restapi/timesheet";
 
 export function useCreateTimeEntry(selectedResourceId: number | null) {
   const { data: currentUser } = useGetCurrentUser();
-  const resourceId = selectedResourceId ? selectedResourceId : currentUser?.resource.id;
+  const resourceId = selectedResourceId
+    ? selectedResourceId
+    : currentUser?.resource.id;
   const queryClient = useQueryClient();
   if (resourceId === undefined) {
     throw new Error("Resource ID is undefined");
@@ -43,18 +39,33 @@ export function useCreateTimeEntry(selectedResourceId: number | null) {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["timesheet"] });
       },
+    }
+  );
+}
+
+export function useSubmitTimesheet() {
+  const queryClient = useQueryClient();
+  return useMutation(
+    (params: { resourceId: number; startDate: string; endDate: string }) =>
+      submitTimesheet(params.resourceId, params.startDate, params.endDate),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["timesheet"] });
+      },
       onError: (error: AxiosError) => {},
     }
   );
 }
 
 export function useGetTimesheet(
-  startDate: string, 
-  endDate: string, 
+  startDate: string,
+  endDate: string,
   selectedResourceId: number | null
 ) {
   const { data } = useGetCurrentUser();
-  const resourceId = selectedResourceId ? selectedResourceId : data?.resource?.id;
+  const resourceId = selectedResourceId
+    ? selectedResourceId
+    : data?.resource?.id;
 
   return useQuery(
     ["timesheet", resourceId, startDate, endDate],
@@ -75,7 +86,7 @@ export function useGetTimesheet(
       useErrorBoundary: false,
       onError: (error) => {
         console.error("Timesheet fetch failed:", error);
-        return "error";
+        return error;
       },
     }
   );
@@ -92,38 +103,6 @@ export function useDeleteTimeEntries() {
       onError: (error: AxiosError) => {},
     }
   );
-}
-export function useGetResources() {
-  const resources = useQuery("resources", () => getResources());
-  return resources.data;
-}
-
-export function useGetClients() {
-  const resources = useQuery("clients", () => getClients());
-  return resources.data;
-}
-
-export function useGetCountries() {
-  const resources = useQuery("countries", () => getCountries());
-  return resources.data;
-}
-
-export function useGetCitiess() {
-  const resources = useQuery("cities", () => getCities());
-  return resources.data;
-}
-
-export function useGetProjects() {
-  const resources = useQuery("projects", () => getProjects());
-  return resources.data;
-}
-
-export function useGetMission(id: number) {
-  return useQuery("mission", () => getMission(id), {
-    onError: (error) => {
-      return error;
-    },
-  });
 }
 
 export function useGetSpecialReason(fromDate: string, toDate: string) {
