@@ -12,6 +12,7 @@ import { ShortHoursMenu } from "./ShortHoursMenu";
 import { normalizeDate } from "../utils/dates";
 import { getDayType } from "../utils/timeEntry";
 import { DayType } from "../../../restapi/types";
+import { Tooltip } from "react-tooltip";
 
 export interface TimeSheetRowProps {
   timesheet: Timesheet;
@@ -20,8 +21,8 @@ export interface TimeSheetRowProps {
   task: Task;
   isMonthView: boolean;
   isColumnView: boolean;
-  isCellInDragRange: (day: Date, taskId: number) => boolean;
-  isColumnHighlighted: (dayIndex: number) => boolean;
+  // isCellInDragRange: (day: Date, taskId: number) => boolean;
+  // isColumnHighlighted: (dayIndex: number) => boolean;
   openTimeEntryModalHandler: (task: Task) => void;
   openShortMenu?: { startDate: string; endDate: string; taskId: string };
   setOpenShortMenu?: (
@@ -29,8 +30,8 @@ export interface TimeSheetRowProps {
   ) => void;
   readOnly: boolean;
   selectedResourceId: number | null;
-  holidayOrSickDays: String[]
-  selectedWeekdays?: Date[] 
+  holidayOrSickDays: String[];
+  selectedWeekdays?: Date[];
 }
 
 export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
@@ -40,15 +41,15 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   task,
   isMonthView,
   isColumnView,
-  isCellInDragRange,
-  isColumnHighlighted,
+  // isCellInDragRange,
+  // isColumnHighlighted,
   openTimeEntryModalHandler,
   openShortMenu,
   setOpenShortMenu,
   readOnly,
   selectedResourceId,
   holidayOrSickDays,
-  selectedWeekdays
+  selectedWeekdays,
 }) => {
   // Generate color once per task row
   const { backgroundColor, borderColor } = useMemo(
@@ -56,7 +57,6 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
     [task.id]
   );
   const timeEntries = getTimeEntriesForTaskAndDay(task.id, timesheet);
-
 
   const lockedDays = scheduledDays.filter((day) => {
     return getDayType(day, timesheet.days) === DayType.CLOSED_DAY;
@@ -86,11 +86,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
     ? "border-l-[var(--border-color)]"
     : "border-b-[var(--border-color)]";
 
-  const renderDayCell = (
-    day: Date,
-    dayIndex: number,
-    lockedDays: Date[]
-  ) => {
+  const renderDayCell = (day: Date, dayIndex: number, lockedDays: Date[]) => {
     const timeEntry = timeEntries.find(
       (entry) => normalizeDate(entry.date) === normalizeDate(day)
     );
@@ -113,21 +109,23 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
     return (
       <div key={dayIndex} className="w-full h-full">
         <div className="w-full h-full cursor-pointer relative">
-          <ShortHoursMenu
-            holidayOrSickDays={holidayOrSickDays}
-            days={timesheet.days}
-            dayToOpen={day}
-            taskId={task.id}
-            key={dayIndex}
-            openShortMenu={openShortMenu}
-            setOpenShortMenu={setOpenShortMenu}
-            openTimeEntryModalHandler={() => openTimeEntryModalHandler(task)}
-            readOnly={readOnly}
-            selectedResourceId={selectedResourceId}
-            timeEntries={timesheet.timeEntries.filter(
-              (timeEntry) => timeEntry.task === task.id
-            )}
-          />
+          {openShortMenu && (
+            <ShortHoursMenu
+              holidayOrSickDays={holidayOrSickDays}
+              days={timesheet.days}
+              dayToOpen={day}
+              taskId={task.id}
+              key={dayIndex}
+              openShortMenu={openShortMenu}
+              setOpenShortMenu={setOpenShortMenu}
+              openTimeEntryModalHandler={() => openTimeEntryModalHandler(task)}
+              readOnly={readOnly}
+              selectedResourceId={selectedResourceId}
+              timeEntries={timesheet.timeEntries.filter(
+                (timeEntry) => timeEntry.task === task.id
+              )}
+            />
+          )}
           <TimeEntryCell
             isLockedDay={isLockedDay}
             day={day}
@@ -136,14 +134,18 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             timeEntry={timeEntry}
             isMonthView={isMonthView}
             isColumnView={isColumnView}
-            isColumnHighlighted={isColumnHighlighted(dayIndex)}
-            isInDragRange={isCellInDragRange(day, task.id)}
+            // isColumnHighlighted={isColumnHighlighted(dayIndex)}
+            // isInDragRange={isCellInDragRange(day, task.id)}
             colors={{ backgroundColor, borderColor }}
             readOnly={readOnly}
             isNoWorkDay={isNoWorkDay !== DayType.WORK_DAY}
-            isInSelectedWeekdays={isMonthView || (!!selectedWeekdays && !!selectedWeekdays.find(
-              (d) => normalizeDate(d) === normalizeDate(day)
-            ))}
+            isInSelectedWeekdays={
+              isMonthView ||
+              (!!selectedWeekdays &&
+                !!selectedWeekdays.find(
+                  (d) => normalizeDate(d) === normalizeDate(day)
+                ))
+            }
           />
         </div>
       </div>

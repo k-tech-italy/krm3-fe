@@ -8,7 +8,6 @@ import { getDatesWithAndWithoutTimeEntries } from "../utils/timeEntry";
 import Krm3Modal from "../../commons/krm3Modal";
 import Krm3Button from "../../commons/Krm3Button";
 import WarningExistingEntry from "../edit-entry/WarningExistEntry";
-import { useGetCurrentUser } from "../../../hooks/useAuth";
 
 interface ShortHoursMenuProps {
   dayToOpen: Date;

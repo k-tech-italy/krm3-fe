@@ -12,8 +12,8 @@ interface Props {
   scheduledDays: { days: Date[]; numberOfDays: number };
   isColumnView: boolean;
   isMonthView: boolean;
-  isColumnActive: (index: number) => boolean;
-  isColumnHighlighted: (index: number) => boolean;
+  // isColumnActive: (index: number) => boolean;
+  // isColumnHighlighted: (index: number) => boolean;
   selectedWeekdays?: Date[]
 }
 
@@ -22,10 +22,16 @@ function TimeSheetHeaders({
   scheduledDays,
   isColumnView,
   isMonthView,
-  isColumnActive,
-  isColumnHighlighted,
+  // isColumnActive,
+  // isColumnHighlighted,
   selectedWeekdays
 }: Props) {
+  // ${isColumnActive(index) ? "bg-blue-200" : ""}
+  // ${
+  //   isColumnHighlighted(index)
+  //     ? "bg-blue-100 border-b-2 border-blue-400"
+  //     : "border-b-2 border-gray-300 hover:border-blue-400"
+  // }
   return (
     <>
       {scheduledDays.days.map((day, index) => (
@@ -47,12 +53,7 @@ function TimeSheetHeaders({
                 } bg-gray-100 font-semibold ${
                   isMonthView ? "text-xs p-1" : "text-sm p-2"
                 } text-center cursor-grab
-              ${isColumnActive(index) ? "bg-blue-200" : ""}
-              ${
-                isColumnHighlighted(index)
-                  ? "bg-blue-100 border-b-2 border-blue-400"
-                  : "border-b-2 border-gray-300 hover:border-blue-400"
-              }
+   
               ${
                 getDayType(day, timesheet.days) !== DayType.WORK_DAY
                   ? "bg-zinc-200 cursor-not-allowed"
