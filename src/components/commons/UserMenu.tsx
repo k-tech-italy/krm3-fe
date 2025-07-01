@@ -1,11 +1,24 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import { useLogout } from "../../hooks/useAuth";
+import { CircleUserRound } from "lucide-react";
 
 export function UserMenu() {
   const { data: user } = useGetCurrentUser();
   const [isOpen, setIsOpen] = useState(false);
   const { mutate: logoutUser } = useLogout();
+  const [release, setRelease] = useState<any>(null);
+  const fetched = useRef(false);
+
+  useEffect(() => {
+    if (!fetched.current) {
+      fetch("/static/release.json")
+        .then((res) => res.ok ? res.json() : null)
+        .then((data) => setRelease(data))
+        .catch(() => setRelease(null));
+      fetched.current = true;
+    }
+  }, []);
 
   function handleLogout() {
     logoutUser();
@@ -23,13 +36,14 @@ export function UserMenu() {
         onClick={toggleMenu}
         className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none"
       >
-        <img
-          src="https://avatars.githubusercontent.com/u/6311869?s=40&v=4"
+        {/* <img
+          src=""
           alt=""
           width="32"
           height="32"
           className="rounded-full mr-2"
-        />
+        /> */}
+        <CircleUserRound color="#5e5e5e" strokeWidth={1.5} size={30} className="mr-2" />
         <strong className="hidden sm:block">{user?.email}</strong>
       </button>
 
@@ -70,6 +84,16 @@ export function UserMenu() {
           >
             Sign out
           </button>
+        </div>
+        <div className="py-2 px-4 text-xs text-gray-500 border-t border-gray-100">
+          {release ? (
+            <>
+              <div><b>BE</b>: v{release.be.version}</div>
+              <div><b>FE</b>: v{release.fe.version}</div>
+            </>
+          ) : (
+            <span>Version info unavailable</span>
+          )}
         </div>
       </div>
     </div>
