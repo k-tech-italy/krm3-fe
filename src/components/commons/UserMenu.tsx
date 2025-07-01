@@ -36,7 +36,7 @@ export function UserMenu() {
         className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none"
       >
         <img
-          src="https://avatars.githubusercontent.com/u/6311869?s=40&v=4"
+          src=""
           alt=""
           width="32"
           height="32"
@@ -86,8 +86,8 @@ export function UserMenu() {
         <div className="py-2 px-4 text-xs text-gray-500 border-t border-gray-100">
           {release ? (
             <>
-              <div><b>BE</b>: {release.be.branch}@{release.be.commit} ({release.be.date})</div>
-              <div><b>FE</b>: {release.fe.branch}@{release.fe.commit} ({release.fe.date})</div>
+              <div><b>BE</b>: {release.be.version} ({release.be.date})</div>
+              <div><b>FE</b>: {release.fe.version} ({release.fe.date})</div>
             </>
           ) : (
             <span>Version info unavailable</span>
