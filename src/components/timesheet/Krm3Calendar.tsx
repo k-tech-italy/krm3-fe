@@ -39,9 +39,15 @@ export default function Krm3Calendar({
   const { isColumnView, setColumnView } = useColumnViewPreference();
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
-    const day = today.getDay();
-    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-    return new Date(today.setDate(diff));
+    if (isMonth) {
+      // First day of the current month
+      return new Date(today.getFullYear(), today.getMonth(), 1);
+    } else {
+      // First Monday of the current week
+      const day = today.getDay();
+      const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+      return new Date(today.setDate(diff));
+    }
   });
 
 
@@ -121,7 +127,8 @@ export default function Krm3Calendar({
   }, [currentWeekStart, isMonth]);
 
   const isCurrentPeriod = isMonth
-    ? currentWeekStart.getMonth() === new Date().getMonth()
+    ? currentWeekStart.getMonth() === new Date().getMonth() &&
+      currentWeekStart.getFullYear() === new Date().getFullYear()
     : currentWeekStart <= new Date() &&
       new Date() <=
         new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000);
@@ -262,9 +269,15 @@ export default function Krm3Calendar({
               onClick={() =>
                 setCurrentWeekStart(() => {
                   const today = new Date();
-                  const day = today.getDay();
-                  const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-                  return new Date(today.setDate(diff));
+                  if (isMonth) {
+                    // Primo giorno del mese corrente
+                    return new Date(today.getFullYear(), today.getMonth(), 1);
+                  } else {
+                    // Primo lunedì della settimana corrente
+                    const day = today.getDay();
+                    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+                    return new Date(today.setDate(diff));
+                  }
                 })
               }
               type="button"
