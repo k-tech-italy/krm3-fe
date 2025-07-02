@@ -152,36 +152,41 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   };
 
   return (
-    <React.Fragment key={task.id}>
-      <div
-        style={
-          {
-            "--border-color": borderColor,
-            backgroundColor,
-          } as React.CSSProperties
-        }
-        className={`${borderColorClass} ${
-          isColumnView ? "border-l-3" : "border-b-3"
-        }`}
-      >
-        <TaskHeader task={task} isMonthView={isMonthView} />
-      </div>
-      <div
-        style={
-          {
-            "--border-color": borderColor,
-            backgroundColor,
-          } as React.CSSProperties
-        }
-        className={`p-2 ${borderColorClass} ${
-          isColumnView ? "border-l-3" : "border-b-3"
-        } ${isMonthView ? "text-[10px] text-center" : ""}`}
-      >
-        {totalHours}
-      </div>
-      {scheduledDays.map((day, dayIndex) =>
-        renderDayCell(day, dayIndex, lockedDays)
-      )}
-    </React.Fragment>
+      <React.Fragment key={task.id}>
+        <div
+            style={
+              {
+                "--border-color": borderColor,
+                backgroundColor,
+              } as React.CSSProperties
+            }
+            className={`${borderColorClass} ${
+                isColumnView ? "border-l-3" : "border-b-3"
+            }`}
+        >
+          <TaskHeader task={task} isMonthView={isMonthView}/>
+        </div>
+        <div
+            style={
+              {
+                "--border-color": borderColor,
+                backgroundColor,
+              } as React.CSSProperties
+            }
+            className={`p-2 ${borderColorClass} ${
+                isColumnView ? "border-l-3" : "border-b-3"
+            }`}
+        >
+          <p
+              className={`p-2
+        ${isMonthView ? "text-[10px] text-center items-center" : ""}`}
+          >
+            {totalHours}
+          </p>
+        </div>
+        {scheduledDays.map((day, dayIndex) =>
+            renderDayCell(day, dayIndex, lockedDays)
+        )}
+      </React.Fragment>
   );
 };

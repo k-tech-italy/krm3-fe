@@ -39,15 +39,9 @@ export default function Krm3Calendar({
   const { isColumnView, setColumnView } = useColumnViewPreference();
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
-    if (isMonth) {
-      // First day of the current month
-      return new Date(today.getFullYear(), today.getMonth(), 1);
-    } else {
-      // First Monday of the current week
-      const day = today.getDay();
-      const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-      return new Date(today.setDate(diff));
-    }
+    const day = today.getDay();
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(today.setDate(diff));
   });
 
 
