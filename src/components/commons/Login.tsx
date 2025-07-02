@@ -8,6 +8,7 @@ import {
 } from "../../restapi/oauth";
 import { useMediaQuery } from "../../hooks/useView";
 import { useGetCurrentUser } from "../../hooks/useAuth";
+import { logout } from "../../restapi/user";
 
 interface LoginError {
   username?: string;
@@ -60,6 +61,8 @@ export function Login() {
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/home");
+    } else {
+      logout();
     }
   }, [isAuthenticated, navigate]);
 
