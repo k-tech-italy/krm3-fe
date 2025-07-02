@@ -40,8 +40,10 @@ export default function Krm3Calendar({
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
     if (isMonth) {
-      // First day of the current month
-      return new Date(today.getFullYear(), today.getMonth(), 1);
+      // First Monday of the current month
+      let first_monday = new Date();
+      first_monday.setDate(getFirstMondayOfMonth(today));
+      return first_monday;
     } else {
       // First Monday of the current week
       const day = today.getDay();
@@ -49,7 +51,6 @@ export default function Krm3Calendar({
       return new Date(today.setDate(diff));
     }
   });
-
 
   const [selectedWeekRange, setSelectedWeekRange] = useState<WeekRange>(
     isOverlappingWeek(currentWeekStart) ? "startOfWeek" : "whole"
@@ -59,7 +60,6 @@ export default function Krm3Calendar({
       setSelectedWeekRange("whole");
     }
   }, [currentWeekStart]);
-
 
   const { data, userCan } = useGetCurrentUser();
   const { mutateAsync: mutateSubmitTimesheet, error: submitTimesheetError } = useSubmitTimesheet();
@@ -268,13 +268,15 @@ export default function Krm3Calendar({
                 setCurrentWeekStart(() => {
                   const today = new Date();
                   if (isMonth) {
-                    // Primo giorno del mese corrente
-                    return new Date(today.getFullYear(), today.getMonth(), 1);
+                    return new Date(today.getFullYear(), today.getMonth(), getFirstMondayOfMonth(today));
                   } else {
-                    // Primo lunedì della settimana corrente
                     const day = today.getDay();
                     const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-                    return new Date(today.setDate(diff));
+                    const weekStart = new Date(today.setDate(diff))
+                    if(isOverlappingWeek(weekStart)) {
+                      setSelectedWeekRange(currentWeekStart > weekStart ? "endOfWeek" : "startOfWeek");
+                    }
+                    return weekStart;
                   }
                 })
               }
