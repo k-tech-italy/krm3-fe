@@ -73,8 +73,7 @@ export default function Krm3Calendar({
       return true;
     }
     return (
-      userCan(["core.manage_any_project", "core.view_any_timesheet"]) ||
-      userCan(["core.view_any_project", "core.view_any_timesheet"])
+      userCan(["core.view_any_timesheet"])
     );
   }, [userCan, isEditViewAnotherUser]);
 
@@ -83,8 +82,7 @@ export default function Krm3Calendar({
       return true;
     }
     return (
-      userCan(["core.manage_any_project", "core.manage_any_timesheet"]) ||
-      userCan(["core.view_any_project", "core.manage_any_timesheet"])
+      userCan(["core.manage_any_timesheet"])
     );
   }, [userCan, isEditViewAnotherUser]);
 
