@@ -78,8 +78,8 @@ export function TimeSheetTable(props: Props) {
     });
 
     if (
-      endDate >= formatDate(task.startDate) &&
-      (!!task.endDate ? endDate <= formatDate(task.endDate) : true) &&
+      formatDate(endDate) >= formatDate(task.startDate) &&
+      (!!task.endDate ? formatDate(endDate) <= formatDate(task.endDate) : true) &&
       getDayType(endDate, timesheet?.days) !== DayType.CLOSED_DAY &&
       !isHolidayOrSickDay
     ) {
