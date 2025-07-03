@@ -171,6 +171,7 @@ export interface TimeEntry {
   id: number;
   date: string;
   task: number;
+  taskTitle?: string;
   lastModified?: string;
   dayShiftHours: number;
   sickHours: number;
