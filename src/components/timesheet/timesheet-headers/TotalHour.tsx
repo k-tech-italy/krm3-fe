@@ -83,7 +83,7 @@ export const TotalHourForTask = ({ timeEntry }: { timeEntry: TimeEntry }) => {
   return (
     <>
       <div className="font-semibold">
-        {timeEntry.task ? `Task ID: ${timeEntry.task}` : "Day"}
+        {timeEntry.taskTitle ? `Task: ${timeEntry.taskTitle}` : "Day"}
       </div>
       <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-sm mt-1">
         {hours.map(
