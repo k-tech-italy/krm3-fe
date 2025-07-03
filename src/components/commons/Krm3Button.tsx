@@ -14,7 +14,7 @@ const Krm3Button = ({ disabled, onClick, type, style, icon, label, disabledToolt
   const styles = {
     primary: {
       buttonStyle:
-        "text-white border-transparent bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-yellow-500",
+        "text-white border-transparent bg-krm3-primary hover:bg-krm3-primary focus:outline-none focus:ring-yellow-500",
       disabledStyle:
         "text-white border-transparent bg-gray-300 cursor-not-allowed",
     },
