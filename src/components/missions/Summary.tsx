@@ -35,7 +35,7 @@ export default function MissionSummary(props: Props) {
       <div className="p-5">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div className="flex items-start">
-        <User size={22} className="text-yellow-500 mt-1 mr-3" />
+        <User size={22} className="text-krm3-primay mt-1 mr-3" />
         <div>
           <small className="uppercase text-gray-500 font-semibold text-xs">Resource</small>
           <p className="font-medium text-gray-800">
@@ -44,14 +44,14 @@ export default function MissionSummary(props: Props) {
         </div>
         </div>
         <div className="flex items-start">
-        <Briefcase size={22} className="text-yellow-500 mt-1 mr-3" />
+        <Briefcase size={22} className="text-krm3-primay mt-1 mr-3" />
         <div>
           <small className="uppercase text-gray-500 font-semibold text-xs">Project</small>
           <p className="font-medium text-gray-800">{props.data.project.name}</p>
         </div>
         </div>
         <div className="flex items-start">
-        <MapPin size={22} className="text-yellow-500 mt-1 mr-3" />
+        <MapPin size={22} className="text-krm3-primay mt-1 mr-3" />
         <div>
           <small className="uppercase text-gray-500 font-semibold text-xs">Location</small>
           <p className="font-medium text-gray-800">{props.data.city.name}</p>
@@ -61,7 +61,7 @@ export default function MissionSummary(props: Props) {
 
       <div className="bg-gray-50 rounded-lg p-5">
         <div className="flex items-center mb-4">
-        <CalendarDays size={20} className="text-yellow-500 mr-3" />
+        <CalendarDays size={20} className="text-krm3-primay mr-3" />
         <h6 className="text-gray-700 font-semibold text-sm">Date</h6>
         </div>
 

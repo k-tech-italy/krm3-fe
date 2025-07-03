@@ -17,7 +17,7 @@ export default function Tabs(props: Props){
         <ul className={` mx-auto  px-8 flex items-center justify-start pt-3 mb-5` }>
             <li>
             <button
-                className={`py-2 px-4 ${activeTab === 'trasferte' ? 'border-b-2 border-yellow-500 font-medium' : 'text-gray-500'}`}
+                className={`py-2 px-4 ${activeTab === 'trasferte' ? 'border-b-2 border-krm3-primay font-medium' : 'text-gray-500'}`}
                 onClick={() => onClickTab('trasferte')}
             >
                 Trasferte
@@ -25,7 +25,7 @@ export default function Tabs(props: Props){
             </li>
             <li>
             <button
-                className={`py-2 px-4 ${activeTab === 'spese' ? 'border-b-2 border-yellow-500 font-medium' : 'text-gray-500'}`}
+                className={`py-2 px-4 ${activeTab === 'spese' ? 'border-b-2 border-krm3-primay font-medium' : 'text-gray-500'}`}
                 onClick={() => onClickTab('spese')}
             >
                 Ultime Spese

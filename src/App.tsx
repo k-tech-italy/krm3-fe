@@ -12,6 +12,7 @@ import BottomTabNavigation from "./components/commons/MobileTab";
 import Timesheet from "./pages/Timesheet";
 import LoadSpinner from "./components/commons/LoadSpinner";
 import { ToastContainer } from "react-toastify";
+import "./index.css";
 
 const queryClient = new QueryClient();
 
