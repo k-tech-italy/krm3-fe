@@ -148,9 +148,14 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
       </div>
     );
   };
-
   return (
     <React.Fragment key={task.id}>
+      <TaskHeader
+        isColumnView={isColumnView}
+        colors={{ backgroundColor, borderColor }}
+        task={task}
+        isMonthView={isMonthView}
+      />
       <div
         style={
           {
@@ -158,25 +163,12 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             backgroundColor,
           } as React.CSSProperties
         }
-        className={`${borderColorClass} ${
-          isColumnView ? "border-l-3" : "border-b-3"
-        }`}
-      >
-        <TaskHeader task={task} isMonthView={isMonthView} />
-      </div>
-      <div
-        style={
-          {
-            "--border-color": borderColor,
-            backgroundColor,
-          } as React.CSSProperties
-        }
-        className={`p-2 ${borderColorClass} ${
+        className={`p-3 ${borderColorClass} ${
           isColumnView ? "border-l-3" : "border-b-3"
         }`}
       >
         <p
-          className={`p-2
+          className={`
         ${isMonthView ? "text-[10px] text-center items-center" : ""}`}
         >
           {totalHours}
