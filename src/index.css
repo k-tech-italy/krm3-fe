@@ -4,18 +4,18 @@
 @theme {
 	--color-krm3-primary: #efb100;
 	--color-krm3-primary-light: #ffe082;
-	--color-krm3-primary-hover: #c89400;
+	--color-krm3-primary-dark: #c89400;
 
 	--color-krm3-secondary: #000000;
-	--color-krm3-secondary-hover: #d1d5db;
+	--color-krm3-secondary-dark: #d1d5db;
 
 	--color-krm3-danger: #ff0000;
 	--color-krm3-danger-light: #ff3333;
-	--color-krm3-danger-hover: #cc0000;
+	--color-krm3-danger-dark: #cc0000;
 
 	--color-krm3-success: #00ff00;
 	--color-krm3-success-light: #33ff33;
-	--color-krm3-success-hover: #00cc00;
+	--color-krm3-success-dark: #00cc00;
 
 	--color-krm3-disabled: #d1d5db;
 }

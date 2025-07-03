@@ -45,7 +45,7 @@ export function Mission() {
                    
                     {!isSmallScreen && (
                         <div className="d-grid gap-2 d-md-block mb-2 text-end">
-                            <button type="button" className="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-400"
+                            <button type="button" className="bg-krm3-primay text-white px-4 py-2 rounded shadow hover:bg-yellow-400"
                                 onClick={() => setSelectedExpense(defaultExpense)}>+ Add Expense</button>
                         </div>
                     )}

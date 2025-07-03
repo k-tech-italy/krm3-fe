@@ -153,7 +153,7 @@ export function Login() {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-krm3-primay mx-auto"></div>
           <p className="mt-4">Authenticating...</p>
         </div>
       </div>
@@ -237,7 +237,7 @@ export function Login() {
             <div className="flex flex-col sm:flex-row justify-between gap-4">
               <button
                 type="button"
-                className="btn border border-yellow-500 text-yellow-500 py-2 px-4 rounded hover:bg-yellow-100 flex-1"
+                className="btn border border-krm3-primay text-krm3-primay py-2 px-4 rounded hover:bg-yellow-100 flex-1"
                 onClick={handleGoogleLogin}
                 disabled={isLoading}
               >
@@ -245,7 +245,7 @@ export function Login() {
               </button>
               <button
                 type="submit"
-                className="btn bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-400 flex-1"
+                className="btn bg-krm3-primay text-white py-2 px-4 rounded hover:bg-yellow-400 flex-1"
                 disabled={isLoading}
               >
                 {isLoading ? "Logging in..." : "Login"}
@@ -255,7 +255,7 @@ export function Login() {
             <div className="mt-4 text-center">
               <a
                 href="/forgot-password"
-                className="text-sm text-yellow-600 hover:text-yellow-500"
+                className="text-sm text-krm3-primary-dark hover:text-krm3-primay"
               >
                 Forgot your password?
               </a>

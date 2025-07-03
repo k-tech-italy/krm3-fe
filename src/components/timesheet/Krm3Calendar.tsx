@@ -311,7 +311,6 @@ export default function Krm3Calendar({
           <div className="flex justify-end items-center mt-4">
             <Krm3Button
               onClick={() => handleSubmitTimesheet()}
-              type="button"
               style="primary"
               label="Submit Timesheet"
               disabled={!isMonth || (!!typeDays && Object.values(typeDays).every((day) => day.closed === true))}

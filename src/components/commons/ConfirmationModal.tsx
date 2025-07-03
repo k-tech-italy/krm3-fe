@@ -1,5 +1,6 @@
 import {X} from "lucide-react";
-import React, {useEffect, useState} from "react";
+import React from "react";
+import Krm3Button from "./Krm3Button";
 
 interface Props {
     open: boolean;
@@ -35,19 +36,17 @@ export default function ConfirmationModal({ open, onClose, onConfirm, content, t
                     </div>
 
                     <div className="flex justify-end items-center p-6 space-x-4">
-                        <button
-                            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 focus:outline-none"
+                        <Krm3Button
+                            label="Cancel"
                             onClick={onClose}
-                        >Cancel
-                        </button>
+                            style="secondary"
+                        />
 
-                        <button
-                            className={`px-4 py-2 text-white rounded-lg focus:outline-none
-                             bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500`}
+                        <Krm3Button
+                            label="Confirm"
                             onClick={() => {onConfirm()}}
-                        >Confirm
-                        </button>
-
+                            style="primary"
+                        />
                     </div>
                 </div>
             </div>

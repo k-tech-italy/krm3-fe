@@ -239,7 +239,7 @@ export default function EditDayEntry({
               id="day-entry-holiday-radio"
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "holiday"
-                  ? "bg-yellow-100 border-yellow-500 text-yellow-700"
+                  ? "bg-yellow-100 border-krm3-primay text-yellow-700"
                   : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
               }`}
               onClick={() => handleEntryTypeChange("holiday")}
@@ -259,7 +259,7 @@ export default function EditDayEntry({
               id="day-entry-sick-days-radio"
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "sick"
-                  ? "bg-yellow-100 border-yellow-500 text-yellow-700"
+                  ? "bg-yellow-100 border-krm3-primay text-yellow-700"
                   : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
               }`}
               onClick={() => handleEntryTypeChange("sick")}
@@ -278,7 +278,7 @@ export default function EditDayEntry({
               id="day-entry-leave-radio"
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "leave"
-                  ? "bg-yellow-100 border-yellow-500 text-yellow-700"
+                  ? "bg-yellow-100 border-krm3-primay text-yellow-700"
                   : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
               }`}
               onClick={() => handleEntryTypeChange("leave")}
@@ -297,7 +297,7 @@ export default function EditDayEntry({
               id="day-entry-leave-radio"
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "rest"
-                  ? "bg-yellow-100 border-yellow-500 text-yellow-700"
+                  ? "bg-yellow-100 border-krm3-primay text-yellow-700"
                   : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
               }`}
               onClick={() => handleEntryTypeChange("rest")}
@@ -381,7 +381,7 @@ export default function EditDayEntry({
           <textarea
             id="day-entry-comments-input"
             rows={3}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 sm:text-sm p-2 border"
+            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-krm3-primay focus:ring-krm3-primay sm:text-sm p-2 border"
             placeholder="Add any notes here..."
             value={comment || ""}
             required={entryType === "sick"}

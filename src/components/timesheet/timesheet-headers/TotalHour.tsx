@@ -41,7 +41,7 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isIn
     if (totalHours > 8) return "text-red-500";
     if (totalHours > 0 && totalHours < 8) return "text-blue-500";
     if (totalHours === 8) return "text-green-500";
-    return "text-yellow-500";
+    return "text-krm3-primay";
   };
 
   const tooltipId = `tooltip-hours-${formattedDay}`;
