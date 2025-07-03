@@ -9,6 +9,7 @@ import {
 import { useMediaQuery } from "../../hooks/useView";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import { logout } from "../../restapi/user";
+import Krm3Button from "./Krm3Button";
 
 interface LoginError {
   username?: string;
@@ -153,7 +154,7 @@ export function Login() {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-krm3-primay mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-krm3-primary mx-auto"></div>
           <p className="mt-4">Authenticating...</p>
         </div>
       </div>
@@ -235,27 +236,24 @@ export function Login() {
             </div>
 
             <div className="flex flex-col sm:flex-row justify-between gap-4">
-              <button
+              <Krm3Button
                 type="button"
-                className="btn border border-krm3-primay text-krm3-primay py-2 px-4 rounded hover:bg-yellow-100 flex-1"
                 onClick={handleGoogleLogin}
                 disabled={isLoading}
-              >
-                {isLoading ? "Processing..." : "Login with Google"}
-              </button>
-              <button
+                style="secondary"
+                label={isLoading ? "Processing..." : "Login with Google"}
+              />
+              <Krm3Button
                 type="submit"
-                className="btn bg-krm3-primay text-white py-2 px-4 rounded hover:bg-yellow-400 flex-1"
                 disabled={isLoading}
-              >
-                {isLoading ? "Logging in..." : "Login"}
-              </button>
+                style="primary"
+                label={isLoading ? "Logging in..." : "Login"}
+              />
             </div>
-
             <div className="mt-4 text-center">
               <a
                 href="/forgot-password"
-                className="text-sm text-krm3-primary-dark hover:text-krm3-primay"
+                className="text-sm text-krm3-primary-dark hover:text-krm3-primary"
               >
                 Forgot your password?
               </a>

@@ -22,8 +22,8 @@ const BottomTabNavigation = () => {
           <button
             className={`flex flex-col items-center w-full transition-colors ${
               currentLocation === "/trasferte" || currentLocation === "/"
-                ? "text-krm3-primay"
-                : "text-gray-500 hover:text-krm3-primay"
+                ? "text-krm3-primary"
+                : "text-gray-500 hover:text-krm3-primary"
             }`}
             onClick={() => handleTabClick("home", "/")}
           >
@@ -33,8 +33,8 @@ const BottomTabNavigation = () => {
           <button
             className={`flex flex-col items-center w-full transition-colors ${
               activeTab === "rimborsi"
-                ? "text-krm3-primay"
-                : "text-gray-500 hover:text-krm3-primay"
+                ? "text-krm3-primary"
+                : "text-gray-500 hover:text-krm3-primary"
             }`}
             onClick={() => handleTabClick("rimborsi", "/")}
           >
@@ -45,7 +45,7 @@ const BottomTabNavigation = () => {
             <div className="relative w-full flex justify-center">
               <div className="h-6"></div>
               <button
-                className="absolute -top-6 w-14 h-14 bg-krm3-primay text-white rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-700 transition-transform transform hover:scale-105"
+                className="absolute -top-6 w-14 h-14 bg-krm3-primary text-white rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-700 transition-transform transform hover:scale-105"
                 onClick={() => {
                   if (window.location.pathname === "/") {
                     setOpenModal(true);
@@ -62,8 +62,8 @@ const BottomTabNavigation = () => {
           <button
             className={`flex flex-col items-center w-full transition-colors ${
               currentLocation === "/timesheet"
-                ? "text-krm3-primay"
-                : "text-gray-500 hover:text-krm3-primay"
+                ? "text-krm3-primary"
+                : "text-gray-500 hover:text-krm3-primary"
             }`}
             onClick={() => handleTabClick("timesheet", "/timesheet")}
           >
@@ -74,8 +74,8 @@ const BottomTabNavigation = () => {
           <button
             className={`flex flex-col items-center w-full transition-colors ${
               activeTab === "settings"
-                ? "text-krm3-primay"
-                : "text-gray-500 hover:text-krm3-primay"
+                ? "text-krm3-primary"
+                : "text-gray-500 hover:text-krm3-primary"
             }`}
             onClick={() => handleTabClick("settings", "/")}
           >

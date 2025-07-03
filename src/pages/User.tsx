@@ -65,7 +65,7 @@ export function User() {
                     </div>
                   </div>
                   <button
-                    className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm bg-krm3-primay hover:bg-yellow-700 text-white"
+                    className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm bg-krm3-primary hover:bg-yellow-700 text-white"
                     type="button"
                   >
                     Update Profile
