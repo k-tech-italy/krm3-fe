@@ -54,7 +54,7 @@ export function Home() {
                   <div className="flex justify-end mb-4">
                     <button
                       type="button"
-                      className="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-400"
+                      className="bg-krm3-primary text-white px-4 py-2 rounded shadow hover:bg-yellow-400"
                       onClick={() => setOpenModal(true)}
                     >
                       + Add mission
