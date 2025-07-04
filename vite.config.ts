@@ -29,7 +29,12 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       'process.env': { ...clientEnv, BASE_URL: process.env.BASE_URL }
-    }
+    },
+    test: {
+      environment: 'jsdom',
+      setupFiles: './src/setupTests.ts',
+      globals: true,
+    },
   };
 });
   
