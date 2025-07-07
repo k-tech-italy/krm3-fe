@@ -1,7 +1,9 @@
 name: Version Check
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Run Tests with Coverage"]
+    types: [completed]
     branches: [master, feature/github-actions]
 
 jobs:
