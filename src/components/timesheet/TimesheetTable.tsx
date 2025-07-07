@@ -99,7 +99,7 @@ export function TimeSheetTable(props: Props) {
       props.setTimeEntries(timeEntries);
       props.setNoWorkingDay(timesheet.days);
       props.setEndDate(endDate);
-      if (getDayType(endDate, timesheet.days) !== DayType.CLOSED_DAY) {
+      if (getDayType(endDate, timesheet.days) === DayType.WORK_DAY) {
         props.setOpenTimeEntryModal(true);
         props.setIsDayEntry(true);
       }
