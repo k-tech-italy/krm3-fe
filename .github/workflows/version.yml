@@ -1,0 +1,69 @@
+name: Version Check
+
+on:
+  push:
+    branches: [master, feature/github-actions]
+
+jobs:
+  version-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout current code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      
+      - name: Get current version
+        id: current-version
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $CURRENT_VERSION"
+      
+      - name: Get previous version
+        id: previous-version
+        run: |
+          # Get the previous commit's package.json
+          git show HEAD~1:package.json > previous-package.json
+          PREVIOUS_VERSION=$(node -p "require('./previous-package.json').version")
+          echo "version=$PREVIOUS_VERSION" >> $GITHUB_OUTPUT
+          echo "Previous version: $PREVIOUS_VERSION"
+      
+      - name: Compare versions
+        run: |
+          CURRENT="${{ steps.current-version.outputs.version }}"
+          PREVIOUS="${{ steps.previous-version.outputs.version }}"
+          
+          echo "Comparing versions:"
+          echo "Previous: $PREVIOUS"
+          echo "Current: $CURRENT"
+          
+          # Use Node.js semver comparison
+          node -e "
+            const semver = require('semver');
+            const current = '$CURRENT';
+            const previous = '$PREVIOUS';
+            
+            if (semver.gt(current, previous)) {
+              console.log('✅ Version has been incremented correctly');
+              console.log(\`Version bumped from \${previous} to \${current}\`);
+            } else if (semver.eq(current, previous)) {
+              console.log('❌ Version has not been incremented');
+              console.log(\`Version is still \${current} - please increment the version in package.json\`);
+              process.exit(1);
+            } else {
+              console.log('❌ Version has been decremented');
+              console.log(\`Version went backwards from \${previous} to \${current}\`);
+              process.exit(1);
+            }
+          "
+      
+      - name: Version check passed
+        run: |
+          echo "🎉 Version check passed! Ready to proceed with deployment or further steps."

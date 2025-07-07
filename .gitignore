@@ -5,6 +5,7 @@
 !.*.sample
 !.nvmrc
 !.npmrc
+!.github
 
 downloaded_files
 
