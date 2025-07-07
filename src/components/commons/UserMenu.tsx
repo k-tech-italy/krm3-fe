@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import { useLogout } from "../../hooks/useAuth";
 import { CircleUserRound } from "lucide-react";
+import {isValidUrl} from "../timesheet/utils/utils.ts";
 
 export function UserMenu() {
   const { data: user } = useGetCurrentUser();
@@ -36,14 +37,17 @@ export function UserMenu() {
         onClick={toggleMenu}
         className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none"
       >
-        {/* <img
-          src=""
-          alt=""
-          width="32"
-          height="32"
-          className="rounded-full mr-2"
-        /> */}
-        <CircleUserRound color="#5e5e5e" strokeWidth={1.5} size={30} className="mr-2" />
+        {user?.profile.picture && isValidUrl(user?.profile.picture) ?
+            <img
+                src={user?.profile.picture}
+                alt="user profile picture"
+                width="32"
+                height="32"
+                className="rounded-full mr-2"
+            />
+            : <CircleUserRound color="#5e5e5e" strokeWidth={1.5} size={30} className="mr-2" />
+        }
+
         <strong className="hidden sm:block">{user?.email}</strong>
       </button>
 

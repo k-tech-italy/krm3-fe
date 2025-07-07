@@ -1,6 +1,7 @@
 import { useGetCurrentUser } from "../hooks/useAuth";
 import LoadSpinner from "../components/commons/LoadSpinner";
 import { CircleUserRound } from "lucide-react";
+import {isValidUrl} from "../components/timesheet/utils/utils.ts";
 
 export function User() {
   const { data: user } = useGetCurrentUser();
@@ -78,17 +79,20 @@ export function User() {
                 <div className="bg-yellow-400 h-24"></div>
                 <div className="p-6 text-center">
                   <div className="mb-4">
-                    {/* <img
-                      alt="..."
-                      className="w-24 h-24 rounded-full mx-auto border-2 border-gray-300"
-                      src=""
-                    /> */}
-                    <CircleUserRound
-                      color="#5e5e5e"
-                      strokeWidth={1.5}
-                      size={30}
-                      className="w-24 h-24 rounded-full mx-auto border-gray-300"
-                    />
+                    {user?.profile.picture && isValidUrl(user?.profile.picture) ?
+                        <img
+                            src={user?.profile.picture}
+                            alt="user profile picture"
+                            width="32"
+                            height="32"
+                            className="w-24 h-24 rounded-full mx-auto border-2 border-gray-300"
+                        />
+                        : <CircleUserRound
+                            color="#5e5e5e"
+                            strokeWidth={1.5}
+                            size={30}
+                            className="w-24 h-24 rounded-full mx-auto border-gray-300" />
+                    }
                   </div>
                   <h5 className="text-lg font-semibold">
                     {user.firstName} {user.lastName}

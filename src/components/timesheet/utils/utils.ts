@@ -58,3 +58,13 @@ export function getHolidayAndSickDays(
     )
     .map(normalizeDate);
 }
+
+export function isValidUrl(url: string)
+{
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
