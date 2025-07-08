@@ -36,7 +36,8 @@ export const TaskHeader: React.FC<TaskHeaderProps> = ({
       <div className={`${isMonthView ? "font-medium truncate" : ""}`}>
         {task.title}
       </div>
-      <div className={`text-xs text-gray-500`}>{task.projectName} - WFP</div>
+      <div className={`text-xs text-gray-500`}>{task.projectName} - WFP</div>    {/* TODO USE CLIENT FROM API */}
+    
     </div>
   );
 };
