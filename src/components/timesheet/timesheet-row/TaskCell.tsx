@@ -1,5 +1,5 @@
 import React from "react";
-import { Task, TimeEntry } from "../../../restapi/types";
+import { Task } from "../../../restapi/types";
 
 export interface TaskHeaderProps {
   task: Task;
@@ -28,15 +28,16 @@ export const TaskHeader: React.FC<TaskHeaderProps> = ({
             : undefined,
         } as React.CSSProperties
       }
-      className={`p-2 flex justify-between items-center ${
+      className={`p-2 flex flex-col justify-between  ${
         isMonthView ? "text-sm" : ""
-      } ${isColumnView ? "border-l-3" : "border-b-3"}
+      } ${isColumnView ? "border-l-3 items-center" : "border-b-3 items-start"}
       `}
     >
       <div className={`${isMonthView ? "font-medium truncate" : ""}`}>
         {task.title}
       </div>
-      <div className={`text-xs text-gray-500`}>{task.projectName}</div>
+      <div className={`text-xs text-gray-500`}>{task.projectName} - {task.clientName}</div> 
+    
     </div>
   );
 };

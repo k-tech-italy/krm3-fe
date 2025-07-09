@@ -53,7 +53,7 @@ function TimeSheetHeaders({
             >
               <div
                 className={`h-full w-fullitems-center ${
-                  isColumnView ? "flex justify-between py-2" : "flex-col "
+                  isColumnView ? "flex justify-between p-2" : "flex-col "
                 } bg-gray-100 font-semibold ${
                   isMonthView ? "text-xs py-2" : "text-sm p-2"
                 } text-center cursor-grab  active:cursor-grabbing
