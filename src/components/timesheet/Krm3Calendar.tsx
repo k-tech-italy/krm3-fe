@@ -62,7 +62,8 @@ export default function Krm3Calendar({
   }, [currentWeekStart]);
 
   const { data, userCan } = useGetCurrentUser();
-  const { mutateAsync: mutateSubmitTimesheet, error: submitTimesheetError } = useSubmitTimesheet();
+  const { mutateAsync: mutateSubmitTimesheet, error: submitTimesheetError } =
+    useSubmitTimesheet();
 
   const isEditViewAnotherUser = useMemo(() => {
     return data?.resource?.id !== selectedResourceId;
@@ -72,18 +73,14 @@ export default function Krm3Calendar({
     if (!isEditViewAnotherUser) {
       return true;
     }
-    return (
-      userCan(["core.view_any_timesheet"])
-    );
+    return userCan(["core.view_any_timesheet"]);
   }, [userCan, isEditViewAnotherUser]);
 
   const readWritePermission = useMemo(() => {
     if (!isEditViewAnotherUser) {
       return true;
     }
-    return (
-      userCan(["core.manage_any_timesheet"])
-    );
+    return userCan(["core.manage_any_timesheet"]);
   }, [userCan, isEditViewAnotherUser]);
 
   const accessDenied = useMemo(() => {
@@ -213,6 +210,19 @@ export default function Krm3Calendar({
     }
   }
 
+  function disabledSubmitButtonText() {
+    if (
+      !!typeDays &&
+      Object.values(typeDays).every((day) => day.closed === true)
+    ) {
+      return "Timesheet is already submitted";
+    } else if (!isMonth) {
+      return "Only available for month view";
+    } else {
+      return "";
+    }
+  }
+
   return (
     <>
       {accessDenied ? (
@@ -268,13 +278,21 @@ export default function Krm3Calendar({
                 setCurrentWeekStart(() => {
                   const today = new Date();
                   if (isMonth) {
-                    return new Date(today.getFullYear(), today.getMonth(), getFirstMondayOfMonth(today));
+                    return new Date(
+                      today.getFullYear(),
+                      today.getMonth(),
+                      getFirstMondayOfMonth(today)
+                    );
                   } else {
                     const day = today.getDay();
                     const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-                    const weekStart = new Date(today.setDate(diff))
-                    if(isOverlappingWeek(weekStart)) {
-                      setSelectedWeekRange(currentWeekStart > weekStart ? "endOfWeek" : "startOfWeek");
+                    const weekStart = new Date(today.setDate(diff));
+                    if (isOverlappingWeek(weekStart)) {
+                      setSelectedWeekRange(
+                        currentWeekStart > weekStart
+                          ? "endOfWeek"
+                          : "startOfWeek"
+                      );
                     }
                     return weekStart;
                   }
@@ -313,8 +331,12 @@ export default function Krm3Calendar({
               onClick={() => handleSubmitTimesheet()}
               style="primary"
               label="Submit Timesheet"
-              disabled={!isMonth || (!!typeDays && Object.values(typeDays).every((day) => day.closed === true))}
-              disabledTooltipMessage="Only available for month view"
+              disabled={
+                !isMonth ||
+                (!!typeDays &&
+                  Object.values(typeDays).every((day) => day.closed === true))
+              }
+              disabledTooltipMessage={disabledSubmitButtonText()}
             />
           </div>
 

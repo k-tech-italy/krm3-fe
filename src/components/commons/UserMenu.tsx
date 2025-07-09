@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import { useLogout } from "../../hooks/useAuth";
 import { CircleUserRound } from "lucide-react";
-import {isValidUrl} from "../timesheet/utils/utils.ts";
+import { isValidUrl } from "../timesheet/utils/utils.ts";
 
 export function UserMenu() {
   const { data: user } = useGetCurrentUser();
@@ -14,7 +14,7 @@ export function UserMenu() {
   useEffect(() => {
     if (!fetched.current) {
       fetch("/static/release.json")
-        .then((res) => res.ok ? res.json() : null)
+        .then((res) => (res.ok ? res.json() : null))
         .then((data) => setRelease(data))
         .catch(() => setRelease(null));
       fetched.current = true;
@@ -37,16 +37,22 @@ export function UserMenu() {
         onClick={toggleMenu}
         className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none"
       >
-        {user?.profile.picture && isValidUrl(user?.profile.picture) ?
-            <img
-                src={user?.profile.picture}
-                alt="user profile picture"
-                width="32"
-                height="32"
-                className="rounded-full mr-2"
-            />
-            : <CircleUserRound color="#5e5e5e" strokeWidth={1.5} size={30} className="mr-2" />
-        }
+        {user?.profile.picture && isValidUrl(user?.profile.picture) ? (
+          <img
+            src={user?.profile.picture}
+            alt="user profile picture"
+            width="32"
+            height="32"
+            className="rounded-full mr-2"
+          />
+        ) : (
+          <CircleUserRound
+            color="#5e5e5e"
+            strokeWidth={1.5}
+            size={30}
+            className="mr-2"
+          />
+        )}
 
         <strong className="hidden sm:block">{user?.email}</strong>
       </button>
@@ -60,12 +66,6 @@ export function UserMenu() {
         }`}
       >
         <div className="py-1">
-          <a
-            href="#"
-            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-          >
-            Settings
-          </a>
           <a
             href={`user/`}
             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -92,8 +92,12 @@ export function UserMenu() {
         <div className="py-2 px-4 text-xs text-gray-500 border-t border-gray-100">
           {release ? (
             <>
-              <div><b>BE</b>: v{release.be.version}</div>
-              <div><b>FE</b>: v{release.fe.version}</div>
+              <div>
+                <b>BE</b>: v{release.be.version}
+              </div>
+              <div>
+                <b>FE</b>: v{release.fe.version}
+              </div>
             </>
           ) : (
             <span>Version info unavailable</span>
