@@ -165,6 +165,7 @@ export interface Task {
   onCallPrice?: number;
   travelPrice?: number;
   projectName?: string;
+  clientName?: string;
 }
 
 export interface TimeEntry {

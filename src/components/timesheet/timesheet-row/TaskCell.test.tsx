@@ -7,6 +7,7 @@ describe("TaskHeader", () => {
     id: 1,
     title: "Task 1",
     projectName: "Project A",
+    clientName: "Client 1",
     startDate: new Date(),
     color: "#fff",
   };
@@ -27,6 +28,6 @@ describe("TaskHeader", () => {
       />
     );
     expect(screen.getByText("Task 1")).toBeInTheDocument();
-    expect(screen.getByText("Project A")).toBeInTheDocument();
+    expect(screen.getByText("Project A - Client 1")).toBeInTheDocument();
   });
 }); 
