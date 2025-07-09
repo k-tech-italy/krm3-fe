@@ -106,87 +106,77 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
       : TimeEntryType.TASK;
 
     return (
-      <div key={dayIndex} className="w-full h-full">
-        <div className="w-full h-full cursor-pointer relative">
-          {openShortMenu && (
-            <ShortHoursMenu
-              holidayOrSickDays={holidayOrSickDays}
-              days={timesheet.days}
-              dayToOpen={day}
-              taskId={task.id}
-              key={dayIndex}
-              openShortMenu={openShortMenu}
-              setOpenShortMenu={setOpenShortMenu}
-              openTimeEntryModalHandler={() => openTimeEntryModalHandler(task)}
-              readOnly={readOnly}
-              selectedResourceId={selectedResourceId}
-              timeEntries={timesheet.timeEntries.filter(
-                (timeEntry) => timeEntry.task === task.id
-              )}
-            />
-          )}
-          <TimeEntryCell
-            isLockedDay={isLockedDay}
-            day={day}
+      <div key={dayIndex} className="w-full h-full cursor-pointer relative">
+        {openShortMenu && (
+          <ShortHoursMenu
+            holidayOrSickDays={holidayOrSickDays}
+            days={timesheet.days}
+            dayToOpen={day}
             taskId={task.id}
-            type={type}
-            timeEntry={timeEntry}
-            isMonthView={isMonthView}
-            isColumnView={isColumnView}
-            isColumnHighlighted={isColumnHighlighted(dayIndex)}
-            isInDragRange={isCellInDragRange(day, task.id)}
-            colors={{ backgroundColor, borderColor }}
+            key={dayIndex}
+            openShortMenu={openShortMenu}
+            setOpenShortMenu={setOpenShortMenu}
+            openTimeEntryModalHandler={() => openTimeEntryModalHandler(task)}
             readOnly={readOnly}
-            isNoWorkDay={isNoWorkDay !== DayType.WORK_DAY}
-            isInSelectedWeekdays={
-              isMonthView ||
-              (!!selectedWeekdays &&
-                !!selectedWeekdays.find(
-                  (d) => normalizeDate(d) === normalizeDate(day)
-                ))
-            }
+            selectedResourceId={selectedResourceId}
+            timeEntries={timesheet.timeEntries.filter(
+              (timeEntry) => timeEntry.task === task.id
+            )}
           />
-        </div>
+        )}
+        <TimeEntryCell
+          isLockedDay={isLockedDay}
+          day={day}
+          taskId={task.id}
+          type={type}
+          timeEntry={timeEntry}
+          isMonthView={isMonthView}
+          isColumnView={isColumnView}
+          isColumnHighlighted={isColumnHighlighted(dayIndex)}
+          isInDragRange={isCellInDragRange(day, task.id)}
+          colors={{ backgroundColor, borderColor }}
+          readOnly={readOnly}
+          isNoWorkDay={isNoWorkDay !== DayType.WORK_DAY}
+          isInSelectedWeekdays={
+            isMonthView ||
+            (!!selectedWeekdays &&
+              !!selectedWeekdays.find(
+                (d) => normalizeDate(d) === normalizeDate(day)
+              ))
+          }
+        />
       </div>
     );
   };
-
   return (
-      <React.Fragment key={task.id}>
-        <div
-            style={
-              {
-                "--border-color": borderColor,
-                backgroundColor,
-              } as React.CSSProperties
-            }
-            className={`${borderColorClass} ${
-                isColumnView ? "border-l-3" : "border-b-3"
-            }`}
+    <React.Fragment key={task.id}>
+      <TaskHeader
+        isColumnView={isColumnView}
+        colors={{ backgroundColor, borderColor }}
+        task={task}
+        isMonthView={isMonthView}
+      />
+      <div
+        style={
+          {
+            "--border-color": borderColor,
+            backgroundColor,
+          } as React.CSSProperties
+        }
+        className={`flex items-center justify-center text-center ${borderColorClass} ${
+          isColumnView ? "border-l-3" : "border-b-3"
+        }`}
+      >
+        <p
+          className={`
+        ${isMonthView ? "text-[10px] " : ""}`}
         >
-          <TaskHeader task={task} isMonthView={isMonthView}/>
-        </div>
-        <div
-            style={
-              {
-                "--border-color": borderColor,
-                backgroundColor,
-              } as React.CSSProperties
-            }
-            className={`p-2 ${borderColorClass} ${
-                isColumnView ? "border-l-3" : "border-b-3"
-            }`}
-        >
-          <p
-              className={`p-2
-        ${isMonthView ? "text-[10px] text-center items-center" : ""}`}
-          >
-            {totalHours}
-          </p>
-        </div>
-        {scheduledDays.map((day, dayIndex) =>
-            renderDayCell(day, dayIndex, lockedDays)
-        )}
-      </React.Fragment>
+          {totalHours}
+        </p>
+      </div>
+      {scheduledDays.map((day, dayIndex) =>
+        renderDayCell(day, dayIndex, lockedDays)
+      )}
+    </React.Fragment>
   );
 };

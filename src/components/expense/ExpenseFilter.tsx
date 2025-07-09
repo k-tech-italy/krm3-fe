@@ -54,7 +54,7 @@ export default function ExpenseFilter(props: Props) {
                     <div className="w-full md:w-1/3 px-2 flex items-end">
                         <button
                             type="button"
-                            className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-400"
+                            className="bg-krm3-primary text-white px-4 py-2 rounded-md hover:bg-yellow-400"
                             onClick={() => {
                                 if (fromDate) {
                                     handleFilterDate(fromDate, toDate);
@@ -65,7 +65,7 @@ export default function ExpenseFilter(props: Props) {
                         </button>
                         <button
                             type="button"
-                            className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-400 ml-2"
+                            className="bg-krm3-primary text-white px-4 py-2 rounded-md hover:bg-yellow-400 ml-2"
                             onClick={() => {
                                 setFromDate(undefined);
                                 setToDate(undefined);

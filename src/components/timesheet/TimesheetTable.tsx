@@ -79,7 +79,9 @@ export function TimeSheetTable(props: Props) {
 
     if (
       formatDate(endDate) >= formatDate(task.startDate) &&
-      (!!task.endDate ? formatDate(endDate) <= formatDate(task.endDate) : true) &&
+      (!!task.endDate
+        ? formatDate(endDate) <= formatDate(task.endDate)
+        : true) &&
       getDayType(endDate, timesheet?.days) !== DayType.CLOSED_DAY &&
       !isHolidayOrSickDay
     ) {
@@ -99,7 +101,7 @@ export function TimeSheetTable(props: Props) {
       props.setTimeEntries(timeEntries);
       props.setNoWorkingDay(timesheet.days);
       props.setEndDate(endDate);
-      if (getDayType(endDate, timesheet.days) !== DayType.CLOSED_DAY) {
+      if (getDayType(endDate, timesheet.days) === DayType.WORK_DAY) {
         props.setOpenTimeEntryModal(true);
         props.setIsDayEntry(true);
       }
@@ -187,15 +189,16 @@ export function TimeSheetTable(props: Props) {
           {/* Table Headers */}
           <div
             id="table-header"
-            className={`flex justify-between items-center bg-gray-100 border-b-2 border-gray-300 p-2 font-semibold ${
+            className={`flex items-center bg-gray-100 border-b-2 border-gray-300 p-2 font-semibold ${
               isMonthView ? "text-xs" : "text-sm"
-            } col-span-1`}
+            }  ${props.isColumnView ? "justify-center" : "justify-between"}
+            col-span-1`}
           >
             <div>Task</div>
           </div>
 
           <div
-            className={`flex  items-center bg-gray-100 border-b-2 border-gray-300 p-2 font-semibold ${
+            className={`flex justify-center items-center bg-gray-100 border-b-2 border-gray-300 p-2 font-semibold  ${
               isMonthView ? "text-xs" : "text-sm"
             }
             ${

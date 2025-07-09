@@ -9,7 +9,7 @@ axios.defaults.xsrfHeaderName = "X-CSRFToken";
 
 let baseUrl = process.env.KRM3_FE_API_BASE_URL || "/api/v1/";
 
-if (baseUrl.startsWith("/")) {
+if (typeof document !== 'undefined' && baseUrl.startsWith("/")) {
      baseUrl = document.location.protocol + '//' + document.location.host + baseUrl;
 }
 
@@ -26,7 +26,7 @@ restapi.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401 && !isRedirecting) {
+    if (typeof window !== 'undefined' && error.response?.status === 401 && !isRedirecting) {
       const currentPath = window.location.pathname;
 
       if (currentPath !== "/login") {
@@ -54,11 +54,13 @@ if (!djSessionId && process.env.NODE_ENV !== "test") {
   });
 }
 
-if (djSessionId) {
-  // set cookie
-  document.cookie = `sessionid=${djSessionId}; path=/;`;
-} else {
-  // clear cookie
-  document.cookie =
-    "sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+export function setSessionCookie(sessionId: string | null) {
+  if (typeof document !== 'undefined') {
+    if (sessionId) {
+      document.cookie = `sessionid=${sessionId}; path=/;`;
+    } else {
+      document.cookie =
+        "sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
+  }
 }

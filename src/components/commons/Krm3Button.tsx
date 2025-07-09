@@ -14,27 +14,27 @@ const Krm3Button = ({ disabled, onClick, type, style, icon, label, disabledToolt
   const styles = {
     primary: {
       buttonStyle:
-        "text-white border-transparent bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-yellow-500",
+        "text-white border-transparent bg-krm3-primary hover:bg-krm3-primary-dark focus:outline-none focus:ring-krm3-primary",
       disabledStyle:
-        "text-white border-transparent bg-gray-300 cursor-not-allowed",
+        "text-white border-transparent bg-krm3-disabled cursor-not-allowed",
     },
     secondary: {
       buttonStyle:
-        "border-gray-300 font-medium rounded-md text-gray-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-blue-500 transition-colors duration-200",
+        "border-krm3-disabled font-medium rounded-md text-gray-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-krm3-disabled transition-colors duration-200",
       disabledStyle:
-        "text-white border-transparent bg-gray-300 cursor-not-allowed",
+        "text-white border-transparent bg-krm3-disabled cursor-not-allowed",
     },
     danger: {
       buttonStyle:
-        "text-white border-transparent bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-red-500",
+        "text-white border-transparent bg-krm3-danger hover:bg-krm3-danger-dark focus:outline-none focus:ring-krm3-danger",
       disabledStyle:
-        "text-white border-transparent bg-gray-300 cursor-not-allowed",
+        "text-white border-transparent bg-krm3-disabled cursor-not-allowed",
     },
     default: {
       buttonStyle:
-        "text-white border-transparent bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-yellow-500",
+        "text-white border-transparent bg-krm3-primary hover:bg-krm3-primary-darkr focus:outline-none focus:ring-krm3-primary",
       disabledStyle:
-        "text-white border-transparent bg-gray-300 cursor-not-allowed",
+        "text-white border-transparent bg-krm3-disabled cursor-not-allowed",
     },
   };
 
@@ -48,7 +48,7 @@ const Krm3Button = ({ disabled, onClick, type, style, icon, label, disabledToolt
           disabled ? disabledStyle : buttonStyle
         }`}
         id="delete-button"
-        type={type}
+        type={type || "button"}
         onClick={onClick}
         disabled={disabled}
       >

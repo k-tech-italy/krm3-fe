@@ -1,19 +1,19 @@
-import { AxiosError } from "axios";
 import { TimeEntry } from "../../../restapi/types";
 import { normalizeDate } from "./dates";
 import { isHoliday, isSickDay } from "./timeEntry";
 
+
 export const defaultColors: string[] = [
-  "#fd8a8a",
-  "#9ea1d4",
-  "#ffcbcb",
-  "#f1f7b5",
-  "#a8d1d1",
-  "#dfebeb",
-  "#d7f0db",
-  "#ffd7be",
-  "#c5e1a5",
-  "#ffe7ce",
+  "#A7C7E7", // Soft blue
+  "#FFD6A5", // Soft orange
+  "#B5EAD7", // Soft teal
+  "#F6DFEB", // Pale pink
+  "#C7CEEA", // Soft lavender
+  "#FFFACD", // Lemon chiffon
+  "#E2F0CB", // Light green
+  "#FFDAC1", // Peach
+  "#D4A5A5", // Muted rose
+  "#B5B9FF", // Periwinkle
 ];
 
 /**
@@ -41,7 +41,12 @@ export function getTaskColor(
  */
 export function displayErrorMessage(error?: any): string {
   // Check if the error has a response with data and take the first error field
-  if (!!error && error.response && error.response.data && error.response.data["error"]) {
+  if (
+    !!error &&
+    error.response &&
+    error.response.data &&
+    error.response.data["error"]
+  ) {
     return error.response.data["error"] as string;
   } else {
     return "an error occurred";
@@ -57,4 +62,13 @@ export function getHolidayAndSickDays(
       (date) => isHoliday(date, timeEntries) || isSickDay(date, timeEntries)
     )
     .map(normalizeDate);
+}
+
+export function isValidUrl(url: string) {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
 }

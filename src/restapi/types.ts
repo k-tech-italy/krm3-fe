@@ -165,12 +165,14 @@ export interface Task {
   onCallPrice?: number;
   travelPrice?: number;
   projectName?: string;
+  clientName?: string;
 }
 
 export interface TimeEntry {
   id: number;
   date: string;
   task: number;
+  taskTitle?: string;
   lastModified?: string;
   dayShiftHours: number;
   sickHours: number;

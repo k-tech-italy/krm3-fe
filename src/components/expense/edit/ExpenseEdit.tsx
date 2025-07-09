@@ -50,7 +50,7 @@ export function ExpenseEdit(props: Props) {
                 <button
                     className={`px-4 py-2 text-white rounded-lg focus:outline-none ${isLoading
                         ? 'bg-yellow-400 cursor-not-allowed'
-                        : 'bg-yellow-500 hover:bg-yellow-600'
+                        : 'bg-krm3-primary hover:bg-krm3-primary-dark'
                         }`}
                     disabled={isLoading}
                     onClick={saveData}
