@@ -13,6 +13,7 @@ import Timesheet from "./pages/Timesheet";
 import LoadSpinner from "./components/commons/LoadSpinner";
 import { ToastContainer } from "react-toastify";
 import "./index.css";
+import { Welcome } from "./pages/Welcome";
 
 const queryClient = new QueryClient();
 
@@ -58,11 +59,17 @@ function AuthenticatedRoutes() {
         <Navbar />
         <div className=" pb-16">
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/home" element={<Home />} />
+           
             <Route path="/user" element={<User />} />
-            <Route path="/mission/:id" element={<Mission />} />
-            <Route path="/timesheet" element={<Timesheet />} />
+            {currentUser.flags.TRASFERTE_ENABLED && (
+              <Route path="/mission/:id" element={<Mission />} />
+            )}
+             <Route path="/" element={currentUser.flags.TRASFERTE_ENABLED ? <Home/> : <Welcome/>} />
+             <Route path="/home" element={currentUser.flags.TRASFERTE_ENABLED ? <Home/> : <Welcome/>} />
+
+            {currentUser.flags.TIMESHEET_ENABLED && (
+              <Route path="/timesheet" element={<Timesheet />} />
+            )}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
