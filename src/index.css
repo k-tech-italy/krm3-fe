@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-
 @theme {
 	--color-krm3-primary: #efb100;
 	--color-krm3-primary-light: #ffe082;
@@ -18,18 +17,47 @@
 	--color-krm3-success-dark: #00cc00;
 
 	--color-krm3-disabled: #d1d5db;
+
+	/* Add new variables for backgrounds and text */
+	--color-body-bg: #ffffff;
+	--color-body-text: #000000;
+	--color-gradient-start: rgba(13, 13, 13, 0.8715861344537815);
+	--color-gradient-mid: rgba(255, 255, 255, 0.3085609243697479);
+	--color-gradient-end: rgba(255, 255, 255, 0);
 }
 
+/* Dark mode overrides */
+html.dark {
+	--color-krm3-primary: #efb100;
+	--color-krm3-primary-light: #ffe082;
+	--color-krm3-primary-dark: #c89400;
 
+	--color-krm3-secondary: #ffffff;
+	--color-krm3-secondary-dark: #374151;
 
+	--color-krm3-danger: #ff4444;
+	--color-krm3-danger-light: #ff6666;
+	--color-krm3-danger-dark: #cc0000;
 
+	--color-krm3-success: #22c55e;
+	--color-krm3-success-light: #4ade80;
+	--color-krm3-success-dark: #16a34a;
+
+	--color-krm3-disabled: #6b7280;
+
+	/* Dark mode specific colors */
+	--color-body-bg: #1f2937;
+	--color-body-text: #ffffff;
+	--color-gradient-start: rgba(255, 255, 255, 0.1);
+	--color-gradient-mid: rgba(0, 0, 0, 0.3);
+	--color-gradient-end: rgba(0, 0, 0, 0);
+}
 
 .wrapper {
 	align-items: stretch;
 	display: flex;
 	width: 100%;
 }
-
 
 .main {
 	display: flex;
@@ -47,6 +75,9 @@ body {
 		sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+	background-color: var(--color-body-bg);
+	color: var(--color-body-text);
+	transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 html,
@@ -61,8 +92,13 @@ code {
 }
 
 .gradient {
-	background: rgb(13, 13, 13);
-	background: linear-gradient(0deg, rgba(13, 13, 13, 0.8715861344537815) 0%, rgba(255, 255, 255, 0.3085609243697479) 61%, rgba(255, 255, 255, 0.14329481792717091) 75%, rgba(255, 255, 255, 0) 100%);
+	background: var(--color-gradient-start);
+	background: linear-gradient(0deg, 
+		var(--color-gradient-start) 0%, 
+		var(--color-gradient-mid) 61%, 
+		var(--color-gradient-end) 75%, 
+		transparent 100%
+	);
 }
 
 h1,
@@ -75,6 +111,7 @@ h4,
 .h4 {
 	font-weight: 300;
 	margin: 30px 0 15px;
+	color: var(--color-body-text);
 }
 
 h1,
@@ -86,7 +123,6 @@ h2,
 .h2 {
 	font-size: 36px;
 }
-
 
 .grid-cols-8 {
 	grid-template-columns: repeat(8, minmax(0, 1fr));
@@ -140,12 +176,80 @@ h2,
 	cursor: not-allowed !important;
 	opacity: 0.7;
 	background-image: repeating-linear-gradient(
-	  45deg, 
-	  rgba(0, 0, 0, 0.1) 0px, 
-	  rgba(0, 0, 0, 0.1) 6px, 
-	  transparent 6px, 
-	  transparent 12px
+		45deg, 
+		rgba(0, 0, 0, 0.1) 0px, 
+		rgba(0, 0, 0, 0.1) 6px, 
+		transparent 6px, 
+		transparent 12px
 	);
-  }
+}
 
-  
+html.dark .linear-gradient-disabled {
+	background-image: repeating-linear-gradient(
+		45deg, 
+		rgba(255, 255, 255, 0.1) 0px, 
+		rgba(255, 255, 255, 0.1) 6px, 
+		transparent 6px, 
+		transparent 12px
+	);
+}
+
+.bg-app {
+  background-color: var(--color-body-bg) !important;
+  color: var(--color-body-text);
+}
+
+.text-app {
+  color: var(--color-body-text) !important;
+}
+
+.border-app {
+  border-color: var(--color-border, #e5e7eb) !important;
+}
+
+.bg-card {
+  background-color: var(--color-card-bg, #fff) !important;
+}
+
+
+:root {
+  --color-card-bg: #fff;
+  --color-app-bg: #f8fafc;
+  --color-body-text: #222;
+  --color-muted-text: #6b7280;
+  --color-border: #e5e7eb;
+  --color-table-header: #f3f4f6;
+  --color-table-row-alt: #e4e4e7;
+}
+
+html.dark {
+  --color-card-bg: #23272f;
+  --color-app-bg: #1f2937;
+  --color-body-text: #fff;
+  --color-muted-text: #a1a1aa;
+  --color-border: #374151;
+  --color-table-header: #23272f;
+  --color-table-row-alt: #18181b;
+}
+
+.bg-card {
+  background-color: var(--color-card-bg) !important;
+}
+.bg-app {
+  background-color: var(--color-app-bg) !important;
+}
+.text-app {
+  color: var(--color-body-text) !important;
+}
+.text-muted {
+  color: var(--color-muted-text) !important;
+}
+.border-app {
+  border-color: var(--color-border) !important;
+}
+.bg-table-header {
+  background-color: var(--color-table-header) !important;
+}
+.bg-table-row-alt {
+  background-color: var(--color-table-row-alt) !important;
+}

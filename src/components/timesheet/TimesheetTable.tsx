@@ -167,7 +167,7 @@ export function TimeSheetTable(props: Props) {
 
   return (
     <div className="flex-col">
-      <div className="max-w-200 text-gray-500 mb-1">
+      <div className="max-w-200 text-muted mb-1">
         <p className="mt-4">
           Clicking and holding a cell or a column to drag it. Drop it in the
           desired position to place your hours.
@@ -196,7 +196,7 @@ export function TimeSheetTable(props: Props) {
           {/* Table Headers */}
           <div
             id="table-header"
-            className={`flex items-center bg-gray-100 border-b-2 border-gray-300 p-2 font-semibold ${
+            className={`flex items-center bg-table-header border-b-2 border-app p-2 font-semibold ${
               isMonthView ? "text-xs" : "text-sm"
             }  ${props.isColumnView ? "justify-center" : "justify-between"}
             col-span-1`}
@@ -205,7 +205,7 @@ export function TimeSheetTable(props: Props) {
           </div>
 
           <div
-            className={`flex justify-center items-center bg-gray-100 border-b-2 border-gray-300 p-2 font-semibold  ${
+            className={`flex justify-center items-center bg-table-header border-b-2 border-app p-2 font-semibold  ${
               isMonthView ? "text-xs" : "text-sm"
             }
             ${
@@ -231,7 +231,7 @@ export function TimeSheetTable(props: Props) {
 
           {/* Tasks */}
           {!timesheet?.tasks || timesheet.tasks.length === 0 ? (
-            <div className="bg-gray-50 p-2">No tasks available</div>
+            <div className="bg-table-row-alt p-2 text-muted">No tasks available</div>
           ) : (
             timesheet.tasks.map((task, index) => (
               <TimeSheetRow

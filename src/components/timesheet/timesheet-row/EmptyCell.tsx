@@ -15,7 +15,7 @@ export const EmptyCell: React.FC<EmptyCellProps> = ({
   isDayLocked,
 }) => {
   return (
-    <div className="flex justify-center text-gray-400 hover:text-gray-600">
+    <div className="flex justify-center text-app hover:text-app">
       <Plus size={16} />
     </div>
   );

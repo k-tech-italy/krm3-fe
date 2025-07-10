@@ -12,9 +12,9 @@ export function User() {
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap">
             <div className="w-full md:w-2/3 px-4">
-              <div className="bg-white shadow-md rounded-lg p-6">
+              <div className="bg-card shadow-md rounded-lg p-6">
                 <div className="border-b pb-4 mb-4">
-                  <h4 className="text-lg font-semibold">Edit Profile</h4>
+                  <h4 className="text-lg font-semibold text-app">Edit Profile</h4>
                 </div>
                 <form>
                   <div className="flex flex-wrap -mx-2">
