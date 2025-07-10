@@ -14,7 +14,7 @@ import moment from "moment";
 export function createMission(params: MissionInterface) {
     const year: number = moment(params.toDate).year();
     const paramsRefactored = { ...params, project: params.project.id, year: year, city: params.city.id, defaultCurrency: params.defaultCurrency?.iso3, resource: params.resource.id }
-    return restapi.post<MissionInterface>('missions/mission/', paramsRefactored)
+    return restapi.post<MissionInterface>('missions/trasferte/', paramsRefactored)
 }
 
 export function getMissions(isStaff: boolean, resourceId?: number): Promise<Page<MissionInterface>> {
@@ -22,11 +22,11 @@ export function getMissions(isStaff: boolean, resourceId?: number): Promise<Page
     if (resourceId !== undefined) {
         params = { resource_id: resourceId, is_staff: isStaff };
     }
-    return restapi.get<Page<MissionInterface>>(`missions/mission/`, { params }).then(res => res.data);
+    return restapi.get<Page<MissionInterface>>(`missions/trasferte/`, { params }).then(res => res.data);
 }
 
 export function getMission(id: number): Promise<MissionInterface> {
-    return restapi.get<MissionInterface>(`missions/mission/${id}/`).then(res => res.data);
+    return restapi.get<MissionInterface>(`missions/trasferte/${id}/`).then(res => res.data);
 }
 
 export function getResources(profile?: number): Promise<Page<Resource>> {
