@@ -54,8 +54,8 @@ function AuthenticatedRoutes() {
     return <Navigate to="/login" replace />;
   }
 
-  const modules = ['timesheet' , 'trasferte']
-  const defautl = 'timesheet'
+  const modules = currentUser.config.defaultModule || ['']
+  const defautl = currentUser.config.defaultModule
 
   const routeGuards = [
     {
