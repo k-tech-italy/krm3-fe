@@ -13,6 +13,8 @@ import Timesheet from "./pages/Timesheet";
 import LoadSpinner from "./components/commons/LoadSpinner";
 import { ToastContainer } from "react-toastify";
 import "./index.css";
+import { Welcome } from "./pages/Welcome";
+import React from "react";
 
 const queryClient = new QueryClient();
 
@@ -52,18 +54,45 @@ function AuthenticatedRoutes() {
     return <Navigate to="/login" replace />;
   }
 
+  const routeGuards = [
+    {
+      guard: true,
+      route: <Route path="/user" element={<User />} />,
+    },
+    {
+      guard: currentUser.flags.trasferteEnabled,
+      route: <Route path="/mission/:id" element={<Mission />} />,
+    },
+    {
+      guard: currentUser.flags.timesheetEnabled,
+      route: <Route path="/timesheet" element={<Timesheet />} />,
+    },
+    {
+      guard: true,
+      route: (
+        <Route
+          path="/"
+          element={currentUser.flags.trasferteEnabled ? <Home /> : <Welcome />}
+        />
+      ),
+    },
+    {
+      guard: true,
+      route: <Route path="*" element={<Navigate to="/" replace />} />,
+    },
+  ];
+
   return (
     <div className="wrapper">
       <div className="main bg-slate-50">
         <Navbar />
         <div className=" pb-16">
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/user" element={<User />} />
-            <Route path="/mission/:id" element={<Mission />} />
-            <Route path="/timesheet" element={<Timesheet />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {routeGuards.map((routeGuard, idx) => (
+              <React.Fragment key={idx}>
+                {routeGuard.guard && routeGuard.route}
+              </React.Fragment>
+            ))}
           </Routes>
         </div>
         {isSmallScreen && <BottomTabNavigation />}
