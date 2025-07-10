@@ -153,13 +153,13 @@ export interface User {
   cid: string;
   permissions: string[] | null;
   flags: {
-  [key in FlagsType]?: boolean;
-  }
+    [key in FlagsType]?: boolean;
+  };
 }
 
 export const enum FlagsType {
-  TRASFERTE_ENABLED = "TRASFERTE_ENABLED",
-  TIMESHEET_ENABLED = "TIMESHEET_ENABLED"
+  TRASFERTE_ENABLED = "trasferteEnabled",
+  TIMESHEET_ENABLED = "timesheetEnabled",
 }
 
 export interface Task {

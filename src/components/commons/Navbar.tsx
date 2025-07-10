@@ -1,6 +1,7 @@
 import { UserMenu } from "./UserMenu";
 import { useMediaQuery } from "../../hooks/useView";
 import { useGetCurrentUser } from "../../hooks/useAuth";
+import React from "react";
 
 export function Navbar() {
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
@@ -11,12 +12,12 @@ export function Navbar() {
     {
       label: "Trasferte",
       href: "/home",
-      enabled: data?.flags.TRASFERTE_ENABLED,
+      enabled: data?.flags.trasferteEnabled,
     },
     {
       label: "Timesheet",
       href: "/timesheet",
-      enabled: data?.flags.TIMESHEET_ENABLED,
+      enabled: data?.flags.timesheetEnabled,
     },
   ];
 
@@ -30,7 +31,7 @@ export function Navbar() {
           {!isSmallScreen && (
             <div className="flex space-x-4">
               {menuItem.map((item, idx) => (
-                <>
+                <React.Fragment key={idx}>
                   {item.enabled && (
                     <a
                       key={idx}
@@ -45,7 +46,7 @@ export function Navbar() {
                       {item.label}
                     </a>
                   )}
-                </>
+                </React.Fragment>
               ))}
             </div>
           )}
