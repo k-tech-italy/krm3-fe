@@ -192,17 +192,17 @@ export default function EditTimeEntry({
     >
       {/* Date Selection Section */}
       <div className="space-y-4" id="datepickers-container">
-        <h3 className="text-lg font-medium text-gray-900">Date Range</h3>
+        <h3 className="text-lg font-medium text-app">Date Range</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4" id="datepickers">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-app mb-2">
               From Date
             </label>
             <DatePicker
               dateFormat="yyyy-MM-dd"
               maxDate={toDate}
               selected={fromDate}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-app rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               onChange={(date: Date | null) => {
                 if (!!date) {
                   handleChangeDate(date, "from");
@@ -212,14 +212,14 @@ export default function EditTimeEntry({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-app mb-2">
               To Date
             </label>
             <DatePicker
               dateFormat="yyyy-MM-dd"
               selected={toDate}
               minDate={fromDate}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-app rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               onChange={(date: Date | null) => {
                 if (!!date) {
                   handleChangeDate(date, "to");
@@ -234,12 +234,12 @@ export default function EditTimeEntry({
       {/* Hours Section */}
       <div className="space-y-4" id="details-section">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium text-gray-900">Hours</h3>
-          {/* <div className="text-sm text-gray-600">
+          <h3 className="text-lg font-medium text-app">Hours</h3>
+          {/* <div className="text-sm text-app">
             Total:{" "}
             <span
               className={`font-medium ${
-                totalHours > 24 ? "text-red-600" : "text-gray-900"
+                totalHours > 24 ? "text-red-600" : "text-app"
               }`}
             >
               {totalHours}h
@@ -252,11 +252,11 @@ export default function EditTimeEntry({
           id="details-container"
         >
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-app mb-2">
               Daytime Hours
             </label>
             <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-app rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               type="number"
               id="daytime-input"
               step={0.25}
@@ -275,11 +275,11 @@ export default function EditTimeEntry({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-app mb-2">
               Nighttime Hours
             </label>
             <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-app rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               type="number"
               step={0.25}
               min="0"
@@ -298,11 +298,11 @@ export default function EditTimeEntry({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-app mb-2">
               Travel Hours
             </label>
             <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-app rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               type="number"
               step={0.25}
               min="0"
@@ -321,11 +321,11 @@ export default function EditTimeEntry({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-app mb-2">
               On Call Hours
             </label>
             <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full border border-app rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               type="number"
               step={0.25}
               min="0"
@@ -345,13 +345,13 @@ export default function EditTimeEntry({
       {/* Comment Section */}
       <div className="space-y-2" id="comment-section">
         <label
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-app"
           id="comment-label"
         >
           Comment
         </label>
         <textarea
-          className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+          className="w-full border border-app rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
           id="comment-textarea"
           rows={3}
           value={comment}
@@ -394,7 +394,7 @@ export default function EditTimeEntry({
       {/* Action Buttons */}
       <div
         id="action-buttons"
-        className="flex items-center justify-between pt-6 border-t border-gray-200"
+        className="flex items-center justify-between pt-6 border-t border-app"
       >
         <Krm3Button
           disabled={daysWithTimeEntries.length === 0 || readOnly}

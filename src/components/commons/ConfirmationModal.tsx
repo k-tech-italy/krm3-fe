@@ -21,11 +21,11 @@ export default function ConfirmationModal({ open, onClose, onConfirm, content, t
                 onClick={(e) => e.stopPropagation()}
                 className="relative mx-auto w-full max-w-[25rem] rounded-lg overflow-auto shadow-sm max-h-[90vh]"
             >
-                <div className="relative flex flex-col bg-white ">
-                    <div className="flex justify-between items-center border-b-grey px-6">
-                        <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
+                <div className="relative flex flex-col bg-card ">
+                    <div className="flex justify-between items-center border-b-app px-6">
+                        <h2 className="text-xl font-semibold text-app">{title}</h2>
                         <button
-                            className="text-gray-500 hover:text-gray-700 focus:outline-none"
+                            className="text-app hover:text-krm3-primary focus:outline-none"
                             onClick={onClose}
                         >
                             <X className="w-5 h-5"/>

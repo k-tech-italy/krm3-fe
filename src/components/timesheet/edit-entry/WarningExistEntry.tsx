@@ -56,7 +56,7 @@ const WarningExistingEntry = ({
                     defaultChecked={overrideEntries}
                     id="save-for-update-checkbox"
                     data-tooltip-id="save-for-update-checkbox-tooltip"
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-app focus:ring-blue-500 border-app rounded"
                     onChange={() => {
                       setOverrideEntries(!overrideEntries);
                     }}

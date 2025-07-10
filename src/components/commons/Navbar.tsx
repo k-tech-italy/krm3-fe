@@ -2,6 +2,7 @@ import { UserMenu } from "./UserMenu";
 import { useMediaQuery } from "../../hooks/useView";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import React from "react";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Navbar() {
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
@@ -22,7 +23,7 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="bg-white text-gray-800 shadow py-2 px-8 border-b-1 border-gray-200">
+    <nav className="bg-app text-app shadow py-2 px-8 border-b-1 border-app">
       <div className="flex justify-between">
         <div className="flex flex-end space-x-4 items-baseline">
           <a className="text-xl font-bold " href="/">
@@ -40,7 +41,7 @@ export function Navbar() {
                 ${
                   currentLocation === item.href
                     ? "text-krm3-primary"
-                    : "text-gray-700"
+                    : "text-app"
                 }`}
                     >
                       {item.label}
@@ -51,7 +52,10 @@ export function Navbar() {
             </div>
           )}
         </div>
-        {window.location.pathname !== "/login" && <UserMenu />}
+        <div className="flex items-center space-x-4">
+          {window.location.pathname !== "/login" && <UserMenu />}
+          <ThemeToggle />
+        </div>
       </div>
     </nav>
   );

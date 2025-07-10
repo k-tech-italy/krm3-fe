@@ -36,7 +36,7 @@ export const TaskHeader: React.FC<TaskHeaderProps> = ({
       <div className={`${isMonthView ? "font-medium truncate" : ""}`}>
         {task.title}
       </div>
-      <div className={`text-xs text-gray-500`}>{task.projectName} - {task.clientName}</div> 
+      <div className={`text-xs text-app`}>{task.projectName} - {task.clientName}</div> 
     
     </div>
   );

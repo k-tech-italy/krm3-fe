@@ -64,10 +64,10 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
     ${isColumnView ? "border-l-3" : "border-b-3"}
     ${isColumnView ? "hover:border-l-blue-500" : "hover:border-b-blue-500"}
  
-     ${isNoWorkDay ? "bg-zinc-100" : ""}
-     ${!isInSelectedWeekdays ? "bg-zinc-100 cursor-not-allowed!" : ""}
+     ${isNoWorkDay ? "bg-app" : ""}
+     ${!isInSelectedWeekdays ? "bg-app cursor-not-allowed!" : ""}
 
-    ${isInDragRange || isColumnHighlighted ? "bg-blue-50" : ""}
+    ${isInDragRange || isColumnHighlighted ? "bg-card" : ""}
     ${
       (isInDragRange || isColumnHighlighted) &&
       (isColumnView ? "border-l-blue-500" : "border-b-blue-500")

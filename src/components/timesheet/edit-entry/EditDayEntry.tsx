@@ -203,7 +203,7 @@ export default function EditDayEntry({
                 dateFormat="yyyy-MM-dd"
                 maxDate={toDate}
                 selected={fromDate}
-                className="w-full border border-gray-300 rounded-md p-2"
+                className="w-full border border-app rounded-md p-2"
                 onChange={(date: Date | null) => {
                   if (!!date) {
                     handleChangeDate(date, "from");
@@ -218,7 +218,7 @@ export default function EditDayEntry({
                 dateFormat="yyyy-MM-dd"
                 selected={toDate}
                 minDate={fromDate}
-                className="w-full border border-gray-300 rounded-md p-2"
+                className="w-full border border-app rounded-md p-2"
                 onChange={(date: Date | null) => {
                   if (!!date) {
                     handleChangeDate(date, "to");
@@ -231,7 +231,7 @@ export default function EditDayEntry({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-app mb-2">
             Entry Type
           </label>
           <div className="grid grid-cols-2 gap-3">
@@ -240,7 +240,7 @@ export default function EditDayEntry({
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "holiday"
                   ? "bg-yellow-100 border-krm3-primary text-yellow-700"
-                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                  : "bg-card border-app text-app hover:bg-app"
               }`}
               onClick={() => handleEntryTypeChange("holiday")}
             >
@@ -260,7 +260,7 @@ export default function EditDayEntry({
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "sick"
                   ? "bg-yellow-100 border-krm3-primary text-yellow-700"
-                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                  : "bg-card border-app text-app hover:bg-app"
               }`}
               onClick={() => handleEntryTypeChange("sick")}
             >
@@ -279,7 +279,7 @@ export default function EditDayEntry({
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "leave"
                   ? "bg-yellow-100 border-krm3-primary text-yellow-700"
-                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                  : "bg-card border-app text-app hover:bg-app"
               }`}
               onClick={() => handleEntryTypeChange("leave")}
             >
@@ -298,7 +298,7 @@ export default function EditDayEntry({
               className={`flex items-center justify-center px-4 py-2 border rounded-md cursor-pointer transition-colors ${
                 entryType === "rest"
                   ? "bg-yellow-100 border-krm3-primary text-yellow-700"
-                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                  : "bg-card border-app text-app hover:bg-app"
               }`}
               onClick={() => handleEntryTypeChange("rest")}
             >
@@ -319,7 +319,7 @@ export default function EditDayEntry({
             <div className="transition-all duration-300 ease-in-out">
               <label
                 id="day-entry-leave-hour-label"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-app mb-2"
               >
                 {entryType === "rest" ? "Rest" : "Leave"} Hours *
               </label>
@@ -335,7 +335,7 @@ export default function EditDayEntry({
                 step={0.25}
                 placeholder="0.00"
                 required
-                className="w-full border  border-gray-300 rounded-md p-2"
+                className="w-full border  border-app rounded-md p-2"
                 disabled={readOnly}
               />
             </div>
@@ -345,7 +345,7 @@ export default function EditDayEntry({
             <div>
               <label
                 id="day-entry-special-reason-label"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-sm font-medium text-app mb-2"
               >
                 Reason
               </label>
@@ -355,7 +355,7 @@ export default function EditDayEntry({
                   name="specialReason"
                   value={specialReason}
                   onChange={(e) => setSpecialReason(e.target.value)}
-                  className="w-full border   border-gray-300 rounded-md p-2"
+                  className="w-full border   border-app rounded-md p-2"
                   disabled={readOnly}
                 >
                   <option value=""> Select a reason</option>
@@ -374,14 +374,14 @@ export default function EditDayEntry({
         <div className="">
           <label
             id="day-entry-comments-label"
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-medium text-app mb-2"
           >
             Comments{entryType === "sick" && " *"}
           </label>
           <textarea
             id="day-entry-comments-input"
             rows={3}
-            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-krm3-primary focus:ring-krm3-primary sm:text-sm p-2 border"
+            className="block w-full rounded-md border-app shadow-sm focus:border-krm3-primary focus:ring-krm3-primary sm:text-sm p-2 border"
             placeholder="Add any notes here..."
             value={comment || ""}
             required={entryType === "sick"}
@@ -413,7 +413,7 @@ export default function EditDayEntry({
         {!!error && <ErrorMessage message={displayErrorMessage(error)} />}
         {!!specialReasonError && <ErrorMessage message={displayErrorMessage(specialReasonError)} />}
 
-        <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+        <div className="flex items-center justify-between pt-6 border-t border-app">
           <Krm3Button
             disabled={daysWithTimeEntries.length === 0 || readOnly}
             type="button"

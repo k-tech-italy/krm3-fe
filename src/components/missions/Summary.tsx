@@ -18,16 +18,16 @@ export default function MissionSummary(props: Props) {
   };
 
   return (
-    <div className="shadow-md  border border-gray-300 rounded-lg mb-6 bg-white">
+    <div className="shadow-md  border border-app rounded-lg mb-6 bg-card">
       <div className="border-b border-gray-300 p-5">
       <div className="flex items-center justify-between">
-        <h4 className="text-xl font-bold text-gray-800">{props.data.title}</h4>
+        <h4 className="text-xl font-bold text-app">{props.data.title}</h4>
         <span className="bg-green-600 text-white text-xs font-medium rounded-full px-4 py-1">
         Attesa
         </span>
       </div>
-      <div className="flex items-center mt-3 text-gray-600">
-        <Hash size={18} className="mr-2 text-gray-500" />
+      <div className="flex items-center mt-3 text-app">
+        <Hash size={18} className="mr-2 text-app" />
         <small className="text-sm">Number Mission: {props.data.number}</small>
       </div>
       </div>
