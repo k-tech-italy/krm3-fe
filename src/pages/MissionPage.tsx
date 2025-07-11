@@ -12,7 +12,7 @@ import Tabs from "../components/commons/TopTabs";
 import Krm3Table from "../components/commons/Krm3Table";
 import { ExpenseEdit } from "../components/expense/edit/ExpenseEdit";
 
-export function Home() {
+export function MissionPage() {
   const { isLoading, data, isError } = useGetMissions();
   const isSmallScreen = useMediaQuery("(max-width: 767.98px)");
   const { data: exepenses } = useGetExpense();
@@ -68,7 +68,7 @@ export function Home() {
                 />
                 <Krm3Table
                   onClickRow={(item) =>
-                    window.location.replace(`/mission/${item.id}`)
+                    window.location.replace(`/trasferte/${item.id}`)
                   }
                   columns={[
                     { accessorKey: "id", header: "Id" },

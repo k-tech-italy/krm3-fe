@@ -1,3 +1,4 @@
+
 export enum Role {
   ADMIN = "admin",
   SUPERADMIN = "superadmin",
@@ -155,6 +156,10 @@ export interface User {
   flags: {
     [key in FlagsType]?: boolean;
   };
+  config: {
+    modules: string[],
+    defaultModule?: string
+  }
 }
 
 export const enum FlagsType {

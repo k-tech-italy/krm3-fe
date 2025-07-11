@@ -21,7 +21,7 @@ const BottomTabNavigation = () => {
         <div className="flex items-center  bg-white justify-center w-full py-3 space-x-4 mt-5">
           <button
             className={`flex flex-col items-center w-full transition-colors ${
-              currentLocation === "/trasferte" || currentLocation === "/"
+              currentLocation === "/trasferte"
                 ? "text-krm3-primary"
                 : "text-gray-500 hover:text-krm3-primary"
             }`}
@@ -47,7 +47,7 @@ const BottomTabNavigation = () => {
               <button
                 className="absolute -top-6 w-14 h-14 bg-krm3-primary text-white rounded-full shadow-lg flex items-center justify-center hover:bg-yellow-700 transition-transform transform hover:scale-105"
                 onClick={() => {
-                  if (window.location.pathname === "/") {
+                  if (window.location.pathname === "/trasferte") {
                     setOpenModal(true);
                   } else {
                     setOpenExpenseModal(true);
