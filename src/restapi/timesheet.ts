@@ -61,3 +61,8 @@ export function submitTimesheet(
     period: [startDate, endDate],
   });
 }
+
+export function getTimesheetReport(date: string) {
+  // date is month and shold be 202506
+  return restapi.get(`timesheet/report/data/${date}/`).then((res) => res.data);
+}

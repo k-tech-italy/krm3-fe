@@ -8,6 +8,7 @@ import {
   deleteTimeEntries,
   getSpecialReason,
   submitTimesheet,
+  getTimesheetReport,
 } from "../restapi/timesheet";
 
 export function useCreateTimeEntry(selectedResourceId: number | null) {
@@ -116,3 +117,16 @@ export function useGetSpecialReason(fromDate: string, toDate: string) {
     }
   );
 }
+
+export function useGetTimesheetReport(date: string) {
+  return useQuery(
+    ["timesheet-report", date],
+    () => getTimesheetReport(date),
+    {
+      onError: (error) => {
+        return error;
+      },
+    }
+  );
+}
+

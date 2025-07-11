@@ -38,7 +38,10 @@ export function MissionPage() {
 
   return (
     <>
-      <Tabs activeTab={activeTab} setActiveTab={(e) => setActiveTab(e)} />
+      <Tabs activeTab={activeTab} setActiveTab={(e) => setActiveTab(e)} tabs={[
+        {label: 'Trasferte', value: 'trasferte'},
+        {label: 'Spese', value: 'spese'}
+      ]} />
       <div className=" mx-auto px-8">
         {isLoading && <LoadSpinner />}
         {isError && (

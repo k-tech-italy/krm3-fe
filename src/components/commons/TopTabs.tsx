@@ -1,38 +1,35 @@
-import { useState } from "react";
+
+interface TabDef {
+  label: string;
+  value: string;
+}
 
 interface Props {
-    activeTab: string
-    setActiveTab: (e: string) => void
+  tabs: TabDef[];
+  activeTab: string;
+  setActiveTab: (e: string) => void;
 }
-export default function Tabs(props: Props){
-    const [activeTab, setActiveTab] = useState(props.activeTab);
 
-    function onClickTab(tabName: string){
-        setActiveTab(tabName)
-        props.setActiveTab(tabName)
-
-    }
-    return (
-        <div className={`transition-colors duration-300 sticky top-0 bg-white`}>
-        <ul className={` mx-auto  px-8 flex items-center justify-start pt-3 mb-5` }>
-            <li>
+export default function Tabs(props: Props) {
+  return (
+    <div className={`transition-colors duration-300 sticky top-0 bg-white`}>
+      <ul className={`mx-auto px-8 flex items-center justify-start pt-3 mb-5`}>
+        {props.tabs.map((tab) => (
+          <li key={tab.value}>
             <button
-                className={`py-2 px-4 ${activeTab === 'trasferte' ? 'border-b-2 border-krm3-primary font-medium' : 'text-gray-500'}`}
-                onClick={() => onClickTab('trasferte')}
+              className={`py-2 px-4 ${
+                props.activeTab === tab.value
+                  ? "border-b-2 border-krm3-primary font-medium"
+                  : "text-gray-500"
+              }`}
+              onClick={() => props.setActiveTab(tab.value)}
+              type="button"
             >
-                Trasferte
+              {tab.label}
             </button>
-            </li>
-            <li>
-            <button
-                className={`py-2 px-4 ${activeTab === 'spese' ? 'border-b-2 border-krm3-primary font-medium' : 'text-gray-500'}`}
-                onClick={() => onClickTab('spese')}
-            >
-                Ultime Spese
-            </button>
-            </li>
-        </ul>
-        </div>
-
-    )
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
