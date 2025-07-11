@@ -54,8 +54,9 @@ function AuthenticatedRoutes() {
     return <Navigate to="/login" replace />;
   }
 
-  const modules = currentUser.config.defaultModule || ['']
+  const modules = currentUser.config.modules
   const defautl = currentUser.config.defaultModule
+
 
   const routeGuards = [
     {
@@ -72,7 +73,7 @@ function AuthenticatedRoutes() {
     },
     {
       guard: true,
-      route: <Route path="/" element={!!defautl ? <Navigate to={'/' + defautl} replace /> : <Welcome/> } />,
+      route: <Route path="/" element={!!defautl ? <Navigate to={'/' + defautl}  /> : <Welcome/> } />,
     },
     {
       guard: modules.includes('trasferte'),
@@ -80,7 +81,7 @@ function AuthenticatedRoutes() {
     },
     {
       guard: true,
-      route: <Route path="*" element={<Navigate to="/" replace />} />,
+      route: <Route path="*" element={<Navigate to="/"  />} />,
     },
   ]
 
