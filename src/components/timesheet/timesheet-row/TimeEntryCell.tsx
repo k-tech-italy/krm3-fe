@@ -5,6 +5,7 @@ import { EmptyCell } from "./EmptyCell";
 import { TimeEntry, TimeEntryType } from "../../../restapi/types";
 import { SpecialDayCell } from "./SpecialDayCell";
 import { Draggable } from "../Draggable";
+import { getTileBgColorClass } from "../utils/utils.ts";
 
 export interface CellProps {
   day: Date;
@@ -50,6 +51,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
     ? "border-l-[var(--border-color)]"
     : "border-b-[var(--border-color)]";
 
+
   return (
     <Droppable
       id={cellId}
@@ -64,8 +66,9 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
     ${isColumnView ? "border-l-3" : "border-b-3"}
     ${isColumnView ? "hover:border-l-blue-500" : "hover:border-b-blue-500"}
  
-     ${isNoWorkDay ? "bg-zinc-100" : ""}
-     ${!isInSelectedWeekdays ? "bg-zinc-100 cursor-not-allowed!" : ""}
+    
+     ${!isInSelectedWeekdays ? "cursor-not-allowed!" : ""}
+     ${getTileBgColorClass(day, isNoWorkDay)}
 
     ${isInDragRange || isColumnHighlighted ? "bg-blue-50" : ""}
     ${

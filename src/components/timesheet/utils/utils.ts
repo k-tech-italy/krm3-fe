@@ -1,6 +1,6 @@
 import { TimeEntry } from "../../../restapi/types";
 import { normalizeDate } from "./dates";
-import { isHoliday, isSickDay } from "./timeEntry";
+import {isHoliday, isSickDay, isToday} from "./timeEntry";
 
 
 export const defaultColors: string[] = [
@@ -72,3 +72,13 @@ export function isValidUrl(url: string) {
     return false;
   }
 }
+
+export function getTileBgColorClass  (day: Date, isNoWorkDay: boolean | undefined){
+  if(isToday(day) && isNoWorkDay)
+    return "bg-green-300";
+  else if(isNoWorkDay)
+    return "bg-zinc-200";
+  else if(isToday(day))
+    return "bg-green-200";
+  return "bg-gray-100"
+};

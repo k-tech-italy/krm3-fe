@@ -4,8 +4,9 @@ import { DayType, TimeEntry, Timesheet } from "../../../restapi/types";
 import { Draggable } from "../Draggable";
 import { Droppable } from "../Droppable";
 import { formatDay, formatDayOfWeek, normalizeDate } from "../utils/dates";
-import { getDayType } from "../utils/timeEntry";
+import {getDayType, isToday} from "../utils/timeEntry";
 import { TotalHourCell, TotalHourForTask } from "./TotalHour";
+import { getTileBgColorClass } from "../utils/utils.ts";
 
 interface Props {
   timesheet: Timesheet;
@@ -26,6 +27,7 @@ function TimeSheetHeaders({
   isColumnHighlighted,
   selectedWeekdays,
 }: Props) {
+
   return (
     <>
       {scheduledDays.days.map((day, index) => (
@@ -60,9 +62,10 @@ function TimeSheetHeaders({
    
               ${
                 getDayType(day, timesheet.days) !== DayType.WORK_DAY
-                  ? "bg-zinc-200 cursor-not-allowed"
-                  : ""
+                  ? "cursor-not-allowed" : ""
               }
+              ${getTileBgColorClass(day, getDayType(day, timesheet.days) !== DayType.WORK_DAY)}
+              
                ${isColumnActive(index) ? "bg-blue-200" : ""}
               ${
                 isColumnHighlighted(index)
