@@ -2,6 +2,7 @@ import { Info } from "lucide-react";
 import { TimeEntry } from "../../../restapi/types";
 import { normalizeDate } from "../utils/dates";
 import {getTileBgColorClass} from "../utils/utils.ts";
+import { DoorOpen } from 'lucide-react';
 
 interface Props {
   day: Date;
@@ -29,6 +30,7 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isIn
         (Number(timeEntry.dayShiftHours) || 0) +
         (Number(timeEntry.nightShiftHours) || 0) +
         (Number(timeEntry.leaveHours) || 0) +
+        (Number(timeEntry.specialLeaveHours ) || 0) +
         (Number(timeEntry.restHours) || 0)
       );
     }
@@ -48,7 +50,7 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isIn
   const tooltipId = `tooltip-hours-${formattedDay}`;
 
   return (
-    <div className={`relative flex justify-center items-center h-full w-full`}>
+    <div className={`relative flex justify-center items-center h-full w-full `}>
       <div
         data-tooltip-id={tooltipId}
         data-tooltip-hidden={totalHour === 0}
@@ -66,6 +68,11 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isIn
             className="cursor-pointer mx-2"
           />
         )}
+        {timeEntries.some((timeEntry) => {
+          return timeEntry.date.slice(0, 10) == formattedDay &&
+              (timeEntry.leaveHours > 0 || timeEntry.specialLeaveHours > 0);
+        }) && <DoorOpen data-testid={`leave-icon-${formattedDay}`} size={isMonthView ? 14 : 20}/>}
+
       </div>
     </div>
   );
@@ -77,6 +84,7 @@ export const TotalHourForTask = ({ timeEntry }: { timeEntry: TimeEntry }) => {
     { label: "Nighttime", value: timeEntry.nightShiftHours },
     { label: "On Call", value: timeEntry.onCallHours },
     { label: "Leave", value: timeEntry.leaveHours },
+    { label: "Special Leave", value: timeEntry.specialLeaveHours },
     { label: "Travel", value: timeEntry.travelHours },
     { label: "Rest", value: timeEntry.restHours },
   ];

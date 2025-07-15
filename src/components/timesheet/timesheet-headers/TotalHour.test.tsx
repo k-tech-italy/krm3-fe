@@ -5,6 +5,7 @@ import { vi } from "vitest";
 // Mock the Info icon from lucide-react
 vi.mock("lucide-react", () => ({
   Info: () => <svg data-testid="info-icon" />,
+  DoorOpen: () => <svg data-testid="door-icon" />,
 }));
 
 describe("TotalHourCell", () => {
@@ -59,4 +60,31 @@ describe("TotalHourCell", () => {
     );
     expect(screen.getByText(/Task: Test Task/)).toBeInTheDocument();
   });
+  it("renders door icon when leave exist", () => {
+    render(
+        <TotalHourCell
+            day={baseDay}
+            timeEntries={[{ ...baseEntry, leaveHours: 1 }]}
+        />
+    );
+    expect(screen.getByTestId(`door-icon`))
+  })
+  it("renders door icon when special leave exist", () => {
+    render(
+        <TotalHourCell
+            day={baseDay}
+            timeEntries={[{ ...baseEntry, specialLeaveHours: 1 }]}
+        />
+    );
+    expect(screen.getByTestId(`door-icon`))
+  })
+  it("does not render door icon when there is no leave or special leave", () => {
+    render(
+        <TotalHourCell
+            day={baseDay}
+            timeEntries={[{ ...baseEntry }]}
+        />
+    );
+    expect(screen.queryByText(`door-icon`)).not.toBeInTheDocument();
+  })
 });

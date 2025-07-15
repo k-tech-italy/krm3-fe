@@ -61,6 +61,11 @@ export default function EditDayEntry({
         setEntryType("leave");
         setLeaveHours(startEntry.leaveHours);
       }
+      if (startEntry.specialLeaveHours > 0) {
+        setEntryType("leave");
+        setSpecialLeaveHours(startEntry.specialLeaveHours);
+        setSpecialReason(startEntry.specialLeaveReason)
+      }
       if (startEntry.holidayHours > 0) {
         setEntryType("holiday");
       }
@@ -75,6 +80,7 @@ export default function EditDayEntry({
   }, [startEntry]);
   const [overrideEntries, setOverrideEntries] = useState<boolean>(true);
   const [entryType, setEntryType] = useState<string | null>(null);
+  const [specialLeaveHours, setSpecialLeaveHours] = useState<number | undefined>();
   const [leaveHours, setLeaveHours] = useState<number | undefined>();
   const [restHours, setRestHours] = useState<number | undefined>();
   const [comment, setComment] = useState<string | undefined>(
@@ -124,14 +130,14 @@ export default function EditDayEntry({
   const handleEntryTypeChange = (type: string) => {
     if (readOnly) return; // Prevent changes in read-only mode
     if (entryType === "holiday" || entryType === "sick") {
-      setLeaveHours(undefined);
+      setSpecialLeaveHours(undefined);
       setRestHours(undefined);
       setLeaveHoursError(null);
     }
     setEntryType(type);
   };
 
-  const handleHoursChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleHoursChange = (event: React.ChangeEvent<HTMLInputElement>, isSpecialLeave=false) => {
     const totalHours = calculateTotalHoursForDays(
       timeEntries,
       daysWithTimeEntries
@@ -147,7 +153,10 @@ export default function EditDayEntry({
     if (entryType === "rest") {
       setRestHours(Number(event.target.value));
     } else {
-      setLeaveHours(Number(event.target.value));
+      if(isSpecialLeave)
+        setSpecialLeaveHours(Number(event.target.value));
+      else
+        setLeaveHours(Number(event.target.value))
     }
   };
 
@@ -161,9 +170,11 @@ export default function EditDayEntry({
         sickHours: entryType === "sick" ? 8 : undefined,
         leaveHours:
           entryType === "holiday" || entryType === "sick" ? 0 : leaveHours,
+        specialLeaveHours:
+            entryType === "holiday" || entryType === "sick" ? 0 : specialLeaveHours,
         restHours:
           entryType === "holiday" || entryType === "sick" ? 0 : restHours,
-        specialReason: specialReason,
+        specialLeaveReason: specialReason,
         dayShiftHours: 0, // Set dayShiftHours to 0 if 'cause is mandatory'
         comment: comment,
       }).then(onClose);
@@ -197,7 +208,7 @@ export default function EditDayEntry({
     }
     const isDeleteButtonVisible = timeEntries.filter(
         (entry) => {
-          return (entry.leaveHours != 0 || entry.restHours != 0)
+          return (entry.leaveHours != 0 || entry.restHours != 0 || entry.specialLeaveHours)
               && isDayInRange(startDate, endDate, entry.date)
         }).length > 0
 
@@ -327,26 +338,55 @@ export default function EditDayEntry({
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
+          {(entryType === "leave" ) && (
+              <div className="transition-all duration-300 ease-in-out col-span-full pr-1.5 w-1/2">
+                <label
+                    id="day-entry-leave-hour-label"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Leave Hours
+                </label>
+                <input
+                    id="day-entry-leave-hour-input"
+                    type="number"
+                    value={
+                      leaveHours
+                    }
+                    onChange={handleHoursChange}
+                    min="0"
+                    max="8"
+                    step={0.25}
+                    placeholder="0.00"
+                    className="w-full border  border-gray-300 rounded-md p-2"
+                    disabled={readOnly}
+                />
+              </div>
+          )}
           {(entryType === "leave" || entryType === "rest") && (
             <div className="transition-all duration-300 ease-in-out">
               <label
                 id="day-entry-leave-hour-label"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                {entryType === "rest" ? "Rest" : "Leave"} Hours *
+                {entryType === "rest" ? "Rest Hours *" : "Special Leave Hours"}
               </label>
               <input
                 id="day-entry-leave-hour-input"
                 type="number"
                 value={
-                  entryType === "leave" ? leaveHours ?? "" : restHours ?? ""
+                  entryType === "leave" ? specialLeaveHours ?? "" : restHours ?? ""
                 }
-                onChange={handleHoursChange}
+                onChange={(event) => {
+                  if(entryType === "rest")
+                    handleHoursChange(event);
+                  else
+                    handleHoursChange(event, true)
+                }}
                 min="0"
                 max="8"
                 step={0.25}
                 placeholder="0.00"
-                required
+                required={entryType === "rest" ? true : undefined}
                 className="w-full border  border-gray-300 rounded-md p-2"
                 disabled={readOnly}
               />
@@ -367,7 +407,8 @@ export default function EditDayEntry({
                   name="specialReason"
                   value={specialReason}
                   onChange={(e) => setSpecialReason(e.target.value)}
-                  className="w-full border   border-gray-300 rounded-md p-2"
+                  // className="block text-sm font-medium text-gray-700 mb-2"
+                  className="w-full border border-gray-300 rounded-md p-[0.6875rem] "
                   disabled={readOnly}
                 >
                   <option value=""> Select a reason</option>
@@ -449,7 +490,7 @@ export default function EditDayEntry({
                   onClick={ (event) => {
                     handleDeleteFilteredEntries(event, timeEntries.filter(
                         (entry) => {
-                          return (entry.leaveHours != 0 || entry.restHours != 0)
+                          return (entry.leaveHours != 0 || entry.restHours != 0 || entry.specialLeaveHours != 0)
                               && isDayInRange(startDate, endDate, entry.date)
                         }))}}
                   icon={<TrashIcon size={20} />}

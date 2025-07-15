@@ -28,7 +28,7 @@ vi.mock("react-tooltip", () => ({
 describe("EditDayEntry", () => {
   const baseProps = {
     startDate: new Date("2024-06-01"),
-    endDate: new Date("2024-06-02"),
+    endDate: new Date("2024-06-03"),
     timeEntries: [],
     onClose: vi.fn(),
     readOnly: false,
@@ -58,6 +58,27 @@ describe("EditDayEntry", () => {
         sickHours: 0,
         holidayHours: 0,
         leaveHours: 2,
+        specialLeaveHours: 0,
+        travelHours: 0,
+        restHours: 0,
+        nightShiftHours: 0,
+        onCallHours: 0,
+        task: 1
+      }
+    ]
+    render(<EditDayEntry {...baseProps } timeEntries={timeEntries}/>);
+    expect(screen.getByText('Delete')).toBeInTheDocument();
+  })
+  it("renders delete button when special leave exist", () => {
+    const timeEntries : TimeEntry[] = [
+      {
+        date: '2024-06-01',
+        id: 1,
+        dayShiftHours: 0,
+        sickHours: 0,
+        holidayHours: 0,
+        leaveHours: 0,
+        specialLeaveHours: 5,
         travelHours: 0,
         restHours: 0,
         nightShiftHours: 0,
@@ -77,6 +98,7 @@ describe("EditDayEntry", () => {
         sickHours: 0,
         holidayHours: 0,
         leaveHours: 0,
+        specialLeaveHours: 0,
         travelHours: 0,
         restHours: 1,
         nightShiftHours: 0,
@@ -96,6 +118,7 @@ describe("EditDayEntry", () => {
         sickHours: 0,
         holidayHours: 0,
         leaveHours: 0,
+        specialLeaveHours: 0,
         travelHours: 0,
         restHours: 0,
         nightShiftHours: 0,
@@ -115,6 +138,7 @@ describe("EditDayEntry", () => {
         sickHours: 0,
         holidayHours: 0,
         leaveHours: 0,
+        specialLeaveHours: 0,
         travelHours: 0,
         restHours: 1,
         nightShiftHours: 0,
@@ -128,6 +152,7 @@ describe("EditDayEntry", () => {
         sickHours: 0,
         holidayHours: 0,
         leaveHours: 2,
+        specialLeaveHours: 0,
         travelHours: 0,
         restHours: 0,
         nightShiftHours: 0,
@@ -136,11 +161,26 @@ describe("EditDayEntry", () => {
       },
       {
         date: '2024-06-01',
-        id: 2,
+        id: 3,
         dayShiftHours: 2,
         sickHours: 0,
         holidayHours: 0,
         leaveHours: 0,
+        specialLeaveHours: 0,
+        travelHours: 0,
+        restHours: 0,
+        nightShiftHours: 0,
+        onCallHours: 0,
+        task: 1
+      },
+      {
+        date: '2024-06-03',
+        id: 4,
+        dayShiftHours: 0,
+        sickHours: 0,
+        holidayHours: 0,
+        leaveHours: 0,
+        specialLeaveHours: 4,
         travelHours: 0,
         restHours: 0,
         nightShiftHours: 0,
@@ -150,6 +190,6 @@ describe("EditDayEntry", () => {
     ]
     render(<EditDayEntry {...baseProps } timeEntries={timeEntries}/>);
     screen.getByText('Delete').click()
-    expect(mutateDeleteMock).toHaveBeenCalledWith([1, 2]);
+    expect(mutateDeleteMock).toHaveBeenCalledWith([1, 2, 4]);
   })
 }); 

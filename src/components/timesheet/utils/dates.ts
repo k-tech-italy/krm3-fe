@@ -31,8 +31,10 @@ export function isDayInRange(
   const dayDate = new Date(day);
 
   [startDate, endDate, dayDate].forEach(d => d.setHours(0, 0, 0, 0));
-
-  return dayDate >= startDate && dayDate <= endDate;
+  if(startDate < endDate)
+    return dayDate >= startDate && dayDate <= endDate;
+  else
+    return dayDate >= endDate && dayDate <=  startDate;
 }
 
 /**
