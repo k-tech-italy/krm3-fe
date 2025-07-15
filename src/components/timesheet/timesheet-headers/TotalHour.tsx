@@ -1,6 +1,7 @@
 import { Info } from "lucide-react";
 import { TimeEntry } from "../../../restapi/types";
 import { normalizeDate } from "../utils/dates";
+import {getTileBgColorClass} from "../utils/utils.ts";
 
 interface Props {
   day: Date;
@@ -51,11 +52,11 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isIn
       <div
         data-tooltip-id={tooltipId}
         data-tooltip-hidden={totalHour === 0}
-        className={`bg-gray-100 items-center font-semibold ${
+        className={`items-center font-semibold ${
           isMonthView ? "text-[10px]" : "text-sm"
-        } flex justify-center  h-full w-full ${getTextColorClass(totalHour)} ${
-          isNoWorkDay || isInSelectedWeekdays ? "bg-zinc-200" : ""
-        }`}
+        } flex justify-center  h-full w-full ${getTextColorClass(totalHour)} 
+        ${getTileBgColorClass(day, isNoWorkDay)}
+        `}
       >
         {totalHour}h
         {totalHour > 0 && !isMonthView && (
