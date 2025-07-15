@@ -43,14 +43,17 @@ jobs:
         run: |
           CURRENT=$(grep '"version"' package.json | cut -d'"' -f4)
           PREVIOUS=$(git show HEAD~1:package.json | grep '"version"' | cut -d'"' -f4)
-
+          
           echo "Previous: $PREVIOUS"
           echo "Current: $CURRENT"
-
-          if [[ "$CURRENT" == "$PREVIOUS" ]]; then
+            
+          TRIMMED_CURRENT=$(echo "$CURRENT" | sed 's/\.//g')
+          TRIMMED_PREVIOUS=$(echo "$PREVIOUS" | sed 's/\.//g')
+            
+          if [[ "$TRIMMED_CURRENT" == "$TRIMMED_PREVIOUS" ]]; then
             echo "❌ Version not incremented! Still $CURRENT"
             exit 1
-          elif [[ "$CURRENT" > "$PREVIOUS" ]]; then
+          elif [[ "$TRIMMED_CURRENT" > "$TRIMMED_PREVIOUS" ]]; then
             echo "✅ Version incremented: $PREVIOUS → $CURRENT"
           else
             echo "❌ Version decreased: $PREVIOUS → $CURRENT"
