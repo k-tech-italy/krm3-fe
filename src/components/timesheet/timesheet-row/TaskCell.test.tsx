@@ -28,6 +28,8 @@ describe("TaskHeader", () => {
       />
     );
     expect(screen.getByText("Task 1")).toBeInTheDocument();
-    expect(screen.getByText("Project A - Client 1")).toBeInTheDocument();
+    expect(screen.getByText("Project A")).toBeInTheDocument();
+    expect(screen.getByText("Client 1")).toBeInTheDocument();
+
   });
 }); 
