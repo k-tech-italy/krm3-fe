@@ -32,7 +32,7 @@ export function useCreateTimeEntry(selectedResourceId: number | null) {
       onCallHours?: number;
       restHours?: number;
       specialLeaveHours?: number;
-      specialReason?: string;
+      specialLeaveReason?: string;
       comment?: string;
     }) => createTimeEntry({ ...params, resourceId }),
     {

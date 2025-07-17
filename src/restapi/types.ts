@@ -190,12 +190,13 @@ export interface TimeEntry {
   dayShiftHours: number;
   sickHours: number;
   holidayHours: number;
+  specialLeaveHours: number;
   leaveHours: number;
   nightShiftHours: number;
   travelHours: number;
   onCallHours: number;
   restHours: number;
-  specialReason?: string;
+  specialLeaveReason?: string;
   comment?: string;
   metaData?: JSON;
 }

@@ -55,6 +55,7 @@ export function calculateTotalHoursForDays(
         (Number(entry.nightShiftHours) || 0) +
         (Number(entry.travelHours) || 0) +
         (Number(entry.restHours) || 0) +
+        (Number(entry.specialLeaveHours) || 0) +
         (Number(entry.leaveHours) || 0),
       0
     );
