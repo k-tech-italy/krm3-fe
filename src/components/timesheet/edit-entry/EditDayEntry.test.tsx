@@ -1,6 +1,9 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import EditDayEntry from "./EditDayEntry";
 import { vi } from "vitest";
+import {TimeEntry} from "../../../restapi/types.ts";
+
+const mutateDeleteMock = vi.fn().mockResolvedValue(undefined);
 
 vi.mock("../../../hooks/useTimesheet", () => ({
   useCreateTimeEntry: () => ({
@@ -10,7 +13,7 @@ vi.mock("../../../hooks/useTimesheet", () => ({
     error: null,
   }),
   useDeleteTimeEntries: () => ({
-    mutateAsync: vi.fn(),
+    mutateAsync: mutateDeleteMock,
   }),
   useGetSpecialReason: () => ({
     data: [],
@@ -46,4 +49,107 @@ describe("EditDayEntry", () => {
     fireEvent.click(screen.getByText(/cancel/i));
     expect(baseProps.onClose).toHaveBeenCalled();
   });
+  it("renders delete button when leave exist", () => {
+    const timeEntries : TimeEntry[] = [
+      {
+        date: '2024-06-01',
+        id: 1,
+        dayShiftHours: 0,
+        sickHours: 0,
+        holidayHours: 0,
+        leaveHours: 2,
+        travelHours: 0,
+        restHours: 0,
+        nightShiftHours: 0,
+        onCallHours: 0,
+        task: 1
+      }
+    ]
+    render(<EditDayEntry {...baseProps } timeEntries={timeEntries}/>);
+    expect(screen.getByText('Delete')).toBeInTheDocument();
+  })
+  it("renders delete button when rest exist", () => {
+    const timeEntries : TimeEntry[] = [
+      {
+        date: '2024-06-01',
+        id: 1,
+        dayShiftHours: 0,
+        sickHours: 0,
+        holidayHours: 0,
+        leaveHours: 0,
+        travelHours: 0,
+        restHours: 1,
+        nightShiftHours: 0,
+        onCallHours: 0,
+        task: 1
+      }
+    ]
+    render(<EditDayEntry {...baseProps } timeEntries={timeEntries}/>);
+    expect(screen.getByText('Delete')).toBeInTheDocument();
+  })
+  it("do not render delete button when there is no rest or leave entry", () => {
+    const timeEntries : TimeEntry[] = [
+      {
+        date: '2024-06-01',
+        id: 1,
+        dayShiftHours: 2,
+        sickHours: 0,
+        holidayHours: 0,
+        leaveHours: 0,
+        travelHours: 0,
+        restHours: 0,
+        nightShiftHours: 0,
+        onCallHours: 0,
+        task: 1
+      }
+    ]
+    render(<EditDayEntry {...baseProps } timeEntries={timeEntries}/>);
+    expect(screen.queryByText('Delete')).toBeNull();
+  })
+  it("delete only leaves/rests when clicked on delete button", () => {
+    const timeEntries : TimeEntry[] = [
+      {
+        date: '2024-06-01',
+        id: 1,
+        dayShiftHours: 0,
+        sickHours: 0,
+        holidayHours: 0,
+        leaveHours: 0,
+        travelHours: 0,
+        restHours: 1,
+        nightShiftHours: 0,
+        onCallHours: 0,
+        task: 1
+      },
+      {
+        date: '2024-06-02',
+        id: 2,
+        dayShiftHours: 0,
+        sickHours: 0,
+        holidayHours: 0,
+        leaveHours: 2,
+        travelHours: 0,
+        restHours: 0,
+        nightShiftHours: 0,
+        onCallHours: 0,
+        task: 1
+      },
+      {
+        date: '2024-06-01',
+        id: 2,
+        dayShiftHours: 2,
+        sickHours: 0,
+        holidayHours: 0,
+        leaveHours: 0,
+        travelHours: 0,
+        restHours: 0,
+        nightShiftHours: 0,
+        onCallHours: 0,
+        task: 1
+      }
+    ]
+    render(<EditDayEntry {...baseProps } timeEntries={timeEntries}/>);
+    screen.getByText('Delete').click()
+    expect(mutateDeleteMock).toHaveBeenCalledWith([1, 2]);
+  })
 }); 

@@ -10,7 +10,7 @@ import {
   calculateTotalHoursForDays,
   getDatesWithAndWithoutTimeEntries,
 } from "../utils/timeEntry";
-import { formatDate, getDatesBetween } from "../utils/dates";
+import {formatDate,  getDatesBetween, isDayInRange} from "../utils/dates";
 import { normalizeDate } from "../utils/dates";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -18,8 +18,7 @@ import LoadSpinner from "../../commons/LoadSpinner";
 import ErrorMessage from "./ErrorMessage";
 import WarningExistingEntry from "./WarningExistEntry";
 import Krm3Button from "../../commons/Krm3Button";
-import { CheckIcon, TrashIcon } from "lucide-react";
-import {} from "../utils/timeEntry";
+import { CheckIcon, TrashIcon, X } from "lucide-react";
 
 interface Props {
   startDate: Date;
@@ -46,7 +45,7 @@ export default function EditDayEntry({
     isError,
     error,
   } = useCreateTimeEntry(selectedResourceId);
-  const { mutateAsync: deleteDays } = useDeleteTimeEntries();
+  const { mutateAsync: deleteTimeEntries } = useDeleteTimeEntries();
 
   const startEntry = useMemo(() => {
     return timeEntries.find(
@@ -120,11 +119,6 @@ export default function EditDayEntry({
     endDate: Date = toDate
   ): string[] => {
     return getDatesBetween(startDate, endDate, noWorkingDays, true);
-    // if (entryType === "leave" || entryType === "rest") {
-    //   return dates;
-    // } else {
-    //   return dates
-    // }
   };
 
   const handleEntryTypeChange = (type: string) => {
@@ -176,18 +170,36 @@ export default function EditDayEntry({
     }
   };
 
-  function handleDeleteEntry(event: any): void {
+  function handleDeleteEntries(event: any): void {
     event.preventDefault();
-    //DELETE API with skippedTaskId
-    const skippedTaskId = daysWithTimeEntries.flatMap((day) =>
+
+    const timeEntriesIdsToDelete = daysWithTimeEntries.flatMap((day) =>
       timeEntries
         .filter((item) => normalizeDate(item.date) === normalizeDate(day))
         .map((item) => item.id)
     );
-    deleteDays(skippedTaskId).then(() => {
+    deleteTimeEntries(timeEntriesIdsToDelete).then(() => {
       onClose();
     });
   }
+  function handleDeleteFilteredEntries(event: any, selectedEntries: TimeEntry[]): void {
+    event.preventDefault();
+
+    const timeEntriesIdsToDelete = daysWithTimeEntries.flatMap((day) =>
+        timeEntries
+            .filter((item) => normalizeDate(item.date) === normalizeDate(day) &&
+                selectedEntries.includes(item))
+            .map((item) => item.id)
+    );
+    deleteTimeEntries(timeEntriesIdsToDelete).then(() => {
+      onClose();
+    });
+    }
+    const isDeleteButtonVisible = timeEntries.filter(
+        (entry) => {
+          return (entry.leaveHours != 0 || entry.restHours != 0)
+              && isDayInRange(startDate, endDate, entry.date)
+        }).length > 0
 
   return (
     <div>
@@ -412,23 +424,48 @@ export default function EditDayEntry({
 
         {!!error && <ErrorMessage message={displayErrorMessage(error)} />}
         {!!specialReasonError && <ErrorMessage message={displayErrorMessage(specialReasonError)} />}
+        <div className={`${isDeleteButtonVisible ? 
+            'flex flex-wrap pt-6 border-t border-gray-200 gap-4 justify-between' :
+            'flex flex-row gap-4'
+        }`}>
 
-        <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-          <Krm3Button
-            disabled={daysWithTimeEntries.length === 0 || readOnly}
-            type="button"
-            style="danger"
-            onClick={handleDeleteEntry}
-            icon={<TrashIcon size={20} />}
-            label="Delete"
-          />
-          <div className="flex space-x-3">
+            <Krm3Button
+              disabled={daysWithTimeEntries.length === 0 || readOnly}
+              type="button"
+              style="danger"
+              onClick={handleDeleteEntries}
+              icon={<TrashIcon size={20} />}
+              label="Clear Day"
+              mobileLabel={`${isDeleteButtonVisible ? "Clear Day" : "Clear"}`}
+              additionalStyles={'w-[45%] md:w-[20%]'}
+            />
+            { isDeleteButtonVisible
+                &&
+              <Krm3Button
+                  disabled={timeEntries.map(
+                      (entry) => entry.leaveHours == 0 && entry.restHours == 0).length === 0 || readOnly}
+                  type="button"
+                  style="danger"
+                  onClick={ (event) => {
+                    handleDeleteFilteredEntries(event, timeEntries.filter(
+                        (entry) => {
+                          return (entry.leaveHours != 0 || entry.restHours != 0)
+                              && isDayInRange(startDate, endDate, entry.date)
+                        }))}}
+                  icon={<TrashIcon size={20} />}
+                  label="Delete"
+                  additionalStyles={'w-[45%] md:w-[20%] md:mr-auto'}
+              />
+            }
+
             <Krm3Button
               disabled={isLoading}
               type="button"
               onClick={onClose}
               style="secondary"
               label="Cancel"
+              icon={<X size={20} />}
+              additionalStyles={`w-[45%] md:w-[20%] ${!isDeleteButtonVisible ? 'ml-auto': ''}`}
             />
 
             <Krm3Button
@@ -444,8 +481,9 @@ export default function EditDayEntry({
               label="Save"
               icon={<CheckIcon size={20} />}
               disabledTooltipMessage="Please select a valid day"
+              additionalStyles={'w-[45%] md:w-[20%] '}
             />
-          </div>
+
         </div>
       </form>
     </div>
