@@ -138,25 +138,29 @@ export default function EditDayEntry({
   };
 
   const handleHoursChange = (event: React.ChangeEvent<HTMLInputElement>, isSpecialLeave=false) => {
+    const newValue = Number(event.target.value);
+    const changedField = entryType === "rest" ? "restHours" : isSpecialLeave ? "specialLeaveHours" : "leaveHours";
     const totalHours = calculateTotalHoursForDays(
       timeEntries,
-      daysWithTimeEntries
+      daysWithTimeEntries,
+      newValue,
+      changedField
     );
-    if (totalHours + Number(event.target.value) > 8 && entryType === "leave") {
+    if (totalHours > 8 && entryType === "leave") {
       setLeaveHoursError(
         "No overtime allowed when logging leave hours. Maximum allowed is 8 hours, Total hours: " +
-          (totalHours + Number(event.target.value))
+          (totalHours + newValue)
       );
     } else {
       setLeaveHoursError(null);
     }
     if (entryType === "rest") {
-      setRestHours(Number(event.target.value));
+      setRestHours(newValue);
     } else {
       if(isSpecialLeave)
-        setSpecialLeaveHours(Number(event.target.value));
+        setSpecialLeaveHours(newValue);
       else
-        setLeaveHours(Number(event.target.value))
+        setLeaveHours(newValue)
     }
   };
 
