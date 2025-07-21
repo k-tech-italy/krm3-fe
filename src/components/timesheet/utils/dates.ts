@@ -143,6 +143,12 @@ export function getFirstMondayOfMonth(inputDate: Date): number {
     addToGetMonday[firstDayOfMonth.getDay() as Weekday]
   );
 }
+export function getFirstDayOfMonth(input: Date): Date {
+  return new Date(input.getFullYear(), input.getMonth(), 1);
+}
+export function getLastDayOfMonth(input: Date): Date {
+  return new Date(input.getFullYear(), input.getMonth() + 1, 0);
+}
 export function convertStringToDate(stringDate: string)
 {
   return new Date(stringDate);

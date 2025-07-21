@@ -52,11 +52,18 @@ export function TimeSheetTable(props: Props) {
     props.selectedResourceId
   );
 
+
   useEffect(() => {
     if (!isLoadingTimesheet && timesheet) {
       props.setNoWorkingDay(timesheet.days);
     }
   }, [isLoadingTimesheet, timesheet, props.setNoWorkingDay]);
+
+  useEffect(() => {
+    if (timesheet?.timeEntries) {
+      props.setTimeEntries(timesheet.timeEntries);
+    }
+  }, [timesheet]);
 
   const [openShortMenu, setOpenShortMenu] = useState<
     { startDate: string; endDate: string; taskId: string } | undefined

@@ -375,7 +375,7 @@ export default function EditDayEntry({
                 {entryType === "rest" ? "Rest Hours *" : "Special Leave Hours"}
               </label>
               <input
-                id="day-entry-leave-hour-input"
+                id="day-entry-special-leave-hour-input"
                 type="number"
                 value={
                   entryType === "leave" ? specialLeaveHours ?? "" : restHours ?? ""
