@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { Home } from "./pages/Home";
+import { MissionPage } from "./pages/MissionPage";
 import { Mission } from "./components/missions/Mission";
 import { Navbar } from "./components/commons/Navbar";
 import { Login } from "./components/commons/Login";
@@ -54,33 +54,36 @@ function AuthenticatedRoutes() {
     return <Navigate to="/login" replace />;
   }
 
+  const modules = currentUser.config.modules
+  const defautl = currentUser.config.defaultModule
+
+
   const routeGuards = [
     {
       guard: true,
       route: <Route path="/user" element={<User />} />,
     },
     {
-      guard: currentUser.flags.trasferteEnabled,
-      route: <Route path="/mission/:id" element={<Mission />} />,
+      guard: modules.includes('trasferte'),
+      route: <Route path="/trasferte/:id" element={<Mission />} />,
     },
     {
-      guard: currentUser.flags.timesheetEnabled,
+      guard: modules.includes('timesheet'),
       route: <Route path="/timesheet" element={<Timesheet />} />,
     },
     {
       guard: true,
-      route: (
-        <Route
-          path="/"
-          element={currentUser.flags.trasferteEnabled ? <Home /> : <Welcome />}
-        />
-      ),
+      route: <Route path="/" element={!!defautl ? <Navigate to={'/' + defautl}  /> : <Welcome/> } />,
+    },
+    {
+      guard: modules.includes('trasferte'),
+      route: <Route path="/trasferte" element={<MissionPage />} />,
     },
     {
       guard: true,
-      route: <Route path="*" element={<Navigate to="/" replace />} />,
+      route: <Route path="*" element={<Navigate to="/"  />} />,
     },
-  ];
+  ]
 
   return (
     <div className="wrapper">

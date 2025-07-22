@@ -10,6 +10,7 @@ import { useMediaQuery } from "../../hooks/useView";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import { logout } from "../../restapi/user";
 import Krm3Button from "./Krm3Button";
+import { User } from "../../restapi/types";
 
 interface LoginError {
   username?: string;
@@ -26,12 +27,16 @@ export function Login() {
   const isSmallScreen = useMediaQuery("(max-width: 767.98px)");
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated } = useGetCurrentUser();
+  const { data, isAuthenticated } = useGetCurrentUser();
   const [showLogin, setShowLogin] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<LoginError>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  const defaultPage = (data: User) => {
+    return data.config.defaultModule ? data.config.defaultModule : "/welcome";
+  };
 
   useEffect(() => {
     const values = queryString.parse(location.search);
@@ -42,7 +47,6 @@ export function Login() {
       googleAuthenticate(state.toString(), code.toString())
         .then(() => {
           console.log("Google authentication successful");
-          navigate("/home");
         })
         .catch((err) => {
           console.error("Google authentication failed", err);
@@ -60,13 +64,13 @@ export function Login() {
   }, [location, navigate]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/home");
+    if (isAuthenticated && data) {
+      defaultPage(data);
     } else {
       // Clear Cookie for issue between new and old version of the app
       logout();
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, data, navigate]);
 
   const validateForm = (): ValidationResult => {
     const errors: LoginError = {};

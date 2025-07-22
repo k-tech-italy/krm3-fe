@@ -21,6 +21,22 @@ export function normalizeDate(input: Date | string): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+export function isDayInRange(
+    start: string | Date,
+    end: string | Date,
+    day: string | Date
+): boolean {
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  const dayDate = new Date(day);
+
+  [startDate, endDate, dayDate].forEach(d => d.setHours(0, 0, 0, 0));
+  if(startDate < endDate)
+    return dayDate >= startDate && dayDate <= endDate;
+  else
+    return dayDate >= endDate && dayDate <=  startDate;
+}
+
 /**
  * Generic wrapper around Intl.DateTimeFormat
  * @param input Date or date-string
@@ -127,7 +143,10 @@ export function getFirstMondayOfMonth(inputDate: Date): number {
     addToGetMonday[firstDayOfMonth.getDay() as Weekday]
   );
 }
-
+export function convertStringToDate(stringDate: string)
+{
+  return new Date(stringDate);
+}
 export function getFilteredWeekDates(
   selectedWeekRange: 'startOfWeek' | 'endOfWeek' | 'whole',
   isMonthView: boolean,

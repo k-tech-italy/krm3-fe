@@ -8,9 +8,11 @@ interface Props {
   icon?: React.ReactNode;
   disabledTooltipMessage?: string;
   label: string;
+  mobileLabel?: string;
+  additionalStyles?: string;
 }
 
-const Krm3Button = ({ disabled, onClick, type, style, icon, label, disabledTooltipMessage }: Props) => {
+const Krm3Button = ({ disabled, onClick, type, style, icon, label, disabledTooltipMessage, additionalStyles="", mobileLabel }: Props) => {
   const styles = {
     primary: {
       buttonStyle:
@@ -46,14 +48,22 @@ const Krm3Button = ({ disabled, onClick, type, style, icon, label, disabledToolt
         data-tooltip-id={`tooltip-${label}`}
         className={`inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md  transition-colors duration-200 focus:ring-2 focus:ring-offset-2 ${
           disabled ? disabledStyle : buttonStyle
-        }`}
+        } ${additionalStyles}`}
         id="delete-button"
         type={type || "button"}
         onClick={onClick}
         disabled={disabled}
       >
         {icon && <span className="mr-2">{icon}</span>}
-        <span>{label}</span>
+        {mobileLabel ? (
+            <>
+              <span className="sm:inline hidden">{label}</span>
+              <span className="sm:hidden inline">{mobileLabel}</span>
+            </>
+        ) : (
+            label
+        )}
+
       </button>
       {disabled && (
         <Tooltip id={`tooltip-${label}`} content={disabledTooltipMessage} />

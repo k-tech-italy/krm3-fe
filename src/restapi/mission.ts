@@ -22,7 +22,7 @@ export function getMissions(isStaff: boolean, resourceId?: number): Promise<Page
     if (resourceId !== undefined) {
         params = { resource_id: resourceId, is_staff: isStaff };
     }
-    return restapi.get<Page<MissionInterface>>(`missions/mission/`, { params }).then(res => res.data);
+    return restapi.get<Page<MissionInterface>>('missions/mission/', { params }).then(res => res.data);
 }
 
 export function getMission(id: number): Promise<MissionInterface> {

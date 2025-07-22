@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { Home } from "./Home";
+import { MissionPage } from "./MissionPage";
 import { vi } from "vitest";
 import { useGetMissions } from "../hooks/useMissions";
 import { UseQueryResult } from "react-query";
@@ -75,7 +75,7 @@ describe("Home", () => {
     mockUseGetMissions.mockReturnValueOnce({
       isLoading: true,
     } as UseQueryResult<any>);
-    render(<Home />);
+    render(<MissionPage />);
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
 
@@ -84,12 +84,12 @@ describe("Home", () => {
       isLoading: false,
       isError: true,
     } as UseQueryResult<any>);
-    render(<Home />);
+    render(<MissionPage />);
     expect(screen.getByText(/errore/i)).toBeInTheDocument();
   });
 
   it("renders tabs and switches tab", () => {
-    render(<Home />);
+    render(<MissionPage />);
     fireEvent.click(screen.getByText(/spese/i));
     expect(screen.getByText(/expensefilter/i)).toBeInTheDocument();
     fireEvent.click(screen.getByText(/trasferte/i));

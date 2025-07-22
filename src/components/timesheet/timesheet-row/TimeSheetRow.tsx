@@ -168,7 +168,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
         }`}
       >
         <p
-          className={`
+          className={`font-semibold
         ${isMonthView ? "text-[10px] " : ""}`}
         >
           {totalHours}

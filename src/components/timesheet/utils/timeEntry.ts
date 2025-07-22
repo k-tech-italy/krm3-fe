@@ -36,13 +36,18 @@ export const getDatesWithAndWithoutTimeEntries = (
 //Calculate the total hours for a list of dates. This function takes a list of
 export function calculateTotalHoursForDays(
   timeEntries: TimeEntry[],
-  dates: string[]
+  dates: string[],
+  newValue: number,
+  changedField: "restHours" | "leaveHours" | "specialLeaveHours"
 ): number {
   // Group time entries by normalized date for O(1) lookup
   const entriesByDate: Record<string, TimeEntry[]> = {};
   for (const entry of timeEntries) {
     const date = normalizeDate(entry.date);
     if (!entriesByDate[date]) entriesByDate[date] = [];
+    if(entry.task === null){
+      entry[changedField] = newValue
+    }
     entriesByDate[date].push(entry);
   }
 
@@ -55,6 +60,7 @@ export function calculateTotalHoursForDays(
         (Number(entry.nightShiftHours) || 0) +
         (Number(entry.travelHours) || 0) +
         (Number(entry.restHours) || 0) +
+        (Number(entry.specialLeaveHours) || 0) +
         (Number(entry.leaveHours) || 0),
       0
     );
@@ -84,6 +90,13 @@ export const isSickDay = (
       return normalizeDate(entry.date) === normalizeDate(day);
     }) ?? false
   );
+};
+
+export const isToday= (date: Date): boolean => {
+  const today = new Date()
+  return date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate();
 };
 
 export const getTimeEntriesForTaskAndDay = (
