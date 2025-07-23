@@ -34,7 +34,7 @@ const Krm3Button = ({ disabled, onClick, type, style, icon, label, disabledToolt
     },
     default: {
       buttonStyle:
-        "text-white border-transparent bg-krm3-primary hover:bg-krm3-primary-darkr focus:outline-none focus:ring-krm3-primary",
+        "text-white border-transparent bg-krm3-primary hover:bg-krm3-primary-dark focus:outline-none focus:ring-krm3-primary",
       disabledStyle:
         "text-white border-transparent bg-krm3-disabled cursor-not-allowed",
     },

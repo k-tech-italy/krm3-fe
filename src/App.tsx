@@ -84,16 +84,9 @@ function AuthenticatedRoutes() {
       route: <Route path="*" element={<Navigate to="/"  />} />,
     },
   ]
-
   return (
     <div className="wrapper">
       <div className="main bg-app">
-        <div>
-             {/* Display the .env variable KRM3_CIAO_VAR */}
-             <div style={{ padding: "8px", background: "#f3f4f6", color: "#333", borderRadius: "4px", marginBottom: "12px" }}>
-               <strong>KRM3_CIAO_VAR:</strong> {import.meta.env.VITE_KRM3_CIAO_VAR ?? "Not set"}
-             </div>
-             </div>
         <Navbar />
         <div className="pb-16">
           <Routes>

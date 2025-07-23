@@ -211,7 +211,6 @@ html.dark .linear-gradient-disabled {
   background-color: var(--color-card-bg, #fff) !important;
 }
 
-
 :root {
   --color-card-bg: #fff;
   --color-app-bg: #f8fafc;
@@ -220,7 +219,11 @@ html.dark .linear-gradient-disabled {
   --color-border: #e5e7eb;
   --color-table-header: #f3f4f6;
   --color-table-row-alt: #e4e4e7;
-  --color-table-today: #99f442
+  --color-table-today: #99f442;
+  --color-selector-controller: #e4e4e7;
+  --color-selector-menu: #fff;
+  --color-selector-selected: #269cf1;
+  --color-selector-focused: #bee6ff;
 }
 
 html.dark {
@@ -231,7 +234,11 @@ html.dark {
   --color-border: #374151;
   --color-table-header: #23272f;
   --color-table-row-alt: #18181b;
-  --color-table-today: #5bb500
+  --color-table-today: #5bb500;
+  --color-selector-controller: #23272f;
+  --color-selector-menu: #374151;
+  --color-selector-selected: #0d5d93;
+  --color-selector-focused: #003f67;
 }
 
 .bg-card {
@@ -257,4 +264,16 @@ html.dark {
 }
 .bg-table-row-alt {
   background-color: var(--color-table-row-alt) !important;
+}
+.bg-selector-controller{
+	background-color: var(--color-selector-controller) !important;
+}
+.bg-selector-menu{
+	background-color: var(--color-selector-menu) !important;
+}
+.bg-selector-selected{
+	background-color: var(--color-selector-selected) !important;
+}
+.bg-selector-focused{
+	background-color: var(--color-selector-focused) !important;
 }
