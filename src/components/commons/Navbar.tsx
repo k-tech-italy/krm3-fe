@@ -19,29 +19,29 @@ export function Navbar() {
             KRM³
           </a>
           {!isSmallScreen && (
-            <div className="flex space-x-4">
-              {data?.config.modules.map((item, idx) => (
-                <React.Fragment key={idx}>
-                  <a
-                    key={idx}
-                    href={item}
-                    className={`text-base font-medium  hover:text-krm3-primary
+              <div className="flex space-x-4">
+                {data?.config.modules.map((item, idx) => (
+                    <React.Fragment key={idx}>
+                      <a
+                          key={idx}
+                          href={item}
+                          className={`text-base font-medium  hover:text-krm3-primary
                 ${
-                  currentLocation === item
-                    ? "text-krm3-primary"
-                    : "text-app"
-                }`}
-                  >
-                    {item}
-                  </a>
-                </React.Fragment>
-              ))}
-            </div>
+                              currentLocation === item
+                                  ? "text-krm3-primary"
+                                  : "text-app"
+                          }`}
+                      >
+                        {item}
+                      </a>
+                    </React.Fragment>
+                ))}
+              </div>
           )}
         </div>
         <div className="flex items-center space-x-4">
-            {location.pathname !== "/login" && <UserMenu />}
-            <ThemeToggle />
+          {location.pathname !== "/login" && <UserMenu/>}
+          <ThemeToggle/>
         </div>
       </div>
     </nav>
