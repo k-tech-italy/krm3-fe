@@ -35,14 +35,14 @@ export default function FilterResource(props: Props) {
 
   return (
     <form>
-      <div className="card mb-4 p-4 shadow bg-white rounded-lg border border-gray-200">
+      <div className="card mb-4 p-4 shadow bg-card rounded-lg border border-app">
         <div>
           <div className="mb-6">
             {props.isAdmin && (
               <>
                 <label
                   htmlFor="filterInput"
-                  className="block text-sm font-medium text-gray-800 mb-2"
+                  className="block text-sm font-medium text-app mb-2"
                 >
                   Filtro:
                 </label>
@@ -51,7 +51,7 @@ export default function FilterResource(props: Props) {
                   id="filterInput"
                   placeholder="Inserisci nome"
                   onChange={handleFilterName}
-                  className="w-full rounded-lg border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm p-2"
+                  className="w-full rounded-lg border border-app shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm p-2 bg-card text-app"
                 />
               </>
             )}

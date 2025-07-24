@@ -18,12 +18,12 @@ const BottomTabNavigation = () => {
   return (
     <div className="relative">
       <nav className="fixed bottom-0 w-full  flex justify-around shadow-lg z-50">
-        <div className="flex items-center  bg-white justify-center w-full py-3 space-x-4 mt-5">
+        <div className="flex items-center  bg-app justify-center w-full py-3 space-x-4 mt-5">
           <button
             className={`flex flex-col items-center w-full transition-colors ${
               currentLocation === "/trasferte"
                 ? "text-krm3-primary"
-                : "text-gray-500 hover:text-krm3-primary"
+                : "text-app hover:text-krm3-primary"
             }`}
             onClick={() => handleTabClick("home", "/")}
           >
@@ -34,7 +34,7 @@ const BottomTabNavigation = () => {
             className={`flex flex-col items-center w-full transition-colors ${
               activeTab === "rimborsi"
                 ? "text-krm3-primary"
-                : "text-gray-500 hover:text-krm3-primary"
+                : "text-app hover:text-krm3-primary"
             }`}
             onClick={() => handleTabClick("rimborsi", "/")}
           >
@@ -63,7 +63,7 @@ const BottomTabNavigation = () => {
             className={`flex flex-col items-center w-full transition-colors ${
               currentLocation === "/timesheet"
                 ? "text-krm3-primary"
-                : "text-gray-500 hover:text-krm3-primary"
+                : "text-app hover:text-krm3-primary"
             }`}
             onClick={() => handleTabClick("timesheet", "/timesheet")}
           >
@@ -75,7 +75,7 @@ const BottomTabNavigation = () => {
             className={`flex flex-col items-center w-full transition-colors ${
               activeTab === "settings"
                 ? "text-krm3-primary"
-                : "text-gray-500 hover:text-krm3-primary"
+                : "text-app hover:text-krm3-primary"
             }`}
             onClick={() => handleTabClick("settings", "/")}
           >

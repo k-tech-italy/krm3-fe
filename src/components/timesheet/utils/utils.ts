@@ -74,11 +74,9 @@ export function isValidUrl(url: string) {
 }
 
 export function getTileBgColorClass  (day: Date, isNoWorkDay: boolean | undefined){
-  if(isToday(day) && isNoWorkDay)
-    return "bg-green-300";
+  if(isToday(day))
+    return "bg-table-today";
   else if(isNoWorkDay)
-    return "bg-zinc-200";
-  else if(isToday(day))
-    return "bg-green-200";
-  return "bg-gray-100"
+    return "bg-table-row-alt";
+  return "bg-table-header"
 };

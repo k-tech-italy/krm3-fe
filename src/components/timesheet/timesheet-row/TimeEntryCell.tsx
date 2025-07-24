@@ -70,7 +70,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
      ${!isInSelectedWeekdays ? "cursor-not-allowed!" : ""}
      ${getTileBgColorClass(day, isNoWorkDay)}
 
-    ${isInDragRange || isColumnHighlighted ? "bg-blue-50" : ""}
+    ${isInDragRange || isColumnHighlighted ? "bg-card" : ""}
     ${
       (isInDragRange || isColumnHighlighted) &&
       (isColumnView ? "border-l-blue-500" : "border-b-blue-500")

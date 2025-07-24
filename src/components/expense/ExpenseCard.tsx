@@ -18,11 +18,11 @@ export function ExpenseCard(props: Props) {
   return (
     <div
       onClick={props.ShowIdCard}
-      className={`cursor-pointer bg-white shadow-md rounded-lg ${
-        !!props.expense.amountReimbursement && parseFloat(props.expense.amountReimbursement) < 1 ? 'border border-red-500' : ''
+      className={`cursor-pointer bg-card shadow-md rounded-lg ${
+        !!props.expense.amountReimbursement && parseFloat(props.expense.amountReimbursement) < 1 ? 'border border-red-500' : 'border-app'
       }`}
     >
-      <div className="px-4 py-2 border-b border-gray-200">
+      <div className="px-4 py-2 border-b border-app">
         <div className="flex justify-between items-center">
           <p className="m-0 p-1 text-sm">{props.expense.day}</p>
           <p className="m-0 p-1 text-sm">id: {props.expense.id}</p>
@@ -31,7 +31,7 @@ export function ExpenseCard(props: Props) {
       <div className="p-4">
         <div className="mb-4">
           <div className="text-left">
-            <p className="text-gray-500 text-sm">Categoria</p>
+            <p className="text-app text-sm">Categoria</p>
             <h5 className="mb-3 text-lg font-semibold">{props.expense.category.title}</h5>
           </div>
         </div>
@@ -45,8 +45,8 @@ export function ExpenseCard(props: Props) {
           </div>
         </div>
       </div>
-      <div className="px-4 py-2 border-t border-gray-200">
-        <div className="flex items-center text-sm text-gray-500">
+      <div className="px-4 py-2 border-t border-app">
+        <div className="flex items-center text-sm text-app">
           <i className="fas fa-redo mr-1"></i>
           PAID
         </div>

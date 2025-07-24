@@ -50,7 +50,7 @@ export default function Krm3Modal({
       padding: 0,
       border: "none",
       borderRadius: "0.5rem",
-      background: "#fff",
+      background: "var(--color-card-bg)",
       maxHeight: "90vh",
       overflow: "auto",
       boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
@@ -67,13 +67,13 @@ export default function Krm3Modal({
       closeTimeoutMS={300}
       ariaHideApp={false}
     >
-      <div className="relative flex flex-col bg-white">
-        <div className="flex justify-between items-center p-4 sm:p-6">
-          <p className="text-xl sm:text-2xl font-semibold text-gray-800">
+      <div className="relative flex flex-col bg-card">
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b-app">
+          <p className="text-xl sm:text-2xl font-semibold text-app">
             {title}
           </p>
           <button
-            className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 rounded p-1"
+            className="text-app hover:text-krm3-primary focus:outline-none focus:ring-2 focus:ring-krm3-primary rounded p-1"
             onClick={onClose}
             aria-label="Close modal"
           >
