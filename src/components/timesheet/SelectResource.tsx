@@ -44,18 +44,31 @@ const SelectResourceComponent = ({
               onChange={handleResourceChange}
               options={getSelectOptions()}
               className="mt-2"
-              classNames={{
-                control: () =>
-                    `bg-selector-controller !text-app`,
-                menu: () => 'bg-selector-menu',
-                option: ({ isFocused, isSelected }) =>
-                    isSelected ? 'bg-selector-selected'
-                        : isFocused ? 'bg-selector-focused'
-                            : '',
-                placeholder: () => 'bg-selector-controller !text-app',
-                singleValue: () => 'bg-selector-controller !text-white',
+              styles={{
+                menu: (base) => ({
+                  ...base,
+                  backgroundColor: 'var(--color-selector-menu)',
+                }),
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isSelected ? 'var(--color-selector-selected)'
+                      : state.isFocused ? 'var(--color-selector-focused)'
+                          : '',
+                }),
+                control: (base) =>({
+                  ...base,
+                  color: 'var(--color-body-text)',
+                  backgroundColor: 'var(--color-selector-controller)',
+                }),
+                singleValue: (base) => ({
+                  ...base,
+                  color: 'var(--color-body-text)',
+                }),
+                placeholder: (base) => ({
+                  ...base,
+                  color: 'var(--color-body-text)',
+                }),
               }}
-              classNamePrefix="bg-red-500"
               isClearable
               placeholder="Select a resource"
               id="resource-select"
