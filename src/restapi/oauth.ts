@@ -60,11 +60,12 @@ export async function googleAuthenticate(state: string, code: string) {
 
       // redirect to LS_LOGIN_NEXT_URI or to /
       const next = localStorage.getItem(LS_LOGIN_NEXT_URI) || "/";
-      window.location.replace(next);
+      return next;
     } catch (err) {
       localStorage.removeItem(LS_TOKEN_KEY);
     }
   }
+  return null;
 }
 
 export function getToken() {
