@@ -45,8 +45,10 @@ export function Login() {
     if (state && code) {
       setIsLoading(true);
       googleAuthenticate(state.toString(), code.toString())
-        .then(() => {
-          console.log("Google authentication successful");
+        .then((next) => {
+          if (next) {
+            navigate(next);
+          }
         })
         .catch((err) => {
           console.error("Google authentication failed", err);
