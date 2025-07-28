@@ -84,12 +84,11 @@ function AuthenticatedRoutes() {
       route: <Route path="*" element={<Navigate to="/"  />} />,
     },
   ]
-
   return (
     <div className="wrapper">
-      <div className="main bg-slate-50">
+      <div className="main bg-app">
         <Navbar />
-        <div className=" pb-16">
+        <div className="pb-16">
           <Routes>
             {routeGuards.map((routeGuard, idx) => (
               <React.Fragment key={idx}>

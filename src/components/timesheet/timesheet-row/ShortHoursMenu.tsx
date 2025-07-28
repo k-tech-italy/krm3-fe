@@ -226,7 +226,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     <div className="relative" ref={menuRef}>
       <div
         onMouseLeave={handleMouseLeave}
-        className="absolute z-50 right-0 mt-2 w-64 origin-top-right bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-in slide-in-from-top-2 duration-200"
+        className="absolute z-50 right-0 mt-2 w-64 origin-top-right bg-card rounded-2xl shadow-2xl border border-app overflow-hidden animate-in slide-in-from-top-2 duration-200"
         role="menu"
         aria-orientation="vertical"
         aria-labelledby="options-menu"
@@ -236,7 +236,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
             <button
               key={`menu-option-${index}-${option.label}-${option.value}`}
               onClick={() => handleButtonClick(option.label, option.value)}
-              className="block w-full px-4 py-2 cursor-pointer text-center text-m text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:bg-gray-100 focus:text-gray-900 focus:outline-none"
+              className="block w-full px-4 py-2 cursor-pointer text-center text-m text-app hover:bg-app hover:text-app focus:bg-app focus:text-app focus:outline-none"
               role="menuitem"
               type="button"
             >
@@ -244,8 +244,8 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
             </button>
           ))}
         </div>
-        <div className="px-4 py-2 bg-gray-50 rounded-b-md">
-          <p className="text-xs text-gray-500 text-center">
+        <div className="px-4 py-2 bg-card rounded-b-md">
+          <p className="text-xs text-app text-center">
             {normalizeDate(menuData.startDate)} to{" "}
             {normalizeDate(menuData.endDate)}
           </p>

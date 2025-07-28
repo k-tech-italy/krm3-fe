@@ -44,6 +44,31 @@ const SelectResourceComponent = ({
               onChange={handleResourceChange}
               options={getSelectOptions()}
               className="mt-2"
+              styles={{
+                menu: (base) => ({
+                  ...base,
+                  backgroundColor: 'var(--color-selector-menu)',
+                }),
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isSelected ? 'var(--color-selector-selected)'
+                      : state.isFocused ? 'var(--color-selector-focused)'
+                          : '',
+                }),
+                control: (base) =>({
+                  ...base,
+                  color: 'var(--color-body-text)',
+                  backgroundColor: 'var(--color-selector-controller)',
+                }),
+                singleValue: (base) => ({
+                  ...base,
+                  color: 'var(--color-body-text)',
+                }),
+                placeholder: (base) => ({
+                  ...base,
+                  color: 'var(--color-body-text)',
+                }),
+              }}
               isClearable
               placeholder="Select a resource"
               id="resource-select"

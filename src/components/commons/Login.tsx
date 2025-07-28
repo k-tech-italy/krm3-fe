@@ -45,8 +45,10 @@ export function Login() {
     if (state && code) {
       setIsLoading(true);
       googleAuthenticate(state.toString(), code.toString())
-        .then(() => {
-          console.log("Google authentication successful");
+        .then((next) => {
+          if (next) {
+            navigate(next);
+          }
         })
         .catch((err) => {
           console.error("Google authentication failed", err);
@@ -169,15 +171,15 @@ export function Login() {
     <div className="flex mt-5 mx-2 justify-center">
       {showLogin ? (
         <div
-          className={`p-5 bg-white shadow-md rounded ${
+          className={`p-5 bg-card shadow-md rounded ${
             isSmallScreen ? "w-full" : "w-1/2"
           }`}
         >
-          <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+          <h2 className="text-2xl font-bold mb-6 text-center text-app">Login</h2>
 
           {error?.detail && (
             <div
-              className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+              className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 dark:bg-red-900 dark:text-red-200 dark:border-red-600"
               role="alert"
             >
               <span className="block sm:inline">{error.detail}</span>
@@ -193,8 +195,8 @@ export function Login() {
                 id="username"
                 name="username"
                 className={`form-control w-full ${
-                  !!error?.username ? "border-red-500" : "border-gray-300"
-                } border rounded px-3 py-2`}
+                  !!error?.username ? "border-red-500" : "border-app"
+                } border rounded px-3 py-2 text-app bg-card`}
                 type="text"
                 value={username}
                 onChange={handleInputChange}
@@ -206,7 +208,7 @@ export function Login() {
                 }
               />
               {error?.username && (
-                <p className="text-red-500 text-sm mt-1" id="username-error">
+                <p className="text-red-500 text-sm mt-1 dark:text-red-300" id="username-error">
                   {error.username}
                 </p>
               )}

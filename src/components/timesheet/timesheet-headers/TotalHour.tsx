@@ -15,7 +15,7 @@ interface Props {
 
 export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isInSelectedWeekdays }: Props) {
   if (!timeEntries) {
-    return <div className="bg-gray-100">0h</div>;
+    return <div className="bg-card">0h</div>;
   }
 
   const formattedDay = normalizeDate(day);

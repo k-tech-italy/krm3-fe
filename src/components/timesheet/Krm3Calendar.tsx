@@ -10,8 +10,8 @@ import { useColumnViewPreference } from "../../hooks/useView";
 import {
   formatDate,
   formatDayAndMonth,
-  formatMonthName,
-  getFirstMondayOfMonth,
+  formatMonthName, getFirstDayOfMonth,
+  getFirstMondayOfMonth, getLastDayOfMonth, isDayInRange,
   isOverlappingWeek,
   normalizeDate,
 } from "./utils/dates";
@@ -20,7 +20,7 @@ import ErrorMessage from "./edit-entry/ErrorMessage";
 import { WeekRange } from "../../restapi/types";
 import { displayErrorMessage, getHolidayAndSickDays } from "./utils/utils";
 import Krm3Button from "../commons/Krm3Button";
-import { useSubmitTimesheet } from "../../hooks/useTimesheet";
+import {useGetTimesheet, useSubmitTimesheet} from "../../hooks/useTimesheet";
 import { toast } from "react-toastify";
 
 export default function Krm3Calendar({
@@ -52,6 +52,7 @@ export default function Krm3Calendar({
     }
   });
 
+
   const [selectedWeekRange, setSelectedWeekRange] = useState<WeekRange>(
     isOverlappingWeek(currentWeekStart) ? "startOfWeek" : "whole"
   );
@@ -60,7 +61,6 @@ export default function Krm3Calendar({
       setSelectedWeekRange("whole");
     }
   }, [currentWeekStart]);
-
   const { data, userCan } = useGetCurrentUser();
   const { mutateAsync: mutateSubmitTimesheet, error: submitTimesheetError } =
     useSubmitTimesheet();
@@ -335,6 +335,9 @@ export default function Krm3Calendar({
                 !isMonth ||
                 (!!typeDays &&
                   Object.values(typeDays).every((day) => day.closed === true))
+                  || !timeEntries.some((entry) => {
+                    return isDayInRange(getFirstDayOfMonth(currentWeekStart), getLastDayOfMonth(currentWeekStart), entry.date)
+                  })
               }
               disabledTooltipMessage={disabledSubmitButtonText()}
             />
