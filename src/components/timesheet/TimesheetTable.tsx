@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { DndContext, closestCenter } from "@dnd-kit/core";
-import { TimeEntry, Task, Days } from "../../restapi/types";
+import {TimeEntry, Task, Days, Schedule } from "../../restapi/types";
 import { useGetTimesheet } from "../../hooks/useTimesheet";
 import { TimeSheetRow } from "./timesheet-row/TimeSheetRow";
 import {
@@ -25,6 +25,7 @@ interface Props {
   setEndDate: (date: Date) => void;
   setTimeEntries: (entries: TimeEntry[]) => void;
   setNoWorkingDay: (days: Days) => void;
+  setSchedule: (schedule: Schedule) => void;
   scheduledDays: { days: Date[]; numberOfDays: number };
   isColumnView: boolean;
   startDate?: Date;
@@ -52,7 +53,6 @@ export function TimeSheetTable(props: Props) {
     props.selectedResourceId
   );
 
-
   useEffect(() => {
     if (!isLoadingTimesheet && timesheet) {
       props.setNoWorkingDay(timesheet.days);
@@ -62,6 +62,9 @@ export function TimeSheetTable(props: Props) {
   useEffect(() => {
     if (timesheet?.timeEntries) {
       props.setTimeEntries(timesheet.timeEntries);
+    }
+    if(timesheet?.schedule){
+      props.setSchedule(timesheet.schedule)
     }
   }, [timesheet]);
 

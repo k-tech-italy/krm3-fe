@@ -1,4 +1,4 @@
-import { Days, Task, TimeEntry } from "../../restapi/types";
+import {Days, Task, TimeEntry, Schedule, mapNumberToWeekDay} from "../../restapi/types";
 import { useState, useMemo, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Krm3Modal from "../commons/krm3Modal";
@@ -36,6 +36,15 @@ export default function Krm3Calendar({
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [isMonth, setIsMonth] = useState<boolean>(true);
+  const [schedule, setSchedule] = useState<Schedule>({
+    mon: 8,
+    tue: 8,
+    wed: 8,
+    thu: 8,
+    fri: 8,
+    sat: 0,
+    sun: 0
+  })
   const { isColumnView, setColumnView } = useColumnViewPreference();
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
@@ -223,6 +232,32 @@ export default function Krm3Calendar({
     }
   }
 
+  function scheduledHoursCompleted(){
+    let hoursLeftToLog: Record<string, number> = {}
+    for(const date in typeDays){
+      const formattedDate = formatDate(date)
+      const weekDay = mapNumberToWeekDay[formattedDate.getDay()]
+      // Number of hours that need to be logged for each day - 0 if day is holiday
+      hoursLeftToLog[date] = !typeDays[date].hol ? schedule[weekDay] : 0
+    }
+    const hoursKeys: (keyof TimeEntry)[] = [
+      'travelHours',
+      'holidayHours',
+      'specialLeaveHours',
+      'restHours',
+      'sickHours',
+      'nightShiftHours',
+      'dayShiftHours',
+      'leaveHours',
+      'onCallHours',
+    ];
+    for (const timeEntry of timeEntries) {
+      for (const hoursType of hoursKeys) {
+        hoursLeftToLog[timeEntry.date] -= Number(timeEntry[hoursType]) || 0
+      }
+    }
+    return !Object.values(hoursLeftToLog).some(hours => hours > 0)
+  }
   return (
     <>
       {accessDenied ? (
@@ -325,6 +360,7 @@ export default function Krm3Calendar({
             selectedResourceId={selectedResourceId}
             readOnly={readOnly}
             selectedWeekRange={selectedWeekRange}
+            setSchedule={setSchedule}
           />
           <div className="flex justify-end items-center mt-4">
             <Krm3Button
@@ -335,9 +371,7 @@ export default function Krm3Calendar({
                 !isMonth ||
                 (!!typeDays &&
                   Object.values(typeDays).every((day) => day.closed === true))
-                  || !timeEntries.some((entry) => {
-                    return isDayInRange(getFirstDayOfMonth(currentWeekStart), getLastDayOfMonth(currentWeekStart), entry.date)
-                  })
+                  || !scheduledHoursCompleted()
               }
               disabledTooltipMessage={disabledSubmitButtonText()}
             />
