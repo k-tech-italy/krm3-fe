@@ -180,7 +180,7 @@ export interface Task {
   projectName?: string;
   clientName?: string;
 }
-
+export interface Schedule {[date: string]: number}
 export interface TimeEntry {
   id: number;
   date: string;
@@ -204,6 +204,7 @@ export interface Timesheet {
   tasks: Task[];
   timeEntries: TimeEntry[];
   days: Days;
+  schedule?: Schedule;
 }
 
 export interface Days {
