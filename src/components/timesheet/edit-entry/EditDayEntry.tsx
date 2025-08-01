@@ -212,7 +212,7 @@ export default function EditDayEntry({
     }
     const isDeleteButtonVisible = timeEntries.filter(
         (entry) => {
-          return (entry.leaveHours != 0 || entry.restHours != 0 || entry.specialLeaveHours)
+          return (entry.leaveHours != 0 || entry.restHours != 0 || entry.specialLeaveHours != 0)
               && isDayInRange(startDate, endDate, entry.date)
         }).length > 0
 

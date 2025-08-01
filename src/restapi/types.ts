@@ -180,7 +180,24 @@ export interface Task {
   projectName?: string;
   clientName?: string;
 }
-
+export interface Schedule {
+  mon: number;
+  tue: number;
+  wed: number;
+  thu: number;
+  fri: number;
+  sat: number;
+  sun: number;
+}
+export const mapNumberToWeekDay: Record<number, keyof Schedule> = {
+  0: "sun",
+  1: "mon",
+  2: "tue",
+  3: "wed",
+  4: "thu",
+  5: "fri",
+  6: "sat",
+};
 export interface TimeEntry {
   id: number;
   date: string;
@@ -204,6 +221,7 @@ export interface Timesheet {
   tasks: Task[];
   timeEntries: TimeEntry[];
   days: Days;
+  schedule?: Schedule;
 }
 
 export interface Days {
