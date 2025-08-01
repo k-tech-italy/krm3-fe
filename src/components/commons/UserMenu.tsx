@@ -54,7 +54,7 @@ export function UserMenu() {
           />
         )}
 
-        <strong className="hidden sm:block">{user?.email}</strong>
+        <strong className="hidden sm:block text-app cursor-pointer">{user?.email}</strong>
       </button>
 
       <div
