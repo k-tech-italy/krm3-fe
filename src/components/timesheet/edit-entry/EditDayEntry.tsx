@@ -27,7 +27,7 @@ interface Props {
   onClose: () => void;
   readOnly: boolean;
   selectedResourceId: number | null;
-  noWorkingDays: Days;
+  calendarDays: Days;
 }
 
 export default function EditDayEntry({
@@ -37,7 +37,7 @@ export default function EditDayEntry({
   timeEntries,
   readOnly,
   selectedResourceId,
-  noWorkingDays,
+  calendarDays,
 }: Props) {
   const {
     mutateAsync: submitDays,
@@ -109,7 +109,9 @@ export default function EditDayEntry({
     formatDate(fromDate),
     formatDate(toDate),
     timeEntries,
-    noWorkingDays
+    calendarDays,
+    false,
+    false
   );
 
   function handleChangeDate(selectedDate: Date, dateType: "from" | "to") {
@@ -124,7 +126,7 @@ export default function EditDayEntry({
     startDate: Date = fromDate,
     endDate: Date = toDate
   ): string[] => {
-    return getDatesBetween(startDate, endDate, noWorkingDays, true);
+    return getDatesBetween(startDate, endDate, calendarDays, true);
   };
 
   const handleEntryTypeChange = (type: string) => {
@@ -212,7 +214,7 @@ export default function EditDayEntry({
     }
     const isDeleteButtonVisible = timeEntries.filter(
         (entry) => {
-          return (entry.leaveHours != 0 || entry.restHours != 0 || entry.specialLeaveHours)
+          return (entry.leaveHours != 0 || entry.restHours != 0 || entry.specialLeaveHours != 0)
               && isDayInRange(startDate, endDate, entry.date)
         }).length > 0
 
@@ -482,6 +484,7 @@ export default function EditDayEntry({
               label="Clear Day"
               mobileLabel={`${isDeleteButtonVisible ? "Clear Day" : "Clear"}`}
               additionalStyles={'w-[45%] md:w-[20%]'}
+              id="clear-button"
             />
             { isDeleteButtonVisible
                 &&
