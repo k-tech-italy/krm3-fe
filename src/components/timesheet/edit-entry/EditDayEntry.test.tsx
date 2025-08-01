@@ -33,7 +33,7 @@ describe("EditDayEntry", () => {
     onClose: vi.fn(),
     readOnly: false,
     selectedResourceId: 1,
-    noWorkingDays: {},
+    calendarDays: {},
   };
   it("renders form and entry type options", () => {
     render(<EditDayEntry {...baseProps} />);
@@ -50,7 +50,7 @@ describe("EditDayEntry", () => {
     expect(baseProps.onClose).toHaveBeenCalled();
   });
   it("renders delete button when leave exist", () => {
-    const timeEntries : TimeEntry[] = [
+    const timeEntries: TimeEntry[] = [
       {
         date: '2024-06-01',
         id: 1,
@@ -66,11 +66,11 @@ describe("EditDayEntry", () => {
         task: 1
       }
     ]
-    render(<EditDayEntry {...baseProps } timeEntries={timeEntries}/>);
+    render(<EditDayEntry {...baseProps} timeEntries={timeEntries}/>);
     expect(screen.getByText('Delete')).toBeInTheDocument();
   })
   it("renders delete button when special leave exist", () => {
-    const timeEntries : TimeEntry[] = [
+    const timeEntries: TimeEntry[] = [
       {
         date: '2024-06-01',
         id: 1,
@@ -86,11 +86,11 @@ describe("EditDayEntry", () => {
         task: 1
       }
     ]
-    render(<EditDayEntry {...baseProps } timeEntries={timeEntries}/>);
+    render(<EditDayEntry {...baseProps} timeEntries={timeEntries}/>);
     expect(screen.getByText('Delete')).toBeInTheDocument();
   })
   it("renders delete button when rest exist", () => {
-    const timeEntries : TimeEntry[] = [
+    const timeEntries: TimeEntry[] = [
       {
         date: '2024-06-01',
         id: 1,
@@ -106,11 +106,11 @@ describe("EditDayEntry", () => {
         task: 1
       }
     ]
-    render(<EditDayEntry {...baseProps } timeEntries={timeEntries}/>);
+    render(<EditDayEntry {...baseProps} timeEntries={timeEntries}/>);
     expect(screen.getByText('Delete')).toBeInTheDocument();
   })
   it("do not render delete button when there is no rest or leave entry", () => {
-    const timeEntries : TimeEntry[] = [
+    const timeEntries: TimeEntry[] = [
       {
         date: '2024-06-01',
         id: 1,
@@ -126,11 +126,11 @@ describe("EditDayEntry", () => {
         task: 1
       }
     ]
-    render(<EditDayEntry {...baseProps } timeEntries={timeEntries}/>);
+    render(<EditDayEntry {...baseProps} timeEntries={timeEntries}/>);
     expect(screen.queryByText('Delete')).toBeNull();
   })
   it("delete only leaves/rests when clicked on delete button", () => {
-    const timeEntries : TimeEntry[] = [
+    const timeEntries: TimeEntry[] = [
       {
         date: '2024-06-01',
         id: 1,
@@ -188,8 +188,44 @@ describe("EditDayEntry", () => {
         task: 1
       }
     ]
-    render(<EditDayEntry {...baseProps } timeEntries={timeEntries}/>);
+    render(<EditDayEntry {...baseProps} timeEntries={timeEntries}/>);
     screen.getByText('Delete').click()
     expect(mutateDeleteMock).toHaveBeenCalledWith([1, 2, 4]);
+  })
+  it.each([
+    'dayShiftHours', 'holidayHours', 'leaveHours', 'specialLeaveHours', 'travelHours',
+      'restHours', 'nightShiftHours', 'onCallHours', 'sickHours'
+  ])("clear button deletes all TimeEntries for selected days", (entryType) => {
+    const props = {
+      startDate: new Date("2024-06-10"),
+      endDate: new Date("2024-06-20"),
+      timeEntries: [],
+      onClose: vi.fn(),
+      readOnly: false,
+      selectedResourceId: 1,
+      calendarDays: {},
+    };
+    const timeEntries: TimeEntry[] = []
+    for (let i = 0; i < 10; i++) {
+      timeEntries.push(
+          {
+            date: `2024-06-1${i}`,
+            id: i,
+            dayShiftHours: 0,
+            sickHours: 0,
+            holidayHours: 0,
+            leaveHours: 0,
+            specialLeaveHours: 0,
+            travelHours: 0,
+            restHours: 0,
+            nightShiftHours: 0,
+            onCallHours: 0,
+            task: 1
+          });
+      (timeEntries[i] as any)[entryType] = 8
+    }
+    render(<EditDayEntry {...props} timeEntries={timeEntries}/>);
+    screen.getByTestId('clear-button').click()
+    expect(mutateDeleteMock).toHaveBeenCalledWith([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   })
 }); 
