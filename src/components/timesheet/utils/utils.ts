@@ -1,5 +1,5 @@
 import { TimeEntry } from "../../../restapi/types";
-import { normalizeDate } from "./dates";
+import {isDayInRange, normalizeDate} from "./dates";
 import {isHoliday, isSickDay, isToday} from "./timeEntry";
 
 
@@ -80,3 +80,15 @@ export function getTileBgColorClass  (day: Date, isNoWorkDay: boolean | undefine
     return "bg-table-row-alt";
   return "bg-table-header"
 };
+
+export function getTimeEntriesForSelectedPeriod(
+    timeEntries: TimeEntry[],
+    start_date: string,
+    end_date: string,
+    taskId: number | null = null
+) {
+  return timeEntries.filter((timeEntry) =>
+      isDayInRange(start_date, end_date, timeEntry.date) &&
+      (taskId === null || timeEntry.task === taskId)
+  );
+}
