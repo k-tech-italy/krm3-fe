@@ -4,6 +4,8 @@ import React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { vi } from "vitest";
 
+const mutateDeleteMock = vi.fn().mockResolvedValue(undefined);
+
 // Mock useCreateTimeEntry
 const mutateAsyncMock = vi.fn();
 vi.mock("../../../hooks/useTimesheet", () => ({
@@ -11,6 +13,9 @@ vi.mock("../../../hooks/useTimesheet", () => ({
     mutateAsync: mutateAsyncMock,
     error: null,
   }),
+  useDeleteTimeEntries: () => ({
+    mutateAsync: mutateDeleteMock,
+  })
 }));
 
 // Mock toast (define functions inside the factory to avoid hoisting issues)
@@ -58,7 +63,86 @@ describe("ShortHoursMenu (extended)", () => {
     expect(screen.getByText("4h")).toBeInTheDocument();
     expect(screen.getByText("8h")).toBeInTheDocument();
     expect(screen.getByText("More")).toBeInTheDocument();
+    expect(screen.queryByTestId("short-menu-delete-button")).not.toBeInTheDocument();
   });
+  it("renders delete option if timeentry is selected", () => {
+    renderMenu({timeEntries: [
+        {
+          id: 1,
+          dayShiftHours: 2,
+          nightShiftHours: 1,
+          restHours: 0,
+          travelHours: 0,
+          date: new Date().toISOString().slice(0, 10),
+          task: 1,
+          sickHours: 0,
+          holidayHours: 0,
+          leaveHours: 0,
+          onCallHours: 0,
+          specialLeaveHours: 0,
+          specialReason: undefined,
+          comment: undefined,
+        },
+      ]
+    })
+    expect(screen.getByTestId("short-menu-delete-button")).toBeInTheDocument();
+  })
+  it("delete is called with correct parameters", () => {
+    renderMenu({timeEntries: [
+        {
+          id: 1,
+          dayShiftHours: 2,
+          nightShiftHours: 0,
+          restHours: 0,
+          travelHours: 0,
+          date: new Date().toISOString().slice(0, 10),
+          task: 1,
+          sickHours: 0,
+          holidayHours: 0,
+          leaveHours: 0,
+          onCallHours: 0,
+          specialLeaveHours: 0,
+          specialReason: undefined,
+          comment: undefined,
+        },
+        {
+          id: 2,
+          dayShiftHours: 2,
+          nightShiftHours: 0,
+          restHours: 0,
+          travelHours: 0,
+          // yesterday
+          date: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
+          task: 1,
+          sickHours: 0,
+          holidayHours: 0,
+          leaveHours: 0,
+          onCallHours: 0,
+          specialLeaveHours: 0,
+          specialReason: undefined,
+          comment: undefined,
+        },
+        {
+          id: 3,
+          dayShiftHours: 2,
+          nightShiftHours: 0,
+          restHours: 0,
+          travelHours: 0,
+          date: new Date().toISOString().slice(0, 10),
+          task: 2,
+          sickHours: 0,
+          holidayHours: 0,
+          leaveHours: 0,
+          onCallHours: 0,
+          specialLeaveHours: 0,
+          specialReason: undefined,
+          comment: undefined,
+        },
+      ]
+    })
+    fireEvent.click(screen.getByTestId("short-menu-delete-button"))
+    expect(mutateDeleteMock).toHaveBeenCalledWith([1])
+  })
 
   it("renders readOnly option", () => {
     renderMenu({ readOnly: true });
