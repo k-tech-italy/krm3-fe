@@ -10,9 +10,10 @@ interface Props {
   label: string;
   mobileLabel?: string;
   additionalStyles?: string;
+  id?: string;
 }
 
-const Krm3Button = ({ disabled, onClick, type, style, icon, label, disabledTooltipMessage, additionalStyles="", mobileLabel }: Props) => {
+const Krm3Button = ({ disabled, onClick, type, style, icon, label, disabledTooltipMessage, additionalStyles="", mobileLabel, id }: Props) => {
   const styles = {
     primary: {
       buttonStyle:
@@ -49,8 +50,9 @@ const Krm3Button = ({ disabled, onClick, type, style, icon, label, disabledToolt
         className={`inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md  transition-colors duration-200 focus:ring-2 focus:ring-offset-2 ${
           disabled ? disabledStyle : buttonStyle
         } ${additionalStyles}`}
-        id="delete-button"
         type={type || "button"}
+        id={id}
+        data-testid={id}
         onClick={onClick}
         disabled={disabled}
       >

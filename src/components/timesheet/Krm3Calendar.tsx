@@ -365,7 +365,7 @@ export default function Krm3Calendar({
                         timeEntries={timeEntries}
                         readOnly={readOnly}
                         selectedResourceId={selectedResourceId}
-                        noWorkingDays={typeDays}
+                        calendarDays={typeDays}
                       />
                     ) : (
                       <EditTimeEntry
