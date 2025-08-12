@@ -73,13 +73,18 @@ export function isValidUrl(url: string) {
   }
 }
 
-export function getTileBgColorClass  (day: Date, isNoWorkDay: boolean | undefined){
-  if(isToday(day))
-    return "bg-table-today";
-  else if(isNoWorkDay)
-    return "bg-table-row-alt";
-  return "bg-table-header"
-};
+export function getTileBgColorClass(day: Date, isNoWorkDay?: boolean, isClosed?: boolean): string {
+  if (isToday(day)) return "bg-table-today";
+
+  if (isNoWorkDay) {
+    if (!isClosed) return "bg-table-row-alt";
+    return "bg-closed-non-work";
+  }
+
+  if (!isClosed) return "bg-table-header";
+
+  return "bg-closed";
+}
 
 export function getTimeEntriesForSelectedPeriod(
     timeEntries: TimeEntry[],

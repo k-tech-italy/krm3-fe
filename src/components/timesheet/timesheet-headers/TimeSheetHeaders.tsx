@@ -3,10 +3,11 @@ import { Tooltip } from "react-tooltip";
 import { DayType, TimeEntry, Timesheet } from "../../../restapi/types";
 import { Draggable } from "../Draggable";
 import { Droppable } from "../Droppable";
-import { formatDay, formatDayOfWeek, normalizeDate } from "../utils/dates";
-import {getDayType, isToday} from "../utils/timeEntry";
+import {formatDay, formatDayOfWeek, formatIntl, normalizeDate} from "../utils/dates";
+import {getDayType, isClosed, isNonWorkingDay, isToday} from "../utils/timeEntry";
 import { TotalHourCell, TotalHourForTask } from "./TotalHour";
 import { getTileBgColorClass } from "../utils/utils.ts";
+import {locale} from "moment";
 
 interface Props {
   timesheet: Timesheet;
@@ -27,7 +28,6 @@ function TimeSheetHeaders({
   isColumnHighlighted,
   selectedWeekdays,
 }: Props) {
-
   return (
     <>
       {scheduledDays.days.map((day, index) => (
@@ -56,7 +56,7 @@ function TimeSheetHeaders({
               <div
                 className={`h-full w-fullitems-center ${
                   isColumnView ? "flex justify-between p-2" : "flex-col "
-                } bg-gray-100 font-semibold ${
+                } font-semibold ${
                   isMonthView ? "text-xs py-2 flex-row whitespace-nowrap" : "text-sm p-2"
                 } text-center cursor-grab  active:cursor-grabbing
    
@@ -64,7 +64,7 @@ function TimeSheetHeaders({
                 getDayType(day, timesheet.days) !== DayType.WORK_DAY
                   ? "cursor-not-allowed" : ""
               }
-              ${getTileBgColorClass(day, getDayType(day, timesheet.days) !== DayType.WORK_DAY)}
+              ${getTileBgColorClass(day, isNonWorkingDay(day, timesheet.days), isClosed(day, timesheet.days))}
               
                ${isColumnActive(index) ? "bg-blue-200" : ""}
               ${
@@ -74,10 +74,12 @@ function TimeSheetHeaders({
               }
               `}
               >
-                <div className={`${isMonthView ? "text-[10px]" : "text-sm"}`}>
+                <div className={`${isMonthView ? "text-sm" : "text-md"}`}>
                   {isMonthView && !isColumnView
-                    ? formatDay(day)
+                    ? day.getDate()
                     : formatDayOfWeek(day)}
+                  <br/>
+                  {isMonthView && !isColumnView ? formatIntl(day, { weekday: "short" }) : ""}
                 </div>
                 <div
                   className={`bg-gray-100 font-semibold ${
@@ -90,8 +92,9 @@ function TimeSheetHeaders({
                     isMonthView={isMonthView}
                     isColumnView={isColumnView}
                     isNoWorkDay={
-                      getDayType(day, timesheet.days) !== DayType.WORK_DAY
+                      isNonWorkingDay(day, timesheet.days)
                     }
+                    isClosedDay={isClosed(day, timesheet.days)}
                   />
                 </div>
               </div>

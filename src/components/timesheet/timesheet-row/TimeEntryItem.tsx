@@ -22,9 +22,9 @@ export const TimeEntryItem: React.FC<TimeEntryItemProps> = ({
   return (
     <div
       style={{ backgroundColor }}
-      className={`h-full w-full text-center flex items-center justify-center `}
+      className={`h-full w-full text-center flex items-center justify-center font-bold`}
     >
-      <span className={`${isMonthView ? "text-[12px]" : "text-[18px]"} `}>
+      <span className={`${isMonthView ? "text-[14px]" : "text-[20px]"} `}>
         {hoursValue}
       </span>
     </div>
