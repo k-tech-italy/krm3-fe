@@ -17,8 +17,7 @@ export const TimeEntryItem: React.FC<TimeEntryItemProps> = ({
   const hoursValue =
     Number(entry.dayShiftHours) +
     Number(entry.nightShiftHours) +
-    Number(entry.restHours) +
-    Number(entry.travelHours);
+    Number(entry.restHours)
 
   return (
     <div
