@@ -31,7 +31,8 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isIn
         (Number(timeEntry.nightShiftHours) || 0) +
         (Number(timeEntry.leaveHours) || 0) +
         (Number(timeEntry.specialLeaveHours ) || 0) +
-        (Number(timeEntry.restHours) || 0)
+        (Number(timeEntry.restHours) || 0) +
+        (Number(timeEntry.travelHours) || 0)
       );
     }
     return acc;

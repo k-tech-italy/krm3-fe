@@ -1,6 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import { TimeSheetRow } from "./TimeSheetRow";
+import { TimeEntry } from "../../../restapi/types";
 import React from "react";
+import {vi} from "vitest";
+vi.mock("lucide-react", () => ({
+  Plane: () => <svg data-testid="plane-icon" />,
+  Plus: () => <svg data-testid="plus-icon" />
+}));
 
 describe("TimeSheetRow", () => {
   const baseTask = {
@@ -82,4 +88,56 @@ describe("TimeSheetRow", () => {
     // totalHours = 2 + 1 + 1 = 4
     expect(screen.getAllByText("4").length).toBeGreaterThan(0);
   });
+  it("renders plane icon when travel hours exist", () => {
+    const timeEntries = [
+      {
+        id: 1,
+        dayShiftHours: 2,
+        nightShiftHours: 1,
+        restHours: 1,
+        travelHours: 2,
+        date: new Date().toISOString(),
+        task: 1,
+        sickHours: 0,
+        holidayHours: 0,
+        leaveHours: 0,
+        onCallHours: 0,
+        specialLeaveHours: 0,
+        specialReason: undefined,
+        comment: undefined,
+      }]
+    render(
+        <TimeSheetRow
+            {...baseProps}
+            timesheet={{ ...baseTimesheet, timeEntries }}
+        />
+    )
+    expect(screen.getByTestId('plane-icon')).toBeInTheDocument();
+  })
+  it("doesn't render plane icon when there are no travel hours", () => {
+    const timeEntries = [
+      {
+        id: 1,
+        dayShiftHours: 2,
+        nightShiftHours: 1,
+        restHours: 1,
+        travelHours: 0,
+        date: new Date().toISOString(),
+        task: 1,
+        sickHours: 0,
+        holidayHours: 0,
+        leaveHours: 0,
+        onCallHours: 0,
+        specialLeaveHours: 0,
+        specialReason: undefined,
+        comment: undefined,
+      }]
+    render(
+        <TimeSheetRow
+            {...baseProps}
+            timesheet={{ ...baseTimesheet, timeEntries }}
+        />
+    )
+    expect(screen.queryByTestId('plane-icon')).not.toBeInTheDocument();
+  })
 }); 

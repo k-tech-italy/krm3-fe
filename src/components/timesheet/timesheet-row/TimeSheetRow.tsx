@@ -12,6 +12,8 @@ import { ShortHoursMenu } from "./ShortHoursMenu";
 import { normalizeDate } from "../utils/dates";
 import { getDayType } from "../utils/timeEntry";
 import { DayType } from "../../../restapi/types";
+import {Plane} from "lucide-react";
+import {Tooltip} from "react-tooltip";
 
 export interface TimeSheetRowProps {
   timesheet: Timesheet;
@@ -77,7 +79,8 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
       total +
       Number(entry.dayShiftHours) +
       Number(entry.nightShiftHours) +
-      Number(entry.restHours),
+      Number(entry.restHours) +
+      Number(entry.travelHours),
     0
   );
 
@@ -168,14 +171,37 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
         }`}
       >
         <p
-          className={`font-semibold
-        ${isMonthView ? "text-[10px] " : ""}`}
+          className={`font-semibold flex flex-row justify-start
+          
+        ${isMonthView ? "text-[10px] ml-[14px]" : "ml-[20px]"}`}
         >
           {totalHours}
+
+          <span className={`mx-1 ${isMonthView ? "w-[14px]" : "w-[20px]"}`}>
+            {timeEntries.some(entry => entry.travelHours > 0) && (
+                <>
+                  <Plane
+                      size={isMonthView ? 14 : 20}
+                      data-tooltip-id={`plane-tooltip-${task.id}`}
+                  />
+                  <Tooltip id={`plane-tooltip-${task.id}`} place="top" style={{ zIndex: 9999 }}>
+                    <div className="text-sm space-y-1">
+                      {timeEntries
+                          .filter(entry => entry.travelHours > 0)
+                          .map(entry => (
+                              <div key={entry.id}>
+                                <span>{entry.date}:</span> {entry.travelHours}h
+                              </div>
+                          ))}
+                    </div>
+                  </Tooltip>
+                </>
+            )}
+          </span>
         </p>
       </div>
       {scheduledDays.map((day, dayIndex) =>
-        renderDayCell(day, dayIndex, lockedDays)
+          renderDayCell(day, dayIndex, lockedDays)
       )}
     </React.Fragment>
   );
