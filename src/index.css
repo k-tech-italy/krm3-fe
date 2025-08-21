@@ -93,10 +93,10 @@ code {
 
 .gradient {
 	background: var(--color-gradient-start);
-	background: linear-gradient(0deg, 
-		var(--color-gradient-start) 0%, 
-		var(--color-gradient-mid) 61%, 
-		var(--color-gradient-end) 75%, 
+	background: linear-gradient(0deg,
+		var(--color-gradient-start) 0%,
+		var(--color-gradient-mid) 61%,
+		var(--color-gradient-end) 75%,
 		transparent 100%
 	);
 }
@@ -172,26 +172,15 @@ h2,
 	grid-template-rows: repeat(32, minmax(0, 1fr));
 }
 
-.linear-gradient-disabled {
+.submitted-timesheet {
 	cursor: not-allowed !important;
-	opacity: 0.7;
-	background-image: repeating-linear-gradient(
-		45deg, 
-		rgba(0, 0, 0, 0.1) 0px, 
-		rgba(0, 0, 0, 0.1) 6px, 
-		transparent 6px, 
-		transparent 12px
-	);
+	opacity: 0.90;
+	background-color: rgba(100, 100, 100, 0.06);
 }
 
-html.dark .linear-gradient-disabled {
-	background-image: repeating-linear-gradient(
-		45deg, 
-		rgba(255, 255, 255, 0.1) 0px, 
-		rgba(255, 255, 255, 0.1) 6px, 
-		transparent 6px, 
-		transparent 12px
-	);
+html.dark .submitted-timesheet {
+	opacity: 0.7;
+	background-color: rgba(255, 255, 255, 0.3);
 }
 
 .bg-app {
@@ -224,6 +213,8 @@ html.dark .linear-gradient-disabled {
   --color-selector-menu: #fff;
   --color-selector-selected: #269cf1;
   --color-selector-focused: #bee6ff;
+  --color-closed: #d1d1d1;
+  --color-closed-non-work: #c5c5c5;
 }
 
 html.dark {
@@ -239,6 +230,8 @@ html.dark {
   --color-selector-menu: #374151;
   --color-selector-selected: #0d5d93;
   --color-selector-focused: #003f67;
+  --color-closed: #1e1e1e;
+  --color-closed-non-work: #000000;
 }
 
 .bg-card {
@@ -276,4 +269,10 @@ html.dark {
 }
 .bg-selector-focused{
 	background-color: var(--color-selector-focused) !important;
+}
+.bg-closed{
+	background-color: var(--color-closed) !important;
+}
+.bg-closed-non-work{
+	background-color: var(--color-closed-non-work) !important;
 }

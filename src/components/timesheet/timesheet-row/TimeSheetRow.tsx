@@ -2,8 +2,9 @@ import React, { useMemo } from "react";
 import { TaskHeader } from "./TaskCell";
 import { TimeEntryCell } from "./TimeEntryCell";
 import { getTaskColor } from "../utils/utils";
+import { isNonWorkingDay } from "../utils/timeEntry";
 import {
-  getTimeEntriesForTaskAndDay,
+  getTimeEntriesForTaskAndDay, isClosed,
   isHoliday,
   isSickDay,
 } from "../utils/timeEntry";
@@ -139,7 +140,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
           isInDragRange={isCellInDragRange(day, task.id)}
           colors={{ backgroundColor, borderColor }}
           readOnly={readOnly}
-          isNoWorkDay={isNoWorkDay !== DayType.WORK_DAY}
+          isNoWorkDay={isNonWorkingDay(day, timesheet.days)}
           isInSelectedWeekdays={
             isMonthView ||
             (!!selectedWeekdays &&

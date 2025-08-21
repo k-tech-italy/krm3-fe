@@ -16,7 +16,7 @@ export const EmptyCell: React.FC<EmptyCellProps> = ({
 }) => {
   return (
     <div className="flex justify-center text-app hover:text-app">
-      <Plus size={16} />
+      <Plus size={16} strokeWidth={3}/>
     </div>
   );
 };
