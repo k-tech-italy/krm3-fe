@@ -33,6 +33,8 @@ export function useCreateTimeEntry(selectedResourceId: number | null) {
       restHours?: number;
       specialLeaveHours?: number;
       specialLeaveReason?: string;
+      bankFrom?: number,
+      bankTo?: number,
       comment?: string;
     }) => createTimeEntry({ ...params, resourceId }),
     {

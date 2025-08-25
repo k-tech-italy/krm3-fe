@@ -16,6 +16,7 @@ describe("TimeEntryCell", () => {
     isNoWorkDay: false,
     isLockedDay: false,
     isInSelectedWeekdays: true,
+    schedule: {},
   };
 
   it("renders EmptyCell for TASK type", () => {
@@ -69,6 +70,8 @@ describe("TimeEntryCell", () => {
       specialLeaveHours: 0,
       specialReason: undefined,
       comment: undefined,
+      bankFrom: 0,
+      bankTo: 0
     };
     const { container } = render(
       <TimeEntryCell {...baseProps} type={TimeEntryType.TASK} timeEntry={timeEntry} />

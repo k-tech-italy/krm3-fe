@@ -1,5 +1,5 @@
 import { Info } from "lucide-react";
-import { TimeEntry } from "../../../restapi/types";
+import {Schedule, TimeEntry} from "../../../restapi/types";
 import { normalizeDate } from "../utils/dates";
 import {getTileBgColorClass} from "../utils/utils.ts";
 import { DoorOpen } from 'lucide-react';
@@ -10,11 +10,12 @@ interface Props {
   isMonthView?: boolean;
   isColumnView?: boolean;
   isNoWorkDay?: boolean;
-  isClosedDay?: boolean
-  isInSelectedWeekdays? :boolean
+  isClosedDay?: boolean;
+  isInSelectedWeekdays? :boolean;
+  schedule: Schedule;
 }
 
-export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isInSelectedWeekdays, isClosedDay }: Props) {
+export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isInSelectedWeekdays, isClosedDay, schedule }: Props) {
   if (!timeEntries) {
     return <div className="bg-card">0h</div>;
   }
@@ -33,7 +34,9 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isIn
         (Number(timeEntry.leaveHours) || 0) +
         (Number(timeEntry.specialLeaveHours ) || 0) +
         (Number(timeEntry.restHours) || 0) +
-        (Number(timeEntry.travelHours) || 0)
+        (Number(timeEntry.travelHours) || 0) +
+        (Number(timeEntry.bankFrom)) -
+        (Number(timeEntry.bankTo) || 0)
       );
     }
     return acc;
@@ -59,7 +62,7 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isIn
         className={`items-center font-semibold ${
           isMonthView ? "text-sm" : "text-md"
         } flex justify-center  h-full w-full ${getTextColorClass(totalHour)} 
-        ${getTileBgColorClass(day, isNoWorkDay, isClosedDay)}
+        ${getTileBgColorClass(day, schedule, isClosedDay)}
         `}
       >
         {totalHour}h
@@ -89,6 +92,8 @@ export const TotalHourForTask = ({ timeEntry }: { timeEntry: TimeEntry }) => {
     { label: "Special Leave", value: timeEntry.specialLeaveHours },
     { label: "Travel", value: timeEntry.travelHours },
     { label: "Rest", value: timeEntry.restHours },
+    { label: "Bank To", value: timeEntry.bankTo },
+    { label: "Bank From", value: timeEntry.bankFrom },
   ];
 
   return (
