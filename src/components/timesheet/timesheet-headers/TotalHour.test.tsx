@@ -6,6 +6,7 @@ import { vi } from "vitest";
 vi.mock("lucide-react", () => ({
   Info: () => <svg data-testid="info-icon" />,
   DoorOpen: () => <svg data-testid="door-icon" />,
+  Plane: () => <svg data-testid="plane-icon" />,
 }));
 
 describe("TotalHourCell", () => {
@@ -15,7 +16,7 @@ describe("TotalHourCell", () => {
     dayShiftHours: 2,
     nightShiftHours: 1,
     restHours: 0,
-    travelHours: 0,
+    travelHours: 1,
     leaveHours: 0,
     onCallHours: 0,
     sickHours: 0,
@@ -32,17 +33,17 @@ describe("TotalHourCell", () => {
     expect(screen.getByText(/0h/)).toBeInTheDocument();
   });
 
-  it("renders 3h if total hours is 3h", () => {
+  it("renders 4h if total hours is 4h", () => {
     render(<TotalHourCell day={baseDay} timeEntries={[baseEntry]} />);
-    expect(screen.getByText(/3h/)).toBeInTheDocument();
-    expect(screen.getByText(/3h/)).toHaveClass("text-blue-500");
+    expect(screen.getByText(/4h/)).toBeInTheDocument();
+    expect(screen.getByText(/4h/)).toHaveClass("text-blue-500");
   });
 
   it("renders 8h if total hours is 8h", () => {
     render(
       <TotalHourCell
         day={baseDay}
-        timeEntries={[{ ...baseEntry, dayShiftHours: 7 }]}
+        timeEntries={[{ ...baseEntry, dayShiftHours: 6 }]}
       />
     );
     expect(screen.getByText(/8h/)).toBeInTheDocument();
@@ -87,4 +88,5 @@ describe("TotalHourCell", () => {
     );
     expect(screen.queryByText(`door-icon`)).not.toBeInTheDocument();
   })
+
 });

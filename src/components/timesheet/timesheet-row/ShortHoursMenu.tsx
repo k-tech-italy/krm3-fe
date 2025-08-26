@@ -1,13 +1,14 @@
 import React, { useMemo, useState, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
-import { useCreateTimeEntry } from "../../../hooks/useTimesheet";
-import { displayErrorMessage } from "../utils/utils";
+import {useCreateTimeEntry, useDeleteTimeEntries} from "../../../hooks/useTimesheet";
+import {displayErrorMessage, getTimeEntriesForSelectedPeriod} from "../utils/utils";
 import { formatDate, getDatesBetween, normalizeDate } from "../utils/dates";
 import { Days, TimeEntry } from "../../../restapi/types";
 import { getDatesWithAndWithoutTimeEntries } from "../utils/timeEntry";
 import Krm3Modal from "../../commons/krm3Modal";
 import Krm3Button from "../../commons/Krm3Button";
 import WarningExistingEntry from "../edit-entry/WarningExistEntry";
+import { TrashIcon } from "lucide-react";
 
 interface ShortHoursMenuProps {
   dayToOpen: Date;
@@ -38,6 +39,7 @@ const HOUR_OPTIONS: readonly HourOption[] = [
   { label: "4h", value: 4 },
   { label: "8h", value: 8 },
   { label: "More", value: 0 },
+  { label: "Delete", value: 0 },
 ] as const;
 
 const READ_ONLY_OPTIONS: readonly HourOption[] = [
@@ -158,12 +160,60 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       setOpenShortMenu,
     ]
   );
+  const {
+    mutateAsync: deleteTimeEntries,
+    error: deletionError,
+  } = useDeleteTimeEntries();
+  const deleteHours = useCallback(
+      async (timeEntriesIdsToDelete: number[]) => {
+        if (!menuData) {
+          toast.error("Invalid configuration");
+          return;
+        }
+        const promise = deleteTimeEntries(timeEntriesIdsToDelete)
+
+        await toast.promise(
+            promise,
+            {
+              pending: "Deleting hours...",
+              success: "Hours deleted successfuly",
+              error: {
+                render({data}){
+                  return <div>{displayErrorMessage(data)} </div>;
+                }
+              }
+            },
+            {
+              autoClose: 2000,
+              theme: "light",
+              hideProgressBar: false,
+              draggable: true,
+            }
+        )
+      },
+      [
+        menuData,
+        selectedResourceId,
+        deleteTimeEntries,
+        taskId,
+        deletionError,
+        setOpenShortMenu,
+      ]
+  )
 
   const handleButtonClick = useCallback(
     (label: string, value: number) => {
-      if (value === 0) {
+      if (label == "More") {
         openTimeEntryModalHandler();
         setOpenShortMenu?.(undefined);
+        return;
+      } else if (label == "Delete") {
+        if(openShortMenu)
+        {
+          const timeEntriesToDelete = getTimeEntriesForSelectedPeriod(timeEntries, openShortMenu?.startDate, openShortMenu?.endDate, Number(openShortMenu?.taskId))
+          deleteHours(timeEntriesToDelete.map((timeEntry) => timeEntry.id))
+          setOpenShortMenu?.(undefined);
+        }
         return;
       }
 
@@ -221,7 +271,12 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
   if (!menuData || !menuData.isVisible) {
     return null;
   }
-
+  const isDeleteButtonVisible = () => {
+    if(openShortMenu == null)
+      return false
+      return getTimeEntriesForSelectedPeriod(
+          timeEntries, openShortMenu?.startDate, openShortMenu?.endDate, Number(openShortMenu?.taskId)).length > 0
+  }
   return (
     <div className="relative" ref={menuRef}>
       <div
@@ -232,17 +287,22 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
         aria-labelledby="options-menu"
       >
         <div>
-          {options.map((option, index) => (
-            <button
-              key={`menu-option-${index}-${option.label}-${option.value}`}
-              onClick={() => handleButtonClick(option.label, option.value)}
-              className="block w-full px-4 py-2 cursor-pointer text-center text-m text-app hover:bg-app hover:text-app focus:bg-app focus:text-app focus:outline-none"
-              role="menuitem"
-              type="button"
-            >
-              {option.label}
-            </button>
-          ))}
+          {options.map((option, index) => {
+            if (option.label == "Delete" && !isDeleteButtonVisible()) return null
+            return (
+              <button
+                key={`menu-option-${index}-${option.label}-${option.value}`}
+                onClick={() => handleButtonClick(option.label, option.value)}
+                className={`block w-full px-4 py-2 cursor-pointer text-center text-m text-app hover:bg-app hover:text-app focus:bg-app focus:text-app focus:outline-none
+                ${option.label == "Delete" ? "bg-red-600 hover:bg-red-800" : ""}`}
+                role="menuitem"
+                type="button"
+                id={`short-menu-${option.label.toLowerCase()}-button`}
+                data-testid={`short-menu-${option.label.toLowerCase()}-button`}
+              >
+                {option.label == "Delete" ? <TrashIcon className={'mx-auto text-white'}></TrashIcon> : option.label}
+                </button>)
+          })}
         </div>
         <div className="px-4 py-2 bg-card rounded-b-md">
           <p className="text-xs text-app text-center">

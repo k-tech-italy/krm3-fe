@@ -26,7 +26,7 @@ function VisualizationActions({
           <div className="inline-flex items-end gap-2">
             <label
               htmlFor="switch-month-on"
-              className="text-slate-600 text-sm cursor-pointer"
+              className="text-slate-600 text-sm cursor-pointer text-app"
             >
               Week
             </label>
@@ -34,7 +34,7 @@ function VisualizationActions({
               <input
                 id="switch-month-on"
                 type="checkbox"
-                className="peer appearance-none w-11 h-5 bg-slate-100 rounded-full checked:bg-slate-800 cursor-pointer transition-colors duration-300"
+                className="peer appearance-none w-11 h-5 bg-slate-200 rounded-full checked:bg-slate-400 cursor-pointer transition-colors duration-300"
                 checked={isMonth}
                 onChange={() => {
                   setIsMonth(!isMonth);
@@ -47,7 +47,7 @@ function VisualizationActions({
             </div>
             <label
               htmlFor="switch-month-on"
-              className="text-slate-600 text-sm cursor-pointer"
+              className="text-slate-600 text-sm cursor-pointer text-app"
             >
               Month
             </label>
@@ -56,7 +56,7 @@ function VisualizationActions({
           <div className="inline-flex items-center gap-2">
             <label
               htmlFor="switch-component-on"
-              className="text-slate-600 text-sm cursor-pointer"
+              className="text-slate-600 text-sm cursor-pointer text-app"
             >
               Row
             </label>
@@ -64,7 +64,7 @@ function VisualizationActions({
               <input
                 id="switch-component-on"
                 type="checkbox"
-                className="peer appearance-none w-11 h-5 bg-slate-100 rounded-full checked:bg-slate-800 cursor-pointer transition-colors duration-300"
+                className="peer appearance-none w-11 h-5 bg-slate-200 rounded-full checked:bg-slate-400 cursor-pointer transition-colors duration-300 "
                 checked={isColumnView}
                 onChange={() => setColumnView(!isColumnView)}
               />
@@ -75,7 +75,7 @@ function VisualizationActions({
             </div>
             <label
               htmlFor="switch-component-on"
-              className="text-slate-600 text-sm cursor-pointer"
+              className="text-slate-600 text-sm cursor-pointer text-app"
             >
               Column
             </label>

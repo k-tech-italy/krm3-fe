@@ -145,9 +145,33 @@ export function getDayType(date: Date | string, days?: Days): DayType {
     return DayType.BANK_HOLIDAY;
   }
 
- 
-
   return DayType.WORK_DAY;
+}
+export function isNonWorkingDay(date: Date | string, days?: Days): boolean {
+  const normalizedDate = normalizeDate(date);
+
+  if (!days) {
+    return false;
+  }
+  const dayEntry = days[normalizedDate];
+
+  if (dayEntry?.nwd || dayEntry?.hol) {
+    return true;
+  }
+  return false
+}
+export function isClosed(date: Date | string, days?: Days): boolean {
+  const normalizedDate = normalizeDate(date);
+
+  if (!days) {
+    return false;
+  }
+  const dayEntry = days[normalizedDate];
+
+  if (dayEntry?.closed) {
+    return true;
+  }
+  return false
 }
 
 // Optimized batch lookup helpers for use in loops

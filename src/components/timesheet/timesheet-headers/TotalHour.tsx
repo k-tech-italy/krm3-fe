@@ -10,10 +10,11 @@ interface Props {
   isMonthView?: boolean;
   isColumnView?: boolean;
   isNoWorkDay?: boolean;
+  isClosedDay?: boolean
   isInSelectedWeekdays? :boolean
 }
 
-export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isInSelectedWeekdays }: Props) {
+export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isInSelectedWeekdays, isClosedDay }: Props) {
   if (!timeEntries) {
     return <div className="bg-card">0h</div>;
   }
@@ -31,7 +32,8 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isIn
         (Number(timeEntry.nightShiftHours) || 0) +
         (Number(timeEntry.leaveHours) || 0) +
         (Number(timeEntry.specialLeaveHours ) || 0) +
-        (Number(timeEntry.restHours) || 0)
+        (Number(timeEntry.restHours) || 0) +
+        (Number(timeEntry.travelHours) || 0)
       );
     }
     return acc;
@@ -55,9 +57,9 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isIn
         data-tooltip-id={tooltipId}
         data-tooltip-hidden={totalHour === 0}
         className={`items-center font-semibold ${
-          isMonthView ? "text-[10px]" : "text-sm"
+          isMonthView ? "text-sm" : "text-md"
         } flex justify-center  h-full w-full ${getTextColorClass(totalHour)} 
-        ${getTileBgColorClass(day, isNoWorkDay)}
+        ${getTileBgColorClass(day, isNoWorkDay, isClosedDay)}
         `}
       >
         {totalHour}h
