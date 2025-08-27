@@ -62,6 +62,4 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 We use FontAwesome icons and Fontastic to produce a web font.
 
 [Fontastic](https://app.fontastic.me/)  
-User: dev@k-tech.it  
-Password: kt.fonts  
-Font name: KRM3
+
