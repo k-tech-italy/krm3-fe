@@ -1,6 +1,6 @@
 import {Days, Schedule, Task, TimeEntry} from "../../restapi/types";
 import { useState, useMemo, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {ChevronLeft, ChevronRight, Landmark} from "lucide-react";
 import Krm3Modal from "../commons/krm3Modal";
 import EditTimeEntry from "./edit-entry/EditTimeEntry";
 import { TimeSheetTable } from "./TimesheetTable";
@@ -22,6 +22,7 @@ import { displayErrorMessage, getHolidayAndSickDays } from "./utils/utils";
 import Krm3Button from "../commons/Krm3Button";
 import {useGetTimesheet, useSubmitTimesheet} from "../../hooks/useTimesheet";
 import { toast } from "react-toastify";
+import { useMediaQuery } from "react-responsive";
 
 export default function Krm3Calendar({
   selectedResourceId,
@@ -38,6 +39,7 @@ export default function Krm3Calendar({
   const [isMonth, setIsMonth] = useState<boolean>(true);
   const [schedule, setSchedule] = useState<Schedule>({})
   const { isColumnView, setColumnView } = useColumnViewPreference();
+  const [bankHours, setBankHours] = useState(0)
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
     if (isMonth) {
@@ -52,8 +54,9 @@ export default function Krm3Calendar({
       return new Date(today.setDate(diff));
     }
   });
-
-
+  const bankDelta = timeEntries.reduce((acc, timeEntry) => {
+    return acc + Number(timeEntry.bankTo) - Number(timeEntry.bankFrom)
+  }, 0)
   const [selectedWeekRange, setSelectedWeekRange] = useState<WeekRange>(
     isOverlappingWeek(currentWeekStart) ? "startOfWeek" : "whole"
   );
@@ -121,6 +124,8 @@ export default function Krm3Calendar({
     }
     return { days, numberOfDays };
   }, [currentWeekStart, isMonth]);
+
+  const isDesktop = useMediaQuery({ minWidth: 1024 });
 
   const isCurrentPeriod = isMonth
     ? currentWeekStart.getMonth() === new Date().getMonth() &&
@@ -299,6 +304,18 @@ export default function Krm3Calendar({
               </button>
             </div>
 
+            <div className={`flex flex-col md:flex-row items-center gap-2 mr-4 my-0`}>
+              <Landmark size={isDesktop ? 40 : 30}/>
+              <div className={'flex flex-col'}>
+                <p data-testid={"bank-total"}
+                   className={`font-bold my-0 md:text-2xl ${bankHours >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {bankHours.toFixed(2).replace(/\.?0+$/, "")}h
+                </p>
+                <p className={`font-bold ${bankDelta >= 0 ? 'text-green-500': 'text-red-500 hidden md:block'}`}
+                data-testid={"bank-delta"}>
+                  (𝚫 = {bankDelta >= 0 ? '+' : ''}{bankDelta.toFixed(2).replace(/\.?0+$/, "")}h)</p>
+              </div>
+            </div>
             <Krm3Button
               onClick={() =>
                 setCurrentWeekStart(() => {
@@ -352,6 +369,8 @@ export default function Krm3Calendar({
             readOnly={readOnly}
             selectedWeekRange={selectedWeekRange}
             setSchedule={setSchedule}
+            setBankHours={setBankHours}
+            schedule={schedule}
           />
           <div className="flex justify-end items-center mt-4">
             <Krm3Button
@@ -391,6 +410,7 @@ export default function Krm3Calendar({
                         readOnly={readOnly}
                         selectedResourceId={selectedResourceId}
                         calendarDays={typeDays}
+                        schedule={schedule}
                       />
                     ) : (
                       <EditTimeEntry

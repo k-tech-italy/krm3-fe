@@ -2,7 +2,7 @@ import React from "react";
 import { Droppable } from "../Droppable";
 import { TimeEntryItem } from "./TimeEntryItem";
 import { EmptyCell } from "./EmptyCell";
-import { TimeEntry, TimeEntryType } from "../../../restapi/types";
+import {Schedule, TimeEntry, TimeEntryType} from "../../../restapi/types";
 import { SpecialDayCell } from "./SpecialDayCell";
 import { Draggable } from "../Draggable";
 import { getTileBgColorClass } from "../utils/utils.ts";
@@ -16,6 +16,7 @@ export interface CellProps {
     backgroundColor: string;
     borderColor: string;
   };
+
 }
 
 export interface TimeEntryCellProps extends CellProps {
@@ -27,7 +28,7 @@ export interface TimeEntryCellProps extends CellProps {
   isNoWorkDay: boolean;
   isLockedDay: boolean;
   isInSelectedWeekdays: boolean;
-
+  schedule: Schedule;
 }
 export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   day,
@@ -43,6 +44,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   isNoWorkDay,
   isLockedDay,
   isInSelectedWeekdays,
+  schedule,
 }) => {
   const cellId = `${day.toDateString()}-${taskId}`;
   const draggableId = `${day.toDateString()}-${taskId}-${timeEntry?.id}`;
@@ -68,7 +70,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
  
     
      ${!isInSelectedWeekdays ? "cursor-not-allowed!" : ""}
-     ${getTileBgColorClass(day, isNoWorkDay, isLockedDay)}
+     ${getTileBgColorClass(day, schedule, isLockedDay)}
 
     ${isInDragRange || isColumnHighlighted ? "bg-card" : ""}
     ${

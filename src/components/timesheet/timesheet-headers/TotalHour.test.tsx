@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { TotalHourCell, TotalHourForTask } from "./TotalHour";
 import { vi } from "vitest";
+import {normalizeDate} from "../utils/dates.ts";
 
 // Mock the Info icon from lucide-react
 vi.mock("lucide-react", () => ({
@@ -24,17 +25,19 @@ describe("TotalHourCell", () => {
     date: baseDay.toISOString(),
     task: 1,
     specialLeaveHours: 0,
+    bankFrom: 0,
+    bankTo: 0,
     specialReason: undefined,
     comment: undefined,
   };
 
   it("renders 0h if no timeEntries", () => {
-    render(<TotalHourCell day={baseDay} />);
+    render(<TotalHourCell day={baseDay} schedule={{}}/>);
     expect(screen.getByText(/0h/)).toBeInTheDocument();
   });
 
   it("renders 4h if total hours is 4h", () => {
-    render(<TotalHourCell day={baseDay} timeEntries={[baseEntry]} />);
+    render(<TotalHourCell day={baseDay} timeEntries={[baseEntry]} schedule={{}}/>);
     expect(screen.getByText(/4h/)).toBeInTheDocument();
     expect(screen.getByText(/4h/)).toHaveClass("text-blue-500");
   });
@@ -44,6 +47,7 @@ describe("TotalHourCell", () => {
       <TotalHourCell
         day={baseDay}
         timeEntries={[{ ...baseEntry, dayShiftHours: 6 }]}
+        schedule={{}}
       />
     );
     expect(screen.getByText(/8h/)).toBeInTheDocument();
@@ -66,6 +70,7 @@ describe("TotalHourCell", () => {
         <TotalHourCell
             day={baseDay}
             timeEntries={[{ ...baseEntry, leaveHours: 1 }]}
+            schedule={{}}
         />
     );
     expect(screen.getByTestId(`door-icon`))
@@ -75,6 +80,7 @@ describe("TotalHourCell", () => {
         <TotalHourCell
             day={baseDay}
             timeEntries={[{ ...baseEntry, specialLeaveHours: 1 }]}
+            schedule={{}}
         />
     );
     expect(screen.getByTestId(`door-icon`))
@@ -84,6 +90,7 @@ describe("TotalHourCell", () => {
         <TotalHourCell
             day={baseDay}
             timeEntries={[{ ...baseEntry }]}
+            schedule={{}}
         />
     );
     expect(screen.queryByText(`door-icon`)).not.toBeInTheDocument();

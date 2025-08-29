@@ -1,4 +1,4 @@
-import { TimeEntry } from "../../../restapi/types";
+import {Schedule, TimeEntry} from "../../../restapi/types";
 import {isDayInRange, normalizeDate} from "./dates";
 import {isHoliday, isSickDay, isToday} from "./timeEntry";
 
@@ -73,9 +73,9 @@ export function isValidUrl(url: string) {
   }
 }
 
-export function getTileBgColorClass(day: Date, isNoWorkDay?: boolean, isClosed?: boolean): string {
+export function getTileBgColorClass(day: Date, schedule?: Schedule, isClosed?: boolean): string {
   if (isToday(day)) return "bg-table-today";
-
+  const isNoWorkDay = schedule ? schedule[normalizeDate(day).replaceAll("-", "_")] == 0: false
   if (isNoWorkDay) {
     if (!isClosed) return "bg-table-row-alt";
     return "bg-closed-non-work";

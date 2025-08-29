@@ -1,6 +1,6 @@
 import React from "react";
 import { Tooltip } from "react-tooltip";
-import { DayType, TimeEntry, Timesheet } from "../../../restapi/types";
+import {DayType, Schedule, TimeEntry, Timesheet} from "../../../restapi/types";
 import { Draggable } from "../Draggable";
 import { Droppable } from "../Droppable";
 import {formatDay, formatDayOfWeek, formatIntl, normalizeDate} from "../utils/dates";
@@ -17,6 +17,7 @@ interface Props {
   isColumnActive: (index: number) => boolean;
   isColumnHighlighted: (index: number) => boolean;
   selectedWeekdays?: Date[];
+  schedule: Schedule
 }
 
 function TimeSheetHeaders({
@@ -27,7 +28,9 @@ function TimeSheetHeaders({
   isColumnActive,
   isColumnHighlighted,
   selectedWeekdays,
+  schedule,
 }: Props) {
+
   return (
     <>
       {scheduledDays.days.map((day, index) => (
@@ -60,11 +63,7 @@ function TimeSheetHeaders({
                   isMonthView ? "text-xs py-2 flex-row whitespace-nowrap" : "text-sm p-2"
                 } text-center cursor-grab  active:cursor-grabbing
    
-              ${
-                getDayType(day, timesheet.days) !== DayType.WORK_DAY
-                  ? "cursor-not-allowed" : ""
-              }
-              ${getTileBgColorClass(day, isNonWorkingDay(day, timesheet.days), isClosed(day, timesheet.days))}
+              ${getTileBgColorClass(day, schedule, isClosed(day, timesheet.days))}
               
                ${isColumnActive(index) ? "bg-blue-200" : ""}
               ${
@@ -95,6 +94,7 @@ function TimeSheetHeaders({
                       isNonWorkingDay(day, timesheet.days)
                     }
                     isClosedDay={isClosed(day, timesheet.days)}
+                    schedule={schedule}
                   />
                 </div>
               </div>

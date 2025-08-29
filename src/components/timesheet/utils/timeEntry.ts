@@ -35,14 +35,17 @@ export const getDatesWithAndWithoutTimeEntries = (
 
 //Calculate the total hours for a list of dates. This function takes a list of
 export function calculateTotalHoursForDays(
-  timeEntries: TimeEntry[],
-  dates: string[],
+  timeEntries: ReadonlyArray<Readonly<TimeEntry>>,
+  dates: ReadonlyArray<Readonly<string>>,
   newValue: number,
   changedField: "restHours" | "leaveHours" | "specialLeaveHours"
 ): number {
+  const timeEntriesCopy = JSON.parse(JSON.stringify
+  (timeEntries));
+
   // Group time entries by normalized date for O(1) lookup
   const entriesByDate: Record<string, TimeEntry[]> = {};
-  for (const entry of timeEntries) {
+  for (const entry of timeEntriesCopy) {
     const date = normalizeDate(entry.date);
     if (!entriesByDate[date]) entriesByDate[date] = [];
     if(entry.task === null){

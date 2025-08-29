@@ -276,3 +276,14 @@ html.dark {
 .bg-closed-non-work{
 	background-color: var(--color-closed-non-work) !important;
 }
+.btn-striped {
+	@apply text-gray-800 font-bold;
+	opacity: 0.4;
+	background-image: repeating-linear-gradient(
+			45deg,
+			#e0e0e0,
+			#e0e0e0 10px,
+			#f9f9f9 10px,
+			#f9f9f9 20px
+	);
+}

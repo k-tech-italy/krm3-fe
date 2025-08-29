@@ -8,7 +8,7 @@ import {
   isHoliday,
   isSickDay,
 } from "../utils/timeEntry";
-import { Task, TimeEntryType, Timesheet } from "../../../restapi/types";
+import {Schedule, Task, TimeEntryType, Timesheet} from "../../../restapi/types";
 import { ShortHoursMenu } from "./ShortHoursMenu";
 import { normalizeDate } from "../utils/dates";
 import { getDayType } from "../utils/timeEntry";
@@ -34,6 +34,7 @@ export interface TimeSheetRowProps {
   selectedResourceId: number | null;
   holidayOrSickDays: String[];
   selectedWeekdays?: Date[];
+  schedule: Schedule;
 }
 
 export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
@@ -52,6 +53,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
   selectedResourceId,
   holidayOrSickDays,
   selectedWeekdays,
+  schedule
 }) => {
   // Generate color once per task row
   const { backgroundColor, borderColor } = useMemo(
@@ -136,6 +138,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
           timeEntry={timeEntry}
           isMonthView={isMonthView}
           isColumnView={isColumnView}
+          schedule={schedule}
           isColumnHighlighted={isColumnHighlighted(dayIndex)}
           isInDragRange={isCellInDragRange(day, task.id)}
           colors={{ backgroundColor, borderColor }}
