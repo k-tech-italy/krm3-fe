@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import EditDayEntry from "./EditDayEntry";
 import { vi } from "vitest";
 import {TimeEntry} from "../../../restapi/types.ts";
+import EditTimeEntry from "./EditTimeEntry.tsx";
 
 const mutateDeleteMock = vi.fn().mockResolvedValue(undefined);
 
@@ -34,6 +35,7 @@ describe("EditDayEntry", () => {
     readOnly: false,
     selectedResourceId: 1,
     calendarDays: {},
+    schedule: {},
   };
   it("renders form and entry type options", () => {
     render(<EditDayEntry {...baseProps} />);
@@ -63,7 +65,9 @@ describe("EditDayEntry", () => {
         restHours: 0,
         nightShiftHours: 0,
         onCallHours: 0,
-        task: 1
+        task: 1,
+        bankFrom: 0,
+        bankTo: 0,
       }
     ]
     render(<EditDayEntry {...baseProps} timeEntries={timeEntries}/>);
@@ -83,7 +87,9 @@ describe("EditDayEntry", () => {
         restHours: 0,
         nightShiftHours: 0,
         onCallHours: 0,
-        task: 1
+        task: 1,
+        bankFrom: 0,
+        bankTo: 0,
       }
     ]
     render(<EditDayEntry {...baseProps} timeEntries={timeEntries}/>);
@@ -103,7 +109,9 @@ describe("EditDayEntry", () => {
         restHours: 1,
         nightShiftHours: 0,
         onCallHours: 0,
-        task: 1
+        task: 1,
+        bankFrom: 0,
+        bankTo: 0,
       }
     ]
     render(<EditDayEntry {...baseProps} timeEntries={timeEntries}/>);
@@ -123,7 +131,9 @@ describe("EditDayEntry", () => {
         restHours: 0,
         nightShiftHours: 0,
         onCallHours: 0,
-        task: 1
+        task: 1,
+        bankFrom: 0,
+        bankTo: 0,
       }
     ]
     render(<EditDayEntry {...baseProps} timeEntries={timeEntries}/>);
@@ -143,7 +153,9 @@ describe("EditDayEntry", () => {
         restHours: 1,
         nightShiftHours: 0,
         onCallHours: 0,
-        task: 1
+        task: 1,
+        bankFrom: 0,
+        bankTo: 0,
       },
       {
         date: '2024-06-02',
@@ -157,7 +169,9 @@ describe("EditDayEntry", () => {
         restHours: 0,
         nightShiftHours: 0,
         onCallHours: 0,
-        task: 1
+        task: 1,
+        bankFrom: 0,
+        bankTo: 0,
       },
       {
         date: '2024-06-01',
@@ -171,7 +185,9 @@ describe("EditDayEntry", () => {
         restHours: 0,
         nightShiftHours: 0,
         onCallHours: 0,
-        task: 1
+        task: 1,
+        bankFrom: 0,
+        bankTo: 0,
       },
       {
         date: '2024-06-03',
@@ -185,7 +201,9 @@ describe("EditDayEntry", () => {
         restHours: 0,
         nightShiftHours: 0,
         onCallHours: 0,
-        task: 1
+        task: 1,
+        bankFrom: 0,
+        bankTo: 0,
       }
     ]
     render(<EditDayEntry {...baseProps} timeEntries={timeEntries}/>);
@@ -204,6 +222,7 @@ describe("EditDayEntry", () => {
       readOnly: false,
       selectedResourceId: 1,
       calendarDays: {},
+      schedule: {}
     };
     const timeEntries: TimeEntry[] = []
     for (let i = 0; i < 10; i++) {
@@ -220,12 +239,49 @@ describe("EditDayEntry", () => {
             restHours: 0,
             nightShiftHours: 0,
             onCallHours: 0,
-            task: 1
+            task: 1,
+            bankFrom: 0,
+            bankTo: 0,
           });
       (timeEntries[i] as any)[entryType] = 8
     }
-    render(<EditDayEntry {...props} timeEntries={timeEntries}/>);
+    render(<EditDayEntry {...props} timeEntries={timeEntries} />);
     screen.getByTestId('clear-button').click()
     expect(mutateDeleteMock).toHaveBeenCalledWith([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  })
+  it("if none of selected days have schedule of 0 hours user should be able to log leave, rest, special leave, holiday, sick day" , () => {
+    const schedule = {
+      "2024_06_01": 5,
+      "2024_06_02": 5,
+      "2024_06_03": 8,
+    }
+    render(<EditDayEntry {...baseProps} schedule={schedule}/>);
+    expect(screen.getByTestId("get-from-bank-hour-input")).toBeEnabled()
+    fireEvent.click(screen.getByTestId("day-entry-leave-radio"))
+    expect(screen.getByTestId("day-entry-leave-input")).toBeChecked()
+    fireEvent.click(screen.getByTestId("day-entry-rest-radio"))
+    expect(screen.getByTestId("day-entry-rest-input")).toBeChecked()
+    fireEvent.click(screen.getByTestId("day-entry-holiday-radio"))
+    expect(screen.getByTestId("day-entry-holiday-input")).toBeChecked()
+    fireEvent.click(screen.getByTestId("day-entry-sick-radio"))
+    expect(screen.getByTestId("day-entry-sick-input")).toBeChecked()
+  })
+
+  it("if one of selected days have schedule of 0 hours user shouldn't be able to log leave, rest, special leave, holiday, sick day" , () => {
+    const schedule = {
+      "2024_06_01": 5,
+      "2024_06_02": 0,
+      "2024_06_03": 8,
+    }
+    render(<EditDayEntry {...baseProps} schedule={schedule}/>);
+    expect(screen.getByTestId("get-from-bank-hour-input")).toBeDisabled()
+    fireEvent.click(screen.getByTestId("day-entry-leave-radio"))
+    expect(screen.getByTestId("day-entry-leave-input")).not.toBeChecked()
+    fireEvent.click(screen.getByTestId("day-entry-rest-radio"))
+    expect(screen.getByTestId("day-entry-rest-input")).not.toBeChecked()
+    fireEvent.click(screen.getByTestId("day-entry-holiday-radio"))
+    expect(screen.getByTestId("day-entry-holiday-input")).not.toBeChecked()
+    fireEvent.click(screen.getByTestId("day-entry-sick-radio"))
+    expect(screen.getByTestId("day-entry-sick-input")).not.toBeChecked()
   })
 }); 

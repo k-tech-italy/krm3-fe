@@ -1,5 +1,5 @@
 import React from "react";
-import { Umbrella, Stethoscope } from "lucide-react";
+import { TreePalm, Stethoscope } from "lucide-react";
 import { TimeEntryType } from "../../../restapi/types";
 
 interface Props {
@@ -29,10 +29,10 @@ export const SpecialDayCell: React.FC<Props> = ({
         return {
           id: `holiday-cell-${cellId}`,
           icon: (
-            <Umbrella
-              strokeWidth={2.25}
+            <TreePalm
+              strokeWidth={1.5}
               color="black"
-              size={isMonthView ? 14 : 20}
+              size={isMonthView ? 20 : 26}
             />
           ),
           style: { backgroundColor: colors.backgroundColor },
@@ -44,7 +44,7 @@ export const SpecialDayCell: React.FC<Props> = ({
             <Stethoscope
               strokeWidth={2.25}
               color="black"
-              size={isMonthView ? 12 : 18}
+              size={isMonthView ? 16 : 22}
             />
           ),
           style: { backgroundColor: colors.backgroundColor },

@@ -33,6 +33,8 @@ interface Props {
   selectedResourceId: number | null;
   readOnly: boolean;
   selectedWeekRange: WeekRange;
+  setBankHours: (bankHours: number) => void;
+  schedule: Schedule;
 }
 
 export function TimeSheetTable(props: Props) {
@@ -46,7 +48,6 @@ export function TimeSheetTable(props: Props) {
     isMonthView,
     props.scheduledDays.days
   );
-
   const { data: timesheet, isLoading: isLoadingTimesheet } = useGetTimesheet(
     startScheduled,
     endScheduled,
@@ -60,11 +61,13 @@ export function TimeSheetTable(props: Props) {
   }, [isLoadingTimesheet, timesheet, props.setNoWorkingDay]);
 
   useEffect(() => {
+
     if (timesheet?.timeEntries) {
       props.setTimeEntries(timesheet.timeEntries);
     }
     if(timesheet?.schedule){
       props.setSchedule(timesheet.schedule)
+      props.setBankHours(Number(timesheet.bankHours))
     }
   }, [timesheet]);
 
@@ -111,10 +114,9 @@ export function TimeSheetTable(props: Props) {
       props.setTimeEntries(timeEntries);
       props.setNoWorkingDay(timesheet.days);
       props.setEndDate(endDate);
-      if (getDayType(endDate, timesheet.days) === DayType.WORK_DAY) {
-        props.setOpenTimeEntryModal(true);
-        props.setIsDayEntry(true);
-      }
+      props.setOpenTimeEntryModal(true);
+      props.setIsDayEntry(true);
+
     },
     onTimeEntryDrag: ({ task, timeEntries, endDate }) => {
       props.setSelectedTask(task);
@@ -230,6 +232,7 @@ export function TimeSheetTable(props: Props) {
             isColumnActive={isColumnActive}
             isColumnHighlighted={isColumnHighlighted}
             selectedWeekdays={selectedWeekdays}
+            schedule={props.schedule}
           />
 
           {/* Tasks */}
@@ -254,6 +257,7 @@ export function TimeSheetTable(props: Props) {
                 readOnly={props.readOnly}
                 selectedResourceId={props.selectedResourceId}
                 selectedWeekdays={selectedWeekdays}
+                schedule={props.schedule}
               />
             ))
           )}

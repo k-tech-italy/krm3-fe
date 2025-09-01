@@ -20,6 +20,7 @@ describe("TimeSheetRow", () => {
     tasks: [],
     timeEntries: [],
     days: {},
+    bankHours: 0,
   };
   const baseProps = {
     timesheet: baseTimesheet,
@@ -34,6 +35,7 @@ describe("TimeSheetRow", () => {
     readOnly: false,
     selectedResourceId: 1,
     holidayOrSickDays: [],
+    schedule: {}
   };
 
   it("renders with minimal props", () => {
@@ -77,6 +79,8 @@ describe("TimeSheetRow", () => {
         specialLeaveHours: 0,
         specialReason: undefined,
         comment: undefined,
+        bankFrom: 0,
+        bankTo: 0,
       },
     ];
     render(
@@ -105,6 +109,8 @@ describe("TimeSheetRow", () => {
         specialLeaveHours: 0,
         specialReason: undefined,
         comment: undefined,
+        bankFrom: 0,
+        bankTo: 0
       }]
     render(
         <TimeSheetRow
@@ -131,6 +137,8 @@ describe("TimeSheetRow", () => {
         specialLeaveHours: 0,
         specialReason: undefined,
         comment: undefined,
+        bankFrom: 0,
+        bankTo: 0
       }]
     render(
         <TimeSheetRow

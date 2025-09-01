@@ -105,5 +105,27 @@ describe("Krm3Calendar", () => {
 
     expect(submitButton).toBeEnabled();
   });
+  test("bank hours should be rendered", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        timeEntries: [
+          {
+            date: "2025-08-01",
+            dayShiftHours: 4,
+            bankFrom: 4,
+            bankTo: 0,
+          },
+        ],
+        days: [],
+        schedule: {},
+        bankHours: 10.5
+      },
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+    expect(screen.getByTestId("bank-total")).toHaveTextContent("10.5h")
+    expect(screen.getByTestId("bank-delta")).toHaveTextContent("-4h")
+  })
 });
 
