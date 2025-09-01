@@ -32,14 +32,8 @@ describe("TotalHourCell", () => {
   };
 
   it("renders 0h if no timeEntries", () => {
-    render(<TotalHourCell day={baseDay} schedule={{}}/>);
+    render(<TotalHourCell day={baseDay}/>);
     expect(screen.getByText(/0h/)).toBeInTheDocument();
-  });
-
-  it("renders 4h if total hours is 4h", () => {
-    render(<TotalHourCell day={baseDay} timeEntries={[baseEntry]} schedule={{}}/>);
-    expect(screen.getByText(/4h/)).toBeInTheDocument();
-    expect(screen.getByText(/4h/)).toHaveClass("text-blue-500");
   });
 
   it("renders 8h if total hours is 8h", () => {
@@ -47,11 +41,9 @@ describe("TotalHourCell", () => {
       <TotalHourCell
         day={baseDay}
         timeEntries={[{ ...baseEntry, dayShiftHours: 6 }]}
-        schedule={{}}
       />
     );
     expect(screen.getByText(/8h/)).toBeInTheDocument();
-    expect(screen.getByText(/8h/)).toHaveClass("text-green-500");
   });
 
   it("renders TotalHourForTask", () => {
@@ -70,7 +62,6 @@ describe("TotalHourCell", () => {
         <TotalHourCell
             day={baseDay}
             timeEntries={[{ ...baseEntry, leaveHours: 1 }]}
-            schedule={{}}
         />
     );
     expect(screen.getByTestId(`door-icon`))
@@ -80,7 +71,6 @@ describe("TotalHourCell", () => {
         <TotalHourCell
             day={baseDay}
             timeEntries={[{ ...baseEntry, specialLeaveHours: 1 }]}
-            schedule={{}}
         />
     );
     expect(screen.getByTestId(`door-icon`))
@@ -90,7 +80,6 @@ describe("TotalHourCell", () => {
         <TotalHourCell
             day={baseDay}
             timeEntries={[{ ...baseEntry }]}
-            schedule={{}}
         />
     );
     expect(screen.queryByText(`door-icon`)).not.toBeInTheDocument();

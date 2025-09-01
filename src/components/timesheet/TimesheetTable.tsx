@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { DndContext, closestCenter } from "@dnd-kit/core";
-import {TimeEntry, Task, Days, Schedule } from "../../restapi/types";
+import {TimeEntry, Task, Days, Schedule, HeaderColors} from "../../restapi/types";
 import { useGetTimesheet } from "../../hooks/useTimesheet";
 import { TimeSheetRow } from "./timesheet-row/TimeSheetRow";
 import {
@@ -38,6 +38,7 @@ interface Props {
 }
 
 export function TimeSheetTable(props: Props) {
+  const [headerColors, setHeaderColors] = useState<HeaderColors | undefined>()
   const isMonthView = props.scheduledDays.numberOfDays > 7;
   const startScheduled = normalizeDate(props.scheduledDays.days[0]);
   const endScheduled = normalizeDate(
@@ -68,6 +69,10 @@ export function TimeSheetTable(props: Props) {
     if(timesheet?.schedule){
       props.setSchedule(timesheet.schedule)
       props.setBankHours(Number(timesheet.bankHours))
+    }
+
+    if(timesheet?.timesheetColors){
+      setHeaderColors(timesheet.timesheetColors);
     }
   }, [timesheet]);
 
