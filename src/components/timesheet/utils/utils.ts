@@ -1,4 +1,4 @@
-import {Schedule, TimeEntry} from "../../../restapi/types";
+import {HeaderColors, Schedule, TimeEntry} from "../../../restapi/types";
 import {isDayInRange, normalizeDate} from "./dates";
 import {isHoliday, isSickDay, isToday} from "./timeEntry";
 
@@ -73,17 +73,55 @@ export function isValidUrl(url: string) {
   }
 }
 
-export function getTileBgColorClass(day: Date, schedule?: Schedule, isClosed?: boolean): string {
-  if (isToday(day)) return "bg-table-today";
-  const isNoWorkDay = schedule ? schedule[normalizeDate(day).replaceAll("-", "_")] == 0: false
+export function getTileBgColorProps(
+    day: Date,
+    totalWorkedHours: number,
+    schedule: Schedule,
+    isClosed?: boolean,
+    colors?: HeaderColors
+): { className: string; style?: React.CSSProperties } {
+  if (isToday(day)) {
+    return { className: "bg-table-today" };
+  }
+  const scheduledHours = schedule[normalizeDate(day).replaceAll("-", "_")] ?? 0;
+
+  const isNoWorkDay = scheduledHours === 0;
+
   if (isNoWorkDay) {
-    if (!isClosed) return "bg-table-row-alt";
-    return "bg-closed-non-work";
+    if (isClosed) {
+      return { className: "bg-closed-non-work" };
+    }
+    return { className: "bg-table-row-alt" };
   }
 
-  if (!isClosed) return "bg-table-header";
+  if (!isClosed) {
+    if (colors && schedule) {
+      let lightColor: string;
+      let darkColor: string;
 
-  return "bg-closed";
+      if (totalWorkedHours > scheduledHours) {
+        lightColor = colors.moreThanScheduleColorBrightTheme;
+        darkColor = colors.moreThanScheduleColorDarkTheme;
+      } else if (totalWorkedHours === scheduledHours) {
+        lightColor = colors.exactScheduleColorBrightTheme;
+        darkColor = colors.exactScheduleColorDarkTheme;
+      } else {
+        lightColor = colors.lessThanScheduleColorBrightTheme;
+        darkColor = colors.lessThanScheduleColorDarkTheme;
+      }
+      
+      return {
+        className: `dynamic-header-bg`,
+        style: {
+          '--header-bg-light': lightColor,
+          '--header-bg-dark': darkColor,
+        } as React.CSSProperties,
+      };
+    }
+    return { className: "bg-table-header" };
+  }
+
+  return { className: "bg-closed" };
 }
 
 export function getTimeEntriesForSelectedPeriod(

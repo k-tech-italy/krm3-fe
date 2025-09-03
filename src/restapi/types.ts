@@ -208,6 +208,16 @@ export interface Timesheet {
   days: Days;
   schedule?: Schedule;
   bankHours: number;
+  timesheetColors?: HeaderColors
+}
+
+export interface HeaderColors {
+  lessThanScheduleColorBrightTheme: string;
+  exactScheduleColorBrightTheme: string;
+  moreThanScheduleColorBrightTheme: string;
+  lessThanScheduleColorDarkTheme: string;
+  exactScheduleColorDarkTheme: string;
+  moreThanScheduleColorDarkTheme: string;
 }
 
 export interface Days {
