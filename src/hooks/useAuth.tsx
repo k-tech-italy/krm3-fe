@@ -14,7 +14,8 @@ export function useLogout() {
     },
     onError: (error: AxiosError) => { },
   });
-}export function useGetCurrentUser() {
+}
+export function useGetCurrentUser() {
   const queryClient = useQueryClient();
 
   const userQuery = useQuery(["user", "current"], () => getCurrentUser(), {
