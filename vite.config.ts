@@ -36,7 +36,7 @@ export default defineConfig(({ mode }) => {
       globals: true,
       coverage: {
         provider: 'v8',
-        reporter: ['text', 'lcov'],
+        reporter: ['text', 'text-summary', 'lcov'],
       },
     },
   };
