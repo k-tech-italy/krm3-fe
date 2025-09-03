@@ -37,7 +37,7 @@ export default function Krm3Table(props: Props) {
 
     if (isSmallScreen) {
         return (
-            <div className="space-y-4">
+            <div className="space-y-4" data-testid={"small-screen-table"}>
                 {table.getRowModel().rows.map(row => (
                     <div
                         key={row.id}
