@@ -75,6 +75,7 @@ export default function Krm3Table(props: Props) {
                                     key={header.id}
                                     className="px-4 py-2 text-left text-sm font-medium text-gray-600 uppercase cursor-pointer"
                                     onClick={header.column.getToggleSortingHandler()}
+                                    data-testid={`header-${header.id}`}
                                 >
                                     <div className="flex items-center">
                                         {flexRender(

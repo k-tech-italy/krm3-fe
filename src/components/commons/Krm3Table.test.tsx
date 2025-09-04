@@ -1,7 +1,7 @@
 import Krm3Table from "./Krm3Table.tsx";
-import {render, screen} from "@testing-library/react";
+import {fireEvent, render, screen, within} from "@testing-library/react";
 import {vi} from "vitest";
-import * as MUI from '@mui/material';
+import * as useView from '../../hooks/useView';
 
 describe('Krm3Table', () => {
     const props = {
@@ -10,8 +10,8 @@ describe('Krm3Table', () => {
             { accessorKey: 'column2', header: 'Column2' }
         ],
         data: [
-            { column1: 'data11', column2: 'data21' },
-            { column1: 'data12', column2: 'data22' }
+            { column1: 'data11', column2: 'data21', column3: 'data31' },
+            { column1: 'data12', column2: 'data22', column3: 'data23' },
         ],
         onClickRow: (item: any) => {}
     }
@@ -21,7 +21,6 @@ describe('Krm3Table', () => {
 
     it('renders correctly', () => {
         render(<Krm3Table {...props} />)
-
         expect(screen.getByText("Column1")).toBeInTheDocument()
         expect(screen.getByText("Column2")).toBeInTheDocument()
         expect(screen.getByText("data11")).toBeInTheDocument()
@@ -34,8 +33,20 @@ describe('Krm3Table', () => {
         expect(screen.getByText("No Data")).toBeInTheDocument()
     })
     it('renders small screen table', () => {
+        vi.spyOn(useView, 'useMediaQuery').mockReturnValue(true);
         render(<Krm3Table {...props} />)
-        vi.spyOn(MUI, 'useMediaQuery').mockReturnValue(true)
         expect(screen.getByTestId("small-screen-table")).toBeInTheDocument()
+        expect(screen.getByText("data11")).toBeInTheDocument()
+        expect(screen.getByText("data21")).toBeInTheDocument()
+        expect(screen.getByText("data12")).toBeInTheDocument()
+        expect(screen.getByText("data22")).toBeInTheDocument()
+    })
+    it('renders arrow for sorting', () => {
+        render(<Krm3Table {...props} />)
+        const header1 = screen.getByTestId("header-column1")
+        fireEvent.click(header1)
+        expect(within(header1).getByText("↑")).toBeInTheDocument()
+        fireEvent.click(header1)
+        expect(within(header1).getByText("↓")).toBeInTheDocument()
     })
 })
