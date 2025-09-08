@@ -32,7 +32,6 @@ export default function LimitBudget(props: props) {
       }
     }
   }
-  console.log(props.category, "category");
 
   return (
     <p
