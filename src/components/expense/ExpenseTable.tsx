@@ -36,7 +36,7 @@ export function ExpenseTable(props: Props) {
             </td>
             <td><p className='m-0'>{amountBase}</p></td>
             <td><p className='m-0'>90</p></td>
-            <td><p className={`m-0 ${!!props.expense.amountReimbursement && parseFloat(props.expense.amountReimbursement) < 1 ? 'text-danger' : ''}`}>{props.expense.amountReimbursement}</p></td>
+            <td><p data-testid="reimbursement-amount" className={`m-0 ${!!props.expense.amountReimbursement && parseFloat(props.expense.amountReimbursement) < 1 ? 'text-danger' : ''}`}>{props.expense.amountReimbursement}</p></td>
             <td>
                 <p className='m-0'>{props.expense.paymentType.title}</p>
             </td>

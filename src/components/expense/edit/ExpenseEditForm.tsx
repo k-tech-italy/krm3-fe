@@ -143,7 +143,6 @@ export function ExpenseEditForm(props: Props) {
       props.expense.image = fileReader.result as string;
       setExpenseEdit({ ...expenseEdit, image: fileReader.result as string });
     };
-    fileReader.onerror = () => {};
   }
 
   return (
@@ -152,6 +151,7 @@ export function ExpenseEditForm(props: Props) {
         <label className="font-semibold">Data spesa</label>
         <div className="sm:col-span-2">
           <DatePicker
+            id="expense-edit-form-day-date-picker"
             selected={
               !!expenseEdit.day ? new Date(expenseEdit.day) : new Date()
             }
@@ -175,6 +175,7 @@ export function ExpenseEditForm(props: Props) {
             }`}
             onChange={handleSelectCategory}
             value={expenseEdit.category?.id}
+            data-testid="category-select"
           >
             {[
               { id: 0, title: "Scegli la categoria" },
@@ -203,6 +204,7 @@ export function ExpenseEditForm(props: Props) {
         <label className="font-semibold">Tipo Documento</label>
         <div className="sm:col-span-2">
           <select
+            data-testid="document-type-select"
             className={`w-full border rounded-md p-2 ${
               !!error?.documentType ? "border-red-500" : "border-gray-300"
             }`}
@@ -229,6 +231,7 @@ export function ExpenseEditForm(props: Props) {
         <label className="font-semibold">Dettaglio</label>
         <div className="sm:col-span-2">
           <input
+            data-testid="detail-input"
             className="w-full border border-gray-300 rounded-md p-2"
             onChange={(e) => {
               setExpenseEdit({ ...expenseEdit, detail: e.target.value });
@@ -242,6 +245,7 @@ export function ExpenseEditForm(props: Props) {
         <label className="font-semibold">Tipo di Pagamento</label>
         <div className="sm:col-span-2">
           <select
+            data-testid="payment-type-select"
             className={`w-full border rounded-md p-2 ${
               !!error?.paymentType ? "border-red-500" : "border-gray-300"
             }`}
@@ -266,6 +270,7 @@ export function ExpenseEditForm(props: Props) {
         <label className="font-semibold">Importo</label>
         <div className="flex space-x-2">
           <input
+            data-testid="currency-amount-input"
             type="number"
             step="0.01"
             min="0"
@@ -276,6 +281,7 @@ export function ExpenseEditForm(props: Props) {
             value={expenseEdit.amountCurrency || 0}
           />
           <select
+            data-testid="currency-select"
             className={`w-1/2 border rounded-md p-2 ${
               !!error?.currency ? "border-red-500" : "border-gray-300"
             }`}
@@ -317,6 +323,7 @@ export function ExpenseEditForm(props: Props) {
         <label className="font-semibold">Importo rimborso in €</label>
         <div>
           <input
+            data-testid="amount-reimbursement-input"
             className="w-full border border-gray-300 rounded-md p-2 text-right"
             placeholder="Disabled input"
             onChange={(e) => {
@@ -359,6 +366,7 @@ export function ExpenseEditForm(props: Props) {
         </label>
         <div className="sm:col-span-2">
           <input
+            data-testid="image-input"
             type="file"
             className="w-full border border-gray-300 rounded-md p-2"
             id="inputGroupFile04"

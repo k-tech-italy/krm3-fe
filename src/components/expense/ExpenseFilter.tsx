@@ -12,8 +12,8 @@ interface Props {
 
 export default function ExpenseFilter(props: Props) {
     const today = new Date();
-    const [fromDate, setFromDate] = useState<Date>();
-    const [toDate, setToDate] = useState<Date>();
+    const [fromDate, setFromDate] = useState<Date>(today);
+    const [toDate, setToDate] = useState<Date>(today);
   
     function handleFilterDate(fromDate: Date, toDate?: Date) {
         const res = props.data.filter((expense) => {
@@ -30,6 +30,7 @@ export default function ExpenseFilter(props: Props) {
                     <div className="w-full md:w-1/3 px-2 mb-4 md:mb-0">
                         <label className="block text-sm font-medium mb-1">Dal giorno:</label>
                         <DatePicker
+                            id="expense-filter-from-date-picker"
                             selected={!!fromDate ? fromDate : today}
                             className="w-full border border-gray-300 rounded-md p-2"
                             onChange={(date: Date | null) => {
@@ -42,6 +43,7 @@ export default function ExpenseFilter(props: Props) {
                     <div className="w-full md:w-1/3 px-2 mb-4 md:mb-0">
                         <label className="block text-sm font-medium mb-1">Al giorno:</label>
                         <DatePicker
+                            id="expense-filter-to-date-picker"
                             selected={!!toDate ? toDate : today}
                             className="w-full border border-gray-300 rounded-md p-2"
                             onChange={(date: Date | null) => {
@@ -67,8 +69,8 @@ export default function ExpenseFilter(props: Props) {
                             type="button"
                             className="bg-krm3-primary text-white px-4 py-2 rounded-md hover:bg-yellow-400 ml-2"
                             onClick={() => {
-                                setFromDate(undefined);
-                                setToDate(undefined);
+                                setFromDate(today);
+                                setToDate(today);
                                 props.handleFilter(undefined);
                             }}
                         >
