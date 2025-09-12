@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import {fireEvent, render, screen} from "@testing-library/react";
 import Krm3Calendar from "./Krm3Calendar";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import { useGetTimesheet, useSubmitTimesheet } from "../../hooks/useTimesheet";
@@ -29,14 +29,14 @@ describe("Krm3Calendar", () => {
   const mockUseGetTimesheet = useGetTimesheet as jest.Mock;
   const mockUseSubmitTimesheet = useSubmitTimesheet as jest.Mock;
   const mockUseColumnViewPreference = useColumnViewPreference as jest.Mock;
-
+  const mockMutateSubmitTimesheet = useSubmitTimesheet as jest.Mock;
   beforeEach(() => {
     mockUseGetCurrentUser.mockReturnValue({
       data: { resource: { id: 1 } },
       userCan: () => true,
     });
     mockUseSubmitTimesheet.mockReturnValue({
-      mutateAsync: vi.fn(),
+      mutateAsync: mockMutateSubmitTimesheet,
       error: null,
     });
     mockUseColumnViewPreference.mockReturnValue({
@@ -75,7 +75,7 @@ describe("Krm3Calendar", () => {
     expect(submitButton).toBeDisabled();
   });
 
-  test("submit button is enabled when minimum hours are scheduled", async () => {
+  test("mutateSubmitTimesheet should be called with proper parameters", async () => {
     const timeEntries = []
     for(let i = 1; i < 32; i++) {
       timeEntries.push({date: `2025-07-${i / 10 >= 1 ? i : "0" + i}`, dayShiftHours: 8})
@@ -104,6 +104,9 @@ describe("Krm3Calendar", () => {
       });
 
     expect(submitButton).toBeEnabled();
+    fireEvent.click(submitButton)
+    expect(mockMutateSubmitTimesheet).toBeCalledWith({})
+
   });
   test("bank hours should be rendered", () => {
     mockUseGetTimesheet.mockReturnValue({
@@ -127,5 +130,6 @@ describe("Krm3Calendar", () => {
     expect(screen.getByTestId("bank-total")).toHaveTextContent("10.5h")
     expect(screen.getByTestId("bank-delta")).toHaveTextContent("-4h")
   })
+
 });
 
