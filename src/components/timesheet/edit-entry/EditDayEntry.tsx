@@ -202,7 +202,7 @@ export default function EditDayEntry({
       if(schedule[normalizeDate(date).replaceAll("-", "_")] < totalHours)
       {
         setLeaveHoursError(
-            `No overtime allowed when logging leave, special leave or rest hours. Maximum allowed for ${normalizeDate(date)} 
+            `No overtime allowed when logging leave, special leave or rest hours. Maximum allowed for ${normalizeDate(date)}
             is ${schedule[normalizeDate(date).replaceAll("-", "_")]} hours, Total hours: ` + totalHours
         );
         return
@@ -694,6 +694,7 @@ export default function EditDayEntry({
               icon={<CheckIcon size={20}/>}
               disabledTooltipMessage="Please select a valid day"
               additionalStyles={'w-[45%] md:w-[20%] '}
+              id="day-entry-submit-button"
           />
 
         </div>
