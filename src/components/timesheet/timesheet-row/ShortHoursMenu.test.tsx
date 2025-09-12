@@ -217,4 +217,81 @@ describe("ShortHoursMenu (extended)", () => {
     fireEvent.mouseLeave(menu);
     // No assertion needed, just for coverage
   });
+
+  it("handles confirm submission without overwrite when dates with no entries exist", () => {
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    const setOpenShortMenuMock = vi.fn();
+    const timeEntries = [{ date: todayStr, task: 1 }];
+    renderMenu({
+      timeEntries,
+      setOpenShortMenu: setOpenShortMenuMock,
+      openShortMenu: {
+        ...baseProps.openShortMenu,
+        startDate: yesterday,
+        endDate: todayStr,
+        taskId: "1",
+      },
+    });
+    fireEvent.click(screen.getByText("2h"));
+    expect(screen.getByText(/Overwrite existing entries/i)).toBeInTheDocument();
+    // Click "No, Don't Overwrite" - this should only add to dates without entries
+    fireEvent.click(screen.getByText(/No, Don't Overwrite/i));
+    expect(mutateAsyncMock).toHaveBeenCalled();
+    expect(setOpenShortMenuMock).toHaveBeenCalledWith(undefined);
+  });
+
+  it("handles confirm modal close", () => {
+    const setOpenShortMenuMock = vi.fn();
+    const timeEntries = [{ date: todayStr, task: 1 }];
+    renderMenu({
+      timeEntries,
+      setOpenShortMenu: setOpenShortMenuMock,
+      openShortMenu: {
+        ...baseProps.openShortMenu,
+        startDate: todayStr,
+        endDate: todayStr,
+        taskId: "1",
+      },
+    });
+    fireEvent.click(screen.getByText("2h"));
+    expect(screen.getByText(/Overwrite existing entries/i)).toBeInTheDocument();
+    // Find and click the close button (assuming Krm3Modal has a close button)
+    const closeButton = screen.getByRole('button', { name: /close/i }) || document.querySelector('[aria-label="close"]');
+    if (closeButton) {
+      fireEvent.click(closeButton);
+      expect(setOpenShortMenuMock).toHaveBeenCalledWith(undefined);
+    }
+  });
+
+  it("does not close menu on mouse leave when confirm modal is open", () => {
+    const setOpenShortMenuMock = vi.fn();
+    const timeEntries = [{ date: todayStr, task: 1 }];
+    renderMenu({
+      timeEntries,
+      setOpenShortMenu: setOpenShortMenuMock,
+      openShortMenu: {
+        ...baseProps.openShortMenu,
+        startDate: todayStr,
+        endDate: todayStr,
+        taskId: "1",
+      },
+    });
+    // Open confirm modal by clicking hour option
+    fireEvent.click(screen.getByText("2h"));
+    expect(screen.getByText(/Overwrite existing entries/i)).toBeInTheDocument();
+
+    // Try to leave menu - should not close because modal is open
+    const menu = screen.getByRole("menu");
+    fireEvent.mouseLeave(menu);
+
+    // Menu should still be visible (setOpenShortMenu should not be called)
+    expect(setOpenShortMenuMock).not.toHaveBeenCalledWith(undefined);
+  });
+
+  it("handles isDeleteButtonVisible when openShortMenu is null", () => {
+    // This tests the early return in isDeleteButtonVisible
+    renderMenu({ openShortMenu: null });
+    // Component should not render, so no delete button should exist
+    expect(screen.queryByTestId("short-menu-delete-button")).not.toBeInTheDocument();
+  });
 }); 

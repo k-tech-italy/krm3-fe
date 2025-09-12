@@ -190,7 +190,7 @@ export interface Schedule {[date: string]: number}
 export interface TimeEntry {
   id: number;
   date: string;
-  task: number;
+  task: number | null;
   taskTitle?: string;
   lastModified?: string;
   dayShiftHours: number;
