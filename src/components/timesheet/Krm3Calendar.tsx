@@ -317,6 +317,7 @@ export default function Krm3Calendar({
               </div>
             </div>
             <Krm3Button
+              id="krm3-calendar-current-week-button"
               onClick={() =>
                 setCurrentWeekStart(() => {
                   const today = new Date();

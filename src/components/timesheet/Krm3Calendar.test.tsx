@@ -29,8 +29,27 @@ describe("Krm3Calendar", () => {
   const mockUseGetTimesheet = useGetTimesheet as jest.Mock;
   const mockUseSubmitTimesheet = useSubmitTimesheet as jest.Mock;
   const mockUseColumnViewPreference = useColumnViewPreference as jest.Mock;
-  const mockMutateSubmitTimesheet = useSubmitTimesheet as jest.Mock;
+  const mockMutateSubmitTimesheet = vi.fn();
+  const fixedDate = new Date("2026-01-01T00:00:00Z");
+  const timeEntries = [] as any
+  for(let i = 1; i < 32; i++) {
+    timeEntries.push({date: `2025-07-${i / 10 >= 1 ? i : "0" + i}`, dayShiftHours: 8})
+  }
+  const days: Record<string, {}> = {}
+  for(let i = 1; i < 32; i++) {
+    days[`2025-07-${i / 10 >= 1 ? String(i) : "0" + i}`] = { closed: false, hol: false }
+  }
+  const schedule: Schedule = {}
+  for(let i = 1; i < 32; i++) {
+    schedule[`2025_07_${i / 10 >= 1 ? String(i) : "0" + i}`] = 8
+  }
+
+
   beforeEach(() => {
+    vi.clearAllMocks()
+    vi.useFakeTimers();
+    vi.setSystemTime(fixedDate);
+    mockMutateSubmitTimesheet.mockClear();
     mockUseGetCurrentUser.mockReturnValue({
       data: { resource: { id: 1 } },
       userCan: () => true,
@@ -42,6 +61,14 @@ describe("Krm3Calendar", () => {
     mockUseColumnViewPreference.mockReturnValue({
       isColumnView: false,
       setColumnView: vi.fn(),
+    });
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        timeEntries: timeEntries,
+        days: days,
+        schedule: schedule,
+      },
+      isSuccess: true,
     });
   });
 
@@ -76,27 +103,6 @@ describe("Krm3Calendar", () => {
   });
 
   test("mutateSubmitTimesheet should be called with proper parameters", async () => {
-    const timeEntries = []
-    for(let i = 1; i < 32; i++) {
-      timeEntries.push({date: `2025-07-${i / 10 >= 1 ? i : "0" + i}`, dayShiftHours: 8})
-    }
-    const days: Record<string, {}> = {}
-    for(let i = 1; i < 32; i++) {
-      days[`2025-07-${i / 10 >= 1 ? String(i) : "0" + i}`] = { closed: false, hol: false }
-    }
-    const schedule: Schedule = {}
-    for(let i = 1; i < 32; i++) {
-      schedule[`2025_07_${i / 10 >= 1 ? String(i) : "0" + i}`] = 8
-    }
-    mockUseGetTimesheet.mockReturnValue({
-      data: {
-        timeEntries: timeEntries,
-        days: days,
-        schedule: schedule,
-      },
-      isSuccess: true,
-    });
-
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
 
     const submitButton = await screen.findByRole("button", {
@@ -105,7 +111,7 @@ describe("Krm3Calendar", () => {
 
     expect(submitButton).toBeEnabled();
     fireEvent.click(submitButton)
-    expect(mockMutateSubmitTimesheet).toBeCalledWith({})
+    expect(mockMutateSubmitTimesheet).toBeCalledWith({"startDate": "2025-09-01", "endDate": "2025-09-30", "resourceId": 1 })
 
   });
   test("bank hours should be rendered", () => {
@@ -130,6 +136,48 @@ describe("Krm3Calendar", () => {
     expect(screen.getByTestId("bank-total")).toHaveTextContent("10.5h")
     expect(screen.getByTestId("bank-delta")).toHaveTextContent("-4h")
   })
+  test("navigate to next and prev month", () => {
 
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+    fireEvent.click(document.getElementById("nav-next-btn") as HTMLElement);
+    fireEvent.click(document.getElementById("nav-next-btn") as HTMLElement);
+    fireEvent.click(document.getElementById("nav-prev-btn") as HTMLElement);
+    fireEvent.click(document.getElementById("nav-prev-btn") as HTMLElement);
+    expect(mockUseGetTimesheet).toHaveBeenNthCalledWith(
+        2,
+        "2026-01-01",
+        "2026-01-31",
+        1
+    )
+    expect(mockUseGetTimesheet).toHaveBeenNthCalledWith(
+        3,
+        "2026-02-01",
+        "2026-02-28",
+        1
+    )
+    expect(mockUseGetTimesheet).toHaveBeenNthCalledWith(
+        4,
+        "2026-03-01",
+        "2026-03-31",
+        1
+    )
+    expect(mockUseGetTimesheet).toHaveBeenNthCalledWith(
+        5,
+        "2026-02-01",
+        "2026-02-28",
+        1
+    )
+    expect(mockUseGetTimesheet).toHaveBeenNthCalledWith(
+        6,
+        "2026-01-01",
+        "2026-01-31",
+        1
+    )
+  })
+  test("navigate to next and prev week", () => {
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+    fireEvent.click(document.getElementById("nav-next-btn") as HTMLElement);
+    fireEvent.click(document.getElementById("nav-prev-btn") as HTMLElement);
+  })
 });
 
