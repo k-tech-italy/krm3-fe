@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useGetMissions } from "../hooks/useMissions";
 import LoadSpinner from "../components/commons/LoadSpinner";
-import FilterResource from "../components/missions/filter";
+import FilterResource from "../components/missions/filter.tsx";
 import { ExpenseInterface, MissionInterface } from "../restapi/types";
 import { CreateMission } from "../components/missions/create/CreateMission";
 import { useMediaQuery } from "../hooks/useView";

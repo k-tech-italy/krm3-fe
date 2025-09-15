@@ -97,6 +97,7 @@ export function CreateMissionForm(props: Props) {
         <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">Titolo</label>
         <div className="sm:w-2/4 w-full">
           <input
+            data-testid="title-input"
             className={`w-full border rounded-md p-2 ${
               !!error?.resource ? "border-red-500" : "border-gray-300"
             } `}
@@ -115,6 +116,7 @@ export function CreateMissionForm(props: Props) {
         <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">Risorsa</label>
         <div className="sm:w-2/4 w-full">
           <select
+            data-testid="first-name-select"
             className={`w-full border rounded-md p-2 ${
               !!error?.resource ? "border-red-500" : "border-gray-300"
             } `}
@@ -140,6 +142,7 @@ export function CreateMissionForm(props: Props) {
         <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">Progetto</label>
         <div className="sm:w-2/4 w-full">
           <select
+            data-testid="project-select"
             className={`w-full border rounded-md p-2 ${
               !!error?.project ? "border-red-500" : "border-gray-300"
             } `}
@@ -170,6 +173,7 @@ export function CreateMissionForm(props: Props) {
         <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">Paese</label>
         <div className="sm:w-2/4 w-full">
           <select
+            data-testid="country-select"
             className="w-full border rounded-md p-2 border-gray-300"
             value={country}
             onChange={handleChangeCountry}
@@ -189,6 +193,7 @@ export function CreateMissionForm(props: Props) {
         <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">Città</label>
         <div className="sm:w-2/4 w-full">
           <select
+            data-testid="city-select"
             className={`w-full border rounded-md p-2 ${
               !!error?.city ? "border-red-500" : "border-gray-300"
             } `}
@@ -218,6 +223,7 @@ export function CreateMissionForm(props: Props) {
         </label>
         <div className="sm:w-2/4 w-full">
           <select
+            data-testid="currency-select"
             className={`w-full border rounded-md p-2 ${
               !!error?.defaultCurrency ? "border-red-500" : "border-gray-300"
             } `}
@@ -245,6 +251,7 @@ export function CreateMissionForm(props: Props) {
         </label>
         <div className="sm:w-2/4 w-full">
           <DatePicker
+            id="create-mission-form-from-date-picker"
             selected={
               !!mission.fromDate ? new Date(mission.fromDate) : new Date()
             }
@@ -264,6 +271,7 @@ export function CreateMissionForm(props: Props) {
         <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">Al giorno</label>
         <div className="sm:w-2/4 w-full">
           <DatePicker
+            id="create-mission-form-to-date-picker"
             selected={!!mission.toDate ? new Date(mission.toDate) : new Date()}
             className="w-full border rounded-md p-2 border-gray-300"
             onChange={(date: Date | null) => {

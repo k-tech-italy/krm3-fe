@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import moment from 'moment';
 import { ExpenseInterface } from "../../restapi/types";
 import { useMediaQuery } from "../../hooks/useView";
-import { useGetCurrentUser } from "../../hooks/useAuth";
 import { ExpenseEdit } from "../expense/edit/ExpenseEdit";
 import { TotalsExpense } from "../expense/TotalExpense";
 import LoadSpinner from "../commons/LoadSpinner";
@@ -46,6 +45,7 @@ export function Mission() {
                     {!isSmallScreen && (
                         <div className="d-grid gap-2 d-md-block mb-2 text-end">
                             <button type="button" className="bg-krm3-primary text-white px-4 py-2 rounded shadow hover:bg-yellow-400"
+                                data-testid="add-expense-button"
                                 onClick={() => setSelectedExpense(defaultExpense)}>+ Add Expense</button>
                         </div>
                     )}
@@ -75,7 +75,7 @@ export function Mission() {
                     )}
                      {selectedExpense && (
                         <ExpenseEdit
-                            show={selectedExpense ? true : false}
+                            show={true}
                             onClose={() => setSelectedExpense(null)}
                             expense={selectedExpense} />
                     )}

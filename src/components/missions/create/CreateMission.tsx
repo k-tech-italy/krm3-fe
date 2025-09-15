@@ -54,6 +54,7 @@ export function CreateMission(props: Props) {
                         Close
                     </button>
                     <button
+                        data-testid="save-button"
                         className={`px-4 py-2 text-white rounded-lg focus:outline-none ${isLoading
                                 ? 'bg-yellow-400 cursor-not-allowed'
                                 : 'bg-krm3-primary hover:bg-krm3-primary-dark'

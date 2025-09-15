@@ -49,6 +49,7 @@ export default function FilterResource(props: Props) {
                 <input
                   type="text"
                   id="filterInput"
+                  data-testid="filter-input"
                   placeholder="Inserisci nome"
                   onChange={handleFilterName}
                   className="w-full rounded-lg border border-app shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm p-2 bg-card text-app"
@@ -93,6 +94,7 @@ export default function FilterResource(props: Props) {
           {!props.isAdmin && (
             <div className="flex justify-between items-center">
               <button
+                data-testid="reset-button"
                 type="button"
                 className="inline-flex items-center px-4 py-2 border border-gray-300 -sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 onClick={(e) => {
@@ -105,6 +107,7 @@ export default function FilterResource(props: Props) {
                 Reset
               </button>
               <button
+                data-testid="filter-button"
                 type="button"
                 disabled={!dateFrom || !dateTo}
                 className={`inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white ${
