@@ -1,6 +1,8 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import EditTimeEntry from "./EditTimeEntry";
 import { vi } from "vitest";
+import {normalizeDate} from "../utils/dates.ts";
+import {TotalHourCell} from "../timesheet-headers/TotalHour.tsx";
 
 vi.mock("../../../hooks/useTimesheet", () => ({
   useCreateTimeEntry: () => ({
@@ -38,4 +40,5 @@ describe("EditTimeEntry", () => {
     fireEvent.click(screen.getByText(/cancel/i));
     expect(baseProps.closeModal).toHaveBeenCalled();
   });
+
 }); 

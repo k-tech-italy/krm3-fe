@@ -1,6 +1,6 @@
 {
 	"name": "krm3",
-	"version": "1.0.21",
+	"version": "1.0.28",
 	"private": true,
 	"type": "module",
 	"engines": {
@@ -61,6 +61,7 @@
 		"react-dom": "^18.2.0",
 		"react-modal": "^3.16.3",
 		"react-query": "^3.39.3",
+		"react-responsive": "^10.0.1",
 		"react-router-dom": "^6.8.2",
 		"react-select": "^5.10.1",
 		"react-toastify": "^11.0.5",

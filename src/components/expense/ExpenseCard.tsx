@@ -18,6 +18,7 @@ export function ExpenseCard(props: Props) {
   return (
     <div
       onClick={props.ShowIdCard}
+      data-testid="expense-card"
       className={`cursor-pointer bg-card shadow-md rounded-lg ${
         !!props.expense.amountReimbursement && parseFloat(props.expense.amountReimbursement) < 1 ? 'border border-red-500' : 'border-app'
       }`}

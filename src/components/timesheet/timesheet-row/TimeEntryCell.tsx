@@ -2,10 +2,12 @@ import React from "react";
 import { Droppable } from "../Droppable";
 import { TimeEntryItem } from "./TimeEntryItem";
 import { EmptyCell } from "./EmptyCell";
-import { TimeEntry, TimeEntryType } from "../../../restapi/types";
+import {Schedule, TimeEntry, TimeEntryType} from "../../../restapi/types";
 import { SpecialDayCell } from "./SpecialDayCell";
 import { Draggable } from "../Draggable";
-import { getTileBgColorClass } from "../utils/utils.ts";
+
+import {isToday} from "../utils/timeEntry.ts";
+import {normalizeDate} from "../utils/dates.ts";
 
 export interface CellProps {
   day: Date;
@@ -16,6 +18,7 @@ export interface CellProps {
     backgroundColor: string;
     borderColor: string;
   };
+
 }
 
 export interface TimeEntryCellProps extends CellProps {
@@ -27,7 +30,7 @@ export interface TimeEntryCellProps extends CellProps {
   isNoWorkDay: boolean;
   isLockedDay: boolean;
   isInSelectedWeekdays: boolean;
-
+  schedule: Schedule;
 }
 export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   day,
@@ -43,6 +46,7 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
   isNoWorkDay,
   isLockedDay,
   isInSelectedWeekdays,
+  schedule,
 }) => {
   const cellId = `${day.toDateString()}-${taskId}`;
   const draggableId = `${day.toDateString()}-${taskId}-${timeEntry?.id}`;
@@ -51,6 +55,20 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
     ? "border-l-[var(--border-color)]"
     : "border-b-[var(--border-color)]";
 
+  const getBgClass = () => {
+    if (isToday(day)) {
+      return "bg-table-today";
+    }
+    const scheduledHours = schedule[normalizeDate(day).replaceAll("-", "_")] ?? 0;
+    const isNoWorkDay = scheduledHours === 0;
+    if (isNoWorkDay) {
+      if (isLockedDay) {
+        return "bg-closed-non-work" ;
+      }
+      return "bg-table-row-alt";
+    }
+    return ""
+  }
 
   return (
     <Droppable
@@ -68,8 +86,8 @@ export const TimeEntryCell: React.FC<TimeEntryCellProps> = ({
  
     
      ${!isInSelectedWeekdays ? "cursor-not-allowed!" : ""}
-     ${getTileBgColorClass(day, isNoWorkDay, isLockedDay)}
-
+     ${getBgClass()}
+      
     ${isInDragRange || isColumnHighlighted ? "bg-card" : ""}
     ${
       (isInDragRange || isColumnHighlighted) &&

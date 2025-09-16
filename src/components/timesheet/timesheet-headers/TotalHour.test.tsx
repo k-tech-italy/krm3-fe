@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { TotalHourCell, TotalHourForTask } from "./TotalHour";
 import { vi } from "vitest";
+import {normalizeDate} from "../utils/dates.ts";
 
 // Mock the Info icon from lucide-react
 vi.mock("lucide-react", () => ({
@@ -24,19 +25,15 @@ describe("TotalHourCell", () => {
     date: baseDay.toISOString(),
     task: 1,
     specialLeaveHours: 0,
+    bankFrom: 0,
+    bankTo: 0,
     specialReason: undefined,
     comment: undefined,
   };
 
   it("renders 0h if no timeEntries", () => {
-    render(<TotalHourCell day={baseDay} />);
+    render(<TotalHourCell day={baseDay}/>);
     expect(screen.getByText(/0h/)).toBeInTheDocument();
-  });
-
-  it("renders 4h if total hours is 4h", () => {
-    render(<TotalHourCell day={baseDay} timeEntries={[baseEntry]} />);
-    expect(screen.getByText(/4h/)).toBeInTheDocument();
-    expect(screen.getByText(/4h/)).toHaveClass("text-blue-500");
   });
 
   it("renders 8h if total hours is 8h", () => {
@@ -47,7 +44,6 @@ describe("TotalHourCell", () => {
       />
     );
     expect(screen.getByText(/8h/)).toBeInTheDocument();
-    expect(screen.getByText(/8h/)).toHaveClass("text-green-500");
   });
 
   it("renders TotalHourForTask", () => {

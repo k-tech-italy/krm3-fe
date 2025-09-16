@@ -34,10 +34,6 @@ export function Login() {
   const [error, setError] = useState<LoginError>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const defaultPage = (data: User) => {
-    return data.config.defaultModule ? data.config.defaultModule : "/welcome";
-  };
-
   useEffect(() => {
     const values = queryString.parse(location.search);
     const state = values.state ? values.state : null;
@@ -66,9 +62,7 @@ export function Login() {
   }, [location, navigate]);
 
   useEffect(() => {
-    if (isAuthenticated && data) {
-      defaultPage(data);
-    } else {
+    if (!(isAuthenticated && data)) {
       // Clear Cookie for issue between new and old version of the app
       logout();
     }
@@ -192,6 +186,7 @@ export function Login() {
                 Username or Email
               </label>
               <input
+                data-testid={"username-input"}
                 id="username"
                 name="username"
                 className={`form-control w-full ${
@@ -219,6 +214,7 @@ export function Login() {
                 Password
               </label>
               <input
+                data-testid={"password-input"}
                 id="password"
                 name="password"
                 className={`form-control w-full ${
@@ -243,6 +239,7 @@ export function Login() {
 
             <div className="flex flex-col sm:flex-row justify-between gap-4">
               <Krm3Button
+                id={"google-login-button"}
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={isLoading}
@@ -250,6 +247,7 @@ export function Login() {
                 label={isLoading ? "Processing..." : "Login with Google"}
               />
               <Krm3Button
+                id={"login-submit-button"}
                 type="submit"
                 disabled={isLoading}
                 style="primary"

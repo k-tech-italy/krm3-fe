@@ -195,6 +195,8 @@ export interface TimeEntry {
   nightShiftHours: number;
   travelHours: number;
   onCallHours: number;
+  bankTo: number;
+  bankFrom: number;
   restHours: number;
   specialLeaveReason?: string;
   comment?: string;
@@ -205,6 +207,17 @@ export interface Timesheet {
   timeEntries: TimeEntry[];
   days: Days;
   schedule?: Schedule;
+  bankHours: number;
+  timesheetColors?: HeaderColors
+}
+
+export interface HeaderColors {
+  lessThanScheduleColorBrightTheme: string;
+  exactScheduleColorBrightTheme: string;
+  moreThanScheduleColorBrightTheme: string;
+  lessThanScheduleColorDarkTheme: string;
+  exactScheduleColorDarkTheme: string;
+  moreThanScheduleColorDarkTheme: string;
 }
 
 export interface Days {

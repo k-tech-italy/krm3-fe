@@ -37,10 +37,11 @@ export default function Krm3Table(props: Props) {
 
     if (isSmallScreen) {
         return (
-            <div className="space-y-4">
+            <div className="space-y-4" data-testid={"small-screen-table"}>
                 {table.getRowModel().rows.map(row => (
                     <div
                         key={row.id}
+                        data-testid={`row-${row.id}`}
                         className="shadow rounded bg-white p-4 cursor-pointer"
                         onClick={() => props.onClickRow(row.original)}
                     >
@@ -75,6 +76,7 @@ export default function Krm3Table(props: Props) {
                                     key={header.id}
                                     className="px-4 py-2 text-left text-sm font-medium text-gray-600 uppercase cursor-pointer"
                                     onClick={header.column.getToggleSortingHandler()}
+                                    data-testid={`header-${header.id}`}
                                 >
                                     <div className="flex items-center">
                                         {flexRender(
@@ -99,6 +101,7 @@ export default function Krm3Table(props: Props) {
                         <tr
                             key={row.id}
                             className="cursor-pointer hover:bg-gray-50"
+                            data-testid={`row-${row.id}`}
                             onClick={() => props.onClickRow(row.original)}
                         >
                             {row.getVisibleCells().map(cell => (

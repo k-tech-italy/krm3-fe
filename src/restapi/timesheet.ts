@@ -1,5 +1,6 @@
 import { restapi } from "./restapi";
-import { Days, SpecialReason, Timesheet } from "./types";
+import {Days, SpecialReason, TimeEntry, Timesheet} from "./types";
+import {normalizeDate} from "../components/timesheet/utils/dates.ts";
 
 const sanitzeDays = (days: Days) => {
   const newDays: Days = {};
@@ -60,4 +61,31 @@ export function submitTimesheet(
     resource: resourceId,
     period: [startDate, endDate],
   });
+}
+
+export function calculateTotalHoursForDay(
+    timeEntries: TimeEntry[],
+    day: Date
+){
+  const formattedDay = normalizeDate(day);
+
+  const totalHour = timeEntries.reduce((acc: number, timeEntry: TimeEntry) => {
+    const entryDate = normalizeDate(timeEntry.date);
+
+    if (entryDate === formattedDay) {
+      return (
+          acc +
+          (Number(timeEntry.dayShiftHours) || 0) +
+          (Number(timeEntry.nightShiftHours) || 0) +
+          (Number(timeEntry.leaveHours) || 0) +
+          (Number(timeEntry.specialLeaveHours ) || 0) +
+          (Number(timeEntry.restHours) || 0) +
+          (Number(timeEntry.travelHours) || 0) +
+          (Number(timeEntry.bankFrom)) -
+          (Number(timeEntry.bankTo) || 0)
+      );
+    }
+    return acc;
+  }, 0);
+  return totalHour
 }

@@ -18,6 +18,8 @@ describe("TimeEntryItem", () => {
     specialLeaveHours: 0,
     specialReason: undefined,
     comment: undefined,
+    bankFrom: 0,
+    bankTo: 0
   };
 
   it("renders with isMonthView false", () => {

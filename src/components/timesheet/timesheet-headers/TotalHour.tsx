@@ -1,53 +1,26 @@
 import { Info } from "lucide-react";
-import { TimeEntry } from "../../../restapi/types";
+import {HeaderColors, Schedule, TimeEntry} from "../../../restapi/types";
 import { normalizeDate } from "../utils/dates";
-import {getTileBgColorClass} from "../utils/utils.ts";
+
 import { DoorOpen } from 'lucide-react';
+import {calculateTotalHoursForDay} from "../../../restapi/timesheet.ts";
 
 interface Props {
   day: Date;
   timeEntries?: TimeEntry[];
   isMonthView?: boolean;
   isColumnView?: boolean;
-  isNoWorkDay?: boolean;
-  isClosedDay?: boolean
-  isInSelectedWeekdays? :boolean
+  colorClassName?: string;
 }
 
-export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isInSelectedWeekdays, isClosedDay }: Props) {
+export function TotalHourCell({ day, timeEntries, isMonthView, colorClassName }: Props) {
   if (!timeEntries) {
     return <div className="bg-card">0h</div>;
   }
-
   const formattedDay = normalizeDate(day);
 
   // Calculate total hours for the current day
-  const totalHour = timeEntries.reduce((acc: number, timeEntry: TimeEntry) => {
-    const entryDate = normalizeDate(timeEntry.date);
-
-    if (entryDate === formattedDay) {
-      return (
-        acc +
-        (Number(timeEntry.dayShiftHours) || 0) +
-        (Number(timeEntry.nightShiftHours) || 0) +
-        (Number(timeEntry.leaveHours) || 0) +
-        (Number(timeEntry.specialLeaveHours ) || 0) +
-        (Number(timeEntry.restHours) || 0) +
-        (Number(timeEntry.travelHours) || 0)
-      );
-    }
-    return acc;
-  }, 0);
-
-  // Get entries for this day for tooltip display
-  
-
-  const getTextColorClass = (totalHours: number): string => {
-    if (totalHours > 8) return "text-red-500";
-    if (totalHours > 0 && totalHours < 8) return "text-blue-500";
-    if (totalHours === 8) return "text-green-500";
-    return "text-yellow-500";
-  };
+  const totalHour = calculateTotalHoursForDay(timeEntries, day)
 
   const tooltipId = `tooltip-hours-${formattedDay}`;
 
@@ -58,8 +31,8 @@ export function TotalHourCell({ day, timeEntries, isMonthView, isNoWorkDay, isIn
         data-tooltip-hidden={totalHour === 0}
         className={`items-center font-semibold ${
           isMonthView ? "text-sm" : "text-md"
-        } flex justify-center  h-full w-full ${getTextColorClass(totalHour)} 
-        ${getTileBgColorClass(day, isNoWorkDay, isClosedDay)}
+        } flex justify-center  h-full w-full 
+          ${colorClassName}
         `}
       >
         {totalHour}h
@@ -89,6 +62,8 @@ export const TotalHourForTask = ({ timeEntry }: { timeEntry: TimeEntry }) => {
     { label: "Special Leave", value: timeEntry.specialLeaveHours },
     { label: "Travel", value: timeEntry.travelHours },
     { label: "Rest", value: timeEntry.restHours },
+    { label: "Bank To", value: timeEntry.bankTo },
+    { label: "Bank From", value: timeEntry.bankFrom },
   ];
 
   return (

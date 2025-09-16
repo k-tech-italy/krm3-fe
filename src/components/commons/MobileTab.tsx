@@ -27,7 +27,7 @@ const BottomTabNavigation = () => {
             }`}
             onClick={() => handleTabClick("home", "/")}
           >
-            <Home size={24} />
+            <Home size={24} data-testid={"home-icon"}/>
             <span className="text-xs font-medium">Home</span>
           </button>
           <button
@@ -38,7 +38,7 @@ const BottomTabNavigation = () => {
             }`}
             onClick={() => handleTabClick("rimborsi", "/")}
           >
-            <FileText size={24} />
+            <FileText size={24} data-testid={"file-icon"}/>
             <span className="text-xs font-medium">Rimborsi</span>
           </button>
           {window.location.pathname !== "/timesheet" && (
@@ -54,7 +54,7 @@ const BottomTabNavigation = () => {
                   }
                 }}
               >
-                <Plus size={28} />
+                <Plus size={28} data-testid={"plus-icon"}/>
               </button>
             </div>
           )}
@@ -67,7 +67,7 @@ const BottomTabNavigation = () => {
             }`}
             onClick={() => handleTabClick("timesheet", "/timesheet")}
           >
-            <Clock size={24} />
+            <Clock size={24} data-testid={"clock-icon"}/>
             <span className="text-xs font-medium">Foglio ore</span>
           </button>
 
@@ -79,7 +79,7 @@ const BottomTabNavigation = () => {
             }`}
             onClick={() => handleTabClick("settings", "/")}
           >
-            <Settings size={24} />
+            <Settings size={24} data-testid={"settings-icon"}/>
             <span className="text-xs font-medium">Settings</span>
           </button>
         </div>
