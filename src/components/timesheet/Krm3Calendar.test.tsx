@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from "@testing-library/react";
+import {fireEvent, render, screen, within} from "@testing-library/react";
 import Krm3Calendar from "./Krm3Calendar";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import { useGetTimesheet, useSubmitTimesheet } from "../../hooks/useTimesheet";
@@ -30,7 +30,7 @@ describe("Krm3Calendar", () => {
   const mockUseSubmitTimesheet = useSubmitTimesheet as jest.Mock;
   const mockUseColumnViewPreference = useColumnViewPreference as jest.Mock;
   const mockMutateSubmitTimesheet = vi.fn();
-  const fixedDate = new Date("2026-01-01T00:00:00Z");
+  const fixedDate = new Date("2025-07-01T00:00:00Z");
   const timeEntries = [] as any
   for(let i = 1; i < 32; i++) {
     timeEntries.push({date: `2025-07-${i / 10 >= 1 ? i : "0" + i}`, dayShiftHours: 8})
@@ -111,7 +111,7 @@ describe("Krm3Calendar", () => {
 
     expect(submitButton).toBeEnabled();
     fireEvent.click(submitButton)
-    expect(mockMutateSubmitTimesheet).toBeCalledWith({"startDate": "2025-09-01", "endDate": "2025-09-30", "resourceId": 1 })
+    expect(mockMutateSubmitTimesheet).toBeCalledWith({"startDate": "2025-07-01", "endDate": "2025-07-31", "resourceId": 1 })
 
   });
   test("bank hours should be rendered", () => {
@@ -145,39 +145,163 @@ describe("Krm3Calendar", () => {
     fireEvent.click(document.getElementById("nav-prev-btn") as HTMLElement);
     expect(mockUseGetTimesheet).toHaveBeenNthCalledWith(
         2,
-        "2026-01-01",
-        "2026-01-31",
+        "2025-07-01",
+        "2025-07-31",
         1
     )
     expect(mockUseGetTimesheet).toHaveBeenNthCalledWith(
         3,
-        "2026-02-01",
-        "2026-02-28",
+        "2025-08-01",
+        "2025-08-31",
         1
     )
     expect(mockUseGetTimesheet).toHaveBeenNthCalledWith(
         4,
-        "2026-03-01",
-        "2026-03-31",
+        "2025-09-01",
+        "2025-09-30",
         1
     )
     expect(mockUseGetTimesheet).toHaveBeenNthCalledWith(
         5,
-        "2026-02-01",
-        "2026-02-28",
+        "2025-08-01",
+        "2025-08-31",
         1
     )
     expect(mockUseGetTimesheet).toHaveBeenNthCalledWith(
         6,
-        "2026-01-01",
-        "2026-01-31",
+        "2025-07-01",
+        "2025-07-31",
+        1
+    )
+  }, 10000)
+  test("navigate to next and prev week", () => {
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+    fireEvent.click(document.getElementById("switch-month-on") as HTMLElement);
+    fireEvent.click(document.getElementById("nav-next-btn") as HTMLElement);
+    fireEvent.click(document.getElementById("nav-prev-btn") as HTMLElement);
+    fireEvent.click(document.getElementById("nav-prev-btn") as HTMLElement);
+    expect(mockUseGetTimesheet).toHaveBeenNthCalledWith(
+        3,
+        "2025-07-07",
+        "2025-07-13",
+        1
+    )
+    expect(mockUseGetTimesheet).toHaveBeenNthCalledWith(
+        4,
+        "2025-07-14",
+        "2025-07-20",
+        1
+    )
+    expect(mockUseGetTimesheet).toHaveBeenNthCalledWith(
+        5,
+        "2025-07-07",
+        "2025-07-13",
+        1
+    )
+    expect(mockUseGetTimesheet).toHaveBeenNthCalledWith(
+        6,
+        "2025-06-30",
+        "2025-07-06",
         1
     )
   })
-  test("navigate to next and prev week", () => {
+  test("current month button", () => {
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
     fireEvent.click(document.getElementById("nav-next-btn") as HTMLElement);
+    fireEvent.click(document.getElementById("nav-next-btn") as HTMLElement);
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("September 2025")).toBeInTheDocument();
+
+    fireEvent.click(document.getElementById("krm3-calendar-current-week-button") as HTMLElement);
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("July 2025")).toBeInTheDocument();
+  })
+  test("current week button", () => {
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+    fireEvent.click(document.getElementById("switch-month-on") as HTMLElement);
+
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jul 7")).toBeInTheDocument();
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jul 13")).toBeInTheDocument();
+    fireEvent.click(document.getElementById("nav-next-btn") as HTMLElement);
+
+    fireEvent.click(document.getElementById("krm3-calendar-current-week-button") as HTMLElement);
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jun 30")).toBeInTheDocument();
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jul 6")).toBeInTheDocument();
+  })
+  test("current week button for overlapping week", () => {
+    const fixedDate = new Date("2025-07-01T00:00:00Z");
+    vi.setSystemTime(fixedDate);
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    fireEvent.click(document.getElementById("switch-month-on") as HTMLElement);
+    fireEvent.click(document.getElementById("nav-next-btn") as HTMLElement);
+    fireEvent.click(document.getElementById("krm3-calendar-current-week-button") as HTMLElement);
+
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jun 30")).toBeInTheDocument();
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jul 6")).toBeInTheDocument();
+    expect(screen.getByTestId("week-start")).not.toHaveClass("font-bold")
+    expect(screen.getByTestId("week-end")).toHaveClass("font-bold")
+
     fireEvent.click(document.getElementById("nav-prev-btn") as HTMLElement);
+    fireEvent.click(document.getElementById("krm3-calendar-current-week-button") as HTMLElement);
+
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jun 30")).toBeInTheDocument();
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jul 6")).toBeInTheDocument();
+    expect(screen.getByTestId("week-start")).toHaveClass("font-bold")
+    expect(screen.getByTestId("week-end")).not.toHaveClass("font-bold")
+
+  })
+  test("overlapping week", () => {
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+    fireEvent.click(document.getElementById("switch-month-on") as HTMLElement);
+
+    fireEvent.click(document.getElementById("nav-prev-btn") as HTMLElement);
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jun 30")).toBeInTheDocument();
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jul 6")).toBeInTheDocument();
+
+    fireEvent.click(document.getElementById("nav-prev-btn") as HTMLElement);
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jun 30")).toBeInTheDocument();
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jul 6")).toBeInTheDocument();
+
+    fireEvent.click(document.getElementById("nav-prev-btn") as HTMLElement);
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jun 23")).toBeInTheDocument();
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jun 29")).toBeInTheDocument();
+
+    fireEvent.click(document.getElementById("nav-next-btn") as HTMLElement);
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jun 30")).toBeInTheDocument();
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jul 6")).toBeInTheDocument();
+
+    fireEvent.click(document.getElementById("nav-next-btn") as HTMLElement);
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jun 30")).toBeInTheDocument();
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jul 6")).toBeInTheDocument();
+
+    fireEvent.click(document.getElementById("nav-next-btn") as HTMLElement);
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jul 7")).toBeInTheDocument();
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Jul 13")).toBeInTheDocument();
+  })
+  test("change month on week view when there is no overlapping week", () => {
+    const fixedDate = new Date("2025-09-01T00:00:00Z");
+    vi.setSystemTime(fixedDate);
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+    fireEvent.click(document.getElementById("switch-month-on") as HTMLElement);
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Sep 1")).toBeInTheDocument();
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Sep 7")).toBeInTheDocument();
+
+    fireEvent.click(document.getElementById("nav-prev-btn") as HTMLElement);
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Aug 25")).toBeInTheDocument();
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Aug 31")).toBeInTheDocument();
+
+    fireEvent.click(document.getElementById("nav-next-btn") as HTMLElement);
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Sep 1")).toBeInTheDocument();
+    expect(within(document.getElementById("date-range-display") as HTMLElement).getByText("Sep 7")).toBeInTheDocument();
+  })
+  test("should display error message for user without permissions", () => {
+    mockUseGetCurrentUser.mockReturnValue({
+      data: { resource: { id: 1 } },
+      userCan: () => false,
+    });
+    renderWithProviders(<Krm3Calendar selectedResourceId={2} />);
+    expect(screen.getByText("Access Denied. You don't have permissions to View/Edit timesheet")).toBeInTheDocument();
+    expect(document.getElementById("krm3-calendar-container") as HTMLElement).not.toBeInTheDocument();
   })
 });
 
