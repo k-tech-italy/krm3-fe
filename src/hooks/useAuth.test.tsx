@@ -56,6 +56,22 @@ describe("useAuth", () => {
       expect(clearToken).toHaveBeenCalledTimes(1);
       expect(window.location.replace).toHaveBeenCalledWith("/login");
     });
+    it("should not call clearToken and redirect on logout failure", async () => {
+      (logout as jest.Mock).mockRejectedValue(new Error("Error"));
+      const { result } = renderHook(() => useLogout(), {
+        wrapper: createWrapper(),
+      });
+
+      await act(async () => {
+        try {
+          await result.current.mutateAsync();
+        } catch (error) {}
+      });
+
+      await waitFor(() => expect(result.current.isError).toBe(true));
+      expect(clearToken).not.toHaveBeenCalled();
+      expect(window.location.replace).not.toHaveBeenCalled();
+    })
   });
 
   describe("useGetCurrentUser", () => {
