@@ -25,7 +25,12 @@ vi.mock("../components/commons/LoadSpinner", () => ({
   default: () => <div>Loading...</div>,
 }));
 vi.mock("../components/missions/filter", () => ({
-  default: () => <div>FilterResource</div>,
+  default: ({ handleFilter, data }: any) => (
+    <div>
+      FilterResource
+      <button onClick={() => handleFilter([data.results[0]])}>Apply Filter</button>
+    </div>
+  ),
 }));
 
 vi.mock("../components/commons/Krm3Table", () => ({
@@ -45,10 +50,21 @@ vi.mock("../components/commons/Krm3Table", () => ({
   ),
 }));
 vi.mock("../components/expense/ExpenseFilter", () => ({
-  default: () => <div>ExpenseFilter</div>,
+  default: ({ handleFilter, data }: any) => (
+    <div>
+      ExpenseFilter
+      <button onClick={() => handleFilter([data[0]])}>Apply Expense Filter</button>
+    </div>
+  ),
 }));
 vi.mock("../components/expense/edit/ExpenseEdit", () => ({
-  default: () => <div>ExpenseEditModal</div>,
+  ExpenseEdit: ({ show, onClose }: any) =>
+    show ? (
+      <div>
+        ExpenseEditModal
+        <button onClick={onClose}>Close Expense</button>
+      </div>
+    ) : null,
 }));
 vi.mock("../components/missions/create/CreateMission", () => ({
   default: ({ show, onClose }: any) =>
@@ -170,4 +186,38 @@ describe("MissionPage", () => {
     expect(screen.getByTestId("amount-0")).toHaveTextContent("50 EUR");
   });
 
+  it("navigates to mission detail when clicking on mission row", () => {
+      const mockReplace = vi.fn();
+      Object.defineProperty(window, "location", {
+        value: { ...window.location, replace: mockReplace },
+        writable: true,
+      });
+      render(<MissionPage />);
+      fireEvent.click(screen.getByTestId("row-0"));
+      expect(mockReplace).toHaveBeenCalledWith("/trasferte/1");
+   });
+
+  it("sets selected expense when clicking on expense row", () => {
+      render(<MissionPage />);
+      fireEvent.click(screen.getByText(/spese/i));
+
+      fireEvent.click(screen.getByTestId("row-0"));
+      expect(screen.getByText("ExpenseEditModal")).toBeInTheDocument();
+
+      fireEvent.click(screen.getByText("Close Expense"));
+      expect(screen.queryByText("ExpenseEditModal")).not.toBeInTheDocument();
+    });
+
+  it("calls setDataFiltered when mission filter is applied", () => {
+    render(<MissionPage />);
+    fireEvent.click(screen.getByText("Apply Filter"));
+    expect(screen.getByTestId("id-0")).toBeInTheDocument();
+  });
+
+  it("calls setExpenseFiltered when expense filter is applied", () => {
+    render(<MissionPage />);
+    fireEvent.click(screen.getByText(/spese/i));
+    fireEvent.click(screen.getByText("Apply Expense Filter"));
+    expect(screen.getByTestId("id-0")).toBeInTheDocument();
+  });
 });
