@@ -43,14 +43,20 @@ describe('SelectResource', () => {
     })
     it('calls setSelectedResourceId with correct params, after selecting resource', async () => {
         render(<SelectResource setSelectedResourceId={setSelectedResourceMock}/>);
-        fireEvent.click(document.getElementById("resource-select") as HTMLElement);
-        expect(screen.getByText("Jan Kowal")).toBeInTheDocument()
+        const selectControl = screen.getByText('Jan Kowal');
+        fireEvent.mouseDown(selectControl);
+        const annaNowakOption = await screen.findByText('Anna Nowak');
+        fireEvent.click(annaNowakOption);
         await waitFor(() => {
-            expect(screen.getByText("Anna Nowak")).toBeInTheDocument()
-            expect(screen.getByText("Aleksander Kwasniewski")).toBeInTheDocument()
-        })
-        expect(screen.getByText("Anna Nowak")).toBeInTheDocument()
-        expect(screen.getByText("Aleksander Kwasniewski")).toBeInTheDocument()
+            expect(setSelectedResourceMock).toHaveBeenCalledWith(2);
+        });
+    })
+    it('does not render select when there are no resources', () => {
+        vi.spyOn(useMissions, 'useGetActiveResources').mockReturnValue(
+            []
+        )
+        render(<SelectResource setSelectedResourceId={setSelectedResourceMock}/>);
+        expect(document.getElementById("resource-select") as HTMLSelectElement).not.toBeInTheDocument();
     })
 
 })
