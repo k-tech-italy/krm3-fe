@@ -147,5 +147,44 @@ describe("useAuth", () => {
 
       expect(result.current.userCan(["perm1"])).toBe(true);
     });
+    it("refreshUser should call invalidateQueries and refetch the user", async () => {
+      const user = { name: "User1", isSuperuser: false, permissions: [] };
+      (getCurrentUser as jest.Mock).mockResolvedValueOnce(user);
+
+      const { result } = renderHook(() => useGetCurrentUser(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(result.current.data).toEqual(user);
+
+      const newUser = { name: "User2", isSuperuser: true, permissions: [] };
+      (getCurrentUser as jest.Mock).mockResolvedValueOnce(newUser);
+
+      await act(async () => {
+        await result.current.refreshUser();
+      });
+
+      await waitFor(() => expect(result.current.data).toEqual(newUser));
+      expect(result.current.isAuthenticated).toBe(true);
+    });
+    it("clearUser should clear the user", async () => {
+      const user = { name: "User1", isSuperuser: false, permissions: [] };
+      (getCurrentUser as jest.Mock).mockResolvedValueOnce(user);
+
+      const { result } = renderHook(() => useGetCurrentUser(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(result.current.data).toEqual(user);
+
+      await act(async () => {
+        await result.current.clearUser();
+      });
+
+      await waitFor(() => expect(result.current.data).toEqual(null));
+      expect(result.current.isAuthenticated).toBe(false);
+    });
   });
 });
