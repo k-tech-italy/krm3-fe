@@ -314,7 +314,7 @@ export default function Krm3Calendar({
             </div>
 
             <div className={`flex flex-col md:flex-row items-center gap-2 mr-4 my-0`}>
-              <Landmark size={isDesktop ? 40 : 30}/>
+              <Landmark size={isDesktop ? 40 : 30} data-testid="landmark-icon"/>
               <div className={'flex flex-col'}>
                 <p data-testid={"bank-total"}
                    className={`font-bold my-0 md:text-2xl ${bankHours >= 0 ? 'text-green-500' : 'text-red-500'}`}>
@@ -396,7 +396,8 @@ export default function Krm3Calendar({
               disabledTooltipMessage={disabledSubmitButtonText()}
             />
           </div>
-
+          {/*OpenTimeEntry modal is opened by drag & drop which is not testable in unit test, but it's tested in integration tests*/}
+          /* v8 ignore next 40 */
           {openTimeEntryModal &&
             selectedTask &&
             startDate &&

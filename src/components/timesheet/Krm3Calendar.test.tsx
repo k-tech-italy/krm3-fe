@@ -331,24 +331,6 @@ describe("Krm3Calendar", () => {
     const landmark = screen.getByTestId("landmark-icon");
     expect(landmark).toHaveAttribute("width", "30");
   })
-  test("drag and drop should open day entry modal", async () => {
 
-    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
-    function sleep(ms: number) {
-      return new Promise((resolve) => setTimeout(resolve, ms));
-    }
-    // const startCell = document.getElementById("column-0") as HTMLElement
-    // const endCell = document.getElementById("column-1") as HTMLElement
-    fireEvent.pointerDown(document.getElementById("column-0") as HTMLElement, { isPrimary: true, button: 0 })
-    fireEvent.pointerMove(document.getElementById("column-0") as HTMLElement, { clientX: 343, clientY: 210 })
-    await sleep(1);
-    fireEvent.pointerUp(document.getElementById("column-2") as HTMLElement)
-
-    // startCell.dispatchEvent(new CustomEvent('dragstart', { bubbles: true, detail: { id: 'column-0' } }));
-    // endCell.dispatchEvent(new CustomEvent('dragover', { bubbles: true, detail: { id: 'column-1' } }));
-    // endCell.dispatchEvent(new CustomEvent('drop', { bubbles: true, detail: { id: 'column-1' } }));
-
-    expect(screen.getByText("From day:")).toBeInTheDocument();
-  }, 10000)
 });
 
