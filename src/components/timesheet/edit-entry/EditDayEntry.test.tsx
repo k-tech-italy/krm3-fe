@@ -3,6 +3,7 @@ import EditDayEntry from "./EditDayEntry";
 import { vi } from "vitest";
 import {TimeEntry} from "../../../restapi/types.ts";
 import EditTimeEntry from "./EditTimeEntry.tsx";
+import {getLastDayOfMonth} from "../utils/dates.ts";
 
 const mutateDeleteMock = vi.fn().mockResolvedValue(undefined);
 const submitMock = vi.fn().mockResolvedValue({})
@@ -372,4 +373,162 @@ describe("EditDayEntry", () => {
         })
     )
   })
+  const cases = [
+    {
+      date: '2024-06-01',
+      id: 1,
+      dayShiftHours: 0,
+      sickHours: 0,
+      holidayHours: 0,
+      leaveHours: 1,
+      specialLeaveHours: 0,
+      travelHours: 0,
+      restHours: 0,
+      nightShiftHours: 0,
+      onCallHours: 0,
+      task: null,
+      bankFrom: 0,
+      bankTo: 0,
+    },
+    {
+      date: '2024-06-01',
+      id: 1,
+      dayShiftHours: 0,
+      sickHours: 0,
+      holidayHours: 0,
+      leaveHours: 0,
+      specialLeaveHours: 1,
+      travelHours: 0,
+      restHours: 0,
+      nightShiftHours: 0,
+      onCallHours: 0,
+      task: null,
+      bankFrom: 0,
+      bankTo: 0,
+    },
+    {
+      date: '2024-06-01',
+      id: 1,
+      dayShiftHours: 0,
+      sickHours: 0,
+      holidayHours: 8,
+      leaveHours: 0,
+      specialLeaveHours: 0,
+      travelHours: 0,
+      restHours: 0,
+      nightShiftHours: 0,
+      onCallHours: 0,
+      task: null,
+      bankFrom: 0,
+      bankTo: 0,
+    },
+    {
+      date: '2024-06-01',
+      id: 1,
+      dayShiftHours: 0,
+      sickHours: 8,
+      holidayHours: 0,
+      leaveHours: 0,
+      specialLeaveHours: 0,
+      travelHours: 0,
+      restHours: 0,
+      nightShiftHours: 0,
+      onCallHours: 0,
+      task: null,
+      bankFrom: 0,
+      bankTo: 0,
+      comment: "some sick day"
+    },
+    {
+      date: '2024-06-01',
+      id: 1,
+      dayShiftHours: 0,
+      sickHours: 0,
+      holidayHours: 0,
+      leaveHours: 0,
+      specialLeaveHours: 0,
+      travelHours: 0,
+      restHours: 0,
+      nightShiftHours: 0,
+      onCallHours: 0,
+      task: null,
+      bankFrom: 1,
+      bankTo: 0,
+    },
+    {
+      date: '2024-06-01',
+      id: 1,
+      dayShiftHours: 0,
+      sickHours: 0,
+      holidayHours: 0,
+      leaveHours: 0,
+      specialLeaveHours: 0,
+      travelHours: 0,
+      restHours: 0,
+      nightShiftHours: 0,
+      onCallHours: 0,
+      task: null,
+      bankFrom: 0,
+      bankTo: 1,
+    }
+  ]
+  cases.forEach((timeEntry) => {
+    it(`submit should be called with start entry params`, () => {
+      const schedule = {
+        "2024_06_01": 2,
+        "2024_06_02": 2,
+        "2024_06_03": 2,
+        "2024_06_04": 2,
+      }
+      const timeEntries: TimeEntry[] = [
+        {
+          date: '2024-06-03',
+          id: 1,
+          dayShiftHours: 0.5,
+          sickHours: 0.5,
+          holidayHours: 0.5,
+          leaveHours: 0.5,
+          specialLeaveHours: 0.5,
+          travelHours: 0.5,
+          restHours: 0.5,
+          nightShiftHours: 0.5,
+          onCallHours: 0.5,
+          task: null,
+          bankFrom: 0,
+          bankTo: 0,
+        },
+        timeEntry
+      ]
+      render(<EditDayEntry {...baseProps} timeEntries={timeEntries} schedule={schedule}/>);
+      fireEvent.click(document.getElementById("edit-day-entry-submit-button") as HTMLElement)
+      screen.debug()
+      expect(submitMock).toBeCalledWith(
+          expect.objectContaining({
+            ...(timeEntry.sickHours > 0 ? { sickHours: timeEntry.sickHours } : {}),
+            ...(timeEntry.holidayHours > 0 ? { holidayHours: timeEntry.holidayHours } : {}),
+            ...(timeEntry.leaveHours > 0 ? { leaveHours: timeEntry.leaveHours } : {}),
+            ...(timeEntry.specialLeaveHours > 0 ? { specialLeaveHours: timeEntry.specialLeaveHours } : {}),
+            ...(timeEntry.restHours > 0 ? { restHours: timeEntry.restHours } : {}),
+            ...(timeEntry.bankFrom > 0 ? { bankFrom: timeEntry.bankFrom } : {}),
+            ...(timeEntry.bankTo > 0 ? { bankTo: timeEntry.bankTo } : {}),
+          })
+      )
+    });
+  });
+  it("handle hours change", () => {
+    const schedule = {
+      "2024_06_01": 2,
+      "2024_06_02": 2,
+      "2024_06_03": 2,
+      "2024_06_04": 2,
+    }
+    render(<EditDayEntry {...baseProps} schedule={schedule}/>);
+    fireEvent.click(screen.getByTestId("day-entry-leave-radio"))
+    fireEvent.change(screen.getByTestId("day-entry-leave-hour-input"), {target: {value : 2}})
+    expect(screen.getByTestId("day-entry-leave-hour-input")).toHaveValue(2)
+    fireEvent.change(screen.getByTestId("day-entry-special-leave-hour-input"), {target: {value : 1}})
+    expect(screen.getByTestId("day-entry-leave-hour-input")).toHaveValue(1)
+
+  })
+
 }); 
