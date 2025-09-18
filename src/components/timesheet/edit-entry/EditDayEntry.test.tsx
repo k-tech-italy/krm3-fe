@@ -5,10 +5,10 @@ import {TimeEntry} from "../../../restapi/types.ts";
 import EditTimeEntry from "./EditTimeEntry.tsx";
 
 const mutateDeleteMock = vi.fn().mockResolvedValue(undefined);
-
+const submitMock = vi.fn().mockResolvedValue({})
 vi.mock("../../../hooks/useTimesheet", () => ({
   useCreateTimeEntry: () => ({
-    mutateAsync: vi.fn(),
+    mutateAsync: submitMock,
     isLoading: false,
     isError: false,
     error: null,
@@ -283,5 +283,93 @@ describe("EditDayEntry", () => {
     expect(screen.getByTestId("day-entry-holiday-input")).not.toBeChecked()
     fireEvent.click(screen.getByTestId("day-entry-sick-radio"))
     expect(screen.getByTestId("day-entry-sick-input")).not.toBeChecked()
+  })
+  it("handle data change and submit", () => {
+    const timeEntries: TimeEntry[] = [
+      {
+        date: '2024-06-01',
+        id: 1,
+        dayShiftHours: 0,
+        sickHours: 0,
+        holidayHours: 0,
+        leaveHours: 0,
+        specialLeaveHours: 0,
+        travelHours: 0,
+        restHours: 1,
+        nightShiftHours: 0,
+        onCallHours: 0,
+        task: null,
+        bankFrom: 0,
+        bankTo: 0,
+      },
+      {
+        date: '2024-06-02',
+        id: 2,
+        dayShiftHours: 0,
+        sickHours: 0,
+        holidayHours: 0,
+        leaveHours: 2,
+        specialLeaveHours: 0,
+        travelHours: 0,
+        restHours: 0,
+        nightShiftHours: 0,
+        onCallHours: 0,
+        task: 1,
+        bankFrom: 0,
+        bankTo: 0,
+      },
+      {
+        date: '2024-06-03',
+        id: 3,
+        dayShiftHours: 2,
+        sickHours: 0,
+        holidayHours: 0,
+        leaveHours: 0,
+        specialLeaveHours: 0,
+        travelHours: 0,
+        restHours: 0,
+        nightShiftHours: 0,
+        onCallHours: 0,
+        task: 1,
+        bankFrom: 0,
+        bankTo: 0,
+      },
+      {
+        date: '2024-06-04',
+        id: 4,
+        dayShiftHours: 0,
+        sickHours: 0,
+        holidayHours: 0,
+        leaveHours: 0,
+        specialLeaveHours: 4,
+        travelHours: 0,
+        restHours: 0,
+        nightShiftHours: 0,
+        onCallHours: 0,
+        task: null,
+        bankFrom: 0,
+        bankTo: 0,
+      }
+    ]
+    const schedule = {
+      "2024_06_01": 2,
+      "2024_06_02": 2,
+      "2024_06_03": 2,
+      "2024_06_04": 2,
+    }
+    render(<EditDayEntry {...baseProps} timeEntries={timeEntries} schedule={schedule}/>);
+    fireEvent.change(document.getElementById("edit-day-entry-from-date-picker") as HTMLElement, {target: {value : "2024-06-02"}})
+    fireEvent.change(document.getElementById("edit-day-entry-to-date-picker") as HTMLElement, {target: {value : "2024-06-04"}})
+    fireEvent.click(document.getElementById("edit-day-entry-submit-button") as HTMLElement)
+    expect(submitMock).toBeCalledWith(
+        expect.objectContaining({
+          dates: [
+              "2024-06-02",
+              "2024-06-03",
+              "2024-06-04",
+          ],
+          restHours: 1
+        })
+    )
   })
 }); 

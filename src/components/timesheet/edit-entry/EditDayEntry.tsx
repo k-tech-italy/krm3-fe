@@ -259,6 +259,7 @@ export default function EditDayEntry({
                 From day:
               </label>
               <DatePicker
+                  id="edit-day-entry-from-date-picker"
                   dateFormat="yyyy-MM-dd"
                   maxDate={toDate}
                   selected={fromDate}
@@ -274,6 +275,7 @@ export default function EditDayEntry({
             <div className="w-full md:w-1/3 mb-4 md:mb-0">
               <label className="block text-sm font-medium mb-1">To day:</label>
               <DatePicker
+                  id="edit-day-entry-to-date-picker"
                   dateFormat="yyyy-MM-dd"
                   selected={toDate}
                   minDate={fromDate}
@@ -649,6 +651,7 @@ export default function EditDayEntry({
                   readOnly ||
                   (!!entryType && handleDatesChange().length === 0)
               }
+              id="edit-day-entry-submit-button"
               type="submit"
               style="primary"
               label="Save"
