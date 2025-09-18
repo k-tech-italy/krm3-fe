@@ -331,6 +331,27 @@ describe("Krm3Calendar", () => {
     const landmark = screen.getByTestId("landmark-icon");
     expect(landmark).toHaveAttribute("width", "30");
   })
-
+  test("renders loading icon", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        timeEntries: timeEntries,
+        days: days,
+        schedule: schedule,
+      },
+      isLoading: true,
+      isSuccess: false,
+    });
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+    expect(screen.getByText("Loading...")).toBeInTheDocument()
+  })
+  it("renders information for no data for timesheet table", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isSuccess: false,
+    });
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+    expect(screen.getByText("No Data")).toBeInTheDocument()
+  })
 });
 
