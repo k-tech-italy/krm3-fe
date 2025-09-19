@@ -142,13 +142,17 @@ export default function EditDayEntry({
   );
 
   function handleChangeDate(selectedDate: Date, dateType: "from" | "to") {
+    console.log(selectedDate)
     if (dateType === "from") {
       setFromDate(selectedDate);
     } else if (dateType === "to") {
       setToDate(selectedDate);
     }
   }
-
+  console.log("----")
+  console.log(startDate)
+  console.log(endDate)
+  console.log("----")
   const handleDatesChange = (
     startDate: Date = fromDate,
     endDate: Date = toDate
@@ -166,6 +170,20 @@ export default function EditDayEntry({
     setEntryType(type);
   };
 
+  const getLowestScheduledHours = () => {
+    const formattedStartDate = normalizeDate(startDate).replaceAll('-', '_')
+    let lowestHours = schedule[formattedStartDate]
+
+    for(let date = new Date(startDate); date.setHours(0,0,0,0), date <= endDate; date.setDate(date.getDate() + 1)) {
+      const formattedDate = normalizeDate(date).replaceAll('_', '-')
+      if(schedule[formattedDate] < lowestHours)
+      {
+        lowestHours = schedule[formattedDate]
+      }
+    }
+    return lowestHours
+  }
+
   const handleHoursChange = (event: React.ChangeEvent<HTMLInputElement>, isSpecialLeave=false) => {
 
     const newValue = Number(event.target.value);
@@ -176,9 +194,9 @@ export default function EditDayEntry({
       newValue,
       changedField
     );
-    if (totalHours > 8 && entryType === "leave") {
+    if (totalHours > minHoursScheduledForSelectedPeriod() && entryType === "leave") {
       setLeaveHoursError(
-        "No overtime allowed when logging leave hours. Maximum allowed is 8 hours, Total hours: " +
+        `No overtime allowed when logging leave hours. Maximum allowed is ${minHoursScheduledForSelectedPeriod()} hours, Total hours: ` +
           (totalHours + newValue)
       );
     } else {
