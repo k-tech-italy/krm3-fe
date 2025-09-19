@@ -527,7 +527,13 @@ describe("EditDayEntry", () => {
     fireEvent.change(screen.getByTestId("day-entry-leave-hour-input"), {target: {value : 2}})
     expect(screen.getByTestId("day-entry-leave-hour-input")).toHaveValue(2)
     fireEvent.change(screen.getByTestId("day-entry-special-leave-hour-input"), {target: {value : 1}})
-    expect(screen.getByTestId("day-entry-leave-hour-input")).toHaveValue(1)
+    expect(screen.getByTestId("day-entry-special-leave-hour-input")).toHaveValue(1)
+    fireEvent.click(screen.getByTestId("day-entry-rest-radio"))
+    expect(screen.getByTestId("day-entry-rest-input")).toBeChecked()
+    fireEvent.click(screen.getByTestId("day-entry-holiday-radio"))
+    expect(screen.getByTestId("day-entry-holiday-input")).toBeChecked()
+    fireEvent.click(screen.getByTestId("day-entry-sick-radio"))
+    expect(screen.getByTestId("day-entry-sick-input")).toBeChecked()
 
   })
 

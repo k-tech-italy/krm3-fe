@@ -41,4 +41,5 @@ describe("EditTimeEntry", () => {
     expect(baseProps.closeModal).toHaveBeenCalled();
   });
 
+
 }); 

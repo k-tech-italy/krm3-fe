@@ -380,7 +380,7 @@ export default function EditDayEntry({
               <span className="text-sm font-medium">Leave</span>
             </div>
             <div
-                id="day-entry-leave-radio"
+                id="day-entry-rest-radio"
                 data-testid={"day-entry-rest-radio"}
                 className={`flex items-center justify-center px-4 py-2 border rounded-md transition-colors ${
                     entryType === "rest"
@@ -395,15 +395,7 @@ export default function EditDayEntry({
                     handleEntryTypeChange("rest")
                 }}
             >
-              <input
-                  type="radio"
-                  name="entryType"
-                  value="rest"
-                  checked={entryType === "rest"}
-                  onChange={() => handleEntryTypeChange("rest")}
-                  className="sr-only"
-                  data-testid={"day-entry-rest-input"}
-              />
+
               <span className="text-sm font-medium">Rest</span>
             </div>
           </div>
