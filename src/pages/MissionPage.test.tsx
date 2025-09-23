@@ -16,7 +16,7 @@ vi.mock("../hooks/useExpense", () => ({
   useGetExpense: vi.fn(),
 }));
 vi.mock("../hooks/useAuth", () => ({
-  useGetCurrentUser: vi.fn(),
+  useGetCurrentUser: () => ({ data: { isStaff: true } }),
 }));
 vi.mock("../hooks/useView", () => ({
   useMediaQuery: vi.fn()
@@ -85,7 +85,6 @@ beforeAll(() => {
 // Create mock references for all hooks
 const mockUseGetMissions = vi.mocked(useGetMissions);
 const mockUseGetExpense = vi.mocked(useGetExpense);
-const mockUseGetCurrentUser = vi.mocked(useGetCurrentUser);
 const mockUseMediaQuery = vi.mocked(useMediaQuery);
 
 // Mock data
@@ -123,10 +122,6 @@ describe("MissionPage", () => {
 
     mockUseGetExpense.mockReturnValue({
       data: mockExpenseData,
-    } as UseQueryResult<any>);
-
-    mockUseGetCurrentUser.mockReturnValue({
-      data: { isStaff: true },
     } as UseQueryResult<any>);
 
     mockUseMediaQuery.mockReturnValue(false);
