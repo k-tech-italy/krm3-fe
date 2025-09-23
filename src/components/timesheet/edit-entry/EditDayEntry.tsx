@@ -151,10 +151,12 @@ export default function EditDayEntry({
 
   const handleDatesChange = (
     startDate: Date = fromDate,
-    endDate: Date = toDate
+    endDate: Date = toDate,
+    skipNonWorkingDays = true
   ): string[] => {
-    return getDatesBetween(startDate, endDate, calendarDays, true);
+    return getDatesBetween(startDate, endDate, calendarDays, skipNonWorkingDays);
   };
+
 
   const handleEntryTypeChange = (type: string) => {
     if (readOnly) return; // Prevent changes in read-only mode
@@ -196,9 +198,10 @@ export default function EditDayEntry({
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (entryType || (bankFrom && bankFrom > 0) || (bankTo && bankTo > 0)) {
+    const bankHoursNotEmpty = (bankFrom && bankFrom > 0) || (bankTo && bankTo > 0)
+    if (entryType || bankHoursNotEmpty) {
       submitDays({
-        dates: handleDatesChange(),
+        dates: handleDatesChange(fromDate, toDate, !!entryType),
         nightShiftHours: 0,
         holidayHours: entryType === "holiday" ? 8 : undefined,
         sickHours: entryType === "sick" ? 8 : undefined,
