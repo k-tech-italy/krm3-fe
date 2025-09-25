@@ -21,8 +21,8 @@ import Krm3Button from "../../commons/Krm3Button";
 import {CheckIcon, Landmark, MoveRight, TrashIcon, X} from "lucide-react";
 
 interface Props {
-  startDate: Date;
-  endDate: Date;
+  readonly startDate: Date;
+  readonly endDate: Date;
   timeEntries: TimeEntry[];
   onClose: () => void;
   readOnly: boolean;
@@ -49,13 +49,35 @@ export default function EditDayEntry({
   } = useCreateTimeEntry(selectedResourceId);
   const { mutateAsync: deleteTimeEntries } = useDeleteTimeEntries();
 
+  const [fromDate, setFromDate] = useState<Date>(
+    startDate <= endDate ? startDate : endDate
+  );
+  const [toDate, setToDate] = useState<Date>(
+    endDate >= startDate ? endDate : startDate
+  );
+
   const startEntry = useMemo(() => {
     return timeEntries.find(
       (item) =>
-        normalizeDate(item.date) === normalizeDate(startDate) &&
+        normalizeDate(item.date) === normalizeDate(fromDate) &&
         item.task === null
     );
-  }, [timeEntries, startDate]);
+  }, [timeEntries, fromDate]);
+
+  const minHoursScheduledForSelectedPeriod = () => {
+    let minHoursForSelectedPeriod = Number(schedule[normalizeDate(fromDate).replaceAll("-", '_')])
+    for (const [day, minHours] of Object.entries(schedule)) {
+      if (isDayInRange(fromDate, toDate, day.replaceAll("_", '-')))
+      {
+        if(Number(minHours) < minHoursForSelectedPeriod)
+        {
+          minHoursForSelectedPeriod = Number(minHours);
+        }
+      }
+    }
+    return minHoursForSelectedPeriod
+  }
+
   useEffect(() => {
     if (startEntry) {
       if (minHoursScheduledForSelectedPeriod() > 0)
@@ -102,25 +124,6 @@ export default function EditDayEntry({
   );
   const [leaveHoursError, setLeaveHoursError] = useState<string | null>(null);
   const [specialReason, setSpecialReason] = useState<string | undefined>();
-  const [fromDate, setFromDate] = useState<Date>(
-    startDate <= endDate ? startDate : endDate
-  );
-  const [toDate, setToDate] = useState<Date>(
-    endDate >= startDate ? endDate : startDate
-  );
-  const minHoursScheduledForSelectedPeriod = () => {
-    let minHoursForSelectedPeriod = Number(schedule[normalizeDate(startDate).replaceAll("-", '_')])
-    for (const [day, minHours] of Object.entries(schedule)) {
-      if (isDayInRange(startDate, endDate, day.replaceAll("_", '-')))
-      {
-        if(Number(minHours) < minHoursForSelectedPeriod)
-        {
-          minHoursForSelectedPeriod = Number(minHours);
-        }
-      }
-    }
-    return minHoursForSelectedPeriod
-  }
 
   const {
     data: specialReasonOptions,
@@ -148,7 +151,6 @@ export default function EditDayEntry({
       setToDate(selectedDate);
     }
   }
-
   const handleDatesChange = (
     startDate: Date = fromDate,
     endDate: Date = toDate,
@@ -178,10 +180,10 @@ export default function EditDayEntry({
       newValue,
       changedField
     );
-    if (totalHours > 8 && entryType === "leave") {
+    if (totalHours > minHoursScheduledForSelectedPeriod() && entryType === "leave") {
       setLeaveHoursError(
-        "No overtime allowed when logging leave hours. Maximum allowed is 8 hours, Total hours: " +
-          (totalHours + newValue)
+        `No overtime allowed when logging leave hours. Maximum allowed is ${minHoursScheduledForSelectedPeriod()} hours, Total hours: ` +
+          totalHours
       );
     } else {
       setLeaveHoursError(null);
@@ -203,8 +205,8 @@ export default function EditDayEntry({
       submitDays({
         dates: handleDatesChange(fromDate, toDate, !!entryType),
         nightShiftHours: 0,
-        holidayHours: entryType === "holiday" ? 8 : undefined,
-        sickHours: entryType === "sick" ? 8 : undefined,
+        holidayHours: entryType === "holiday" ? minHoursScheduledForSelectedPeriod() : undefined,
+        sickHours: entryType === "sick" ? minHoursScheduledForSelectedPeriod() : undefined,
         leaveHours:
           entryType === "holiday" || entryType === "sick" ? 0 : leaveHours,
         specialLeaveHours:
@@ -249,7 +251,7 @@ export default function EditDayEntry({
         (entry) => {
           return (entry.leaveHours != 0 || entry.restHours != 0 || entry.specialLeaveHours != 0
               || entry.bankFrom != 0 || entry.bankTo != 0)
-              && isDayInRange(startDate, endDate, entry.date)
+              && isDayInRange(fromDate, toDate, entry.date)
         }).length > 0
   return (
     <div>
@@ -612,8 +614,7 @@ export default function EditDayEntry({
               icon={<TrashIcon size={20}/>}
               label="Clear Day"
               mobileLabel={`${isDeleteButtonVisible ? "Clear Day" : "Clear"}`}
-              additionalStyles={'w-[45%] md:w-[20%]'}
-              id="clear-button"
+              additionalStyles={'w-[45%] md:w-[20%]'} id="clear-button"
           />
           {isDeleteButtonVisible
               &&
@@ -626,7 +627,7 @@ export default function EditDayEntry({
                         (entry) => {
                           return (entry.leaveHours != 0 || entry.restHours != 0 || entry.specialLeaveHours != 0
                                   || entry.bankTo != 0 || entry.bankFrom != 0)
-                              && isDayInRange(startDate, endDate, entry.date)
+                              && isDayInRange(fromDate, toDate, entry.date)
                         }))
                   }}
                   icon={<TrashIcon size={20}/>}
