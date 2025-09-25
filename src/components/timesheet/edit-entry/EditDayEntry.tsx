@@ -145,17 +145,12 @@ export default function EditDayEntry({
   );
 
   function handleChangeDate(selectedDate: Date, dateType: "from" | "to") {
-    console.log(selectedDate)
     if (dateType === "from") {
       setFromDate(selectedDate);
     } else if (dateType === "to") {
       setToDate(selectedDate);
     }
   }
-  console.log("----")
-  console.log(fromDate)
-  console.log(toDate)
-  console.log("----")
   const handleDatesChange = (
     startDate: Date = fromDate,
     endDate: Date = toDate,
@@ -175,20 +170,6 @@ export default function EditDayEntry({
     setEntryType(type);
   };
 
-  const getLowestScheduledHours = () => {
-    const formattedStartDate = normalizeDate(fromDate).replaceAll('-', '_')
-    let lowestHours = schedule[formattedStartDate]
-
-    for(let date = new Date(fromDate); date.setHours(0,0,0,0), date <= toDate; date.setDate(date.getDate() + 1)) {
-      const formattedDate = normalizeDate(date).replaceAll('_', '-')
-      if(schedule[formattedDate] < lowestHours)
-      {
-        lowestHours = schedule[formattedDate]
-      }
-    }
-    return lowestHours
-  }
-
   const handleHoursChange = (event: React.ChangeEvent<HTMLInputElement>, isSpecialLeave=false) => {
 
     const newValue = Number(event.target.value);
@@ -202,7 +183,7 @@ export default function EditDayEntry({
     if (totalHours > minHoursScheduledForSelectedPeriod() && entryType === "leave") {
       setLeaveHoursError(
         `No overtime allowed when logging leave hours. Maximum allowed is ${minHoursScheduledForSelectedPeriod()} hours, Total hours: ` +
-          (totalHours + newValue)
+          totalHours
       );
     } else {
       setLeaveHoursError(null);
