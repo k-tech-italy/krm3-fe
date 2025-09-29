@@ -78,10 +78,23 @@ export function getTileBgColorProps(
     totalWorkedHours: number,
     schedule: Schedule,
     isClosed?: boolean,
-    colors?: HeaderColors
+    colors?: HeaderColors,
+    isHolidayOrSickDay?: boolean
 ): { className: string; style?: React.CSSProperties } {
   if (isToday(day)) {
     return { className: "bg-table-today" };
+  }
+  if(isHolidayOrSickDay){
+    if(colors) {
+      return {
+        className: `dynamic-header-bg`,
+        style: {
+          '--header-bg-light': colors.exactScheduleColorBrightTheme,
+          '--header-bg-dark': colors.exactScheduleColorDarkTheme,
+        } as React.CSSProperties,
+      };
+    }
+    return { className: "bg-table-header" };
   }
   const scheduledHours = schedule[normalizeDate(day).replaceAll("-", "_")] ?? 0;
 

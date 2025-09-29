@@ -4,7 +4,7 @@ import {DayType, HeaderColors, Schedule, TimeEntry, Timesheet} from "../../../re
 import { Draggable } from "../Draggable";
 import { Droppable } from "../Droppable";
 import {formatDay, formatDayOfWeek, formatIntl, normalizeDate} from "../utils/dates";
-import {getDayType, isClosed, isNonWorkingDay, isToday} from "../utils/timeEntry";
+import {getDayType, isClosed, isHoliday, isNonWorkingDay, isSickDay, isToday} from "../utils/timeEntry";
 import { TotalHourCell, TotalHourForTask } from "./TotalHour";
 import { getTileBgColorProps } from "../utils/utils.ts";
 import {locale} from "moment";
@@ -48,7 +48,9 @@ function TimeSheetHeaders({
           day,
           calculateTotalHoursForDay(timesheet.timeEntries, day),
           schedule,
-          isClosed(day, timesheet.days), timesheet.timesheetColors
+          isClosed(day, timesheet.days),
+          timesheet.timesheetColors,
+          isHoliday(day, timesheet.timeEntries) || isSickDay(day, timesheet.timeEntries)
         );
         return (
           <React.Fragment key={index}>
