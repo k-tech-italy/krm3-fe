@@ -64,11 +64,11 @@ function AuthenticatedRoutes() {
       route: <Route path="/user" element={<User />} />,
     },
     {
-      guard: modules.includes('trasferte'),
+      guard: modules.map(m => m.url).includes('trasferte'),
       route: <Route path="/trasferte/:id" element={<Mission />} />,
     },
     {
-      guard: modules.includes('timesheet'),
+      guard: modules.map(m => m.url).includes('timesheet'),
       route: <Route path="/timesheet" element={<Timesheet />} />,
     },
     {
@@ -76,7 +76,7 @@ function AuthenticatedRoutes() {
       route: <Route path="/" element={!!defautl ? <Navigate to={'/' + defautl}  /> : <Welcome/> } />,
     },
     {
-      guard: modules.includes('trasferte'),
+      guard: modules.map(m => m.url).includes('trasferte'),
       route: <Route path="/trasferte" element={<MissionPage />} />,
     },
     {
