@@ -1,6 +1,6 @@
-import {Navbar} from "./Navbar.tsx";
-import {render, screen} from "@testing-library/react";
-import {vi} from "vitest";
+import { Navbar } from "./Navbar.tsx";
+import { render, screen } from "@testing-library/react";
+import { vi } from "vitest";
 import * as useView from "../../hooks/useView.tsx";
 import * as useAuth from "../../hooks/useAuth";
 
@@ -28,7 +28,16 @@ describe('Navbar', () => {
         vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
             data: {
                 config: {
-                    modules: ["module1", "module2"],
+                    modules: [
+                        {
+                            url: "module1",
+                            label: "module1"
+                        },
+                        {
+                            url: "module2",
+                            label: "module2"
+                        }
+                    ],
                 },
             },
         } as any);

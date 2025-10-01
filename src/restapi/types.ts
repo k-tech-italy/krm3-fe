@@ -139,6 +139,12 @@ export interface TypeOfDocument {
   title: string;
 }
 
+interface module {
+  flag: string;
+  url: string;
+  label: string;
+}
+
 export interface User {
   id: number;
   email: string;
@@ -157,7 +163,7 @@ export interface User {
     [key in FlagsType]?: boolean;
   };
   config: {
-    modules: string[],
+    modules: module[],
     defaultModule?: string
   }
 }
