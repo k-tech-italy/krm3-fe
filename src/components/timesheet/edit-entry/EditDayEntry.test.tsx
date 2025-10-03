@@ -5,6 +5,13 @@ import {TimeEntry} from "../../../restapi/types.ts";
 
 const mutateDeleteMock = vi.fn().mockResolvedValue(undefined);
 
+const calendarDays = () => ({
+    "2024-06-01": { closed: false, hol: false, nwd: false },
+    "2024-06-02": { closed: false, hol: false, nwd: false },
+    "2024-06-03": { closed: false, hol: false, nwd: false },
+    "2024-06-10": { closed: false, hol: false, nwd: false },
+});
+
 vi.mock("../../../hooks/useTimesheet", () => ({
   useCreateTimeEntry: () => ({
     mutateAsync: vi.fn(),
@@ -31,9 +38,9 @@ describe("EditDayEntry", () => {
     endDate: new Date("2024-06-03"),
     timeEntries: [],
     onClose: vi.fn(),
-    readOnly: false,
+    readOnlyByRole: false,
     selectedResourceId: 1,
-    calendarDays: {},
+    calendarDays: calendarDays(),
     schedule: {},
   };
   it("renders form and entry type options", () => {
@@ -218,9 +225,9 @@ describe("EditDayEntry", () => {
       endDate: new Date("2024-06-20"),
       timeEntries: [],
       onClose: vi.fn(),
-      readOnly: false,
+      readOnlyByRole: false,
       selectedResourceId: 1,
-      calendarDays: {},
+      calendarDays: calendarDays(),
       schedule: {}
     };
     const timeEntries: TimeEntry[] = []

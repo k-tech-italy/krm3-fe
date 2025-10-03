@@ -25,7 +25,7 @@ interface Props {
   readonly endDate: Date;
   timeEntries: TimeEntry[];
   onClose: () => void;
-  readOnly: boolean;
+  readOnlyByRole: boolean;
   selectedResourceId: number | null;
   calendarDays: Days;
   schedule: Schedule;
@@ -36,7 +36,7 @@ export default function EditDayEntry({
   startDate,
   endDate,
   timeEntries,
-  readOnly,
+  readOnlyByRole,
   selectedResourceId,
   calendarDays,
   schedule,
@@ -63,6 +63,16 @@ export default function EditDayEntry({
         item.task === null
     );
   }, [timeEntries, fromDate]);
+
+  const isSubmitted = useMemo(() => {
+    // assume the whole month days are closed when the timesheet are submitted
+    // we will just check the first one
+    return calendarDays[normalizeDate(fromDate)].closed;
+  }, [fromDate, calendarDays]);
+
+  const readOnly = useMemo(() => {
+    return isSubmitted || readOnlyByRole;
+  }, [isSubmitted, readOnlyByRole]);
 
   const minHoursScheduledForSelectedPeriod = () => {
     let minHoursForSelectedPeriod = Number(schedule[normalizeDate(fromDate).replaceAll("-", '_')])

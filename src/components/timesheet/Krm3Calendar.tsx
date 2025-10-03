@@ -10,8 +10,8 @@ import { useColumnViewPreference } from "../../hooks/useView";
 import {
   formatDate,
   formatDayAndMonth,
-  formatMonthName, getFirstDayOfMonth,
-  getFirstMondayOfMonth, getLastDayOfMonth, isDayInRange,
+  formatMonthName,
+  getFirstMondayOfMonth,
   isOverlappingWeek,
   normalizeDate,
 } from "./utils/dates";
@@ -20,7 +20,7 @@ import ErrorMessage from "./edit-entry/ErrorMessage";
 import { WeekRange } from "../../restapi/types";
 import { displayErrorMessage, getHolidayAndSickDays } from "./utils/utils";
 import Krm3Button from "../commons/Krm3Button";
-import {useGetTimesheet, useSubmitTimesheet} from "../../hooks/useTimesheet";
+import {useSubmitTimesheet} from "../../hooks/useTimesheet";
 import { toast } from "react-toastify";
 import { useMediaQuery } from "react-responsive";
 
@@ -407,7 +407,7 @@ export default function Krm3Calendar({
                         startDate={startDate}
                         endDate={endDate}
                         timeEntries={timeEntries}
-                        readOnly={readOnly}
+                        readOnlyByRole={readOnly}
                         selectedResourceId={selectedResourceId}
                         calendarDays={typeDays}
                         schedule={schedule}
