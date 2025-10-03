@@ -33,42 +33,23 @@ export const getDatesWithAndWithoutTimeEntries = (
   return { allDates: dates, withTimeEntries, withoutTimeEntries };
 };
 
-//Calculate the total hours for a list of dates. This function takes a list of
-export function calculateTotalHoursForDays(
-  timeEntries: ReadonlyArray<Readonly<TimeEntry>>,
-  dates: ReadonlyArray<Readonly<string>>,
-  newValue: number,
-  changedField: "restHours" | "leaveHours" | "specialLeaveHours"
-): number {
-  const timeEntriesCopy = JSON.parse(JSON.stringify
-  (timeEntries));
+export function calculateTaskHoursForDay(timeEntries: ReadonlyArray<Readonly<TimeEntry>>, date: string | Date)
+{
+  const normalizedDate = normalizeDate(date);
+  let totalHours = 0;
 
-  // Group time entries by normalized date for O(1) lookup
-  const entriesByDate: Record<string, TimeEntry[]> = {};
-  for (const entry of timeEntriesCopy) {
-    const date = normalizeDate(entry.date);
-    if (!entriesByDate[date]) entriesByDate[date] = [];
-    if(entry.task === null){
-      entry[changedField] = newValue
+  for (const entry of timeEntries)
+  {
+    if (entry.date == normalizedDate)
+    {
+      totalHours += (
+          (Number(entry.dayShiftHours) || 0) +
+          (Number(entry.nightShiftHours) || 0) +
+          (Number(entry.travelHours) || 0)
+      )
     }
-    entriesByDate[date].push(entry);
   }
-
-  return dates.reduce((totalHours, date) => {
-    const entries = entriesByDate[date] || [];
-    const dailyTotal = entries.reduce(
-      (sum, entry) =>
-        sum +
-        (Number(entry.dayShiftHours) || 0) +
-        (Number(entry.nightShiftHours) || 0) +
-        (Number(entry.travelHours) || 0) +
-        (Number(entry.restHours) || 0) +
-        (Number(entry.specialLeaveHours) || 0) +
-        (Number(entry.leaveHours) || 0),
-      0
-    );
-    return Math.max(totalHours, dailyTotal);
-  }, 0);
+  return totalHours
 }
 
 export const isHoliday = (
