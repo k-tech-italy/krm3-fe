@@ -206,6 +206,7 @@ export interface TimeEntry {
   restHours: number;
   specialLeaveReason?: string;
   comment?: string;
+  protocolNumber?: string;
   metaData?: JSON;
 }
 export interface Timesheet {

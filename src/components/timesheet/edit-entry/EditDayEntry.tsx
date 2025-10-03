@@ -122,6 +122,9 @@ export default function EditDayEntry({
   const [comment, setComment] = useState<string | undefined>(
     startEntry?.comment
   );
+    const [protocolNumber, setProtocolNumber] = useState<string | undefined>(
+    startEntry?.protocolNumber
+  );
   const [leaveHoursError, setLeaveHoursError] = useState<string | null>(null);
   const [specialReason, setSpecialReason] = useState<string | undefined>();
 
@@ -218,6 +221,7 @@ export default function EditDayEntry({
         bankTo: bankTo,
         dayShiftHours: 0, // Set dayShiftHours to 0 if 'cause is mandatory'
         comment: comment,
+        protocolNumber: protocolNumber
       }).then(onClose);
     }
   };
@@ -559,23 +563,43 @@ export default function EditDayEntry({
             />
           </div>
         </div>
-
-        <div className="">
-          <label
+        {entryType === "sick" && (
+          <div>
+            <label
               id="day-entry-comments-label"
               className="block text-sm font-medium text-app mb-2"
-          >
-            Comments{entryType === "sick" && " *"}
-          </label>
-          <textarea
-              id="day-entry-comments-input"
+            >
+              Protocol Number
+            </label>
+            <textarea
+              id="day-entry-protocol-number-input"
               rows={3}
               className="block w-full rounded-md border-app shadow-sm focus:border-krm3-primary focus:ring-krm3-primary sm:text-sm p-2 border"
-              placeholder="Add any notes here..."
-              value={comment || ""}
-              required={entryType === "sick"}
-              onChange={(e) => setComment(e.target.value)}
+              placeholder="Insert the protocol number if any..."
+              value={protocolNumber || ""}
+              required={false}
+              onChange={(e) => setProtocolNumber(e.target.value)}
               disabled={readOnly}
+            ></textarea>
+          </div>
+        )}
+
+        <div>
+          <label
+            id="day-entry-comments-label"
+            className="block text-sm font-medium text-app mb-2"
+          >
+            Comments
+          </label>
+          <textarea
+            id="day-entry-comments-input"
+            rows={3}
+            className="block w-full rounded-md border-app shadow-sm focus:border-krm3-primary focus:ring-krm3-primary sm:text-sm p-2 border"
+            placeholder="Add any notes here..."
+            value={comment || ""}
+            required={false}
+            onChange={(e) => setComment(e.target.value)}
+            disabled={readOnly}
           ></textarea>
         </div>
 
