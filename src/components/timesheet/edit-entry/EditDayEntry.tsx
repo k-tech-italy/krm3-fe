@@ -7,10 +7,10 @@ import {
 import { Days, Schedule, TimeEntry } from "../../../restapi/types";
 import { displayErrorMessage } from "../utils/utils";
 import {
-  calculateTotalHoursForDays,
+  calculateTaskHoursForDay,
   getDatesWithAndWithoutTimeEntries,
 } from "../utils/timeEntry";
-import {formatDate,  getDatesBetween, isDayInRange} from "../utils/dates";
+import {formatDate, getDateRange, getDatesBetween, isDayInRange} from "../utils/dates";
 import { normalizeDate } from "../utils/dates";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -155,13 +155,13 @@ export default function EditDayEntry({
     }
   }
   const handleDatesChange = (
-    startDate: Date = fromDate,
-    endDate: Date = toDate,
-    skipNonWorkingDays = true
+      startDate: Date = fromDate,
+      endDate: Date = toDate,
+      skipNonWorkingDays = true
   ): string[] => {
+
     return getDatesBetween(startDate, endDate, calendarDays, skipNonWorkingDays);
   };
-
 
   const handleEntryTypeChange = (type: string) => {
     if (readOnly) return; // Prevent changes in read-only mode
@@ -173,33 +173,32 @@ export default function EditDayEntry({
     setEntryType(type);
   };
 
-  const handleHoursChange = (event: React.ChangeEvent<HTMLInputElement>, isSpecialLeave=false) => {
+  useEffect(() =>
+  {
+    setLeaveHoursError(null);
+    if((leaveHours === undefined || leaveHours === 0)
+      && (restHours === undefined || restHours === 0)
+      && (specialLeaveHours === undefined || specialLeaveHours === 0))
+    {
+      return;
+    }
+    const dates = getDateRange(fromDate, toDate);
+    for(const date of dates)
+    {
+      const taskHours = calculateTaskHoursForDay(timeEntries, date)
+      const dayHours = (restHours ? Number(restHours) : 0) + (leaveHours ? Number(leaveHours) : 0) + (specialLeaveHours ? Number(specialLeaveHours) : 0);
+      const totalHours = taskHours + dayHours
 
-    const newValue = Number(event.target.value);
-    const changedField = entryType === "rest" ? "restHours" : isSpecialLeave ? "specialLeaveHours" : "leaveHours";
-    const totalHours = calculateTotalHoursForDays(
-      timeEntries,
-      daysWithTimeEntries,
-      newValue,
-      changedField
-    );
-    if (totalHours > minHoursScheduledForSelectedPeriod() && entryType === "leave") {
-      setLeaveHoursError(
-        `No overtime allowed when logging leave hours. Maximum allowed is ${minHoursScheduledForSelectedPeriod()} hours, Total hours: ` +
-          totalHours
-      );
-    } else {
-      setLeaveHoursError(null);
+      if(schedule[normalizeDate(date).replaceAll("-", "_")] < totalHours)
+      {
+        setLeaveHoursError(
+            `No overtime allowed when logging leave, special leave or rest hours. Maximum allowed for ${normalizeDate(date)} 
+            is ${schedule[normalizeDate(date).replaceAll("-", "_")]} hours, Total hours: ` + totalHours
+        );
+        return
+      }
     }
-    if (entryType === "rest") {
-      setRestHours(newValue);
-    } else {
-      if(isSpecialLeave)
-        setSpecialLeaveHours(newValue);
-      else
-        setLeaveHours(newValue)
-    }
-  };
+  }, [leaveHours, restHours, specialLeaveHours, fromDate, toDate]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -271,6 +270,7 @@ export default function EditDayEntry({
                   dateFormat="yyyy-MM-dd"
                   maxDate={toDate}
                   selected={fromDate}
+                  id="day-entry-from-date-picker"
                   className="w-full border border-app rounded-md p-2"
                   onChange={(date: Date | null) => {
                     if (!!date) {
@@ -286,6 +286,7 @@ export default function EditDayEntry({
                   dateFormat="yyyy-MM-dd"
                   selected={toDate}
                   minDate={fromDate}
+                  id={"day-entry-to-date-picker"}
                   className="w-full border border-app rounded-md p-2"
                   onChange={(date: Date | null) => {
                     if (!!date) {
@@ -304,8 +305,8 @@ export default function EditDayEntry({
           </label>
           <div className="grid grid-cols-2 gap-3">
             <div
-                id="day-entry-holiday-radio"
-                data-testid={"day-entry-holiday-radio"}
+                id="day-entry-holiday-div"
+                data-testid="day-entry-holiday-div"
                 className={`flex items-center justify-center px-4 py-2 border rounded-md transition-colors ${
                     entryType === "holiday"
                         ? "bg-yellow-100 border-krm3-primary text-yellow-700"
@@ -326,14 +327,14 @@ export default function EditDayEntry({
                   checked={entryType === "holiday"}
                   onChange={() => handleEntryTypeChange("holiday")}
                   className="sr-only"
-                  data-testid={"day-entry-holiday-input"}
+                  data-testid="day-entry-holiday-radio"
               />
               <span className="text-sm font-medium">Holiday</span>
             </div>
 
             <div
-                id="day-entry-sick-days-radio"
-                data-testid={"day-entry-sick-radio"}
+                id="day-entry-sick-days-div"
+                data-testid="day-entry-sick-div"
                 className={`flex items-center justify-center px-4 py-2 border rounded-md transition-colors ${
                     entryType === "sick"
                         ? "bg-yellow-100 border-krm3-primary text-yellow-700"
@@ -349,7 +350,7 @@ export default function EditDayEntry({
 
             >
               <input
-                  data-testid={"day-entry-sick-input"}
+                  data-testid="day-entry-sick-radio"
                   type="radio"
                   name="entryType"
                   value="sick"
@@ -360,8 +361,8 @@ export default function EditDayEntry({
               <span className="text-sm font-medium">Sick Day</span>
             </div>
             <div
-                id="day-entry-leave-radio"
-                data-testid={"day-entry-leave-radio"}
+                id="day-entry-leave-div"
+                data-testid="day-entry-leave-div"
                 className={`flex items-center justify-center px-4 py-2 border rounded-md transition-colors ${
                     entryType === "leave"
                         ? "bg-yellow-100 border-krm3-primary text-yellow-700"
@@ -382,13 +383,13 @@ export default function EditDayEntry({
                   checked={entryType === "leave"}
                   onChange={() => handleEntryTypeChange("leave")}
                   className="sr-only"
-                  data-testid={"day-entry-leave-input"}
+                  data-testid="day-entry-leave-radio"
               />
               <span className="text-sm font-medium">Leave</span>
             </div>
             <div
-                id="day-entry-leave-radio"
-                data-testid={"day-entry-rest-radio"}
+                id="day-entry-rest-div"
+                data-testid="day-entry-rest-div"
                 className={`flex items-center justify-center px-4 py-2 border rounded-md transition-colors ${
                     entryType === "rest"
                         ? "bg-yellow-100 border-krm3-primary text-yellow-700"
@@ -409,7 +410,7 @@ export default function EditDayEntry({
                   checked={entryType === "rest"}
                   onChange={() => handleEntryTypeChange("rest")}
                   className="sr-only"
-                  data-testid={"day-entry-rest-input"}
+                  data-testid="day-entry-rest-radio"
               />
               <span className="text-sm font-medium">Rest</span>
             </div>
@@ -430,7 +431,7 @@ export default function EditDayEntry({
                     value={
                       leaveHours
                     }
-                    onChange={handleHoursChange}
+                    onChange={(event) => setLeaveHours(Number(event.target.value))}
                     min="0"
                     max={`${minHoursScheduledForSelectedPeriod()}`}
                     step={0.25}
@@ -450,17 +451,17 @@ export default function EditDayEntry({
                   {entryType === "rest" ? "Rest Hours *" : "Special Leave Hours"}
                 </label>
                 <input
-                    id="day-entry-special-leave-hour-input"
-                    data-testid={"day-entry-special-leave-hour-input"}
+                    id={`day-entry-${entryType == "rest" ? "rest" : "special-leave"}-hour-input`}
+                    data-testid={`day-entry-${entryType == "rest" ? "rest" : "special-leave"}-hour-input`}
                     type="number"
                     value={
                       entryType === "leave" ? specialLeaveHours ?? "" : restHours ?? ""
                     }
                     onChange={(event) => {
                       if (entryType === "rest")
-                        handleHoursChange(event);
+                        setRestHours(Number(event.target.value))
                       else
-                        handleHoursChange(event, true)
+                        setSpecialLeaveHours(Number(event.target.value))
                     }}
                     min="0"
                     max={`${minHoursScheduledForSelectedPeriod()}`}
