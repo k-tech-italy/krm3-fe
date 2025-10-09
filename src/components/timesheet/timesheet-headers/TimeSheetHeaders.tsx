@@ -1,14 +1,14 @@
 import React from "react";
 import { Tooltip } from "react-tooltip";
-import {DayType, HeaderColors, Schedule, TimeEntry, Timesheet} from "../../../restapi/types";
+import { DayType, HeaderColors, Schedule, TimeEntry, Timesheet } from "../../../restapi/types";
 import { Draggable } from "../Draggable";
 import { Droppable } from "../Droppable";
-import {formatDay, formatDayOfWeek, formatIntl, normalizeDate} from "../utils/dates";
-import {getDayType, isClosed, isNonWorkingDay, isToday} from "../utils/timeEntry";
+import { formatDay, formatDayOfWeek, formatIntl, normalizeDate } from "../utils/dates";
+import { getDayType, isClosed, isHoliday, isNonWorkingDay, isSickDay, isToday } from "../utils/timeEntry";
 import { TotalHourCell, TotalHourForTask } from "./TotalHour";
 import { getTileBgColorProps } from "../utils/utils.ts";
-import {locale} from "moment";
-import {calculateTotalHoursForDay} from "../../../restapi/timesheet.ts";
+import { locale } from "moment";
+import { calculateTotalHoursForDay } from "../../../restapi/timesheet.ts";
 
 interface Props {
   timesheet: Timesheet;
@@ -48,7 +48,9 @@ function TimeSheetHeaders({
           day,
           calculateTotalHoursForDay(timesheet.timeEntries, day),
           schedule,
-          isClosed(day, timesheet.days), timesheet.timesheetColors
+          isClosed(day, timesheet.days),
+          timesheet.timesheetColors,
+          isHoliday(day, timesheet.timeEntries) || isSickDay(day, timesheet.timeEntries)
         );
         return (
           <React.Fragment key={index}>
@@ -56,21 +58,19 @@ function TimeSheetHeaders({
               key={index}
               id={`column-${index}`}
               isDisabled={
-                getDayType(day, timesheet.days) === DayType.CLOSED_DAY ||
-                (!isMonthView &&
-                  !selectedWeekdays?.some(
-                    (date) => date.getTime() === day.getTime()
-                  ))
+                !isMonthView &&
+                !selectedWeekdays?.some(
+                  (date) => date.getTime() === day.getTime()
+                )
               }
             >
               <Draggable
                 id={`column-${index}`}
                 isDisabled={
-                  getDayType(day, timesheet.days) === DayType.CLOSED_DAY ||
-                  (!isMonthView &&
-                    !selectedWeekdays?.some(
-                      (date) => date.getTime() === day.getTime()
-                    ))
+                  !isMonthView &&
+                  !selectedWeekdays?.some(
+                    (date) => date.getTime() === day.getTime()
+                  )
                 }
               >
                 <div
@@ -78,19 +78,16 @@ function TimeSheetHeaders({
                   data-testid={`header-${normalizeDate(day)}`}
                   className=
                   {
-                    `h-full w-fullitems-center ${
-                      isColumnView ? "flex justify-between p-2" : "flex-col "
-                    } font-semibold ${
-                      isMonthView
-                        ? "text-xs py-2 flex-row whitespace-nowrap"
-                        : "text-sm p-2"
+                    `h-full w-fullitems-center ${isColumnView ? "flex justify-between p-2" : "flex-col "
+                    } font-semibold ${isMonthView
+                      ? "text-xs py-2 flex-row whitespace-nowrap"
+                      : "text-sm p-2"
                     } text-center cursor-grab  active:cursor-grabbing
                     ${tileBgProps.className}
                     ${isColumnActive(index) ? "bg-blue-200" : ""}
-                    ${
-                      isColumnHighlighted(index)
-                        ? "bg-blue-100 border-b-2 border-blue-400"
-                        : "border-b-2 border-gray-300 hover:border-blue-400"
+                    ${isColumnHighlighted(index)
+                      ? "bg-blue-100 border-b-2 border-blue-400"
+                      : "border-b-2 border-gray-300 hover:border-blue-400"
                     }
                   `}
                 >
@@ -104,9 +101,8 @@ function TimeSheetHeaders({
                       : ""}
                   </div>
                   <div
-                    className={`bg-gray-100 font-semibold ${
-                      isMonthView ? "text-[10px]" : "text-sm"
-                    } text-center`}
+                    className={`bg-gray-100 font-semibold ${isMonthView ? "text-[10px]" : "text-sm"
+                      } text-center`}
                   >
                     <TotalHourCell
                       day={day}

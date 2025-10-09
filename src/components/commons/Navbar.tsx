@@ -24,15 +24,15 @@ export function Navbar() {
                     <React.Fragment key={idx}>
                       <a
                           key={idx}
-                          href={item}
+                          href={item.url}
                           className={`text-base font-medium  hover:text-krm3-primary
                 ${
-                              currentLocation === item
+                              currentLocation === item.url
                                   ? "text-krm3-primary"
                                   : "text-app"
                           }`}
                       >
-                        {item}
+                        {item.label}
                       </a>
                     </React.Fragment>
                 ))}

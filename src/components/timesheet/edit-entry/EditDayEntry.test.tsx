@@ -2,9 +2,15 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import EditDayEntry from "./EditDayEntry";
 import { vi } from "vitest";
 import {TimeEntry} from "../../../restapi/types.ts";
-import EditTimeEntry from "./EditTimeEntry.tsx";
 
 const mutateDeleteMock = vi.fn().mockResolvedValue(undefined);
+
+const calendarDays = () => ({
+    "2024-06-01": { closed: false, hol: false, nwd: false },
+    "2024-06-02": { closed: false, hol: false, nwd: false },
+    "2024-06-03": { closed: false, hol: false, nwd: false },
+    "2024-06-10": { closed: false, hol: false, nwd: false },
+});
 
 vi.mock("../../../hooks/useTimesheet", () => ({
   useCreateTimeEntry: () => ({
@@ -32,9 +38,9 @@ describe("EditDayEntry", () => {
     endDate: new Date("2024-06-03"),
     timeEntries: [],
     onClose: vi.fn(),
-    readOnly: false,
+    readOnlyByRole: false,
     selectedResourceId: 1,
-    calendarDays: {},
+    calendarDays: calendarDays(),
     schedule: {},
   };
   it("renders form and entry type options", () => {
@@ -219,9 +225,9 @@ describe("EditDayEntry", () => {
       endDate: new Date("2024-06-20"),
       timeEntries: [],
       onClose: vi.fn(),
-      readOnly: false,
+      readOnlyByRole: false,
       selectedResourceId: 1,
-      calendarDays: {},
+      calendarDays: calendarDays(),
       schedule: {}
     };
     const timeEntries: TimeEntry[] = []
@@ -257,14 +263,14 @@ describe("EditDayEntry", () => {
     }
     render(<EditDayEntry {...baseProps} schedule={schedule}/>);
     expect(screen.getByTestId("get-from-bank-hour-input")).toBeEnabled()
-    fireEvent.click(screen.getByTestId("day-entry-leave-radio"))
-    expect(screen.getByTestId("day-entry-leave-input")).toBeChecked()
-    fireEvent.click(screen.getByTestId("day-entry-rest-radio"))
-    expect(screen.getByTestId("day-entry-rest-input")).toBeChecked()
-    fireEvent.click(screen.getByTestId("day-entry-holiday-radio"))
-    expect(screen.getByTestId("day-entry-holiday-input")).toBeChecked()
-    fireEvent.click(screen.getByTestId("day-entry-sick-radio"))
-    expect(screen.getByTestId("day-entry-sick-input")).toBeChecked()
+    fireEvent.click(screen.getByTestId("day-entry-leave-div"))
+    expect(screen.getByTestId("day-entry-leave-radio")).toBeChecked()
+    fireEvent.click(screen.getByTestId("day-entry-rest-div"))
+    expect(screen.getByTestId("day-entry-rest-radio")).toBeChecked()
+    fireEvent.click(screen.getByTestId("day-entry-holiday-div"))
+    expect(screen.getByTestId("day-entry-holiday-radio")).toBeChecked()
+    fireEvent.click(screen.getByTestId("day-entry-sick-div"))
+    expect(screen.getByTestId("day-entry-sick-radio")).toBeChecked()
   })
 
   it("if one of selected days have schedule of 0 hours user shouldn't be able to log leave, rest, special leave, holiday, sick day" , () => {
@@ -275,13 +281,45 @@ describe("EditDayEntry", () => {
     }
     render(<EditDayEntry {...baseProps} schedule={schedule}/>);
     expect(screen.getByTestId("get-from-bank-hour-input")).toBeDisabled()
-    fireEvent.click(screen.getByTestId("day-entry-leave-radio"))
-    expect(screen.getByTestId("day-entry-leave-input")).not.toBeChecked()
-    fireEvent.click(screen.getByTestId("day-entry-rest-radio"))
-    expect(screen.getByTestId("day-entry-rest-input")).not.toBeChecked()
-    fireEvent.click(screen.getByTestId("day-entry-holiday-radio"))
-    expect(screen.getByTestId("day-entry-holiday-input")).not.toBeChecked()
-    fireEvent.click(screen.getByTestId("day-entry-sick-radio"))
-    expect(screen.getByTestId("day-entry-sick-input")).not.toBeChecked()
+    fireEvent.click(screen.getByTestId("day-entry-leave-div"))
+    expect(screen.getByTestId("day-entry-leave-radio")).not.toBeChecked()
+    fireEvent.click(screen.getByTestId("day-entry-rest-div"))
+    expect(screen.getByTestId("day-entry-rest-radio")).not.toBeChecked()
+    fireEvent.click(screen.getByTestId("day-entry-holiday-div"))
+    expect(screen.getByTestId("day-entry-holiday-radio")).not.toBeChecked()
+    fireEvent.click(screen.getByTestId("day-entry-sick-div"))
+    expect(screen.getByTestId("day-entry-sick-radio")).not.toBeChecked()
   })
+  it("renders leave, rest, specialLeave error", () => {
+    const schedule = {
+      "2024_06_01": 4,
+      "2024_06_02": 2,
+      "2024_06_03": 4,
+    }
+    render(<EditDayEntry {...baseProps} schedule={schedule}/>);
+    fireEvent.click(screen.getByTestId("day-entry-leave-div"))
+    fireEvent.change(screen.getByTestId("day-entry-leave-hour-input"), { target: { value: "1" }})
+    fireEvent.change(screen.getByTestId("day-entry-special-leave-hour-input"), { target: { value: "1" }})
+
+    fireEvent.click(screen.getByTestId("day-entry-rest-div"))
+    fireEvent.change(screen.getByTestId("day-entry-rest-hour-input"), { target: { value: "1" }})
+    expect(screen.getByText("No overtime allowed when logging leave, special leave or rest hours. Maximum allowed for 2024-06-02 is 2 hours, Total hours: 3")).
+    toBeInTheDocument()
+
+    fireEvent.change(document.getElementById("day-entry-from-date-picker") as HTMLElement, { target: { value: "2024-06-03" }})
+    expect(screen.queryByText(
+        "No overtime allowed when logging leave, special leave or rest hours. Maximum allowed for 2024-06-02 is 2 hours, Total hours: 3")).
+    not.toBeInTheDocument()
+
+    fireEvent.change(document.getElementById("day-entry-from-date-picker") as HTMLElement, { target: { value: "2024-06-01" }})
+    expect(screen.getByText(
+        "No overtime allowed when logging leave, special leave or rest hours. Maximum allowed for 2024-06-02 is 2 hours, Total hours: 3")).
+    toBeInTheDocument()
+
+    fireEvent.change(document.getElementById("day-entry-to-date-picker") as HTMLElement, { target: { value: "2024-06-01" }})
+    expect(screen.queryByText(
+        "No overtime allowed when logging leave, special leave or rest hours. Maximum allowed for 2024-06-02 is 2 hours, Total hours: 3")).
+    not.toBeInTheDocument()
+  })
+
 }); 

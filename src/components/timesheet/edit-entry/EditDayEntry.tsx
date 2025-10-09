@@ -7,10 +7,10 @@ import {
 import { Days, Schedule, TimeEntry } from "../../../restapi/types";
 import { displayErrorMessage } from "../utils/utils";
 import {
-  calculateTotalHoursForDays,
+  calculateTaskHoursForDay,
   getDatesWithAndWithoutTimeEntries,
 } from "../utils/timeEntry";
-import {formatDate,  getDatesBetween, isDayInRange} from "../utils/dates";
+import {formatDate, getDateRange, getDatesBetween, isDayInRange} from "../utils/dates";
 import { normalizeDate } from "../utils/dates";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -21,11 +21,11 @@ import Krm3Button from "../../commons/Krm3Button";
 import {CheckIcon, Landmark, MoveRight, TrashIcon, X} from "lucide-react";
 
 interface Props {
-  startDate: Date;
-  endDate: Date;
+  readonly startDate: Date;
+  readonly endDate: Date;
   timeEntries: TimeEntry[];
   onClose: () => void;
-  readOnly: boolean;
+  readOnlyByRole: boolean;
   selectedResourceId: number | null;
   calendarDays: Days;
   schedule: Schedule;
@@ -36,7 +36,7 @@ export default function EditDayEntry({
   startDate,
   endDate,
   timeEntries,
-  readOnly,
+  readOnlyByRole,
   selectedResourceId,
   calendarDays,
   schedule,
@@ -49,13 +49,45 @@ export default function EditDayEntry({
   } = useCreateTimeEntry(selectedResourceId);
   const { mutateAsync: deleteTimeEntries } = useDeleteTimeEntries();
 
+  const [fromDate, setFromDate] = useState<Date>(
+    startDate <= endDate ? startDate : endDate
+  );
+  const [toDate, setToDate] = useState<Date>(
+    endDate >= startDate ? endDate : startDate
+  );
+
   const startEntry = useMemo(() => {
     return timeEntries.find(
       (item) =>
-        normalizeDate(item.date) === normalizeDate(startDate) &&
+        normalizeDate(item.date) === normalizeDate(fromDate) &&
         item.task === null
     );
-  }, [timeEntries, startDate]);
+  }, [timeEntries, fromDate]);
+
+  const isSubmitted = useMemo(() => {
+    // assume the whole month days are closed when the timesheet are submitted
+    // we will just check the first one
+    return calendarDays[normalizeDate(fromDate)].closed;
+  }, [fromDate, calendarDays]);
+
+  const readOnly = useMemo(() => {
+    return isSubmitted || readOnlyByRole;
+  }, [isSubmitted, readOnlyByRole]);
+
+  const minHoursScheduledForSelectedPeriod = () => {
+    let minHoursForSelectedPeriod = Number(schedule[normalizeDate(fromDate).replaceAll("-", '_')])
+    for (const [day, minHours] of Object.entries(schedule)) {
+      if (isDayInRange(fromDate, toDate, day.replaceAll("_", '-')))
+      {
+        if(Number(minHours) < minHoursForSelectedPeriod)
+        {
+          minHoursForSelectedPeriod = Number(minHours);
+        }
+      }
+    }
+    return minHoursForSelectedPeriod
+  }
+
   useEffect(() => {
     if (startEntry) {
       if (minHoursScheduledForSelectedPeriod() > 0)
@@ -100,27 +132,11 @@ export default function EditDayEntry({
   const [comment, setComment] = useState<string | undefined>(
     startEntry?.comment
   );
+    const [protocolNumber, setProtocolNumber] = useState<string | undefined>(
+    startEntry?.protocolNumber
+  );
   const [leaveHoursError, setLeaveHoursError] = useState<string | null>(null);
   const [specialReason, setSpecialReason] = useState<string | undefined>();
-  const [fromDate, setFromDate] = useState<Date>(
-    startDate <= endDate ? startDate : endDate
-  );
-  const [toDate, setToDate] = useState<Date>(
-    endDate >= startDate ? endDate : startDate
-  );
-  const minHoursScheduledForSelectedPeriod = () => {
-    let minHoursForSelectedPeriod = Number(schedule[normalizeDate(startDate).replaceAll("-", '_')])
-    for (const [day, minHours] of Object.entries(schedule)) {
-      if (isDayInRange(startDate, endDate, day.replaceAll("_", '-')))
-      {
-        if(Number(minHours) < minHoursForSelectedPeriod)
-        {
-          minHoursForSelectedPeriod = Number(minHours);
-        }
-      }
-    }
-    return minHoursForSelectedPeriod
-  }
 
   const {
     data: specialReasonOptions,
@@ -148,12 +164,13 @@ export default function EditDayEntry({
       setToDate(selectedDate);
     }
   }
-
   const handleDatesChange = (
-    startDate: Date = fromDate,
-    endDate: Date = toDate
+      startDate: Date = fromDate,
+      endDate: Date = toDate,
+      skipNonWorkingDays = true
   ): string[] => {
-    return getDatesBetween(startDate, endDate, calendarDays, true);
+
+    return getDatesBetween(startDate, endDate, calendarDays, skipNonWorkingDays);
   };
 
   const handleEntryTypeChange = (type: string) => {
@@ -166,42 +183,42 @@ export default function EditDayEntry({
     setEntryType(type);
   };
 
-  const handleHoursChange = (event: React.ChangeEvent<HTMLInputElement>, isSpecialLeave=false) => {
+  useEffect(() =>
+  {
+    setLeaveHoursError(null);
+    if((leaveHours === undefined || leaveHours === 0)
+      && (restHours === undefined || restHours === 0)
+      && (specialLeaveHours === undefined || specialLeaveHours === 0))
+    {
+      return;
+    }
+    const dates = getDateRange(fromDate, toDate);
+    for(const date of dates)
+    {
+      const taskHours = calculateTaskHoursForDay(timeEntries, date)
+      const dayHours = (restHours ? Number(restHours) : 0) + (leaveHours ? Number(leaveHours) : 0) + (specialLeaveHours ? Number(specialLeaveHours) : 0);
+      const totalHours = taskHours + dayHours
 
-    const newValue = Number(event.target.value);
-    const changedField = entryType === "rest" ? "restHours" : isSpecialLeave ? "specialLeaveHours" : "leaveHours";
-    const totalHours = calculateTotalHoursForDays(
-      timeEntries,
-      daysWithTimeEntries,
-      newValue,
-      changedField
-    );
-    if (totalHours > 8 && entryType === "leave") {
-      setLeaveHoursError(
-        "No overtime allowed when logging leave hours. Maximum allowed is 8 hours, Total hours: " +
-          (totalHours + newValue)
-      );
-    } else {
-      setLeaveHoursError(null);
+      if(schedule[normalizeDate(date).replaceAll("-", "_")] < totalHours)
+      {
+        setLeaveHoursError(
+            `No overtime allowed when logging leave, special leave or rest hours. Maximum allowed for ${normalizeDate(date)} 
+            is ${schedule[normalizeDate(date).replaceAll("-", "_")]} hours, Total hours: ` + totalHours
+        );
+        return
+      }
     }
-    if (entryType === "rest") {
-      setRestHours(newValue);
-    } else {
-      if(isSpecialLeave)
-        setSpecialLeaveHours(newValue);
-      else
-        setLeaveHours(newValue)
-    }
-  };
+  }, [leaveHours, restHours, specialLeaveHours, fromDate, toDate]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (entryType || (bankFrom && bankFrom > 0) || (bankTo && bankTo > 0)) {
+    const bankHoursNotEmpty = (bankFrom && bankFrom > 0) || (bankTo && bankTo > 0)
+    if (entryType || bankHoursNotEmpty) {
       submitDays({
-        dates: handleDatesChange(),
+        dates: handleDatesChange(fromDate, toDate, !!entryType),
         nightShiftHours: 0,
-        holidayHours: entryType === "holiday" ? 8 : undefined,
-        sickHours: entryType === "sick" ? 8 : undefined,
+        holidayHours: entryType === "holiday" ? minHoursScheduledForSelectedPeriod() : undefined,
+        sickHours: entryType === "sick" ? minHoursScheduledForSelectedPeriod() : undefined,
         leaveHours:
           entryType === "holiday" || entryType === "sick" ? 0 : leaveHours,
         specialLeaveHours:
@@ -213,6 +230,7 @@ export default function EditDayEntry({
         bankTo: bankTo,
         dayShiftHours: 0, // Set dayShiftHours to 0 if 'cause is mandatory'
         comment: comment,
+        protocolNumber: protocolNumber
       }).then(onClose);
     }
   };
@@ -246,7 +264,7 @@ export default function EditDayEntry({
         (entry) => {
           return (entry.leaveHours != 0 || entry.restHours != 0 || entry.specialLeaveHours != 0
               || entry.bankFrom != 0 || entry.bankTo != 0)
-              && isDayInRange(startDate, endDate, entry.date)
+              && isDayInRange(fromDate, toDate, entry.date)
         }).length > 0
   return (
     <div>
@@ -262,6 +280,7 @@ export default function EditDayEntry({
                   dateFormat="yyyy-MM-dd"
                   maxDate={toDate}
                   selected={fromDate}
+                  id="day-entry-from-date-picker"
                   className="w-full border border-app rounded-md p-2"
                   onChange={(date: Date | null) => {
                     if (!!date) {
@@ -277,6 +296,7 @@ export default function EditDayEntry({
                   dateFormat="yyyy-MM-dd"
                   selected={toDate}
                   minDate={fromDate}
+                  id={"day-entry-to-date-picker"}
                   className="w-full border border-app rounded-md p-2"
                   onChange={(date: Date | null) => {
                     if (!!date) {
@@ -295,8 +315,8 @@ export default function EditDayEntry({
           </label>
           <div className="grid grid-cols-2 gap-3">
             <div
-                id="day-entry-holiday-radio"
-                data-testid={"day-entry-holiday-radio"}
+                id="day-entry-holiday-div"
+                data-testid="day-entry-holiday-div"
                 className={`flex items-center justify-center px-4 py-2 border rounded-md transition-colors ${
                     entryType === "holiday"
                         ? "bg-yellow-100 border-krm3-primary text-yellow-700"
@@ -317,14 +337,14 @@ export default function EditDayEntry({
                   checked={entryType === "holiday"}
                   onChange={() => handleEntryTypeChange("holiday")}
                   className="sr-only"
-                  data-testid={"day-entry-holiday-input"}
+                  data-testid="day-entry-holiday-radio"
               />
               <span className="text-sm font-medium">Holiday</span>
             </div>
 
             <div
-                id="day-entry-sick-days-radio"
-                data-testid={"day-entry-sick-radio"}
+                id="day-entry-sick-days-div"
+                data-testid="day-entry-sick-div"
                 className={`flex items-center justify-center px-4 py-2 border rounded-md transition-colors ${
                     entryType === "sick"
                         ? "bg-yellow-100 border-krm3-primary text-yellow-700"
@@ -340,7 +360,7 @@ export default function EditDayEntry({
 
             >
               <input
-                  data-testid={"day-entry-sick-input"}
+                  data-testid="day-entry-sick-radio"
                   type="radio"
                   name="entryType"
                   value="sick"
@@ -351,8 +371,8 @@ export default function EditDayEntry({
               <span className="text-sm font-medium">Sick Day</span>
             </div>
             <div
-                id="day-entry-leave-radio"
-                data-testid={"day-entry-leave-radio"}
+                id="day-entry-leave-div"
+                data-testid="day-entry-leave-div"
                 className={`flex items-center justify-center px-4 py-2 border rounded-md transition-colors ${
                     entryType === "leave"
                         ? "bg-yellow-100 border-krm3-primary text-yellow-700"
@@ -373,13 +393,13 @@ export default function EditDayEntry({
                   checked={entryType === "leave"}
                   onChange={() => handleEntryTypeChange("leave")}
                   className="sr-only"
-                  data-testid={"day-entry-leave-input"}
+                  data-testid="day-entry-leave-radio"
               />
               <span className="text-sm font-medium">Leave</span>
             </div>
             <div
-                id="day-entry-leave-radio"
-                data-testid={"day-entry-rest-radio"}
+                id="day-entry-rest-div"
+                data-testid="day-entry-rest-div"
                 className={`flex items-center justify-center px-4 py-2 border rounded-md transition-colors ${
                     entryType === "rest"
                         ? "bg-yellow-100 border-krm3-primary text-yellow-700"
@@ -400,7 +420,7 @@ export default function EditDayEntry({
                   checked={entryType === "rest"}
                   onChange={() => handleEntryTypeChange("rest")}
                   className="sr-only"
-                  data-testid={"day-entry-rest-input"}
+                  data-testid="day-entry-rest-radio"
               />
               <span className="text-sm font-medium">Rest</span>
             </div>
@@ -421,7 +441,7 @@ export default function EditDayEntry({
                     value={
                       leaveHours
                     }
-                    onChange={handleHoursChange}
+                    onChange={(event) => setLeaveHours(Number(event.target.value))}
                     min="0"
                     max={`${minHoursScheduledForSelectedPeriod()}`}
                     step={0.25}
@@ -441,17 +461,17 @@ export default function EditDayEntry({
                   {entryType === "rest" ? "Rest Hours *" : "Special Leave Hours"}
                 </label>
                 <input
-                    id="day-entry-special-leave-hour-input"
-                    data-testid={"day-entry-special-leave-hour-input"}
+                    id={`day-entry-${entryType == "rest" ? "rest" : "special-leave"}-hour-input`}
+                    data-testid={`day-entry-${entryType == "rest" ? "rest" : "special-leave"}-hour-input`}
                     type="number"
                     value={
                       entryType === "leave" ? specialLeaveHours ?? "" : restHours ?? ""
                     }
                     onChange={(event) => {
                       if (entryType === "rest")
-                        handleHoursChange(event);
+                        setRestHours(Number(event.target.value))
                       else
-                        handleHoursChange(event, true)
+                        setSpecialLeaveHours(Number(event.target.value))
                     }}
                     min="0"
                     max={`${minHoursScheduledForSelectedPeriod()}`}
@@ -554,23 +574,43 @@ export default function EditDayEntry({
             />
           </div>
         </div>
-
-        <div className="">
-          <label
+        {entryType === "sick" && (
+          <div>
+            <label
               id="day-entry-comments-label"
               className="block text-sm font-medium text-app mb-2"
-          >
-            Comments{entryType === "sick" && " *"}
-          </label>
-          <textarea
-              id="day-entry-comments-input"
+            >
+              Protocol Number
+            </label>
+            <textarea
+              id="day-entry-protocol-number-input"
               rows={3}
               className="block w-full rounded-md border-app shadow-sm focus:border-krm3-primary focus:ring-krm3-primary sm:text-sm p-2 border"
-              placeholder="Add any notes here..."
-              value={comment || ""}
-              required={entryType === "sick"}
-              onChange={(e) => setComment(e.target.value)}
+              placeholder="Insert the protocol number if any..."
+              value={protocolNumber || ""}
+              required={false}
+              onChange={(e) => setProtocolNumber(e.target.value)}
               disabled={readOnly}
+            ></textarea>
+          </div>
+        )}
+
+        <div>
+          <label
+            id="day-entry-comments-label"
+            className="block text-sm font-medium text-app mb-2"
+          >
+            Comments
+          </label>
+          <textarea
+            id="day-entry-comments-input"
+            rows={3}
+            className="block w-full rounded-md border-app shadow-sm focus:border-krm3-primary focus:ring-krm3-primary sm:text-sm p-2 border"
+            placeholder="Add any notes here..."
+            value={comment || ""}
+            required={false}
+            onChange={(e) => setComment(e.target.value)}
+            disabled={readOnly}
           ></textarea>
         </div>
 
@@ -609,8 +649,7 @@ export default function EditDayEntry({
               icon={<TrashIcon size={20}/>}
               label="Clear Day"
               mobileLabel={`${isDeleteButtonVisible ? "Clear Day" : "Clear"}`}
-              additionalStyles={'w-[45%] md:w-[20%]'}
-              id="clear-button"
+              additionalStyles={'w-[45%] md:w-[20%]'} id="clear-button"
           />
           {isDeleteButtonVisible
               &&
@@ -623,7 +662,7 @@ export default function EditDayEntry({
                         (entry) => {
                           return (entry.leaveHours != 0 || entry.restHours != 0 || entry.specialLeaveHours != 0
                                   || entry.bankTo != 0 || entry.bankFrom != 0)
-                              && isDayInRange(startDate, endDate, entry.date)
+                              && isDayInRange(fromDate, toDate, entry.date)
                         }))
                   }}
                   icon={<TrashIcon size={20}/>}

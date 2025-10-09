@@ -84,5 +84,52 @@ describe('TimesheetHeaders', () => {
         expect(headerDiv).toHaveStyle("--header-bg-light: #000000");
         expect(headerDiv).toHaveStyle("--header-bg-dark: #333333");
     })
+    it('renders proper background for holiday or sick day' , () => {
+        const otherDay = new Date(baseDay.setDate(baseDay.getDate() + 1)).toISOString();
+        const holidayEntry = {
+            id: 1,
+            dayShiftHours: 0,
+            nightShiftHours: 0,
+            restHours: 0,
+            travelHours: 0,
+            leaveHours: 0,
+            onCallHours: 0,
+            sickHours: 0,
+            holidayHours: 8,
+            date: baseDay.toISOString(),
+            task: 1,
+            specialLeaveHours: 0,
+            bankFrom: 0,
+            bankTo: 0,
+            specialReason: undefined,
+            comment: undefined,
+        };
+        const sickDayEntry = {
+            id: 2,
+            dayShiftHours: 0,
+            nightShiftHours: 0,
+            restHours: 0,
+            travelHours: 0,
+            leaveHours: 0,
+            onCallHours: 0,
+            sickHours: 8,
+            holidayHours: 0,
+            date: otherDay,
+            task: 1,
+            specialLeaveHours: 0,
+            bankFrom: 0,
+            bankTo: 0,
+            specialReason: undefined,
+            comment: undefined,
+        }
+        render(<TimeSheetHeaders {...baseProps} schedule={{[formattedDay]: 6}} timesheet={{...baseProps.timesheet, timeEntries: [holidayEntry, sickDayEntry]}}/>)
+        const headerDiv = screen.getByTestId(`header-${normalizeDate(baseDay)}`);
+        const headerDivNextDay = screen.getByTestId(`header-${normalizeDate(otherDay)}`);
+        
+        expect(headerDiv).toHaveStyle("--header-bg-light: #111111");
+        expect(headerDiv).toHaveStyle("--header-bg-dark: #444444");
+        expect(headerDivNextDay).toHaveStyle("--header-bg-light: #111111");
+        expect(headerDivNextDay).toHaveStyle("--header-bg-dark: #444444");
+    })
 
 })

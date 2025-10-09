@@ -2,25 +2,35 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { MissionPage } from "./MissionPage";
 import { vi } from "vitest";
 import { useGetMissions } from "../hooks/useMissions";
+import { useGetExpense } from "../hooks/useExpense";
+import { useGetCurrentUser } from "../hooks/useAuth";
+import { useMediaQuery } from "../hooks/useView";
 import { UseQueryResult } from "react-query";
 
-// Mock the module to return a mock function
+// Mock the modules to return mock functions
 vi.mock("../hooks/useMissions", () => ({
   useGetMissions: vi.fn(),
 }));
 
 vi.mock("../hooks/useExpense", () => ({
-  useGetExpense: () => ({ data: { results: [] } }),
+  useGetExpense: vi.fn(),
 }));
 vi.mock("../hooks/useAuth", () => ({
   useGetCurrentUser: () => ({ data: { isStaff: true } }),
 }));
-vi.mock("../hooks/useView", () => ({ useMediaQuery: () => false }));
+vi.mock("../hooks/useView", () => ({
+  useMediaQuery: vi.fn()
+}));
 vi.mock("../components/commons/LoadSpinner", () => ({
   default: () => <div>Loading...</div>,
 }));
 vi.mock("../components/missions/filter", () => ({
-  default: () => <div>FilterResource</div>,
+  default: ({ handleFilter, data }: any) => (
+    <div>
+      FilterResource
+      <button onClick={() => handleFilter([data.results[0]])}>Apply Filter</button>
+    </div>
+  ),
 }));
 
 vi.mock("../components/commons/Krm3Table", () => ({
@@ -28,8 +38,11 @@ vi.mock("../components/commons/Krm3Table", () => ({
     <table>
       <tbody>
         {data.map((row: any, i: number) => (
-          <tr key={i} onClick={() => onClickRow(row)}>
-            <td>{row.id}</td>
+          <tr key={i} onClick={() => onClickRow(row)} data-testid={`row-${i}`}>
+            <td data-testid={`id-${i}`}>{row.id}</td>
+            <td data-testid={`mission-title-${i}`}>{row.mission_title}</td>
+            <td data-testid={`resource-${i}`}>{row.resource}</td>
+            <td data-testid={`amount-${i}`}>{row.amountCurrency}</td>
           </tr>
         ))}
       </tbody>
@@ -37,10 +50,21 @@ vi.mock("../components/commons/Krm3Table", () => ({
   ),
 }));
 vi.mock("../components/expense/ExpenseFilter", () => ({
-  default: () => <div>ExpenseFilter</div>,
+  default: ({ handleFilter, data }: any) => (
+    <div>
+      ExpenseFilter
+      <button onClick={() => handleFilter([data[0]])}>Apply Expense Filter</button>
+    </div>
+  ),
 }));
 vi.mock("../components/expense/edit/ExpenseEdit", () => ({
-  default: () => <div>ExpenseEditModal</div>,
+  ExpenseEdit: ({ show, onClose }: any) =>
+    show ? (
+      <div>
+        ExpenseEditModal
+        <button onClick={onClose}>Close Expense</button>
+      </div>
+    ) : null,
 }));
 vi.mock("../components/missions/create/CreateMission", () => ({
   default: ({ show, onClose }: any) =>
@@ -58,17 +82,49 @@ beforeAll(() => {
   });
 });
 
-// Cast the imported function as a mock
+// Create mock references for all hooks
 const mockUseGetMissions = vi.mocked(useGetMissions);
+const mockUseGetExpense = vi.mocked(useGetExpense);
+const mockUseMediaQuery = vi.mocked(useMediaQuery);
 
-describe("Home", () => {
+// Mock data
+const mockMissionData = {
+  results: [
+    {
+      id: 1,
+      fromDate: "2023-01-01",
+      toDate: "2023-01-05",
+      title: "Test Mission",
+      resource: { firstName: "John", lastName: "Doe" }
+    }
+  ]
+};
+
+const mockExpenseData = {
+  results: [
+    {
+      id: 100,
+      day: "2023-01-02",
+      mission: 1,
+      amountCurrency: "100 EUR"
+    }
+  ]
+};
+
+describe("MissionPage", () => {
   beforeEach(() => {
-    // Set default mock return value
+    // Set default mock return values
     mockUseGetMissions.mockReturnValue({
       isLoading: false,
       isError: false,
-      data: { results: [] },
+      data: mockMissionData,
     } as UseQueryResult<any>);
+
+    mockUseGetExpense.mockReturnValue({
+      data: mockExpenseData,
+    } as UseQueryResult<any>);
+
+    mockUseMediaQuery.mockReturnValue(false);
   });
 
   it("renders loading state", () => {
@@ -94,5 +150,69 @@ describe("Home", () => {
     expect(screen.getByText(/expensefilter/i)).toBeInTheDocument();
     fireEvent.click(screen.getByText(/trasferte/i));
     expect(screen.getByText(/filterresource/i)).toBeInTheDocument();
+  });
+
+  it("correctly maps mission title and resource for expenses", () => {
+    render(<MissionPage />);
+    fireEvent.click(screen.getByText(/spese/i));
+
+    expect(screen.getByTestId("mission-title-0")).toHaveTextContent("Test Mission");
+    expect(screen.getByTestId("resource-0")).toHaveTextContent("John");
+  });
+
+  it("handles expenses with non-existent mission IDs", () => {
+    const expenseWithInvalidMission = {
+      id: 999,
+      day: "2023-01-03",
+      mission: 9999,
+      amountCurrency: "50 EUR"
+    };
+
+    mockUseGetExpense.mockReturnValue({
+      data: { results: [expenseWithInvalidMission] },
+    } as UseQueryResult<any>);
+
+    render(<MissionPage />);
+    fireEvent.click(screen.getByText(/spese/i));
+
+    expect(screen.getByTestId("id-0")).toHaveTextContent("999");
+    expect(screen.getByTestId("mission-title-0")).toHaveTextContent("");
+    expect(screen.getByTestId("resource-0")).toHaveTextContent("");
+    expect(screen.getByTestId("amount-0")).toHaveTextContent("50 EUR");
+  });
+
+  it("navigates to mission detail when clicking on mission row", () => {
+      const mockReplace = vi.fn();
+      Object.defineProperty(window, "location", {
+        value: { ...window.location, replace: mockReplace },
+        writable: true,
+      });
+      render(<MissionPage />);
+      fireEvent.click(screen.getByTestId("row-0"));
+      expect(mockReplace).toHaveBeenCalledWith("/trasferte/1");
+   });
+
+  it("sets selected expense when clicking on expense row", () => {
+      render(<MissionPage />);
+      fireEvent.click(screen.getByText(/spese/i));
+
+      fireEvent.click(screen.getByTestId("row-0"));
+      expect(screen.getByText("ExpenseEditModal")).toBeInTheDocument();
+
+      fireEvent.click(screen.getByText("Close Expense"));
+      expect(screen.queryByText("ExpenseEditModal")).not.toBeInTheDocument();
+    });
+
+  it("calls setDataFiltered when mission filter is applied", () => {
+    render(<MissionPage />);
+    fireEvent.click(screen.getByText("Apply Filter"));
+    expect(screen.getByTestId("id-0")).toBeInTheDocument();
+  });
+
+  it("calls setExpenseFiltered when expense filter is applied", () => {
+    render(<MissionPage />);
+    fireEvent.click(screen.getByText(/spese/i));
+    fireEvent.click(screen.getByText("Apply Expense Filter"));
+    expect(screen.getByTestId("id-0")).toBeInTheDocument();
   });
 });

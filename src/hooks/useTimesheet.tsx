@@ -36,6 +36,7 @@ export function useCreateTimeEntry(selectedResourceId: number | null) {
       bankFrom?: number,
       bankTo?: number,
       comment?: string;
+      protocolNumber?: string;
     }) => createTimeEntry({ ...params, resourceId }),
     {
       onSuccess: () => {
