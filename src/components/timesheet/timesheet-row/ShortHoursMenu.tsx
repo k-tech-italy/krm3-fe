@@ -310,7 +310,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
             {normalizeDate(menuData.endDate)}
           </p>
         </div>
-      </div>bank-total
+      </div>
 
       {openConfirmModal && (
         <Krm3Modal
