@@ -79,7 +79,8 @@ export function TimeSheetTable(props: Props) {
   const [openShortMenu, setOpenShortMenu] = useState<
     { startDate: string; endDate: string; taskId: string } | undefined
   >();
-
+  {/*handleOpenShortMenu is used by drag & drop which is not testable in unit test, but it's tested in integration tests*/}
+  /* v8 ignore next 30 */
   function handleOpenShortMenu(endDate: Date, task: Task) {
     if (!timesheet || !props.startDate) return;
 
@@ -110,7 +111,8 @@ export function TimeSheetTable(props: Props) {
       });
     }
   }
-
+  {/*Drag and drop is not testable in unit test, but it's tested in integration tests*/}
+  /* v8 ignore next 25 */
   // Drag and drop callbacks
   const dragCallbacks: DragCallbacks = {
     onColumnDrag: ({ task, timeEntries, endDate }) => {
@@ -151,7 +153,7 @@ export function TimeSheetTable(props: Props) {
 
   // Loading and error states
   if (isLoadingTimesheet) {
-    return <LoadSpinner />;
+    return <LoadSpinner data-testid="load-spinner-icon"/>;
   }
 
   if (!timesheet) {

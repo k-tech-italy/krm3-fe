@@ -42,17 +42,10 @@ export default function Krm3Calendar({
   const [bankHours, setBankHours] = useState(0)
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
-    if (isMonth) {
-      // First Monday of the current month
-      let first_monday = new Date();
-      first_monday.setDate(getFirstMondayOfMonth(today));
-      return first_monday;
-    } else {
-      // First Monday of the current week
-      const day = today.getDay();
-      const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-      return new Date(today.setDate(diff));
-    }
+    // First Monday of the current month
+    let first_monday = new Date();
+    first_monday.setDate(getFirstMondayOfMonth(today));
+    return first_monday;
   });
   const bankDelta = timeEntries.reduce((acc, timeEntry) => {
     return acc + Number(timeEntry.bankTo) - Number(timeEntry.bankFrom)
@@ -140,18 +133,26 @@ export default function Krm3Calendar({
       newDate.setMonth(currentWeekStart.getMonth() - 1);
 
       newDate.setDate(getFirstMondayOfMonth(newDate));
-    } else {
-      if (selectedWeekRange == "whole") {
+    }
+    else
+    {
+      if (selectedWeekRange == "whole")
+      {
         const previousWeekStart = new Date(currentWeekStart);
         previousWeekStart.setDate(currentWeekStart.getDate() - 7);
 
-        if (isOverlappingWeek(previousWeekStart)) {
+        if (isOverlappingWeek(previousWeekStart))
+        {
           setSelectedWeekRange("endOfWeek");
         }
         newDate.setDate(currentWeekStart.getDate() - 7);
-      } else if (selectedWeekRange == "endOfWeek") {
+      }
+      else if (selectedWeekRange == "endOfWeek")
+      {
         setSelectedWeekRange("startOfWeek");
-      } else {
+      }
+      else
+      {
         newDate.setDate(currentWeekStart.getDate() - 7);
         setSelectedWeekRange("whole");
       }
@@ -166,17 +167,23 @@ export default function Krm3Calendar({
 
       newDate.setDate(getFirstMondayOfMonth(newDate));
     } else {
-      if (selectedWeekRange == "whole") {
+      if (selectedWeekRange == "whole")
+      {
         const nextWeekStart = new Date(currentWeekStart);
         nextWeekStart.setDate(currentWeekStart.getDate() + 7);
 
-        if (isOverlappingWeek(nextWeekStart)) {
+        if (isOverlappingWeek(nextWeekStart))
+        {
           setSelectedWeekRange("startOfWeek");
         }
         newDate.setDate(currentWeekStart.getDate() + 7);
-      } else if (selectedWeekRange == "startOfWeek") {
+      }
+      else if (selectedWeekRange == "startOfWeek")
+      {
         setSelectedWeekRange("endOfWeek");
-      } else {
+      }
+      else
+      {
         newDate.setDate(currentWeekStart.getDate() + 7);
         setSelectedWeekRange("whole");
       }
@@ -278,6 +285,7 @@ export default function Krm3Calendar({
                 ) : (
                   <div>
                     <span
+                      data-testid={"week-start"}
                       className={`${
                         selectedWeekRange == "startOfWeek" ? "font-bold" : ""
                       }`}
@@ -286,6 +294,7 @@ export default function Krm3Calendar({
                     </span>{" "}
                     -{" "}
                     <span
+                        data-testid={"week-end"}
                       className={`${
                         selectedWeekRange == "endOfWeek" ? "font-bold" : ""
                       }`}
@@ -305,7 +314,7 @@ export default function Krm3Calendar({
             </div>
 
             <div className={`flex flex-col md:flex-row items-center gap-2 mr-4 my-0`}>
-              <Landmark size={isDesktop ? 40 : 30}/>
+              <Landmark size={isDesktop ? 40 : 30} data-testid="landmark-icon"/>
               <div className={'flex flex-col'}>
                 <p data-testid={"bank-total"}
                    className={`font-bold my-0 md:text-2xl ${bankHours >= 0 ? 'text-green-500' : 'text-red-500'}`}>
@@ -317,6 +326,7 @@ export default function Krm3Calendar({
               </div>
             </div>
             <Krm3Button
+              id="krm3-calendar-current-week-button"
               onClick={() =>
                 setCurrentWeekStart(() => {
                   const today = new Date();
@@ -386,7 +396,8 @@ export default function Krm3Calendar({
               disabledTooltipMessage={disabledSubmitButtonText()}
             />
           </div>
-
+          {/*OpenTimeEntry modal is opened by drag & drop which is not testable in unit test, but it's tested in integration tests*/}
+          /* v8 ignore next 40 */
           {openTimeEntryModal &&
             selectedTask &&
             startDate &&
