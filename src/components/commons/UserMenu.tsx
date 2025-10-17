@@ -9,17 +9,27 @@ export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const { mutate: logoutUser } = useLogout();
   const [release, setRelease] = useState<any>(null);
-  const fetched = useRef(false);
+
+
+  const validateJson = async (res: Response) => {
+    if(res.ok){
+      const releaseObj: Record<string, any>  = await res.json();
+      if(releaseObj.be?.version && releaseObj.fe?.version) {
+        return releaseObj
+      }
+    }
+    return null;
+  };
 
   useEffect(() => {
-    if (!fetched.current) {
-      fetch("/static/release.json")
-        .then((res) => (res.ok ? res.json() : null))
+    if (isOpen && release === null) {
+      const unixTimestamp = Math.round(new Date().getTime() / 1000);
+      fetch(`/static/release.json?${unixTimestamp}`)
+        .then(validateJson)
         .then((data) => setRelease(data))
         .catch(() => setRelease(null));
-      fetched.current = true;
     }
-  }, []);
+  }, [isOpen]);
 
   function handleLogout() {
     logoutUser();
