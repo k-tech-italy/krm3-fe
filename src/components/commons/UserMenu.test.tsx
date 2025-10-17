@@ -30,6 +30,7 @@ describe('UserMenu', () => {
 
     it('renders correctly', async () => {
         render(<UserMenu />);
+        fireEvent.click(screen.getByTestId('toggle-menu-button'))
         expect(screen.getByText("test@test.com")).toBeInTheDocument();
         expect(screen.getByText("Django Admin")).toBeInTheDocument();
         expect(screen.getByTestId("user-profile-picture")).toHaveAttribute("src", "https://profile.jpg");
@@ -57,6 +58,7 @@ describe('UserMenu', () => {
             }),
         } as any);
         render(<UserMenu />);
+        fireEvent.click(screen.getByTestId('toggle-menu-button'))
         expect(screen.getByText("Version info unavailable")).toBeInTheDocument();
     })
     it('logout button calls logout function', async () => {
