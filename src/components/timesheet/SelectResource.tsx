@@ -15,7 +15,7 @@ const SelectResourceComponent = ({
     if (!resources) return [];
     return resources.map((resource) => ({
       value: resource.id,
-      label: `${resource.firstName} ${resource.lastName}`,
+      label: `${resource.lastName} ${resource.firstName}`,
     }));
   };
 
@@ -77,7 +77,7 @@ const SelectResourceComponent = ({
                 data?.resource
                   ? {
                       value: data.resource.id,
-                      label: `${data.resource.firstName} ${data.resource.lastName}`,
+                      label: `${data.resource.lastName} ${data.resource.firstName}`,
                     }
                   : null
               }
