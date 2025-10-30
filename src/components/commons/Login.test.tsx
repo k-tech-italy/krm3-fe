@@ -43,16 +43,16 @@ describe('Login', () => {
         expect(screen.getByText("Forgot your password?")).toBeInTheDocument()
     })
     it('login click sends api call', () => {
+        // Session-based auth: loginUser no longer returns JWT tokens
+        // Backend sets session cookie automatically
         const loginMock =
-            vi.spyOn(oauth, "loginUser").mockResolvedValue({
-            refresh: "fake-refresh",
-            access: "fake-access"
-            } as any);
+            vi.spyOn(oauth, "loginUser").mockResolvedValue(undefined as any);
         render(<Login/>)
         fireEvent.change(screen.getByTestId("username-input"), { target: { value: "some_username" }})
         fireEvent.change(screen.getByTestId("password-input"), { target: { value: "some_password" }})
         fireEvent.click(screen.getByTestId("login-submit-button"))
         expect(loginMock).toBeCalled()
+        expect(loginMock).toHaveBeenCalledWith("some_username", "some_password")
     })
     it('try to log in without username', () => {
         render(<Login/>)
@@ -88,10 +88,12 @@ describe('Login', () => {
             state: null,
             key: "test-key"
         });
+        // Session-based auth: googleAuthenticate returns next URL (string) or null
         const googleAuthMock =
-            vi.spyOn(oauth, 'googleAuthenticate').mockResolvedValue({} as any)
+            vi.spyOn(oauth, 'googleAuthenticate').mockResolvedValue("/home" as any)
         render(<Login/>)
         expect(googleAuthMock).toBeCalled()
+        expect(googleAuthMock).toHaveBeenCalledWith("abc", "123")
     })
     it('google login error display', async () => {
         vi.spyOn(oauth, 'loginGoogle').mockRejectedValue({
