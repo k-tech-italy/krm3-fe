@@ -1,4 +1,6 @@
+import { AxiosError } from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
+import { clearToken } from "../restapi/oauth";
 import { getCurrentUser, logout } from "../restapi/user";
 
 
@@ -6,13 +8,11 @@ export function useLogout() {
   // const queryClient = useQueryClient();
   return useMutation(() => logout(), {
     onSuccess: () => {
-      // Session is cleared server-side by logout()
+      clearToken();
       // queryClient.invalidateQueries({ queryKey: ["user", "current"] });
       window.location.replace("/login");
     },
-    onError: () => {
-      // Handle logout error silently or show notification
-    },
+    onError: (error: AxiosError) => { },
   });
 }
 export function useGetCurrentUser() {
