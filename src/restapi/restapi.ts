@@ -40,18 +40,6 @@ restapi.interceptors.response.use(
   }
 );
 
-if (!djSessionId && process.env.NODE_ENV !== "test") {
-  // prevent this from being used in tests
-  restapi.interceptors.request.use(async (config) => {
-    const c = { ...config, headers: config.headers || {} };
-    const token = await getToken();
-    if (token) {
-      c.headers["Authorization"] = `JWT ` + token; //TODO CHECK THIS(ERROR 401)
-    }
-    return c;
-  });
-}
-
 export function setSessionCookie(sessionId: string | null) {
   if (typeof document !== 'undefined') {
     if (sessionId) {
