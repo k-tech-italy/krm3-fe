@@ -2,11 +2,6 @@ import axios from "axios";
 import { getToken } from "./oauth";
 import applyCaseMiddleware from "axios-case-converter";
 
-export const djSessionId = null;
-
-axios.defaults.xsrfCookieName = "csrftoken";
-axios.defaults.xsrfHeaderName = "X-CSRFToken";
-
 let baseUrl = process.env.KRM3_FE_API_BASE_URL || "/api/v1/";
 
 if (typeof document !== 'undefined' && baseUrl.startsWith("/")) {
@@ -16,7 +11,10 @@ if (typeof document !== 'undefined' && baseUrl.startsWith("/")) {
 export const restapi = applyCaseMiddleware(
   axios.create({
     baseURL: baseUrl, // must include '/api/v1/'
-    withCredentials: true,
+    withCredentials: true, // Important: sends session cookies with requests
+    // Configure CSRF token handling for Django
+    xsrfCookieName: "csrftoken",
+    xsrfHeaderName: "X-CSRFToken",
   })
 );
 let isRedirecting = false;
