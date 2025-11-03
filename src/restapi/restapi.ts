@@ -1,6 +1,9 @@
 import axios from "axios";
-import { getToken } from "./oauth";
 import applyCaseMiddleware from "axios-case-converter";
+
+// Configure CSRF token handling for Django
+axios.defaults.xsrfCookieName = "csrftoken";
+axios.defaults.xsrfHeaderName = "X-CSRFToken";
 
 let baseUrl = process.env.KRM3_FE_API_BASE_URL || "/api/v1/";
 
@@ -12,13 +15,12 @@ export const restapi = applyCaseMiddleware(
   axios.create({
     baseURL: baseUrl, // must include '/api/v1/'
     withCredentials: true, // Important: sends session cookies with requests
-    // Configure CSRF token handling for Django
-    xsrfCookieName: "csrftoken",
-    xsrfHeaderName: "X-CSRFToken",
   })
 );
+
 let isRedirecting = false;
 
+// Redirect to login on 401 Unauthorized
 restapi.interceptors.response.use(
   (response) => {
     return response;
@@ -39,14 +41,3 @@ restapi.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-export function setSessionCookie(sessionId: string | null) {
-  if (typeof document !== 'undefined') {
-    if (sessionId) {
-      document.cookie = `sessionid=${sessionId}; path=/;`;
-    } else {
-      document.cookie =
-        "sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    }
-  }
-}
