@@ -1,9 +1,7 @@
 import axios from "axios";
-import { getToken } from "./oauth";
 import applyCaseMiddleware from "axios-case-converter";
 
-export const djSessionId = null;
-
+// Configure CSRF token handling for Django
 axios.defaults.xsrfCookieName = "csrftoken";
 axios.defaults.xsrfHeaderName = "X-CSRFToken";
 
@@ -16,11 +14,13 @@ if (typeof document !== 'undefined' && baseUrl.startsWith("/")) {
 export const restapi = applyCaseMiddleware(
   axios.create({
     baseURL: baseUrl, // must include '/api/v1/'
-    withCredentials: true,
+    withCredentials: true, // Important: sends session cookies with requests
   })
 );
+
 let isRedirecting = false;
 
+// Redirect to login on 401 Unauthorized
 restapi.interceptors.response.use(
   (response) => {
     return response;
@@ -41,26 +41,3 @@ restapi.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-if (!djSessionId && process.env.NODE_ENV !== "test") {
-  // prevent this from being used in tests
-  restapi.interceptors.request.use(async (config) => {
-    const c = { ...config, headers: config.headers || {} };
-    const token = await getToken();
-    if (token) {
-      c.headers["Authorization"] = `JWT ` + token; //TODO CHECK THIS(ERROR 401)
-    }
-    return c;
-  });
-}
-
-export function setSessionCookie(sessionId: string | null) {
-  if (typeof document !== 'undefined') {
-    if (sessionId) {
-      document.cookie = `sessionid=${sessionId}; path=/;`;
-    } else {
-      document.cookie =
-        "sessionid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    }
-  }
-}

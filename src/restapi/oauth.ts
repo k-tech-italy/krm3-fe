@@ -2,44 +2,40 @@ import { restapi } from "./restapi";
 
 const oauthProvider = "google-oauth2";
 
-const LS_TOKEN_KEY = "Token";
 const LS_LOGIN_NEXT_URI = "next";
 
-export function loginUser(username: string, password: string) {
-  return restapi.post("jwt/create/", { username, password }).then((res) => {
-    localStorage.setItem(LS_TOKEN_KEY, res.data.access);
-  });
+export async function loginUser(username: string, password: string) {
+  return restapi.post("auth/login/", { username, password });
 }
 
 export async function loginGoogle() {
   console.log("Logging in with Google");
   try {
-    localStorage.removeItem(LS_TOKEN_KEY);
     let currentUrl = window.location.toString();
     const loginUrl =
       window.location.protocol + "//" + window.location.host + "/login";
-    // if (currentUrl.startsWith(loginUrl)) {
-    //   // redirect to home if user goes to /login in the first place
-    //   currentUrl = window.location.protocol + "//" + window.location.host + "/";
-    // }
+
     localStorage.setItem(LS_LOGIN_NEXT_URI, currentUrl);
+
     const res = await restapi.get(
       `/o/${oauthProvider}/?redirect_uri=${loginUrl}`
     );
+
     if (!res.data || !res.data.authorizationUrl) {
       console.error("Authorization URL not found in the response");
       window.location.replace("/login");
       return;
     }
+
     window.location.replace(res.data.authorizationUrl);
   } catch (err) {
-    console.log("Error logging in", err); // TODO show a page for errors
+    console.log("Error logging in", err);
     window.location.replace("/login");
   }
 }
 
 export async function googleAuthenticate(state: string, code: string) {
-  if (state && code && !localStorage.getItem(LS_TOKEN_KEY)) {
+  if (state && code) {
     const data: { [key: string]: string } = {
       state: state,
       code: code,
@@ -50,34 +46,22 @@ export async function googleAuthenticate(state: string, code: string) {
       )
       .join("&");
     try {
-      const res = await restapi.post(`/o/google-oauth2/`, formBody, {
+      await restapi.post(`/o/google-oauth2/`, formBody, {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
       });
-      const token = res.data.access;
-      localStorage.setItem(LS_TOKEN_KEY, token);
+
+      // Session-based auth: user is now logged in via session cookie
+      // No need to store tokens in localStorage
 
       // redirect to LS_LOGIN_NEXT_URI or to /
       const next = localStorage.getItem(LS_LOGIN_NEXT_URI) || "/";
+      localStorage.removeItem(LS_LOGIN_NEXT_URI);
       return next;
     } catch (err) {
-      localStorage.removeItem(LS_TOKEN_KEY);
+      console.error("Authentication failed", err);
     }
   }
   return null;
-}
-
-export function getToken() {
-  return localStorage.getItem(LS_TOKEN_KEY);
-}
-export function clearToken() {
-  return localStorage.removeItem(LS_TOKEN_KEY);
-}
-
-export function refreshToken() {
-  // we currently do not refresh automatically
-  // the token is deleted so that a new login will be required
-  localStorage.removeItem(LS_TOKEN_KEY);
-  // TODO when we get the token there is also a res.data.refresh, we store and use it
 }
