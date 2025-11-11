@@ -39,4 +39,44 @@ describe("SpecialDayCell", () => {
     );
     expect(container.firstChild).toBeInTheDocument();
   });
+
+  it("renders holiday with month view", () => {
+    const { container } = render(
+      <SpecialDayCell {...baseProps} type={TimeEntryType.HOLIDAY} isMonthView={true} />
+    );
+    expect(container.querySelector('[id^="holiday-cell-"]')).toBeInTheDocument();
+    // Icon size should be 20 when isMonthView is true
+    const icon = container.querySelector('svg');
+    expect(icon).toHaveAttribute('width', '20');
+  });
+
+  it("renders sick day with month view", () => {
+    const { container } = render(
+      <SpecialDayCell {...baseProps} type={TimeEntryType.SICK} isMonthView={true} />
+    );
+    expect(container.querySelector('[id^="sick-day-cell-"]')).toBeInTheDocument();
+    // Icon size should be 16 when isMonthView is true
+    const icon = container.querySelector('svg');
+    expect(icon).toHaveAttribute('width', '16');
+  });
+
+  it("renders holiday without month view (larger icons)", () => {
+    const { container } = render(
+      <SpecialDayCell {...baseProps} type={TimeEntryType.HOLIDAY} isMonthView={false} />
+    );
+    expect(container.querySelector('[id^="holiday-cell-"]')).toBeInTheDocument();
+    // Icon size should be 26 when isMonthView is false
+    const icon = container.querySelector('svg');
+    expect(icon).toHaveAttribute('width', '26');
+  });
+
+  it("renders sick day without month view (larger icons)", () => {
+    const { container } = render(
+      <SpecialDayCell {...baseProps} type={TimeEntryType.SICK} isMonthView={false} />
+    );
+    expect(container.querySelector('[id^="sick-day-cell-"]')).toBeInTheDocument();
+    // Icon size should be 22 when isMonthView is false
+    const icon = container.querySelector('svg');
+    expect(icon).toHaveAttribute('width', '22');
+  });
 }); 

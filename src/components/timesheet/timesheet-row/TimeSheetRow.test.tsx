@@ -5,7 +5,9 @@ import React from "react";
 import {vi} from "vitest";
 vi.mock("lucide-react", () => ({
   Plane: () => <svg data-testid="plane-icon" />,
-  Plus: () => <svg data-testid="plus-icon" />
+  Plus: () => <svg data-testid="plus-icon" />,
+  TreePalm: () => <svg data-testid="tree-palm-icon" />,
+  Stethoscope: () => <svg data-testid="stethoscope-icon" />
 }));
 
 describe("TimeSheetRow", () => {
@@ -148,4 +150,157 @@ describe("TimeSheetRow", () => {
     )
     expect(screen.queryByTestId('plane-icon')).not.toBeInTheDocument();
   })
+
+  it("renders with task finished (date after task end date)", () => {
+    const today = new Date();
+    const yesterdayStr = new Date(today.getTime() - 86400000).toISOString().split('T')[0];
+
+    const taskWithEndDate = {
+      ...baseTask,
+      endDate: yesterdayStr,
+    };
+
+    render(
+      <TimeSheetRow
+        {...baseProps}
+        task={taskWithEndDate}
+        scheduledDays={[today]}
+      />
+    );
+    expect(screen.getByText("Task 1")).toBeInTheDocument();
+  });
+
+  it("renders with task not started yet (date before task start date)", () => {
+    const today = new Date();
+    const tomorrowStr = new Date(today.getTime() + 86400000).toISOString().split('T')[0];
+
+    const taskNotStarted = {
+      ...baseTask,
+      startDate: tomorrowStr,
+    };
+
+    render(
+      <TimeSheetRow
+        {...baseProps}
+        task={taskNotStarted}
+        scheduledDays={[today]}
+      />
+    );
+    expect(screen.getByText("Task 1")).toBeInTheDocument();
+  });
+
+  it("renders with task that has no end date", () => {
+    const today = new Date();
+
+    const taskWithNoEndDate = {
+      ...baseTask,
+      endDate: undefined,
+    };
+
+    render(
+      <TimeSheetRow
+        {...baseProps}
+        task={taskWithNoEndDate}
+        scheduledDays={[today]}
+      />
+    );
+    expect(screen.getByText("Task 1")).toBeInTheDocument();
+  });
+
+  it("renders with holiday time entry", () => {
+    const today = new Date();
+    const timeEntries = [
+      {
+        id: 1,
+        dayShiftHours: 0,
+        nightShiftHours: 0,
+        restHours: 0,
+        travelHours: 0,
+        date: today.toISOString().split('T')[0],
+        task: -1, // Holiday marker
+        sickHours: 0,
+        holidayHours: 8,
+        leaveHours: 0,
+        onCallHours: 0,
+        specialLeaveHours: 0,
+        specialReason: undefined,
+        comment: undefined,
+        bankFrom: 0,
+        bankTo: 0,
+      },
+    ];
+
+    render(
+      <TimeSheetRow
+        {...baseProps}
+        scheduledDays={[today]}
+        timesheet={{ ...baseTimesheet, timeEntries }}
+      />
+    );
+    expect(screen.getByText("Task 1")).toBeInTheDocument();
+  });
+
+  it("renders with sick day time entry", () => {
+    const today = new Date();
+    const timeEntries = [
+      {
+        id: 1,
+        dayShiftHours: 0,
+        nightShiftHours: 0,
+        restHours: 0,
+        travelHours: 0,
+        date: today.toISOString().split('T')[0],
+        task: -2, // Sick day marker
+        sickHours: 8,
+        holidayHours: 0,
+        leaveHours: 0,
+        onCallHours: 0,
+        specialLeaveHours: 0,
+        specialReason: undefined,
+        comment: undefined,
+        bankFrom: 0,
+        bankTo: 0,
+      },
+    ];
+
+    render(
+      <TimeSheetRow
+        {...baseProps}
+        scheduledDays={[today]}
+        timesheet={{ ...baseTimesheet, timeEntries }}
+      />
+    );
+    expect(screen.getByText("Task 1")).toBeInTheDocument();
+  });
+
+  it("renders with selectedWeekdays in week view", () => {
+    const today = new Date();
+    const selectedWeekdays = [today];
+
+    render(
+      <TimeSheetRow
+        {...baseProps}
+        scheduledDays={[today]}
+        selectedWeekdays={selectedWeekdays}
+        isMonthView={false}
+      />
+    );
+    expect(screen.getByText("Task 1")).toBeInTheDocument();
+  });
+
+  it("renders with day not in selectedWeekdays", () => {
+    const today = new Date();
+    const tomorrow = new Date(today.getTime() + 86400000);
+    const selectedWeekdays = [tomorrow];
+
+    render(
+      <TimeSheetRow
+        {...baseProps}
+        scheduledDays={[today]}
+        selectedWeekdays={selectedWeekdays}
+        isMonthView={false}
+      />
+    );
+    expect(screen.getByText("Task 1")).toBeInTheDocument();
+  });
 }); 
