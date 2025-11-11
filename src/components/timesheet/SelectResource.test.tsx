@@ -39,13 +39,13 @@ describe('SelectResource', () => {
     })
     it('renders correctly', () => {
         render(<SelectResource setSelectedResourceId={setSelectedResourceMock}/>);
-        expect(screen.getByText("Jan Kowal")).toBeInTheDocument()
+        expect(screen.getByText("Kowal Jan")).toBeInTheDocument()
     })
     it('calls setSelectedResourceId with correct params, after selecting resource', async () => {
         render(<SelectResource setSelectedResourceId={setSelectedResourceMock}/>);
-        const selectControl = screen.getByText('Jan Kowal');
+        const selectControl = screen.getByText('Kowal Jan');
         fireEvent.mouseDown(selectControl);
-        const annaNowakOption = await screen.findByText('Anna Nowak');
+        const annaNowakOption = await screen.findByText('Nowak Anna');
         fireEvent.click(annaNowakOption);
         await waitFor(() => {
             expect(setSelectedResourceMock).toHaveBeenCalledWith(2);
