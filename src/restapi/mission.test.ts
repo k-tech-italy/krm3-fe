@@ -34,7 +34,7 @@ describe("mission API", () => {
   describe("createMission", () => {
     const mockCity: City = { id: 1, name: "Rome" } as City;
     const mockProject: Project = { id: 10, name: "Test Project" } as Project;
-    const mockResource: Resource = { id: 5, name: "John Doe" } as Resource;
+    const mockResource: Resource = { id: 5, firstName: "John", lastName: "Doe", profile: { id: 1, picture: "", user: 5 } } as Resource;
 
     const mockMissionParams: MissionInterface = {
       id: 1,
@@ -68,7 +68,7 @@ describe("mission API", () => {
 
       await missionApi.createMission(mockMissionParams);
 
-      const callArgs = vi.mocked(restapi.post).mock.calls[0][1];
+      const callArgs = vi.mocked(restapi.post).mock.calls[0][1] as any;
       expect(callArgs).toHaveProperty("year", 2024);
     });
 
@@ -78,7 +78,7 @@ describe("mission API", () => {
 
       await missionApi.createMission(mockMissionParams);
 
-      const callArgs = vi.mocked(restapi.post).mock.calls[0][1];
+      const callArgs = vi.mocked(restapi.post).mock.calls[0][1] as any;
       expect(callArgs.project).toBe(10);
       expect(callArgs.city).toBe(1);
       expect(callArgs.resource).toBe(5);
@@ -93,9 +93,9 @@ describe("mission API", () => {
       const mockResponse = { data: missionWithoutCurrency };
       vi.mocked(restapi.post).mockResolvedValue(mockResponse);
 
-      await missionApi.createMission(missionWithoutCurrency);
+      await missionApi.createMission(missionWithoutCurrency as any);
 
-      const callArgs = vi.mocked(restapi.post).mock.calls[0][1];
+      const callArgs = vi.mocked(restapi.post).mock.calls[0][1] as any;
       expect(callArgs.defaultCurrency).toBeUndefined();
     });
 
@@ -110,7 +110,7 @@ describe("mission API", () => {
 
       await missionApi.createMission(missionWithExtraProps);
 
-      const callArgs = vi.mocked(restapi.post).mock.calls[0][1];
+      const callArgs = vi.mocked(restapi.post).mock.calls[0][1] as any;
       expect(callArgs).toHaveProperty("description", "Test mission");
       expect(callArgs).toHaveProperty("status", "active");
     });
@@ -231,8 +231,8 @@ describe("mission API", () => {
       next: null,
       previous: null,
       results: [
-        { id: 1, name: "John Doe" } as Resource,
-        { id: 2, name: "Jane Smith" } as Resource,
+        { id: 1, firstName: "John", lastName: "Doe", profile: { id: 1, picture: "", user: 1 } } as Resource,
+        { id: 2, firstName: "Jane", lastName: "Smith", profile: { id: 2, picture: "", user: 2 } } as Resource,
       ],
     };
 
@@ -287,8 +287,8 @@ describe("mission API", () => {
   describe("getActiveResources", () => {
     it("should fetch active resources", async () => {
       const mockActiveResources: Resource[] = [
-        { id: 1, name: "John Doe" } as Resource,
-        { id: 2, name: "Jane Smith" } as Resource,
+        { id: 1, firstName: "John", lastName: "Doe", profile: { id: 1, picture: "", user: 1 } } as Resource,
+        { id: 2, firstName: "Jane", lastName: "Smith", profile: { id: 2, picture: "", user: 2 } } as Resource,
       ];
 
       vi.mocked(restapi.get).mockResolvedValue({ data: mockActiveResources });

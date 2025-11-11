@@ -15,7 +15,7 @@ import { DayType } from "../../../restapi/types";
 const mockEntry = (overrides = {}) => ({
   id: 1, date: "2024-06-01", task: 1, dayShiftHours: 8, nightShiftHours: 0,
   travelHours: 0, restHours: 0, sickHours: 0, holidayHours: 0,
-  leaveHours: 0, onCallHours: 0, specialLeaveHours: 0, ...overrides
+  leaveHours: 0, onCallHours: 0, specialLeaveHours: 0, bankTo: 0, bankFrom: 0, ...overrides
 });
 
 describe("isHoliday", () => {
@@ -86,7 +86,7 @@ describe("getTimeEntriesForTaskAndDay", () => {
     expect(getTimeEntriesForTaskAndDay(1, timesheet)).toHaveLength(1);
   });
   it("returns empty when no timeEntries", () => {
-    expect(getTimeEntriesForTaskAndDay(1, { ...timesheet, timeEntries: undefined })).toEqual([]);
+    expect(getTimeEntriesForTaskAndDay(1, { ...timesheet, timeEntries: undefined as any })).toEqual([]);
   });
 });
 

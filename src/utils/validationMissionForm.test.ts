@@ -113,7 +113,7 @@ describe("validationMissionForm", () => {
             {
               id: 1,
               amount: 100,
-            } as ExpenseInterface,
+            } as unknown as ExpenseInterface,
           ],
         };
 

@@ -261,12 +261,12 @@ describe("useLogout", () => {
     vi.clearAllMocks();
     // Mock window.location.replace
     delete (window as any).location;
-    window.location = { ...originalLocation, replace: vi.fn() };
+    (window as any).location = { ...originalLocation, replace: vi.fn() };
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    window.location = originalLocation;
+    (window as any).location = originalLocation;
   });
 
   it("should call logout API and redirect to login on success", async () => {

@@ -30,7 +30,7 @@ describe("useDragAndDrop", () => {
     name: "Development",
     defaultHours: 8,
     type: "work",
-  };
+  } as any;
 
   const mockTimeEntry: TimeEntry = {
     id: 100,
@@ -38,7 +38,7 @@ describe("useDragAndDrop", () => {
     date: "2024-01-01",
     hours: 8,
     notes: "",
-  };
+  } as any;
 
   const mockTimesheet: Timesheet = {
     id: 1,
@@ -48,7 +48,7 @@ describe("useDragAndDrop", () => {
     tasks: [mockTask],
     timeEntries: [mockTimeEntry],
     days: {} as any,
-  };
+  } as any;
 
   let mockCallbacks: DragCallbacks;
 

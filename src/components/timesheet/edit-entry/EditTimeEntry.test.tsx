@@ -59,6 +59,13 @@ describe("EditTimeEntry", () => {
       nightShiftHours: 2,
       travelHours: 1,
       onCallHours: 1,
+      sickHours: 0,
+      holidayHours: 0,
+      specialLeaveHours: 0,
+      leaveHours: 0,
+      bankTo: 0,
+      bankFrom: 0,
+      restHours: 0,
       comment: "Test comment",
     };
     render(<EditTimeEntry {...baseProps} timeEntries={[existingEntry]} />);
@@ -163,8 +170,8 @@ describe("EditTimeEntry", () => {
 
   it("calls deleteTimeEntries when delete button is clicked", async () => {
     const timeEntries = [
-      { id: 1, date: "2024-06-01", task: 1, dayShiftHours: 8 },
-      { id: 2, date: "2024-06-02", task: 1, dayShiftHours: 8 },
+      { id: 1, date: "2024-06-01", task: 1, dayShiftHours: 8, nightShiftHours: 0, travelHours: 0, onCallHours: 0, sickHours: 0, holidayHours: 0, specialLeaveHours: 0, leaveHours: 0, bankTo: 0, bankFrom: 0, restHours: 0 },
+      { id: 2, date: "2024-06-02", task: 1, dayShiftHours: 8, nightShiftHours: 0, travelHours: 0, onCallHours: 0, sickHours: 0, holidayHours: 0, specialLeaveHours: 0, leaveHours: 0, bankTo: 0, bankFrom: 0, restHours: 0 },
     ];
     render(<EditTimeEntry {...baseProps} timeEntries={timeEntries} />);
     const deleteButton = screen.getByText(/delete/i);
@@ -251,7 +258,7 @@ describe("EditTimeEntry", () => {
 
   it("shows warning for existing entries", () => {
     const timeEntries = [
-      { id: 1, date: "2024-06-01", task: 1, dayShiftHours: 8 },
+      { id: 1, date: "2024-06-01", task: 1, dayShiftHours: 8, nightShiftHours: 0, travelHours: 0, onCallHours: 0, sickHours: 0, holidayHours: 0, specialLeaveHours: 0, leaveHours: 0, bankTo: 0, bankFrom: 0, restHours: 0 },
     ];
     render(<EditTimeEntry {...baseProps} timeEntries={timeEntries} />);
 

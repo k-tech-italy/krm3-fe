@@ -17,7 +17,7 @@ describe("validationExpenseForm", () => {
       modifiedTs: "2025-01-15T10:00:00Z",
       mission: 1,
       currency: "USD",
-      category: { id: 1, title: "Food", active: true, id: 1, str: "food" } as Category,
+      category: { id: 1, title: "Food", active: true, str: "food" } as Category,
       paymentType: { id: 1, title: "Cash", active: true, str: "cash" } as TypeOfPayment,
       reimbursement: 1,
     };

@@ -314,7 +314,7 @@ describe("useTimesheet hooks", () => {
           name: "Development",
           defaultHours: 8,
           type: "work",
-        },
+        } as any,
       ],
       timeEntries: [
         {
@@ -337,8 +337,8 @@ describe("useTimesheet hooks", () => {
         },
       ],
       days: {
-        "2024-01-01": 8,
-        "2024-01-02": 8,
+        "2024-01-01": { hol: false, nwd: false, closed: false },
+        "2024-01-02": { hol: false, nwd: false, closed: false },
       },
       bankHours: 0,
     };

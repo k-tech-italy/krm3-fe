@@ -14,7 +14,7 @@ describe("LimitBudget", () => {
     title: "Vitto",
     active: true,
     str: "vitto",
-    parent: null,
+    parent: undefined,
   };
 
   const mockCategoryList: Category[] = [
@@ -24,7 +24,7 @@ describe("LimitBudget", () => {
       title: "Viaggi",
       active: true,
       str: "viaggi",
-      parent: null,
+      parent: undefined,
     },
   ];
 
@@ -204,7 +204,7 @@ describe("LimitBudget", () => {
         title: "Viaggi",
         active: true,
         str: "viaggi",
-        parent: null,
+        parent: undefined,
       };
 
       vi.spyOn(useView, "useMediaQuery").mockReturnValue(false);
@@ -229,7 +229,7 @@ describe("LimitBudget", () => {
         title: "Varie",
         active: true,
         str: "varie",
-        parent: null,
+        parent: undefined,
       };
 
       vi.spyOn(useView, "useMediaQuery").mockReturnValue(false);
@@ -343,7 +343,7 @@ describe("LimitBudget", () => {
         title: `Category ${i + 1}`,
         active: true,
         str: `category_${i + 1}`,
-        parent: null,
+        parent: undefined,
       }));
 
       vi.spyOn(useView, "useMediaQuery").mockReturnValue(false);
@@ -408,7 +408,7 @@ describe("LimitBudget", () => {
         title: "VITTO",
         active: true,
         str: "vitto",
-        parent: null,
+        parent: undefined,
       };
 
       vi.spyOn(useView, "useMediaQuery").mockReturnValue(false);
@@ -433,7 +433,7 @@ describe("LimitBudget", () => {
         title: "Unknown",
         active: true,
         str: "unknown",
-        parent: null,
+        parent: undefined,
       };
 
       vi.spyOn(useView, "useMediaQuery").mockReturnValue(false);
@@ -458,7 +458,7 @@ describe("LimitBudget", () => {
         title: "Vitto",
         active: true,
         str: "vitto",
-        parent: null,
+        parent: undefined,
       };
 
       vi.spyOn(useView, "useMediaQuery").mockReturnValue(false);

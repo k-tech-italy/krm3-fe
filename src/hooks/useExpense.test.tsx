@@ -389,8 +389,6 @@ describe("useExpense hooks", () => {
           },
           currency: "USD",
           mission: 1,
-          active: true,
-          title: "Lunch meeting",
           reimbursement: 100,
         },
       ],
@@ -477,8 +475,6 @@ describe("useExpense hooks", () => {
       },
       currency: "USD",
       mission: 1,
-      active: true,
-      title: "Lunch meeting",
       reimbursement: 100,
     };
 

@@ -54,17 +54,17 @@ describe("expense API", () => {
           {
             id: 1,
             amount: 100,
-            category: { id: 1, name: "Food" } as Category,
-            documentType: { id: 1, name: "Receipt" } as TypeOfDocument,
-            paymentType: { id: 1, name: "Cash" } as TypeOfPayment,
-          } as ExpenseInterface,
+            category: { id: 1, title: "Food", active: true, str: "food" } as Category,
+            documentType: { id: 1, title: "Receipt", active: true, default: false } as TypeOfDocument,
+            paymentType: { id: 1, title: "Cash", active: true, str: "cash" } as TypeOfPayment,
+          } as unknown as ExpenseInterface,
           {
             id: 2,
             amount: 200,
-            category: { id: 2, name: "Travel" } as Category,
-            documentType: { id: 2, name: "Invoice" } as TypeOfDocument,
-            paymentType: { id: 2, name: "Card" } as TypeOfPayment,
-          } as ExpenseInterface,
+            category: { id: 2, title: "Travel", active: true, str: "travel" } as Category,
+            documentType: { id: 2, title: "Invoice", active: true, default: false } as TypeOfDocument,
+            paymentType: { id: 2, title: "Card", active: true, str: "card" } as TypeOfPayment,
+          } as unknown as ExpenseInterface,
         ],
       };
 
@@ -98,10 +98,10 @@ describe("expense API", () => {
       const mockExpense: ExpenseInterface = {
         id: 1,
         amount: 100,
-        category: { id: 1, name: "Food" } as Category,
-        documentType: { id: 1, name: "Receipt" } as TypeOfDocument,
-        paymentType: { id: 1, name: "Cash" } as TypeOfPayment,
-      } as ExpenseInterface;
+        category: { id: 1, title: "Food", active: true, str: "food" } as Category,
+        documentType: { id: 1, title: "Receipt", active: true, default: false } as TypeOfDocument,
+        paymentType: { id: 1, title: "Cash", active: true, str: "cash" } as TypeOfPayment,
+      } as unknown as ExpenseInterface;
 
       vi.mocked(restapi.get).mockResolvedValue({ data: mockExpense });
 
@@ -115,10 +115,10 @@ describe("expense API", () => {
       const mockExpense: ExpenseInterface = {
         id: 99,
         amount: 500,
-        category: { id: 3, name: "Other" } as Category,
-        documentType: { id: 3, name: "Bill" } as TypeOfDocument,
-        paymentType: { id: 3, name: "Credit" } as TypeOfPayment,
-      } as ExpenseInterface;
+        category: { id: 3, title: "Other", active: true, str: "other" } as Category,
+        documentType: { id: 3, title: "Bill", active: true, default: false } as TypeOfDocument,
+        paymentType: { id: 3, title: "Credit", active: true, str: "credit" } as TypeOfPayment,
+      } as unknown as ExpenseInterface;
 
       vi.mocked(restapi.get).mockResolvedValue({ data: mockExpense });
 
@@ -136,9 +136,9 @@ describe("expense API", () => {
         next: null,
         previous: null,
         results: [
-          { id: 1, name: "Food" } as Category,
-          { id: 2, name: "Travel" } as Category,
-          { id: 3, name: "Other" } as Category,
+          { id: 1, title: "Food", active: true, str: "food" } as Category,
+          { id: 2, title: "Travel", active: true, str: "travel" } as Category,
+          { id: 3, title: "Other", active: true, str: "other" } as Category,
         ],
       };
 
@@ -169,9 +169,9 @@ describe("expense API", () => {
         next: null,
         previous: null,
         results: [
-          { id: 1, code: "USD", name: "US Dollar" } as Currency,
-          { id: 2, code: "EUR", name: "Euro" } as Currency,
-          { id: 3, code: "GBP", name: "Pound Sterling" } as Currency,
+          { iso3: "USD", title: "US Dollar", symbol: "$", fractionalUnit: "cent", base: 1, active: true } as Currency,
+          { iso3: "EUR", title: "Euro", symbol: "€", fractionalUnit: "cent", base: 1, active: true } as Currency,
+          { iso3: "GBP", title: "Pound Sterling", symbol: "£", fractionalUnit: "penny", base: 1, active: true } as Currency,
         ],
       };
 
@@ -202,8 +202,8 @@ describe("expense API", () => {
         next: null,
         previous: null,
         results: [
-          { id: 1, name: "Cash" } as TypeOfPayment,
-          { id: 2, name: "Card" } as TypeOfPayment,
+          { id: 1, title: "Cash", active: true, str: "cash" } as TypeOfPayment,
+          { id: 2, title: "Card", active: true, str: "card" } as TypeOfPayment,
         ],
       };
 
@@ -233,9 +233,9 @@ describe("expense API", () => {
         next: null,
         previous: null,
         results: [
-          { id: 1, name: "Receipt" } as TypeOfDocument,
-          { id: 2, name: "Invoice" } as TypeOfDocument,
-          { id: 3, name: "Bill" } as TypeOfDocument,
+          { id: 1, title: "Receipt", active: true, default: false } as TypeOfDocument,
+          { id: 2, title: "Invoice", active: true, default: false } as TypeOfDocument,
+          { id: 3, title: "Bill", active: true, default: false } as TypeOfDocument,
         ],
       };
 
@@ -262,11 +262,11 @@ describe("expense API", () => {
     const mockExpenseParams: ExpenseInterface = {
       id: 1,
       amount: 100,
-      category: { id: 5, name: "Food" } as Category,
-      documentType: { id: 3, name: "Receipt" } as TypeOfDocument,
-      paymentType: { id: 2, name: "Cash" } as TypeOfPayment,
+      category: { id: 5, title: "Food", active: true, str: "food" } as Category,
+      documentType: { id: 3, title: "Receipt", active: true, default: false } as TypeOfDocument,
+      paymentType: { id: 2, title: "Cash", active: true, str: "cash" } as TypeOfPayment,
       description: "Lunch",
-    } as ExpenseInterface;
+    } as unknown as ExpenseInterface;
 
     it("should create new expense when id is undefined", async () => {
       const mockResponse = { data: mockExpenseParams };
@@ -321,10 +321,10 @@ describe("expense API", () => {
       const differentExpense: ExpenseInterface = {
         id: 2,
         amount: 250,
-        category: { id: 10, name: "Travel" } as Category,
-        documentType: { id: 7, name: "Invoice" } as TypeOfDocument,
-        paymentType: { id: 4, name: "Card" } as TypeOfPayment,
-      } as ExpenseInterface;
+        category: { id: 10, title: "Travel", active: true, str: "travel" } as Category,
+        documentType: { id: 7, title: "Invoice", active: true, default: false } as TypeOfDocument,
+        paymentType: { id: 4, title: "Card", active: true, str: "card" } as TypeOfPayment,
+      } as unknown as ExpenseInterface;
 
       const mockResponse = { data: differentExpense };
       vi.mocked(restapi.post).mockResolvedValue(mockResponse);
@@ -343,12 +343,12 @@ describe("expense API", () => {
       const expenseWithExtraProps: ExpenseInterface = {
         id: 1,
         amount: 100,
-        category: { id: 5, name: "Food" } as Category,
-        documentType: { id: 3, name: "Receipt" } as TypeOfDocument,
-        paymentType: { id: 2, name: "Cash" } as TypeOfPayment,
+        category: { id: 5, title: "Food", active: true, str: "food" } as Category,
+        documentType: { id: 3, title: "Receipt", active: true, default: false } as TypeOfDocument,
+        paymentType: { id: 2, title: "Cash", active: true, str: "cash" } as TypeOfPayment,
         description: "Business lunch",
         date: "2024-01-15",
-      } as ExpenseInterface;
+      } as unknown as ExpenseInterface;
 
       const mockResponse = { data: expenseWithExtraProps };
       vi.mocked(restapi.patch).mockResolvedValue(mockResponse);
@@ -369,11 +369,11 @@ describe("expense API", () => {
       const mockExpense: ExpenseInterface = {
         id: 1,
         amount: 100,
-        category: { id: 1, name: "Food" } as Category,
-        documentType: { id: 1, name: "Receipt" } as TypeOfDocument,
-        paymentType: { id: 1, name: "Cash" } as TypeOfPayment,
+        category: { id: 1, title: "Food", active: true, str: "food" } as Category,
+        documentType: { id: 1, title: "Receipt", active: true, default: false } as TypeOfDocument,
+        paymentType: { id: 1, title: "Cash", active: true, str: "cash" } as TypeOfPayment,
         image: "base64imagedata",
-      } as ExpenseInterface;
+      } as unknown as ExpenseInterface;
 
       const mockResponse = { data: mockExpense };
       vi.mocked(restapi.patch).mockResolvedValue(mockResponse);
@@ -391,11 +391,11 @@ describe("expense API", () => {
       const mockExpense: ExpenseInterface = {
         id: 42,
         amount: 150,
-        category: { id: 2, name: "Travel" } as Category,
-        documentType: { id: 2, name: "Invoice" } as TypeOfDocument,
-        paymentType: { id: 2, name: "Card" } as TypeOfPayment,
+        category: { id: 2, title: "Travel", active: true, str: "travel" } as Category,
+        documentType: { id: 2, title: "Invoice", active: true, default: false } as TypeOfDocument,
+        paymentType: { id: 2, title: "Card", active: true, str: "card" } as TypeOfPayment,
         image: "anotherimagadata",
-      } as ExpenseInterface;
+      } as unknown as ExpenseInterface;
 
       const mockResponse = { data: mockExpense };
       vi.mocked(restapi.patch).mockResolvedValue(mockResponse);
@@ -412,10 +412,10 @@ describe("expense API", () => {
       const mockExpense: ExpenseInterface = {
         id: 1,
         amount: 100,
-        category: { id: 5, name: "Food" } as Category,
-        documentType: { id: 3, name: "Receipt" } as TypeOfDocument,
-        paymentType: { id: 2, name: "Cash" } as TypeOfPayment,
-      } as ExpenseInterface;
+        category: { id: 5, title: "Food", active: true, str: "food" } as Category,
+        documentType: { id: 3, title: "Receipt", active: true, default: false } as TypeOfDocument,
+        paymentType: { id: 2, title: "Cash", active: true, str: "cash" } as TypeOfPayment,
+      } as unknown as ExpenseInterface;
 
       const mockResponse = { data: mockExpense };
       vi.mocked(restapi.patch).mockResolvedValue(mockResponse);
@@ -423,10 +423,10 @@ describe("expense API", () => {
       await expenseApi.uploadImage(1, mockExpense);
 
       // Verify that the entire object is passed, not refactored
-      const callArgs = vi.mocked(restapi.patch).mock.calls[0][1];
-      expect(callArgs.category).toEqual({ id: 5, name: "Food" });
-      expect(callArgs.documentType).toEqual({ id: 3, name: "Receipt" });
-      expect(callArgs.paymentType).toEqual({ id: 2, name: "Cash" });
+      const callArgs = vi.mocked(restapi.patch).mock.calls[0][1] as ExpenseInterface;
+      expect(callArgs.category).toEqual({ id: 5, title: "Food", active: true, str: "food" });
+      expect(callArgs.documentType).toEqual({ id: 3, title: "Receipt", active: true, default: false });
+      expect(callArgs.paymentType).toEqual({ id: 2, title: "Cash", active: true, str: "cash" });
     });
   });
 

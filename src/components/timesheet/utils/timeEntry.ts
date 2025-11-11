@@ -169,9 +169,11 @@ export function createHolidaySickDayMaps(timeEntries: TimeEntry[]) {
     if (entry.holidayHours && entry.holidayHours > 0) holidaySet.add(date);
     if (entry.sickHours && entry.sickHours > 0) sickSet.add(date);
     // For getTimeEntriesForTaskAndDay
-    if (!entriesByTaskAndDate[entry.task]) entriesByTaskAndDate[entry.task] = {};
-    if (!entriesByTaskAndDate[entry.task][date]) entriesByTaskAndDate[entry.task][date] = [];
-    entriesByTaskAndDate[entry.task][date].push(entry);
+    if (entry.task !== null) {
+      if (!entriesByTaskAndDate[entry.task]) entriesByTaskAndDate[entry.task] = {};
+      if (!entriesByTaskAndDate[entry.task][date]) entriesByTaskAndDate[entry.task][date] = [];
+      entriesByTaskAndDate[entry.task][date].push(entry);
+    }
   }
 
   return {

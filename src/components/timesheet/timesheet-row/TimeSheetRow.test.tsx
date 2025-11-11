@@ -157,7 +157,7 @@ describe("TimeSheetRow", () => {
 
     const taskWithEndDate = {
       ...baseTask,
-      endDate: yesterdayStr,
+      endDate: new Date(yesterdayStr),
     };
 
     render(
@@ -176,7 +176,7 @@ describe("TimeSheetRow", () => {
 
     const taskNotStarted = {
       ...baseTask,
-      startDate: tomorrowStr,
+      startDate: new Date(tomorrowStr),
     };
 
     render(

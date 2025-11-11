@@ -51,7 +51,7 @@ describe("restapi interceptors", () => {
   afterEach(() => {
     vi.useRealTimers();
     global.window = originalWindow;
-    window.location = originalLocation;
+    (window as any).location = originalLocation;
   });
 
   it("should have interceptors configured", async () => {

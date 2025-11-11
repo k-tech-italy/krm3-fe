@@ -82,9 +82,9 @@ describe('ExpenseEdit', () => {
 
     afterEach(async () => {
         cleanup();
-        // Wait for any pending timers (react-modal cleanup) to complete
+        // Wait for react-modal's cleanup timeout (300ms) to complete
         await act(async () => {
-            await new Promise(resolve => setTimeout(resolve, 0));
+            await new Promise(resolve => setTimeout(resolve, 350));
         });
     })
 
