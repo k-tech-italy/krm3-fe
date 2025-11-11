@@ -8,7 +8,6 @@ import { User } from "./pages/User";
 import { LogoutPage } from "./pages/Logout";
 import { useMediaQuery } from "./hooks/useView";
 import { useGetCurrentUser } from "./hooks/useAuth";
-import BottomTabNavigation from "./components/commons/MobileTab";
 import Timesheet from "./pages/Timesheet";
 import LoadSpinner from "./components/commons/LoadSpinner";
 import { ToastContainer } from "react-toastify";
@@ -97,7 +96,6 @@ function AuthenticatedRoutes() {
             ))}
           </Routes>
         </div>
-        {isSmallScreen && <BottomTabNavigation />}
       </div>
     </div>
   );
