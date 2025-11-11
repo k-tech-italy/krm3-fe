@@ -1,7 +1,8 @@
 import {vi} from "vitest"
-import {fireEvent, render, screen, waitFor} from "@testing-library/react";
+import {fireEvent, render, screen, waitFor, cleanup} from "@testing-library/react";
 import {ExpenseEdit} from "./ExpenseEdit.tsx";
 import * as useExpense from "../../../hooks/useExpense";
+import {act} from "react";
 
 vi.mock("./LimitBudget", () => {
     return {
@@ -76,8 +77,17 @@ describe('ExpenseEdit', () => {
             results: [{id: 1, title: 'doc_type_1'}, {id: 2, title: 'doc_type_2'}, {id: 3, title: 'doc_type_3'}],
         } as any)
 
-        
+
     })
+
+    afterEach(async () => {
+        cleanup();
+        // Wait for any pending timers (react-modal cleanup) to complete
+        await act(async () => {
+            await new Promise(resolve => setTimeout(resolve, 0));
+        });
+    })
+
     it("renders correctly", () => {
         render(<ExpenseEdit {...props}/>);
         expect(screen.getByText("Close")).toBeInTheDocument();
