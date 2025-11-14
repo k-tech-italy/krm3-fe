@@ -81,7 +81,7 @@ export function UserMenu() {
       >
         <div className="py-1">
           <a
-            href={`user/`}
+            href={`be/resource/${user?.id}/`}
             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >
             Profile

@@ -4,7 +4,6 @@ import { MissionPage } from "./pages/MissionPage";
 import { Mission } from "./components/missions/Mission";
 import { Navbar } from "./components/commons/Navbar";
 import { Login } from "./components/commons/Login";
-import { User } from "./pages/User";
 import { LogoutPage } from "./pages/Logout";
 import { useMediaQuery } from "./hooks/useView";
 import { useGetCurrentUser } from "./hooks/useAuth";
@@ -58,10 +57,6 @@ function AuthenticatedRoutes() {
 
 
   const routeGuards = [
-    {
-      guard: true,
-      route: <Route path="/user" element={<User />} />,
-    },
     {
       guard: modules.map(m => m.url).includes('trasferte'),
       route: <Route path="/trasferte/:id" element={<Mission />} />,
