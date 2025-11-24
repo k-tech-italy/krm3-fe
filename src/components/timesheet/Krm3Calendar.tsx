@@ -397,7 +397,7 @@ export default function Krm3Calendar({
             />
           </div>
           {/*OpenTimeEntry modal is opened by drag & drop which is not testable in unit test, but it's tested in integration tests*/}
-          /* v8 ignore next 40 */
+          {/* v8 ignore next 40 */}
           {openTimeEntryModal &&
             selectedTask &&
             startDate &&

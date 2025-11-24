@@ -38,7 +38,7 @@ const SelectResourceComponent = ({
       {resources && resources.length > 0 ? (
         <div className="flex justify-start">
           <div className="mb-4">
-            <label htmlFor="resource-select" >Select Resource:</label>
+            <p>Select Resource:</p>
             <br />
             <Select
               onChange={handleResourceChange}
