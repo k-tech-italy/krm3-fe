@@ -15,8 +15,25 @@ export const restapi = applyCaseMiddleware(
   axios.create({
     baseURL: baseUrl, // must include '/api/v1/'
     withCredentials: true, // Important: sends session cookies with requests
-  })
+  }), {
+        preservedKeys: ['X-CSRFToken']
+    }
 );
+function getCookie(name: string) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift();
+}
+
+restapi.interceptors.request.use((config) => {
+    const token = getCookie('csrftoken');
+
+    if (token) {
+        config.headers['X-CSRFToken'] = token;
+    }
+    return config;
+});
+
 
 let isRedirecting = false;
 

@@ -184,4 +184,21 @@ describe("restapi interceptors", () => {
     expect(restapi.defaults.baseURL).toBeDefined();
     expect(restapi.defaults.baseURL).toContain("/api/v1/");
   });
+  it("should add X-CSRFToken header when csrftoken cookie is present", async () => {
+    Object.defineProperty(document, "cookie", {
+      writable: true,
+      value: "csrftoken=test-token",
+    });
+
+    const { restapi } = await import("./restapi");
+
+    const interceptor = (restapi.interceptors.request as any).handlers[0].fulfilled;
+
+    const config = { headers: {} };
+
+    const modified = interceptor(config);
+
+    expect(modified.headers["X-CSRFToken"]).toBe("test-token");
+  });
+
 });
