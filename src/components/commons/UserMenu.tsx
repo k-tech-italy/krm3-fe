@@ -86,6 +86,12 @@ export function UserMenu() {
           >
             Profile
           </a>
+          <a
+            href="be/documents/"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            Documents
+          </a>
           {user?.isStaff && (
             <a
               href={`${beUrl}/admin/`}
@@ -97,7 +103,7 @@ export function UserMenu() {
         </div>
         <div className="py-1">
           <button
-            data-testid={"logout-button"}
+            data-testid="logout-button"
             onClick={handleLogout}
             className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
           >

@@ -9,6 +9,7 @@ describe('UserMenu', () => {
 
         vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
             data: {
+                id: 123,
                 email: "test@test.com",
                 isStaff: true,
                 profile: { picture: "https://profile.jpg" },
@@ -78,5 +79,20 @@ describe('UserMenu', () => {
         expect(screen.getByTestId('user-menu')).toHaveClass("opacity-100")
         fireEvent.mouseLeave(screen.getByTestId('user-menu'))
         expect(screen.getByTestId('user-menu')).toHaveClass("opacity-0")
+    })
+    it('renders Profile, Documents and Sign Out links', () => {
+        render(<UserMenu />);
+        fireEvent.click(screen.getByTestId('toggle-menu-button'))
+
+        const profileLink = screen.getByRole('link', { name: /profile/i })
+        expect(profileLink).toBeInTheDocument()
+        expect(profileLink).toHaveAttribute('href', 'be/resource/123/')
+
+        const documentsLink = screen.getByRole('link', { name: /documents/i })
+        expect(documentsLink).toBeInTheDocument()
+        expect(documentsLink).toHaveAttribute('href', 'be/documents/')
+
+        const signOutButton = screen.getByRole('button', { name: /sign out/i })
+        expect(signOutButton).toBeInTheDocument()
     })
 })
