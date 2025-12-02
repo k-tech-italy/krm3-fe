@@ -252,6 +252,7 @@ export default function Krm3Calendar({
       'dayShiftHours',
       'leaveHours',
       'onCallHours',
+      'bankFrom'
     ];
     for (const timeEntry of timeEntries) {
       for (const hoursType of hoursKeys) {
