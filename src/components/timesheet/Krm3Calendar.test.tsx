@@ -5,7 +5,7 @@ import { useGetTimesheet, useSubmitTimesheet } from "../../hooks/useTimesheet";
 import { useColumnViewPreference } from "../../hooks/useView";
 import { vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "react-query";
-import {Schedule} from "../../restapi/types.ts";
+import {Schedule, TimeEntry} from "../../restapi/types.ts";
 import * as reactResponsive from "react-responsive";
 
 vi.mock("../../hooks/useAuth");
@@ -101,7 +101,55 @@ describe("Krm3Calendar", () => {
     });
     expect(submitButton).toBeDisabled();
   });
+  it("submit button is enabled when minimum hours of different types are scheduled", () => {
+    const days: Record<string, {}> = {}
+    for(let i = 1; i < 32; i++) {
+      days[`2025-07-${i / 10 >= 1 ? String(i) : "0" + i}`] = { closed: false, hol: false }
+    }
+    const schedule: Schedule = {}
+    for(let i = 1; i < 32; i++) {
+      schedule[`2025_07_${i / 10 >= 1 ? String(i) : "0" + i}`] = 8
+    }
+    const timeEntries = []
 
+    const hoursKeys: (keyof TimeEntry)[] = [
+      'travelHours',
+      'holidayHours',
+      'specialLeaveHours',
+      'restHours',
+      'sickHours',
+      'nightShiftHours',
+      'dayShiftHours',
+      'leaveHours',
+      'onCallHours',
+      'bankFrom'
+    ];
+    for (let i = 1; i <= 31; i++) {
+      const date = `2025-07-${String(i).padStart(2, "0")}`;
+      let entry: any = { date };
+
+      if (i <= hoursKeys.length) {
+        entry[hoursKeys[i - 1]] = 8;
+      } else {
+        entry.dayShiftHours = 8;
+      }
+
+      timeEntries.push(entry);
+    }
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        timeEntries: timeEntries,
+        days: days,
+        schedule: schedule,
+      },
+      isSuccess: true,
+    });
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+    const submitButton = screen.getByRole("button", {
+      name: /Submit Timesheet/i,
+    });
+    expect(submitButton).toBeEnabled();
+  })
   test("mutateSubmitTimesheet should be called with proper parameters", async () => {
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
 
