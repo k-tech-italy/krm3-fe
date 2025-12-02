@@ -185,6 +185,7 @@ export interface Task {
   travelPrice?: number;
   projectName?: string;
   clientName?: string;
+  adminUrl?: string;
 }
 export interface Schedule {[date: string]: number}
 export interface TimeEntry {

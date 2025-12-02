@@ -39,8 +39,15 @@ export const TaskHeader: React.FC<TaskHeaderProps> = ({
           <div className={`text-xs text-gray-app`}>
               {task.clientName}
           </div>
-          <div className={`text-xs text-gray-app`}>{task.title}</div>
-
+          <div className={`text-xs text-gray-app`}>
+              {task.adminUrl ? (
+                  <a href={task.adminUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                      {task.title}
+                  </a>
+              ) : (
+                  task.title
+              )}
+          </div>
       </div>
   );
 };
