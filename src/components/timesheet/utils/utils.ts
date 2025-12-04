@@ -100,7 +100,7 @@ export function getTileBgColorProps(
 
   const isNoWorkDay = scheduledHours === 0;
 
-  if (isNoWorkDay) {
+  if (isNoWorkDay && totalWorkedHours === 0) {
     if (isClosed) {
       return { className: "bg-closed-non-work" };
     }
