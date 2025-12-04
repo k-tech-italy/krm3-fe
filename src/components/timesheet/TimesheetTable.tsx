@@ -36,7 +36,6 @@ interface Props {
   setBankHours: (bankHours: number) => void;
   schedule: Schedule;
 }
-
 export function TimeSheetTable(props: Props) {
   const [headerColors, setHeaderColors] = useState<HeaderColors | undefined>()
   const isMonthView = props.scheduledDays.numberOfDays > 7;
@@ -60,7 +59,6 @@ export function TimeSheetTable(props: Props) {
       props.setNoWorkingDay(timesheet.days);
     }
   }, [isLoadingTimesheet, timesheet, props.setNoWorkingDay]);
-
   useEffect(() => {
 
     if (timesheet?.timeEntries) {

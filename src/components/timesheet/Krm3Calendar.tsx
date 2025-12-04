@@ -11,7 +11,7 @@ import {
   formatDate,
   formatDayAndMonth,
   formatMonthName,
-  getFirstMondayOfMonth,
+  getFirstMondayOfMonth, getMondayOfWeek,
   isOverlappingWeek,
   normalizeDate,
 } from "./utils/dates";
@@ -42,6 +42,7 @@ export default function Krm3Calendar({
   const [bankHours, setBankHours] = useState(0)
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
+
     // First Monday of the current month
     let first_monday = new Date();
     first_monday.setDate(getFirstMondayOfMonth(today));
@@ -50,8 +51,16 @@ export default function Krm3Calendar({
   const bankDelta = timeEntries.reduce((acc, timeEntry) => {
     return acc + Number(timeEntry.bankTo) - Number(timeEntry.bankFrom)
   }, 0)
-  const [selectedWeekRange, setSelectedWeekRange] = useState<WeekRange>(
-    isOverlappingWeek(currentWeekStart) ? "startOfWeek" : "whole"
+  const [selectedWeekRange, setSelectedWeekRange] = useState<WeekRange>(() =>
+      {
+        const today = new Date();
+        if(!isOverlappingWeek(currentWeekStart))
+          return "whole"
+        else if(today.getDate() > 7)
+          return "startOfWeek"
+        else
+          return "endOfWeek"
+      }
   );
   useEffect(() => {
     if (!isOverlappingWeek(currentWeekStart)) {
@@ -90,27 +99,27 @@ export default function Krm3Calendar({
 
   const scheduledDays = useMemo(() => {
     const days = [];
-    const currentMonth = currentWeekStart.getMonth();
+    const currentMonth = (selectedWeekRange == "endOfWeek") ?
+        currentWeekStart.getMonth() + 1
+        :
+        currentWeekStart.getMonth()
+
     const monthLength = new Date(
       currentWeekStart.getFullYear(),
       currentMonth + 1,
       0
     ).getDate();
     let numberOfDays = 7;
-
     if (isMonth) {
       numberOfDays = monthLength;
     }
+
     for (let i = 0; i < numberOfDays; i++) {
       const day = isMonth
         ? new Date(currentWeekStart.getFullYear(), currentMonth, i + 1)
         : new Date(currentWeekStart);
 
       if (!isMonth) {
-        if (day.getMonth() !== currentMonth) {
-          numberOfDays = i;
-          break;
-        }
         day.setDate(currentWeekStart.getDate() + i);
       }
       days.push(formatDate(day));
@@ -190,7 +199,6 @@ export default function Krm3Calendar({
     }
     setCurrentWeekStart(newDate);
   };
-
   const holidayOrSickDays = getHolidayAndSickDays(
     timeEntries,
     scheduledDays.days
@@ -363,6 +371,8 @@ export default function Krm3Calendar({
             setIsMonth={setIsMonth}
             isColumnView={isColumnView}
             setColumnView={setColumnView}
+            currentWeekStart={currentWeekStart}
+            setCurrentWeekStart={setCurrentWeekStart}
           />
           <TimeSheetTable
             isColumnView={isColumnView}

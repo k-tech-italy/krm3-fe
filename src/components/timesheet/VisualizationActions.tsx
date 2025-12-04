@@ -1,17 +1,22 @@
 import React, { useEffect } from "react";
 import { useMediaQuery } from "../../hooks/useView";
+import {getMondayOfWeek} from "./utils/dates.ts";
 
 interface Props {
   isMonth: boolean;
   setIsMonth: React.Dispatch<React.SetStateAction<boolean>>;
   isColumnView: boolean;
   setColumnView: (value: boolean) => void;
+  currentWeekStart: Date;
+  setCurrentWeekStart: (value: Date) => void;
 }
 function VisualizationActions({
   isMonth,
   setIsMonth,
   isColumnView,
   setColumnView,
+  currentWeekStart,
+  setCurrentWeekStart,
 }: Props) {
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
 
@@ -37,6 +42,11 @@ function VisualizationActions({
                 className="peer appearance-none w-11 h-5 bg-slate-200 rounded-full checked:bg-slate-400 cursor-pointer transition-colors duration-300"
                 checked={isMonth}
                 onChange={() => {
+                  const today = new Date();
+                  if(isMonth && today.getMonth() == currentWeekStart.getMonth())
+                  {
+                    setCurrentWeekStart(getMondayOfWeek(today))
+                  }
                   setIsMonth(!isMonth);
                 }}
               />
