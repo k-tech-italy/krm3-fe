@@ -1,5 +1,6 @@
-import React from "react";
+import React, {useEffect, useRef, useState} from "react";
 import { Task } from "../../../restapi/types";
+import {Tooltip} from "react-tooltip";
 
 export interface TaskHeaderProps {
   task: Task;
@@ -14,7 +15,27 @@ export const TaskHeader: React.FC<TaskHeaderProps> = ({
   colors,
   isColumnView,
 }) => {
-  return (
+    const projectRef = useRef<HTMLDivElement>(null);
+    const clientRef = useRef<HTMLDivElement>(null);
+    const taskRef = useRef<HTMLDivElement>(null);
+
+    const [showTooltip, setShowTooltip] = useState(false);
+
+    const isTruncated = (el: HTMLElement | null) => {
+        if (!el) return false;
+        return el.scrollWidth > el.clientWidth;
+    };
+
+    useEffect(() => {
+        const truncated =
+            isTruncated(projectRef.current) ||
+            isTruncated(clientRef.current) ||
+            isTruncated(taskRef.current);
+
+        setShowTooltip(truncated);
+    }, [task]);
+
+    return (
       <div
           style={
               {
@@ -29,17 +50,22 @@ export const TaskHeader: React.FC<TaskHeaderProps> = ({
               } as React.CSSProperties
           }
           className={`p-2 flex flex-col justify-between  ${
-              isMonthView ? "text-sm" : ""
-          } ${isColumnView ? "border-l-3 items-center" : "border-b-3 items-start"}
-      `}
+                  isMonthView ? "text-sm" : ""
+              } ${isColumnView ? "border-l-3 items-center" : "border-b-3 items-start"}
+         `}
+          data-tooltip-id={`task-${task.id}-tooltip`}
+
       >
-          <div className={`${isMonthView ? "font-medium truncate" : ""}`}>
+          <div ref={projectRef}
+              className={`font-medium text-sm truncate max-w-full`}>
               {task.projectName}
           </div>
-          <div className={`text-xs text-gray-app`}>
+          <div ref={clientRef}
+              className={`text-xs text-gray-app truncate max-w-full`}>
               {task.clientName}
           </div>
-          <div className={`text-xs text-gray-app`}>
+          <div ref={taskRef}
+              className={`text-xs text-gray-app truncate max-w-full`}>
               {task.adminUrl ? (
                   <a href={task.adminUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
                       {task.title}
@@ -48,6 +74,15 @@ export const TaskHeader: React.FC<TaskHeaderProps> = ({
                   task.title
               )}
           </div>
+          {showTooltip && (
+              <Tooltip id={`task-${task.id}-tooltip`} style={{ zIndex: 9999 }}>
+                  <div className="flex flex-col">
+                      <p>{task.projectName}</p>
+                      <p>{task.clientName}</p>
+                      <p>{task.title}</p>
+                  </div>
+              </Tooltip>
+          )}
       </div>
   );
 };
