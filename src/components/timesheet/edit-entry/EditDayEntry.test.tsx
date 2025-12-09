@@ -53,8 +53,6 @@ describe("EditDayEntry", () => {
     expect(screen.getByText(/entry type/i)).toBeInTheDocument();
     expect(screen.getByText(/holiday/i)).toBeInTheDocument();
     expect(screen.getByText(/sick day/i)).toBeInTheDocument();
-    expect(screen.getByText(/leave/i)).toBeInTheDocument();
-    expect(screen.getByText(/rest/i)).toBeInTheDocument();
   });
   it("calls onClose when Cancel is clicked", () => {
     render(<EditDayEntry {...baseProps} />);
@@ -267,18 +265,16 @@ describe("EditDayEntry", () => {
     }
     render(<EditDayEntry {...baseProps} schedule={schedule}/>);
     expect(screen.getByTestId("get-from-bank-hour-input")).toBeEnabled()
-    fireEvent.click(screen.getByTestId("day-entry-leave-div"))
-    expect(screen.getByTestId("day-entry-leave-radio")).toBeChecked()
-    fireEvent.click(screen.getByTestId("day-entry-rest-div"))
-    expect(screen.getByTestId("day-entry-rest-radio")).toBeChecked()
+    expect(screen.getByTestId("day-entry-leave-hour-input")).toBeInTheDocument()
+    expect(screen.getByTestId("day-entry-rest-hour-input")).toBeInTheDocument()
     fireEvent.click(screen.getByTestId("day-entry-holiday-div"))
     expect(screen.getByTestId("day-entry-holiday-radio")).toBeChecked()
     fireEvent.click(screen.getByTestId("day-entry-sick-div"))
     expect(screen.getByTestId("day-entry-sick-radio")).toBeChecked()
-    fireEvent.click(screen.getByTestId("day-entry-leave-div"))
-    expect(screen.getByTestId("day-entry-leave-radio")).toBeChecked()
-    fireEvent.click(screen.getByTestId("day-entry-rest-div"))
-    expect(screen.getByText("Rest Hours *")).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId("day-entry-sick-div"))
+    expect(screen.getByTestId("day-entry-leave-hour-input")).toBeInTheDocument()
+    expect(screen.getByTestId("day-entry-rest-hour-input")).toBeInTheDocument()
+    expect(screen.getByText("Rest Hours")).toBeInTheDocument()
     fireEvent.click(screen.getByTestId("day-entry-holiday-div"))
     expect(screen.getByTestId("day-entry-holiday-div").className).toContain("bg-yellow-100")
     fireEvent.click(screen.getByTestId("day-entry-sick-div"))
@@ -293,18 +289,14 @@ describe("EditDayEntry", () => {
     }
     render(<EditDayEntry {...baseProps} schedule={schedule}/>);
     expect(screen.getByTestId("get-from-bank-hour-input")).toBeDisabled()
-    fireEvent.click(screen.getByTestId("day-entry-leave-div"))
-    expect(screen.getByTestId("day-entry-leave-radio")).not.toBeChecked()
-    fireEvent.click(screen.getByTestId("day-entry-rest-div"))
-    expect(screen.getByTestId("day-entry-rest-radio")).not.toBeChecked()
+    expect(screen.getByTestId("day-entry-leave-hour-input")).toBeInTheDocument()
+    expect(screen.getByTestId("day-entry-rest-hour-input")).toBeInTheDocument()
     fireEvent.click(screen.getByTestId("day-entry-holiday-div"))
     expect(screen.getByTestId("day-entry-holiday-radio")).not.toBeChecked()
+    expect(screen.getByTestId("day-entry-leave-hour-input")).toBeInTheDocument()
     fireEvent.click(screen.getByTestId("day-entry-sick-div"))
     expect(screen.getByTestId("day-entry-sick-radio")).not.toBeChecked()
-    fireEvent.click(screen.getByTestId("day-entry-leave-div"))
-    expect(screen.getByTestId("day-entry-leave-radio")).not.toBeChecked()
-    fireEvent.click(screen.getByTestId("day-entry-rest-div"))
-    expect(screen.queryByText("Rest Hours *")).not.toBeInTheDocument()
+    expect(screen.getByTestId("day-entry-leave-hour-input")).toBeInTheDocument()
     fireEvent.click(screen.getByTestId("day-entry-holiday-div"))
     expect(screen.getByTestId("day-entry-holiday-div").className).toContain("cursor-not-allowed")
     fireEvent.click(screen.getByTestId("day-entry-sick-div"))
@@ -559,7 +551,6 @@ describe("EditDayEntry", () => {
       "2024_06_04": 2,
     }
     render(<EditDayEntry {...baseProps} schedule={schedule}/>);
-    fireEvent.click(screen.getByTestId("day-entry-leave-radio"))
     fireEvent.change(screen.getByTestId("day-entry-leave-hour-input"), {target: {value : 2}})
     expect(screen.getByTestId("day-entry-leave-hour-input")).toHaveValue(2)
     fireEvent.change(screen.getByTestId("day-entry-special-leave-hour-input"), {target: {value : 1}})
@@ -572,11 +563,9 @@ describe("EditDayEntry", () => {
       "2024_06_03": 4,
     }
     render(<EditDayEntry {...baseProps} schedule={schedule}/>);
-    fireEvent.click(screen.getByTestId("day-entry-leave-div"))
     fireEvent.change(screen.getByTestId("day-entry-leave-hour-input"), { target: { value: "1" }})
     fireEvent.change(screen.getByTestId("day-entry-special-leave-hour-input"), { target: { value: "1" }})
 
-    fireEvent.click(screen.getByTestId("day-entry-rest-div"))
     fireEvent.change(screen.getByTestId("day-entry-rest-hour-input"), { target: { value: "1" }})
     expect(screen.getByText("No overtime allowed when logging leave, special leave or rest hours. Maximum allowed for 2024-06-02 is 2 hours, Total hours: 3")).
     toBeInTheDocument()
@@ -611,9 +600,8 @@ describe("EditDayEntry", () => {
       "2024-06-10": { closed: true, hol: false, nwd: false },
     };
     render(<EditDayEntry {...baseProps} schedule={schedule} calendarDays={calendarDaysClosed}/>);
-    fireEvent.click(screen.getByTestId("day-entry-leave-div"))
     // In readonly mode (when calendar days are closed), the entry type doesn't change, so input is not shown
-    expect(screen.queryByTestId("day-entry-leave-hour-input")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("day-entry-leave-hour-input")).toBeDisabled()
   })
   it("Adding leave when overhours are logged should display error", () => {
     const schedule = {
@@ -641,7 +629,6 @@ describe("EditDayEntry", () => {
       }
     ]
     render(<EditDayEntry {...baseProps} schedule={schedule} timeEntries={timeEntries}/>);
-    fireEvent.click(screen.getByTestId("day-entry-leave-div"))
     fireEvent.change(screen.getByTestId("day-entry-leave-hour-input"), {target: {value : 2}})
     expect(screen.getByText(/No overtime allowed when logging leave, special leave or rest hours.*Maximum allowed for 2024-06-01.*is 2 hours.*Total hours.*5/, {exact: false})).toBeInTheDocument()
   })
