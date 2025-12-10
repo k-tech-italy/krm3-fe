@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import EditTimeEntry from "./EditTimeEntry";
 import { vi } from "vitest";
+import EditDayEntry from "./EditDayEntry.tsx";
 
 const mutateAsyncMock = vi.fn().mockResolvedValue(undefined);
 const deleteAsyncMock = vi.fn().mockResolvedValue(undefined);
@@ -288,4 +289,20 @@ describe("EditTimeEntry", () => {
     expect(travelInput.value).toBe("");
     expect(onCallInput.value).toBe("");
   });
+  it("setting from date later than to date updates to date", () => {
+    render(<EditTimeEntry {...baseProps} />);
+    const fromDatePicker = document.getElementById("time-entry-from-date-picker") as HTMLElement
+    const toDatePicker = document.getElementById("time-entry-to-date-picker") as HTMLElement
+    fireEvent.change(fromDatePicker, { target: { value: "2024-06-04" }})
+
+    expect(toDatePicker).toHaveValue("2024-06-04")
+  })
+  it("setting to date earlier than from date updates from date", () => {
+    render(<EditTimeEntry {...baseProps} />);
+    const fromDatePicker = document.getElementById("time-entry-from-date-picker") as HTMLElement
+    const toDatePicker = document.getElementById("time-entry-to-date-picker") as HTMLElement
+    fireEvent.change(toDatePicker, { target: { value: "2024-05-31" }})
+
+    expect(fromDatePicker).toHaveValue("2024-05-31")
+  })
 });

@@ -11,6 +11,7 @@ const calendarDays = () => ({
     "2024-06-01": { closed: false, hol: false, nwd: false },
     "2024-06-02": { closed: false, hol: false, nwd: false },
     "2024-06-03": { closed: false, hol: false, nwd: false },
+    "2024-06-04": { closed: false, hol: false, nwd: false },
     "2024-06-10": { closed: false, hol: false, nwd: false },
 });
 
@@ -644,5 +645,36 @@ describe("EditDayEntry", () => {
     fireEvent.change(screen.getByTestId("day-entry-leave-hour-input"), {target: {value : 2}})
     expect(screen.getByText(/No overtime allowed when logging leave, special leave or rest hours.*Maximum allowed for 2024-06-01.*is 2 hours.*Total hours.*5/, {exact: false})).toBeInTheDocument()
   })
+  it("setting from date later than to date updates to date", () => {
+    render(<EditDayEntry {...baseProps} />);
+    const fromDatePicker = document.getElementById("day-entry-from-date-picker") as HTMLElement
+    const toDatePicker = document.getElementById("day-entry-to-date-picker") as HTMLElement
+    fireEvent.change(fromDatePicker, { target: { value: "2024-06-04" }})
 
+    expect(toDatePicker).toHaveValue("2024-06-04")
+  })
+  it("setting to date earlier than from date updates from date", () => {
+    const startDate = new Date("2024-06-02")
+    const endDate = new Date("2024-06-03")
+    render(<EditDayEntry {...baseProps} startDate={startDate} endDate={endDate}/>);
+    const fromDatePicker = document.getElementById("day-entry-from-date-picker") as HTMLElement
+    const toDatePicker = document.getElementById("day-entry-to-date-picker") as HTMLElement
+    fireEvent.change(toDatePicker, { target: { value: "2024-06-01" }})
+
+    expect(fromDatePicker).toHaveValue("2024-06-01")
+  })
+  it("cannot set date earlier than earliest calendar date", () => {
+    render(<EditDayEntry {...baseProps} />);
+    const fromDatePicker = document.getElementById("day-entry-from-date-picker") as HTMLElement
+    fireEvent.click(fromDatePicker)
+    fireEvent.click(document.getElementsByClassName("react-datepicker__day--031")[0] as HTMLElement)
+    expect(fromDatePicker).toHaveValue("2024-06-01")
+  })
+  it("cannot set date later than latest calendar date", () => {
+    render(<EditDayEntry {...baseProps} />);
+    const toDatePicker = document.getElementById("day-entry-to-date-picker") as HTMLElement
+    fireEvent.click(toDatePicker)
+    fireEvent.click(document.getElementsByClassName("react-datepicker__day--001")[1] as HTMLElement)
+    expect(toDatePicker).toHaveValue("2024-06-03")
+  })
 });

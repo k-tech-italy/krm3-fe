@@ -87,7 +87,18 @@ export default function EditDayEntry({
     }
     return minHoursForSelectedPeriod
   }
-
+  const earliestCalendarDay = () => {
+    const dates = Object.keys(calendarDays).map((stringDate) => {
+      return new Date(stringDate)
+    })
+    return new Date(Math.min(...dates.map(d => d.getTime())));
+  }
+  const latestCalendarDay = () => {
+    const dates = Object.keys(calendarDays).map((stringDate) => {
+      return new Date(stringDate)
+    })
+    return new Date(Math.max(...dates.map(d => d.getTime())));
+  }
   useEffect(() => {
     if (startEntry) {
       if (minHoursScheduledForSelectedPeriod() > 0)
@@ -160,8 +171,16 @@ export default function EditDayEntry({
   function handleChangeDate(selectedDate: Date, dateType: "from" | "to") {
     if (dateType === "from") {
       setFromDate(selectedDate);
+      if (selectedDate > toDate)
+      {
+        setToDate(selectedDate)
+      }
     } else if (dateType === "to") {
       setToDate(selectedDate);
+      if (selectedDate < fromDate)
+      {
+        setFromDate(selectedDate);
+      }
     }
   }
   const handleDatesChange = (
@@ -278,7 +297,8 @@ export default function EditDayEntry({
               </label>
               <DatePicker
                   dateFormat="yyyy-MM-dd"
-                  maxDate={toDate}
+                  minDate={earliestCalendarDay()}
+                  maxDate={latestCalendarDay()}
                   selected={fromDate}
                   id="day-entry-from-date-picker"
                   className="w-full border border-app rounded-md p-2"
@@ -288,6 +308,7 @@ export default function EditDayEntry({
                     }
                   }}
                   disabled={readOnly}
+                  highlightDates={[toDate]}
               />
             </div>
             <div className="w-full md:w-1/3 mb-4 md:mb-0">
@@ -295,7 +316,8 @@ export default function EditDayEntry({
               <DatePicker
                   dateFormat="yyyy-MM-dd"
                   selected={toDate}
-                  minDate={fromDate}
+                  minDate={earliestCalendarDay()}
+                  maxDate={latestCalendarDay()}
                   id={"day-entry-to-date-picker"}
                   className="w-full border border-app rounded-md p-2"
                   onChange={(date: Date | null) => {
@@ -304,6 +326,7 @@ export default function EditDayEntry({
                     }
                   }}
                   disabled={readOnly}
+                  highlightDates={[fromDate]}
               />
             </div>
           </div>

@@ -78,6 +78,10 @@ export default function EditTimeEntry({
           (date) => !holidayOrSickDays.includes(normalizeDate(date))
         )
       );
+      if (date > toDate)
+      {
+        setToDate(date)
+      }
     } else {
       setToDate(date);
       setDaysWithTimeEntries(
@@ -92,6 +96,10 @@ export default function EditTimeEntry({
           (date) => !holidayOrSickDays.includes(normalizeDate(date))
         )
       );
+      if (date < fromDate)
+      {
+        setFromDate(date);
+      }
     }
   }
 
@@ -199,8 +207,8 @@ export default function EditTimeEntry({
               From Date
             </label>
             <DatePicker
+              id="time-entry-from-date-picker"
               dateFormat="yyyy-MM-dd"
-              maxDate={toDate}
               selected={fromDate}
               className="w-full border border-app rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               onChange={(date: Date | null) => {
@@ -209,6 +217,7 @@ export default function EditTimeEntry({
                 }
               }}
               disabled={readOnly}
+              highlightDates={[toDate]}
             />
           </div>
           <div>
@@ -216,9 +225,9 @@ export default function EditTimeEntry({
               To Date
             </label>
             <DatePicker
+              id="time-entry-to-date-picker"
               dateFormat="yyyy-MM-dd"
               selected={toDate}
-              minDate={fromDate}
               className="w-full border border-app rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               onChange={(date: Date | null) => {
                 if (!!date) {
@@ -226,6 +235,7 @@ export default function EditTimeEntry({
                 }
               }}
               disabled={readOnly}
+              highlightDates={[fromDate]}
             />
           </div>
         </div>
