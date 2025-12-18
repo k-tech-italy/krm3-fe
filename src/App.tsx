@@ -13,6 +13,7 @@ import { ToastContainer } from "react-toastify";
 import "./index.css";
 import { Welcome } from "./pages/Welcome";
 import React from "react";
+import Contacts from "./pages/Contacts.tsx";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,10 @@ function AuthenticatedRoutes() {
     {
       guard: modules.map(m => m.url).includes('timesheet'),
       route: <Route path="/timesheet" element={<Timesheet />} />,
+    },
+    {
+      guard: modules.map(m => m.url).includes('contacts'),
+      route: <Route path="/contacts" element={<Contacts />} />,
     },
     {
       guard: true,

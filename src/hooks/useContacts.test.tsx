@@ -1,0 +1,113 @@
+import { renderHook, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import * as contactsApi from '../restapi/contacts';
+import {useGetContacts} from "./useContacts.tsx";
+import {Contact} from "../restapi/types.ts";
+
+vi.mock('../restapi/contacts');
+
+describe('useContacts', () => {
+    const createWrapper = () => {
+        const queryClient = new QueryClient({
+            defaultOptions: {
+                queries: {
+                    retry: false,
+                },
+            },
+        });
+
+        return ({ children }: { children: React.ReactNode }) => (
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
+        );
+    };
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it('should fetch contacts successfully', async () => {
+        const contactsMock = [
+            {
+                firstName: "John",
+                lastName: "Doe",
+                jobTitle: "Software developer",
+                internalNotes: "",
+                picture: "example.url",
+                isActive: true,
+                id: 1,
+                addresses: [{
+                    address: "New York, Funny Street 11/222",
+                }],
+                phones: [],
+                emails: [],
+                websites: [],
+                company: {
+                    name: "singlewave",
+                    picture: "path/to/picture.jpg",
+                }
+            },
+            {
+                firstName: "Jack",
+                lastName: "Sparrow",
+                jobTitle: "Pirate",
+                internalNotes: "",
+                isActive: false,
+                id: 2,
+                addresses: [],
+                phones: [
+                    {
+                        number: "+48 111 111 111",
+                    }
+                ],
+                emails: [
+                    {
+                        address: "capitan.jack@gmail.com",
+                    }
+                ],
+                websites: []
+            }
+        ] as Contact[]
+
+        vi.spyOn(contactsApi, 'getContacts').mockResolvedValueOnce(contactsMock);
+
+        const { result } = renderHook(() => useGetContacts(), {
+            wrapper: createWrapper(),
+        });
+
+        await waitFor(() => {
+            expect(result.current.isSuccess).toBe(true);
+        });
+
+        expect(contactsApi.getContacts).toHaveBeenCalledOnce();
+        expect(result.current.data).toEqual(contactsMock);
+    });
+
+    it('should handle error correctly', async () => {
+        const error = new Error('API error');
+
+        vi.spyOn(contactsApi, 'getContacts').mockRejectedValueOnce(error);
+
+        const consoleSpy = vi
+            .spyOn(console, 'error')
+            .mockImplementation(() => {});
+
+        const { result } = renderHook(() => useGetContacts(), {
+            wrapper: createWrapper(),
+        });
+
+        await waitFor(() => {
+            expect(result.current.isError).toBe(true);
+        });
+
+        expect(contactsApi.getContacts).toHaveBeenCalledOnce();
+        expect(consoleSpy).toHaveBeenCalledWith(
+            'Contacts fetch failed:',
+            error
+        );
+
+        consoleSpy.mockRestore();
+    });
+});

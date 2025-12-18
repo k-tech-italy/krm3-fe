@@ -1,6 +1,7 @@
 import { expect, test, describe, vi, beforeEach } from "vitest";
 import { App } from "./App";
 import { render, screen, waitFor } from "@testing-library/react";
+import * as useAuth from "./hooks/useAuth.tsx";
 
 // Mock all the page components
 vi.mock("./pages/MissionPage", () => ({
@@ -46,6 +47,10 @@ vi.mock("./components/commons/Login", () => ({
 describe("App", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
+      data: undefined,
+      isAuthenticated: false,
+    } as any);
   });
 
   describe("App component structure", () => {
