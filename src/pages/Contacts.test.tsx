@@ -40,6 +40,9 @@ describe('Contact Page', () => {
                     phones: [
                         {
                             number: "+48 111 111 111",
+                        },
+                        {
+                            number: "+48 222 222 222",
                         }
                     ],
                     emails: [
@@ -77,5 +80,27 @@ describe('Contact Page', () => {
         fireEvent.click(screen.getByTestId("switch-active"))
         expect(screen.getByText("John Doe")).toBeInTheDocument()
         expect(screen.queryByText("Jack Sparrow")).not.toBeInTheDocument()
+    })
+    it('opens detailed view from grid view', () => {
+        render(<Contacts/>);
+        fireEvent.click(screen.getByTestId("contact-grid-tile-2"))
+        expect(screen.getByText("Sparrow")).toBeInTheDocument()
+        expect(screen.queryByText("Doe")).not.toBeInTheDocument()
+    })
+    it('opens detailed view from list view', () => {
+        render(<Contacts/>);
+        fireEvent.click(screen.getByTestId("switch-list-grid"))
+        fireEvent.click(screen.getByTestId("contact-list-tile-1"))
+        expect(screen.getByText("Doe")).toBeInTheDocument()
+        expect(screen.queryByText("Sparrow")).not.toBeInTheDocument()
+    })
+    it('returns to general view from detailed view', () => {
+        render(<Contacts/>);
+        fireEvent.click(screen.getByTestId("contact-grid-tile-2"))
+        expect(screen.getByText("Sparrow")).toBeInTheDocument()
+        expect(screen.queryByText("Doe")).not.toBeInTheDocument()
+        fireEvent.click(document.getElementById("back-to-general-view") as HTMLElement)
+        expect(screen.getByText("John Doe")).toBeInTheDocument()
+        expect(screen.getByText("Jack Sparrow")).toBeInTheDocument()
     })
 })
