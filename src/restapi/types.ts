@@ -27,6 +27,7 @@ export interface Country {
 export interface Client {
   id: number;
   name: string;
+  picture?: string;
 }
 
 export interface Currency {
@@ -218,7 +219,36 @@ export interface Timesheet {
   bankHours: number;
   timesheetColors?: HeaderColors
 }
-
+export interface Phone {
+  number: string,
+  kind?: string
+}
+export interface Address {
+  address: string,
+  kind?: string
+}
+export interface Email {
+  address: string,
+  kind?: string
+}
+export interface Website {
+  url: string;
+}
+export interface Contact {
+  id: number,
+  firstName: string,
+  lastName: string,
+  isActive: boolean,
+  internalNotes: string,
+  jobTitle: string,
+  picture?: string,
+  taxId?: string,
+  company?: Client,
+  phones: Phone[],
+  addresses: Address[],
+  emails: Email[],
+  websites: Website[],
+}
 export interface HeaderColors {
   lessThanScheduleColorBrightTheme: string;
   exactScheduleColorBrightTheme: string;
