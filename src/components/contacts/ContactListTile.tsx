@@ -3,14 +3,15 @@ import { Home, User } from 'lucide-react';
 
 interface Props {
     contact: Contact;
+    setSelectedContact: (contact: Contact) => void;
 }
 const ContactListTile = (props: Props) => {
     return (
         <div className="bg-gray-200 rounded-xl shadow-xl p-2 sm:p-3 m-2 border border-1 border-gray-500 grid grid-cols-[auto_auto_2fr_2fr_2fr]
-            md:grid-cols-[auto_auto_2fr_2fr_2fr_2fr] items-center gap-2"
+            md:grid-cols-[auto_auto_2fr_2fr_2fr_2fr] items-center gap-2 cursor-pointer"
             id={`contact-list-tile-${props.contact.id}`}
             data-testid={`contact-list-tile-${props.contact.id}`}
-        >
+            onClick={() => {props.setSelectedContact(props.contact)}}>
             {props.contact.picture ?
                 <img
                     src={props.contact.picture}

@@ -3,13 +3,14 @@ import {User} from "lucide-react";
 
 interface Props {
     contact: Contact;
+    setSelectedContact: (contact: Contact) => void;
 }
 const ContactGridTile = (props: Props) => {
     return (
-        <div className="bg-gray-200 rounded-xl shadow-xl p-3 sm:p-8 m-2 flex flex-row border border-1 border-gray-500 items-center"
+        <div className="bg-gray-200 rounded-xl shadow-xl p-3 sm:p-8 m-2 flex flex-row border border-1 border-gray-500 items-center cursor-pointer"
              id={`contact-grid-tile-${props.contact.id}`}
              data-testid={`contact-grid-tile-${props.contact.id}`}
-        >
+             onClick={() => {props.setSelectedContact(props.contact)}}>
 
             <div className="relative flex-shrink-0">
                 {props.contact.picture ?
