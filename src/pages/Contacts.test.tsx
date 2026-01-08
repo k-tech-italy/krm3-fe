@@ -84,21 +84,21 @@ describe('Contact Page', () => {
     it('opens detailed view from grid view', () => {
         render(<Contacts/>);
         fireEvent.click(screen.getByTestId("contact-grid-tile-2"))
-        expect(screen.getByText("Sparrow")).toBeInTheDocument()
-        expect(screen.queryByText("Doe")).not.toBeInTheDocument()
+        expect(screen.getByText("Jack Sparrow")).toBeInTheDocument()
+        expect(screen.queryByText("John Doe")).not.toBeInTheDocument()
     })
     it('opens detailed view from list view', () => {
         render(<Contacts/>);
         fireEvent.click(screen.getByTestId("switch-list-grid"))
         fireEvent.click(screen.getByTestId("contact-list-tile-1"))
-        expect(screen.getByText("Doe")).toBeInTheDocument()
-        expect(screen.queryByText("Sparrow")).not.toBeInTheDocument()
+        expect(screen.getByText("John Doe")).toBeInTheDocument()
+        expect(screen.queryByText("Jack Sparrow")).not.toBeInTheDocument()
     })
     it('returns to general view from detailed view', () => {
         render(<Contacts/>);
         fireEvent.click(screen.getByTestId("contact-grid-tile-2"))
-        expect(screen.getByText("Sparrow")).toBeInTheDocument()
-        expect(screen.queryByText("Doe")).not.toBeInTheDocument()
+        expect(screen.getByText("Jack Sparrow")).toBeInTheDocument()
+        expect(screen.queryByText("John Doe")).not.toBeInTheDocument()
         fireEvent.click(document.getElementById("back-to-general-view") as HTMLElement)
         expect(screen.getByText("John Doe")).toBeInTheDocument()
         expect(screen.getByText("Jack Sparrow")).toBeInTheDocument()
