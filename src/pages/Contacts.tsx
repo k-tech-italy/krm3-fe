@@ -72,7 +72,7 @@ export default function Contacts() {
                 :
                 <div className="relative">
                     <div className="grid grid-cols-[auto_auto_2fr_2fr_2fr] md:grid-cols-[auto_auto_2fr_2fr_2fr_2fr] items-center
-                    gap-2 m-2 font-bold bg-gray-300 rounded-lg sticky top-0 border-2 border-white z-10">
+                    gap-2 m-2 font-bold bg-gray-300 rounded-lg sticky top-0 border-2 border-white">
                         <div className="w-8 h-8 sm:w-16 sm:h-16"/>
                         <div className="w-8 h-8 sm:w-16 sm:h-16"/>
                         <p className="ml-8">Name</p>
