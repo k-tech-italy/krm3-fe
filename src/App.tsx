@@ -14,6 +14,7 @@ import "./index.css";
 import { Welcome } from "./pages/Welcome";
 import React from "react";
 import Contacts from "./pages/Contacts.tsx";
+import ContactDetailsPage from "./pages/ContactDetailsPage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,10 @@ function AuthenticatedRoutes() {
     {
       guard: modules.map(m => m.url).includes('contacts'),
       route: <Route path="/contacts" element={<Contacts />} />,
+    },
+    {
+      guard: modules.map(m => m.url).includes('contacts'),
+      route: <Route path="/contacts/:id" element={<ContactDetailsPage />} />,
     },
     {
       guard: true,

@@ -1,16 +1,16 @@
 import {Contact} from "../../restapi/types.ts";
 import {User} from "lucide-react";
+import {Link} from "react-router-dom";
 
 interface Props {
     contact: Contact;
-    setSelectedContact: (contact: Contact) => void;
 }
 const ContactGridTile = (props: Props) => {
     return (
-        <div className="bg-gray-200 rounded-xl shadow-xl p-3 sm:p-8 m-2 flex flex-row border border-1 border-gray-500 items-center cursor-pointer"
+        <Link to={`/contacts/${props.contact.id}`}
+             className="bg-gray-200 rounded-xl shadow-xl p-3 sm:p-8 m-2 flex flex-row border border-1 border-gray-500 items-center cursor-pointer hover:bg-gray-300 transition-colors"
              id={`contact-grid-tile-${props.contact.id}`}
-             data-testid={`contact-grid-tile-${props.contact.id}`}
-             onClick={() => {props.setSelectedContact(props.contact)}}>
+             data-testid={`contact-grid-tile-${props.contact.id}`}>
 
             <div className="relative flex-shrink-0">
                 {props.contact.picture ?
@@ -33,7 +33,7 @@ const ContactGridTile = (props: Props) => {
                 }
             </div>
 
-            <div className="flex flex-col w-full mt-0 pt-0 ml-5 break-words min-w-0 break-word">
+            <div className="flex flex-col w-full mt-0 pt-0 ml-5 break-words min-w-0 break-word text-gray-900">
                 <p className="font-bold sm:text-xl text-l">
                     {props.contact.firstName} {props.contact.lastName}
                 </p>
@@ -41,7 +41,7 @@ const ContactGridTile = (props: Props) => {
                 <p>{props.contact.emails.length > 0 ? props.contact.emails[0].address : ""}</p>
                 <p>{props.contact.phones.length > 0 ? props.contact.phones[0].number : ""}</p>
             </div>
-        </div>
+        </Link>
     )
 }
 export default ContactGridTile
