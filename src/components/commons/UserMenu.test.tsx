@@ -1,7 +1,8 @@
 import {vi} from "vitest"
 import * as useAuth from "../../hooks/useAuth.tsx";
-import {fireEvent, render, screen, within} from "@testing-library/react";
-import {UserMenu} from "./UserMenu.tsx";
+import {fireEvent, render, screen, waitFor} from "@testing-library/react";
+import UserMenu from "./UserMenu.tsx";
+import {AuthProvider} from "./AuthContext.tsx";
 describe('UserMenu', () => {
     const logoutFunction = vi.fn()
     beforeEach(() => {
@@ -30,15 +31,16 @@ describe('UserMenu', () => {
     });
 
     it('renders correctly', async () => {
-        render(<UserMenu />);
+        render(<AuthProvider><UserMenu/></AuthProvider>);
         fireEvent.click(screen.getByTestId('toggle-menu-button'))
         expect(screen.getByText("test@test.com")).toBeInTheDocument();
         expect(screen.getByText("Django Admin")).toBeInTheDocument();
         expect(screen.getByTestId("user-profile-picture")).toHaveAttribute("src", "https://profile.jpg");
-        const beVersionDiv = await screen.findByTestId('be-version')
-        const feVersionDiv = await screen.findByTestId('fe-version')
-        expect(beVersionDiv).toHaveTextContent('BE: v0.1.23');
-        expect(feVersionDiv).toHaveTextContent('FE: v1.2.22');
+        const dropDown = await screen.findByTestId('user-menu')
+        await waitFor(() => {
+            expect(dropDown).toHaveTextContent('BE: v0.1.23');
+            expect(dropDown).toHaveTextContent('FE: v1.2.22');
+        });
     })
     it('does not render profile picture if url format is not correct', () => {
         vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
@@ -81,7 +83,7 @@ describe('UserMenu', () => {
         expect(screen.getByTestId('user-menu')).toHaveClass("opacity-0")
     })
     it('renders Profile, Documents and Sign Out links', () => {
-        render(<UserMenu />);
+        render(<AuthProvider><UserMenu /></AuthProvider>);
         fireEvent.click(screen.getByTestId('toggle-menu-button'))
 
         const profileLink = screen.getByRole('link', { name: /profile/i })

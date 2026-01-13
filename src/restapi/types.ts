@@ -1,3 +1,4 @@
+import {SUPPORTED_LANGUAGES} from "../languages.ts";
 
 export enum Role {
   ADMIN = "admin",
@@ -287,3 +288,5 @@ export const enum DayType {
   CLOSED_DAY = "closed",
 }
 export type WeekRange = "whole" | "startOfWeek" | "endOfWeek";
+
+export type LanguageCode = typeof SUPPORTED_LANGUAGES[number]['code'];

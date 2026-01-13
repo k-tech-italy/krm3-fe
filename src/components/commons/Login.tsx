@@ -10,7 +10,6 @@ import { useMediaQuery } from "../../hooks/useView";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import { logout } from "../../restapi/user";
 import Krm3Button from "./Krm3Button";
-import { User } from "../../restapi/types";
 
 interface LoginError {
   username?: string;
