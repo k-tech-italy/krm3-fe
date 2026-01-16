@@ -6,3 +6,9 @@ export function getContacts(): Promise<Contact[]> {
         return res.data.results;
     });
 }
+
+export function getContact(id: number): Promise<Contact> {
+    return restapi.get(`core/contacts/${id}/`).then((res) => {
+        return res.data;
+    });
+}

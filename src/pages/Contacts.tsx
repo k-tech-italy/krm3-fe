@@ -2,24 +2,17 @@ import {useGetContacts} from "../hooks/useContacts.tsx";
 import React, {useState} from "react";
 import ContactGridTile from "../components/contacts/ContactGridTile.tsx";
 import ContactListTile from "../components/contacts/ContactListTile.tsx";
-import {ContactDetails} from "../components/contacts/ContactDetails.tsx";
-import {Contact} from "../restapi/types.ts";
 
 export default function Contacts() {
     const [isGridView, setIsGridView] = useState(true);
     const [onlyActiveSelected, setOnlyActiveSelected] = useState(false);
+    
     const { data: contacts } = useGetContacts()
-    const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
     const filteredContacts = contacts ?
         contacts.filter((contact) => {
             return !onlyActiveSelected || contact.isActive
         }) : null
-
-    if(selectedContact)
-    {
-        return <ContactDetails contact={selectedContact} close={() => setSelectedContact(null)} />;
-    }
 
     return (
         <div>
@@ -66,7 +59,7 @@ export default function Contacts() {
             {isGridView ?
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 grid-cols-1 p-5">
                     {filteredContacts && filteredContacts.map(contact => (
-                        <ContactGridTile key={contact.id} contact={contact} setSelectedContact={setSelectedContact} />
+                        <ContactGridTile key={contact.id} contact={contact} />
                     ))}
                 </div>
                 :
@@ -81,7 +74,7 @@ export default function Contacts() {
                         <p>Phone</p>
                     </div>
                     {filteredContacts && filteredContacts.map(contact => (
-                        <ContactListTile key={contact.id} contact={contact} setSelectedContact={setSelectedContact}/>
+                        <ContactListTile key={contact.id} contact={contact} />
                     ))}
                 </div>
             }

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Contact } from "../../restapi/types.ts";
 import { ArrowLeft, User } from "lucide-react";
+import { useGetContact } from "../../hooks/useContacts.tsx";
 
 interface Props {
-    contact: Contact;
+    contactId: number;
     close: () => void;
 }
 
@@ -18,8 +18,12 @@ const FieldRow = ({ label, children, className = "" }: { label: string, children
     </div>
 );
 
-export function ContactDetails({ contact, close }: Props): React.ReactElement {
+export function ContactDetails({ contactId, close }: Props): React.ReactElement {
+    const { data: contact, isLoading, error } = useGetContact(contactId);
     const [activeTab, setActiveTab] = useState<'general' | 'notes'>('general');
+
+    if (isLoading) return <div className="p-8">Loading...</div>;
+    if (error || !contact) return <div className="p-8 text-red-500">Error loading contact</div>;
 
     const fullName = `${contact.firstName} ${contact.lastName}`.trim();
 
@@ -30,7 +34,7 @@ export function ContactDetails({ contact, close }: Props): React.ReactElement {
                 <button
                     onClick={close}
                     id="back-to-general-view"
-                    className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+                    className="flex items-center text-gray-600 hover:text-gray-900 hover:cursor-pointer transition-colors"
                 >
                     <ArrowLeft size={24} className="mr-2" />
                     <span className="font-bold text-lg">Back</span>
@@ -125,7 +129,7 @@ export function ContactDetails({ contact, close }: Props): React.ReactElement {
                     <div className="px-6 sm:px-10 border-b border-gray-200 flex space-x-8">
                         <button
                             onClick={() => setActiveTab('general')}
-                            className={`pb-2 text-sm font-bold border-b-2 transition-colors ${
+                            className={`pb-2 text-sm font-bold border-b-2 transition-colors hover:cursor-pointer ${
                                 activeTab === 'general'
                                     ? "border-gray-800 text-gray-900"
                                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -135,7 +139,7 @@ export function ContactDetails({ contact, close }: Props): React.ReactElement {
                         </button>
                         <button
                             onClick={() => setActiveTab('notes')}
-                            className={`pb-2 text-sm font-bold border-b-2 transition-colors ${
+                            className={`pb-2 text-sm font-bold border-b-2 transition-colors hover:cursor-pointer ${
                                 activeTab === 'notes'
                                     ? "border-gray-800 text-gray-900"
                                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
