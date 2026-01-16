@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getContacts } from './contacts';
+import { getContacts, getContact } from './contacts';
 import { restapi } from './restapi';
 import type { Contact } from './types';
 
@@ -80,5 +80,57 @@ describe('getContacts', () => {
 
         expect(restapi.get).toHaveBeenCalledOnce();
         expect(restapi.get).toHaveBeenCalledWith('core/contacts/');
+    });
+});
+
+describe('getContact', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    const contactMock: Contact = {
+        firstName: "John",
+        lastName: "Doe",
+        jobTitle: "Software developer",
+        internalNotes: "",
+        picture: "example.url",
+        isActive: true,
+        id: 1,
+        addresses: [{
+            address: "New York, Funny Street 11/222",
+        }],
+        phones: [],
+        emails: [],
+        websites: [],
+        company: {
+            id: 1,
+            name: "singlewave",
+            picture: "path/to/picture.jpg",
+        }
+    };
+
+    it('should return contact details from API response', async () => {
+        const mockedGet = vi.mocked(restapi.get);
+        mockedGet.mockResolvedValueOnce({
+            data: contactMock,
+        } as any);
+
+        const result = await getContact(1);
+
+        expect(restapi.get).toHaveBeenCalledOnce();
+        expect(restapi.get).toHaveBeenCalledWith('core/contacts/1/');
+        expect(result).toEqual(contactMock);
+    });
+
+    it('should throw error when api call fails', async () => {
+        const error = new Error('Network error');
+
+        const mockedGet = vi.mocked(restapi.get);
+        mockedGet.mockRejectedValueOnce(error);
+
+        await expect(getContact(1)).rejects.toThrow('Network error');
+
+        expect(restapi.get).toHaveBeenCalledOnce();
+        expect(restapi.get).toHaveBeenCalledWith('core/contacts/1/');
     });
 });
