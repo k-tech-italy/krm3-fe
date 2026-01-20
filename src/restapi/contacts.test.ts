@@ -67,7 +67,7 @@ describe('getContacts', () => {
 
         expect(restapi.get).toHaveBeenCalledOnce();
         expect(restapi.get).toHaveBeenCalledWith('core/contacts/', { params: undefined });
-        expect(result).toEqual(contactsMock);
+        expect(result).toEqual({ results: contactsMock });
     });
 
     it('should pass parameters to API', async () => {

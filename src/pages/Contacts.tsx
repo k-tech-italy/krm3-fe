@@ -2,19 +2,24 @@ import {useGetContacts} from "../hooks/useContacts.tsx";
 import React, {useState} from "react";
 import ContactGridTile from "../components/contacts/ContactGridTile.tsx";
 import ContactListTile from "../components/contacts/ContactListTile.tsx";
+import {ChevronLeft, ChevronRight} from "lucide-react";
 
 export default function Contacts() {
     const [isGridView, setIsGridView] = useState(true);
     const [onlyActiveSelected, setOnlyActiveSelected] = useState(false);
+    const [page, setPage] = useState(1);
     
-    const { data: contactsData, isLoading } = useGetContacts({
-        active: onlyActiveSelected ? true : undefined
+    const { data: contactsPage, isLoading } = useGetContacts({
+        active: onlyActiveSelected ? true : undefined,
+        page: page
     })
 
-    const contacts = contactsData || [];
+    const contacts = contactsPage?.results || [];
+    const hasNext = !!contactsPage?.next;
+    const hasPrevious = !!contactsPage?.previous;
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-[calc(100vh-8rem)]">
             <div className="flex flex-row p-5">
                 <div className="flex flex-row mt-2 ml-2">
                     Grid
@@ -46,6 +51,7 @@ export default function Contacts() {
                             checked={onlyActiveSelected}
                             onChange={() => {
                                 setOnlyActiveSelected(!onlyActiveSelected)
+                                setPage(1)
                             }}/>
                         <label
                             htmlFor="switch-active"
@@ -81,6 +87,26 @@ export default function Contacts() {
                         ))}
                     </div>
                 }
+            </div>
+
+            <div className="flex justify-center items-center p-8 gap-4">
+                <button
+                    disabled={!hasPrevious || isLoading}
+                    onClick={() => setPage(p => p - 1)}
+                    className="p-2 rounded-full hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    aria-label="Previous Page"
+                >
+                    <ChevronLeft size={24} />
+                </button>
+                <span className="font-bold text-gray-700">Page {page}</span>
+                <button
+                    disabled={!hasNext || isLoading}
+                    onClick={() => setPage(p => p + 1)}
+                    className="p-2 rounded-full hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    aria-label="Next Page"
+                >
+                    <ChevronRight size={24} />
+                </button>
             </div>
         </div>
     )
