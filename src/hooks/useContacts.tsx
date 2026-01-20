@@ -1,15 +1,16 @@
-import {useQuery, useQueryClient} from "react-query";
+import {useQuery} from "react-query";
 import {getContacts, getContact} from "../restapi/contacts.ts";
 
-export function useGetContacts(){
+export function useGetContacts(params?: { active?: boolean }){
     return useQuery(
-        ['contacts'],
-        async () => getContacts(),
+        ['contacts', params],
+        async () => getContacts(params),
         {
             onError: (error) => {
                 console.error("Contacts fetch failed:", error);
                 return error;
-            }
+            },
+            keepPreviousData: true
         }
     )
 }

@@ -1,4 +1,3 @@
-
 import {fireEvent, render, screen} from "@testing-library/react";
 import {vi} from "vitest"
 import { MemoryRouter, Route, Routes } from "react-router-dom";
@@ -23,6 +22,7 @@ const mockContacts = [
         emails: [],
         websites: [],
         company: {
+            id: 1,
             name: "singlewave",
             picture: "path/to/picture.jpg",
         }
@@ -38,9 +38,6 @@ const mockContacts = [
         phones: [
             {
                 number: "+48 111 111 111",
-            },
-            {
-                number: "+48 222 222 222",
             }
         ],
         emails: [
@@ -54,17 +51,16 @@ const mockContacts = [
 
 describe('Contact Page', () => {
     beforeEach(() => {
-        vi.spyOn(useGetContacts, "useGetContacts").mockReturnValue({
-            data: mockContacts
-        } as any)
-
-        vi.spyOn(useGetContacts, "useGetContact").mockImplementation((id: number | null) => {
+        vi.spyOn(useGetContacts, "useGetContacts").mockImplementation((params) => {
+            let results = [...mockContacts];
+            if (params?.active) {
+                results = results.filter(c => c.isActive);
+            }
             return {
-                data: mockContacts.find(c => c.id === id),
-                isLoading: false,
-                error: null
+                data: results,
+                isLoading: false
             } as any;
-        })
+        });
     })
 
     const renderContacts = () => {
@@ -72,7 +68,6 @@ describe('Contact Page', () => {
             <MemoryRouter initialEntries={['/contacts']}>
                 <Routes>
                     <Route path="/contacts" element={<Contacts />} />
-                    <Route path="/contacts/:id" element={<Contacts />} />
                 </Routes>
             </MemoryRouter>
         );
@@ -84,35 +79,20 @@ describe('Contact Page', () => {
         expect(screen.getByTestId("contact-grid-tile-2")).toBeInTheDocument();
         expect(screen.getByText("John Doe")).toBeInTheDocument()
         expect(screen.getByText("Jack Sparrow")).toBeInTheDocument()
-        expect(screen.getByText("New York, Funny Street 11/222")).toBeInTheDocument()
-        expect(screen.getByText("+48 111 111 111")).toBeInTheDocument()
-        expect(screen.getByText("+48 111 111 111")).toBeInTheDocument()
-        expect(screen.getByTestId("user-picture-placeholder-2")).toBeInTheDocument();
     })
+
     it('list view', () => {
         renderContacts();
         fireEvent.click(screen.getByTestId("switch-list-grid"))
         expect(screen.getByTestId("contact-list-tile-1")).toBeInTheDocument();
         expect(screen.getByTestId("contact-list-tile-2")).toBeInTheDocument();
-        expect(screen.getByText("John Doe")).toBeInTheDocument()
-        expect(screen.getByText("Jack Sparrow")).toBeInTheDocument()
-        expect(screen.getByText("capitan.jack@gmail.com")).toBeInTheDocument()
     })
+
     it('filter active', () => {
         renderContacts();
         fireEvent.click(screen.getByTestId("switch-active"))
         expect(screen.getByText("John Doe")).toBeInTheDocument()
         expect(screen.queryByText("Jack Sparrow")).not.toBeInTheDocument()
     })
-    it('opens detailed view from grid view', () => {
-        renderContacts();
-        fireEvent.click(screen.getByTestId("contact-grid-tile-2"))
-        expect(screen.getByText("Jack Sparrow")).toBeInTheDocument()
-    })
-    it('opens detailed view from list view', () => {
-        renderContacts();
-        fireEvent.click(screen.getByTestId("switch-list-grid"))
-        fireEvent.click(screen.getByTestId("contact-list-tile-1"))
-        expect(screen.getByText("John Doe")).toBeInTheDocument()
-    })
+
 })

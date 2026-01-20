@@ -7,15 +7,14 @@ export default function Contacts() {
     const [isGridView, setIsGridView] = useState(true);
     const [onlyActiveSelected, setOnlyActiveSelected] = useState(false);
     
-    const { data: contacts } = useGetContacts()
+    const { data: contactsData, isLoading } = useGetContacts({
+        active: onlyActiveSelected ? true : undefined
+    })
 
-    const filteredContacts = contacts ?
-        contacts.filter((contact) => {
-            return !onlyActiveSelected || contact.isActive
-        }) : null
+    const contacts = contactsData || [];
 
     return (
-        <div>
+        <div className="flex flex-col min-h-screen">
             <div className="flex flex-row p-5">
                 <div className="flex flex-row mt-2 ml-2">
                     Grid
@@ -56,28 +55,33 @@ export default function Contacts() {
                     Active
                 </div>
             </div>
-            {isGridView ?
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 grid-cols-1 p-5">
-                    {filteredContacts && filteredContacts.map(contact => (
-                        <ContactGridTile key={contact.id} contact={contact} />
-                    ))}
-                </div>
-                :
-                <div className="relative">
-                    <div className="grid grid-cols-[auto_auto_2fr_2fr_2fr] md:grid-cols-[auto_auto_2fr_2fr_2fr_2fr] items-center
-                    gap-2 m-2 font-bold bg-gray-300 rounded-lg sticky top-0 border-2 border-white">
-                        <div className="w-8 h-8 sm:w-16 sm:h-16"/>
-                        <div className="w-8 h-8 sm:w-16 sm:h-16"/>
-                        <p className="ml-8">Name</p>
-                        <p className="hidden md:block">Address</p>
-                        <p>Email</p>
-                        <p>Phone</p>
+
+            <div className="flex-grow">
+                {isLoading && <div className="p-5 text-center">Loading...</div>}
+                
+                {isGridView ?
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 grid-cols-1 p-5">
+                        {contacts.map(contact => (
+                            <ContactGridTile key={contact.id} contact={contact} />
+                        ))}
                     </div>
-                    {filteredContacts && filteredContacts.map(contact => (
-                        <ContactListTile key={contact.id} contact={contact} />
-                    ))}
-                </div>
-            }
+                    :
+                    <div className="relative p-5">
+                        <div className="grid grid-cols-[auto_auto_2fr_2fr_2fr] md:grid-cols-[auto_auto_2fr_2fr_2fr_2fr] items-center
+                        gap-2 m-2 font-bold bg-gray-300 rounded-lg sticky top-0 border-2 border-white">
+                            <div className="w-8 h-8 sm:w-16 sm:h-16"/>
+                            <div className="w-8 h-8 sm:w-16 sm:h-16"/>
+                            <p className="ml-8">Name</p>
+                            <p className="hidden md:block">Address</p>
+                            <p>Email</p>
+                            <p>Phone</p>
+                        </div>
+                        {contacts.map(contact => (
+                            <ContactListTile key={contact.id} contact={contact} />
+                        ))}
+                    </div>
+                }
+            </div>
         </div>
     )
 }

@@ -66,8 +66,21 @@ describe('getContacts', () => {
         const result = await getContacts();
 
         expect(restapi.get).toHaveBeenCalledOnce();
-        expect(restapi.get).toHaveBeenCalledWith('core/contacts/');
+        expect(restapi.get).toHaveBeenCalledWith('core/contacts/', { params: undefined });
         expect(result).toEqual(contactsMock);
+    });
+
+    it('should pass parameters to API', async () => {
+        const mockedGet = vi.mocked(restapi.get);
+        mockedGet.mockResolvedValueOnce({
+            data: { results: [] },
+        } as any);
+
+        await getContacts({ active: true });
+
+        expect(restapi.get).toHaveBeenCalledWith('core/contacts/', {
+            params: { active: true }
+        });
     });
 
     it('should throw error when api call fails', async () => {
@@ -79,7 +92,7 @@ describe('getContacts', () => {
         await expect(getContacts()).rejects.toThrow('Network error');
 
         expect(restapi.get).toHaveBeenCalledOnce();
-        expect(restapi.get).toHaveBeenCalledWith('core/contacts/');
+        expect(restapi.get).toHaveBeenCalledWith('core/contacts/', { params: undefined });
     });
 });
 
