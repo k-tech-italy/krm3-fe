@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as contactsApi from '../restapi/contacts';
 import {useGetContacts, useGetContact} from "./useContacts.tsx";
-import {Contact} from "../restapi/types.ts";
+import {Contact, Page} from "../restapi/types.ts";
 
 vi.mock('../restapi/contacts');
 
@@ -29,7 +29,7 @@ describe('useContacts', () => {
     });
 
     it('should fetch contacts successfully', async () => {
-        const contactsMock = [
+        const contactsList = [
             {
                 firstName: "John",
                 lastName: "Doe",
@@ -71,7 +71,14 @@ describe('useContacts', () => {
             }
         ] as Contact[]
 
-        vi.spyOn(contactsApi, 'getContacts').mockResolvedValueOnce(contactsMock);
+        const contactsPageMock: Page<Contact> = {
+            count: 2,
+            next: null,
+            previous: null,
+            results: contactsList
+        };
+
+        vi.spyOn(contactsApi, 'getContacts').mockResolvedValueOnce(contactsPageMock);
 
         const { result } = renderHook(() => useGetContacts(), {
             wrapper: createWrapper(),
@@ -82,7 +89,7 @@ describe('useContacts', () => {
         });
 
         expect(contactsApi.getContacts).toHaveBeenCalledOnce();
-        expect(result.current.data).toEqual(contactsMock);
+        expect(result.current.data).toEqual(contactsPageMock);
     });
 
     it('should handle error correctly', async () => {

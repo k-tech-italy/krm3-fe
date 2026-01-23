@@ -1,7 +1,7 @@
 import {useQuery} from "react-query";
 import {getContacts, getContact} from "../restapi/contacts.ts";
 
-export function useGetContacts(params?: { active?: boolean }){
+export function useGetContacts(params?: { active?: boolean, page?: number }){
     return useQuery(
         ['contacts', params],
         async () => getContacts(params),

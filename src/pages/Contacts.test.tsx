@@ -56,8 +56,18 @@ describe('Contact Page', () => {
             if (params?.active) {
                 results = results.filter(c => c.isActive);
             }
+            
+            const page = params?.page || 1;
+            const next = page === 1 ? "http://api/contacts?page=2" : null;
+            const previous = page > 1 ? "http://api/contacts?page=1" : null;
+
             return {
-                data: results,
+                data: {
+                    results: results,
+                    count: 20,
+                    next: next,
+                    previous: previous
+                },
                 isLoading: false
             } as any;
         });
@@ -93,6 +103,31 @@ describe('Contact Page', () => {
         fireEvent.click(screen.getByTestId("switch-active"))
         expect(screen.getByText("John Doe")).toBeInTheDocument()
         expect(screen.queryByText("Jack Sparrow")).not.toBeInTheDocument()
+    })
+
+    it('pagination next page', () => {
+        renderContacts();
+        
+        const nextButton = screen.getByLabelText("Next Page");
+        expect(nextButton).not.toBeDisabled();
+        
+        fireEvent.click(nextButton);
+        
+        expect(screen.getByText("Page 2")).toBeInTheDocument();
+    })
+
+    it('pagination previous page', () => {
+        renderContacts();
+
+        fireEvent.click(screen.getByLabelText("Next Page"));
+        expect(screen.getByText("Page 2")).toBeInTheDocument();
+
+        const prevButton = screen.getByLabelText("Previous Page");
+        expect(prevButton).not.toBeDisabled();
+
+        fireEvent.click(prevButton);
+        
+        expect(screen.getByText("Page 1")).toBeInTheDocument();
     })
 
 })
