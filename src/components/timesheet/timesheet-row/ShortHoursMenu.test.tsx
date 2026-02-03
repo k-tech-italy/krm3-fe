@@ -162,6 +162,16 @@ describe("ShortHoursMenu (extended)", () => {
     expect(mutateAsyncMock).toHaveBeenCalled();
   });
 
+  it("calls mutateAsync with autoFill true when 'Fill' is clicked", async () => {
+    renderMenu();
+    fireEvent.click(screen.getByText("Fill"));
+    expect(mutateAsyncMock).toHaveBeenCalledWith({
+      dates: [todayStr],
+      taskId: 1,
+      autoFill: true,
+    });
+  });
+
   it("does not render menu if openShortMenu is not visible", () => {
     const queryClient = new QueryClient();
     const { container } = render(
