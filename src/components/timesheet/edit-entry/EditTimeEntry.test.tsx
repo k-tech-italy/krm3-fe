@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import EditTimeEntry from "./EditTimeEntry";
 import { vi } from "vitest";
+import { toast } from "react-toastify";
 import EditDayEntry from "./EditDayEntry.tsx";
 
 const mutateAsyncMock = vi.fn().mockResolvedValue(undefined);
@@ -18,6 +19,11 @@ vi.mock("../../../hooks/useTimesheet", () => ({
     isLoading: false,
     error: null,
   }),
+}));
+vi.mock("react-toastify", () => ({
+  toast: {
+    promise: vi.fn(),
+  },
 }));
 vi.mock("react-tooltip", () => ({
   Tooltip: () => <div data-testid="tooltip" />,
@@ -167,6 +173,17 @@ describe("EditTimeEntry", () => {
         })
       );
     });
+
+    expect(toast.promise).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        pending: "Adding hours...",
+        success: "Hours added successfully",
+      }),
+      expect.objectContaining({
+        autoClose: 2000,
+      })
+    );
   });
 
   it("calls deleteTimeEntries when delete button is clicked", async () => {
@@ -182,6 +199,17 @@ describe("EditTimeEntry", () => {
     await waitFor(() => {
       expect(deleteAsyncMock).toHaveBeenCalledWith([1, 2]);
     });
+
+    expect(toast.promise).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        pending: "Deleting hours...",
+        success: "Hours deleted successfully",
+      }),
+      expect.objectContaining({
+        autoClose: 2000,
+      })
+    );
   });
 
   it("handles date change for fromDate", () => {
@@ -305,4 +333,39 @@ describe("EditTimeEntry", () => {
 
     expect(fromDatePicker).toHaveValue("2024-05-31")
   })
+
+  it("does not close modal when createTimeEntries fails", async () => {
+    mutateAsyncMock.mockRejectedValueOnce(new Error("Server error"));
+    render(<EditTimeEntry {...baseProps} />);
+    const dayInput = document.getElementById("daytime-input") as HTMLInputElement;
+    const saveButton = screen.getByText(/save/i);
+
+    fireEvent.change(dayInput, { target: { value: "8" } });
+    fireEvent.click(saveButton);
+
+    await waitFor(() => {
+      expect(mutateAsyncMock).toHaveBeenCalled();
+    });
+
+    expect(toast.promise).toHaveBeenCalled();
+    expect(baseProps.closeModal).not.toHaveBeenCalled();
+  });
+
+  it("does not close modal when deleteTimeEntries fails", async () => {
+    deleteAsyncMock.mockRejectedValueOnce(new Error("Delete failed"));
+    const timeEntries = [
+      { id: 1, date: "2024-06-01", task: 1, dayShiftHours: 8, nightShiftHours: 0, travelHours: 0, onCallHours: 0, sickHours: 0, holidayHours: 0, specialLeaveHours: 0, leaveHours: 0, bankTo: 0, bankFrom: 0, restHours: 0 },
+    ];
+    render(<EditTimeEntry {...baseProps} timeEntries={timeEntries} />);
+    const deleteButton = screen.getByText(/delete/i);
+
+    fireEvent.click(deleteButton);
+
+    await waitFor(() => {
+      expect(deleteAsyncMock).toHaveBeenCalled();
+    });
+
+    expect(toast.promise).toHaveBeenCalled();
+    expect(baseProps.closeModal).not.toHaveBeenCalled();
+  });
 });

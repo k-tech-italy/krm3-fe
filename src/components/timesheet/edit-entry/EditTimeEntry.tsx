@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
 import "react-datepicker/dist/react-datepicker.css";
 import { Days, Task, TimeEntry } from "../../../restapi/types.ts";
 import {
@@ -169,7 +170,7 @@ export default function EditTimeEntry({
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    createTimeEntries({
+    const promise = createTimeEntries({
       taskId: task.id,
       dates: getDatesToSave(),
       nightShiftHours: nightShiftHours,
@@ -177,7 +178,28 @@ export default function EditTimeEntry({
       onCallHours: onCallHours,
       travelHours: travelHours,
       comment: comment,
-    }).then(() => closeModal());
+    });
+
+    toast.promise(
+      promise,
+      {
+        pending: "Adding hours...",
+        success: "Hours added successfully",
+        error: {
+          render({ data }) {
+            return <div>{displayErrorMessage(data)}</div>;
+          },
+        },
+      },
+      {
+        autoClose: 2000,
+        theme: "light",
+        hideProgressBar: false,
+        draggable: true,
+      }
+    );
+
+    promise.then(() => closeModal()).catch(() => {});
   };
 
   function handleDeleteEntries() {
@@ -189,7 +211,28 @@ export default function EditTimeEntry({
           task.id === timeEntry.task
       )
       .map((timeEntry) => timeEntry.id);
-    deleteTimeEntries(timeEntriesIds).then(() => closeModal());
+    const promise = deleteTimeEntries(timeEntriesIds);
+
+    toast.promise(
+      promise,
+      {
+        pending: "Deleting hours...",
+        success: "Hours deleted successfully",
+        error: {
+          render({ data }) {
+            return <div>{displayErrorMessage(data)}</div>;
+          },
+        },
+      },
+      {
+        autoClose: 2000,
+        theme: "light",
+        hideProgressBar: false,
+        draggable: true,
+      }
+    );
+
+    promise.then(() => closeModal()).catch(() => {});
   }
 
   return (
