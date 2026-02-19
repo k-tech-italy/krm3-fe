@@ -128,6 +128,8 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             timeEntries={timesheet.timeEntries.filter(
               (timeEntry) => timeEntry.task === task.id
             )}
+            allTimeEntries={timesheet.timeEntries}
+            schedule={schedule}
           />
         )}
         <TimeEntryCell

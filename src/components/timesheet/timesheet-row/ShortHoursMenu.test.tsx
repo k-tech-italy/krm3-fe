@@ -1,8 +1,9 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { ShortHoursMenu } from "./ShortHoursMenu";
+import {render, screen, fireEvent} from "@testing-library/react";
+import {ShortHoursMenu} from "./ShortHoursMenu";
 import React from "react";
-import { QueryClient, QueryClientProvider } from "react-query";
-import { vi } from "vitest";
+import {QueryClient, QueryClientProvider} from "react-query";
+import {vi} from "vitest";
+import {normalizeDate} from "../utils/dates";
 
 const mutateDeleteMock = vi.fn().mockResolvedValue(undefined);
 
@@ -31,7 +32,7 @@ vi.mock("react-toastify", () => {
 
 describe("ShortHoursMenu (extended)", () => {
   const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
+  const todayStr = normalizeDate(today);
   const baseProps = {
     dayToOpen: today,
     taskId: 1,
@@ -42,12 +43,17 @@ describe("ShortHoursMenu (extended)", () => {
     },
     readOnly: false,
     selectedResourceId: 1,
-    setOpenShortMenu: () => {},
-    openTimeEntryModalHandler: () => {},
+    setOpenShortMenu: () => {
+    },
+    openTimeEntryModalHandler: () => {
+    },
     timeEntries: [],
+    allTimeEntries: [],
+    schedule: {[todayStr.replaceAll("-", "_")]: 8},
     days: {},
     holidayOrSickDays: [],
   };
+
   function renderMenu(props = {}) {
     const queryClient = new QueryClient();
     return render(
@@ -66,7 +72,8 @@ describe("ShortHoursMenu (extended)", () => {
     expect(screen.queryByTestId("short-menu-delete-button")).not.toBeInTheDocument();
   });
   it("renders delete option if timeentry is selected", () => {
-    renderMenu({timeEntries: [
+    renderMenu({
+      timeEntries: [
         {
           id: 1,
           dayShiftHours: 2,
@@ -88,7 +95,8 @@ describe("ShortHoursMenu (extended)", () => {
     expect(screen.getByTestId("short-menu-delete-button")).toBeInTheDocument();
   })
   it("delete is called with correct parameters", () => {
-    renderMenu({timeEntries: [
+    renderMenu({
+      timeEntries: [
         {
           id: 1,
           dayShiftHours: 2,
@@ -145,13 +153,13 @@ describe("ShortHoursMenu (extended)", () => {
   })
 
   it("renders readOnly option", () => {
-    renderMenu({ readOnly: true });
+    renderMenu({readOnly: true});
     expect(screen.getByText("Details")).toBeInTheDocument();
   });
 
   it("calls openTimeEntryModalHandler when 'More' is clicked", () => {
     const openTimeEntryModalHandler = vi.fn();
-    renderMenu({ openTimeEntryModalHandler });
+    renderMenu({openTimeEntryModalHandler});
     fireEvent.click(screen.getByText("More"));
     expect(openTimeEntryModalHandler).toHaveBeenCalled();
   });
@@ -162,9 +170,9 @@ describe("ShortHoursMenu (extended)", () => {
     expect(mutateAsyncMock).toHaveBeenCalled();
   });
 
-  it("calls mutateAsync with autoFill true when 'Fill' is clicked", async () => {
+  it("calls mutateAsync with autoFill true when 'Autofill' is clicked", async () => {
     renderMenu();
-    fireEvent.click(screen.getByText("Fill"));
+    fireEvent.click(screen.getByText("Autofill"));
     expect(mutateAsyncMock).toHaveBeenCalledWith({
       dates: [todayStr],
       taskId: 1,
@@ -172,11 +180,61 @@ describe("ShortHoursMenu (extended)", () => {
     });
   });
 
+  it("hides Autofill button when total hours reach schedule", () => {
+    const todayKey = todayStr.replaceAll("-", "_");
+    renderMenu({
+      allTimeEntries: [
+        {
+          id: 1,
+          date: todayStr,
+          dayShiftHours: 8,
+          nightShiftHours: 0,
+          restHours: 0,
+          travelHours: 0,
+          task: 1,
+          sickHours: 0,
+          holidayHours: 0,
+          leaveHours: 0,
+          onCallHours: 0,
+          specialLeaveHours: 0,
+        },
+      ],
+      schedule: {[todayKey]: 8},
+    });
+    expect(screen.queryByText("Autofill")).not.toBeInTheDocument();
+  });
+
+  it("shows Autofill button when total hours are less than schedule", () => {
+    const todayKey = todayStr.replaceAll("-", "_");
+    renderMenu({
+      allTimeEntries: [
+        {
+          id: 1,
+          date: todayStr,
+          dayShiftHours: 4,
+          nightShiftHours: 0,
+          restHours: 0,
+          travelHours: 0,
+          task: 1,
+          sickHours: 0,
+          holidayHours: 0,
+          leaveHours: 0,
+          onCallHours: 0,
+          specialLeaveHours: 0,
+          bankFrom: 0,
+          bankTo: 0,
+        },
+      ],
+      schedule: {[todayKey]: 8},
+    });
+    expect(screen.getByText("Autofill")).toBeInTheDocument();
+  });
+
   it("does not render menu if openShortMenu is not visible", () => {
     const queryClient = new QueryClient();
-    const { container } = render(
+    const {container} = render(
       <QueryClientProvider client={queryClient}>
-        <ShortHoursMenu {...baseProps} openShortMenu={null} />
+        <ShortHoursMenu {...baseProps} openShortMenu={null}/>
       </QueryClientProvider>
     );
     expect(container.firstChild).toBeNull();
@@ -184,7 +242,7 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("shows confirm modal when clicking hour with existing entries", () => {
     // Simulate daysWithTimeEntries present
-    const timeEntries = [{ date: todayStr, task: 1 }];
+    const timeEntries = [{date: todayStr, task: 1}];
     renderMenu({
       timeEntries,
       openShortMenu: {
@@ -201,7 +259,7 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("handles confirm modal actions", () => {
     // Simulate daysWithTimeEntries present
-    const timeEntries = [{ date: todayStr, task: 1 }];
+    const timeEntries = [{date: todayStr, task: 1}];
     renderMenu({
       timeEntries,
       openShortMenu: {
@@ -231,7 +289,7 @@ describe("ShortHoursMenu (extended)", () => {
   it("handles confirm submission without overwrite when dates with no entries exist", () => {
     const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
     const setOpenShortMenuMock = vi.fn();
-    const timeEntries = [{ date: todayStr, task: 1 }];
+    const timeEntries = [{date: todayStr, task: 1}];
     renderMenu({
       timeEntries,
       setOpenShortMenu: setOpenShortMenuMock,
@@ -252,7 +310,7 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("handles confirm modal close", () => {
     const setOpenShortMenuMock = vi.fn();
-    const timeEntries = [{ date: todayStr, task: 1 }];
+    const timeEntries = [{date: todayStr, task: 1}];
     renderMenu({
       timeEntries,
       setOpenShortMenu: setOpenShortMenuMock,
@@ -266,7 +324,7 @@ describe("ShortHoursMenu (extended)", () => {
     fireEvent.click(screen.getByText("2h"));
     expect(screen.getByText(/Overwrite existing entries/i)).toBeInTheDocument();
     // Find and click the close button (assuming Krm3Modal has a close button)
-    const closeButton = screen.getByRole('button', { name: /close/i }) || document.querySelector('[aria-label="close"]');
+    const closeButton = screen.getByRole('button', {name: /close/i}) || document.querySelector('[aria-label="close"]');
     if (closeButton) {
       fireEvent.click(closeButton);
       expect(setOpenShortMenuMock).toHaveBeenCalledWith(undefined);
@@ -275,7 +333,7 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("does not close menu on mouse leave when confirm modal is open", () => {
     const setOpenShortMenuMock = vi.fn();
-    const timeEntries = [{ date: todayStr, task: 1 }];
+    const timeEntries = [{date: todayStr, task: 1}];
     renderMenu({
       timeEntries,
       setOpenShortMenu: setOpenShortMenuMock,
@@ -300,7 +358,7 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("handles isDeleteButtonVisible when openShortMenu is null", () => {
     // This tests the early return in isDeleteButtonVisible
-    renderMenu({ openShortMenu: null });
+    renderMenu({openShortMenu: null});
     // Component should not render, so no delete button should exist
     expect(screen.queryByTestId("short-menu-delete-button")).not.toBeInTheDocument();
   });

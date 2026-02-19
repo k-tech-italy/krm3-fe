@@ -2,7 +2,7 @@ import {restapi} from "./restapi";
 import {Days, SpecialReason, TimeEntry, Timesheet} from "./types";
 import {normalizeDate} from "../components/timesheet/utils/dates.ts";
 
-const sanitzeDays = (days: Days) => {
+const sanitizeDays = (days: Days) => {
     const newDays: Days = {};
     Object.keys(days).forEach((key) => {
         const [year, month, day] = key.split("_");
@@ -17,7 +17,7 @@ export function getTimesheet(params: {
     endDate: string;
 }): Promise<Timesheet> {
     return restapi.get<Timesheet>(`timesheet/`, {params}).then((res) => {
-        res.data.days = sanitzeDays(res.data.days);
+        res.data.days = sanitizeDays(res.data.days);
         return res.data;
     });
 }
@@ -82,7 +82,7 @@ export function calculateTotalHoursForDay(
                 (Number(timeEntry.specialLeaveHours) || 0) +
                 (Number(timeEntry.restHours) || 0) +
                 (Number(timeEntry.travelHours) || 0) +
-                (Number(timeEntry.bankFrom)) -
+                (Number(timeEntry.bankFrom) || 0) -
                 (Number(timeEntry.bankTo) || 0)
             );
         }
