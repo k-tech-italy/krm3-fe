@@ -66,7 +66,7 @@ export function submitTimesheet(
 
 export function calculateTotalHoursForDay(
     timeEntries: TimeEntry[],
-    day: Date
+    day: Date | string
 ) {
     const formattedDay = normalizeDate(day);
 

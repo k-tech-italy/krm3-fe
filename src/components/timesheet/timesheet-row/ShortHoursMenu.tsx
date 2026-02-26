@@ -213,35 +213,41 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
         toast.error("Invalid configuration");
         return;
       }
-      if (selectedDates && selectedDates.length === 0) {
-        toast.warning(
-          "All selected dates already have entries. You can only overwrite it."
-        );
+
+      const datesToProcess = selectedDates || menuData.selectedDates;
+
+      const autofillDates = datesToProcess.filter((dateStr) => {
+        const dayKey = normalizeDate(dateStr).replaceAll("-", "_");
+        const scheduledHours = schedule[dayKey] ?? 0;
+        const totalWorkedHours = calculateTotalHoursForDay(allTimeEntries, dateStr);
+        return totalWorkedHours < scheduledHours;
+      });
+
+      if (autofillDates.length === 0) {
+        toast.warning("No dates in the selected range require autofilling.");
         return;
       }
 
       const promise = createTimeEntries({
-        dates: selectedDates ? selectedDates : menuData.selectedDates,
+        dates: autofillDates,
         taskId,
         autoFill: true,
       });
 
-
-      await toast.promise(
-        promise,
-        {
-          pending: "Filling hours...",
-          success: "Hours filled successfully",
-          error: {
-            render({data}) {
-              return <div> {displayErrorMessage(data)} </div>;
-            },
+      await toast.promise(promise, {
+        pending: "Filling hours...",
+        success: "Hours filled successfully",
+        error: {
+          render({data}) {
+            return <div> {displayErrorMessage(data)} </div>;
           },
-        }
-      );
+        },
+      });
 
       setOpenShortMenu?.(undefined);
-    }, [menuData, openShortMenu, day, taskId, createTimeEntries, setOpenShortMenu]);
+    },
+    [menuData, taskId, createTimeEntries, setOpenShortMenu, schedule, allTimeEntries]
+  );
 
 
   const handleButtonClick = useCallback(
@@ -325,12 +331,15 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
   }
 
   const isAutofillButtonVisible = () => {
-    if (openShortMenu == null || !schedule)
+    if (openShortMenu == null || !schedule || !menuData)
       return false
-    const dayKey = normalizeDate(day).replaceAll("-", "_");
-    const scheduledHours = schedule[dayKey];
-    const totalWorkedHours = calculateTotalHoursForDay(allTimeEntries, day);
-    return totalWorkedHours < (scheduledHours ?? 0)
+
+    return menuData.selectedDates.some(dateStr => {
+      const dayKey = normalizeDate(dateStr).replaceAll("-", "_");
+      const scheduledHours = schedule[dayKey] ?? 0;
+      const totalWorkedHours = calculateTotalHoursForDay(allTimeEntries, dateStr);
+      return totalWorkedHours < scheduledHours;
+    });
   }
   return (
     <div className="relative" ref={menuRef}>

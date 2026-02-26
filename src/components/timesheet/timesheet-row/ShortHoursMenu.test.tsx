@@ -3,7 +3,6 @@ import {ShortHoursMenu} from "./ShortHoursMenu";
 import React from "react";
 import {QueryClient, QueryClientProvider} from "react-query";
 import {vi} from "vitest";
-import {normalizeDate} from "../utils/dates";
 
 const mutateDeleteMock = vi.fn().mockResolvedValue(undefined);
 
@@ -31,8 +30,10 @@ vi.mock("react-toastify", () => {
 });
 
 describe("ShortHoursMenu (extended)", () => {
-  const today = new Date();
-  const todayStr = normalizeDate(today);
+  const todayStr = "2026-02-26";
+  const today = new Date(todayStr);
+  const yesterdayStr = "2026-02-25";
+
   const baseProps = {
     dayToOpen: today,
     taskId: 1,
@@ -71,6 +72,7 @@ describe("ShortHoursMenu (extended)", () => {
     expect(screen.getByText("More")).toBeInTheDocument();
     expect(screen.queryByTestId("short-menu-delete-button")).not.toBeInTheDocument();
   });
+
   it("renders delete option if timeentry is selected", () => {
     renderMenu({
       timeEntries: [
@@ -80,7 +82,7 @@ describe("ShortHoursMenu (extended)", () => {
           nightShiftHours: 1,
           restHours: 0,
           travelHours: 0,
-          date: new Date().toISOString().slice(0, 10),
+          date: todayStr,
           task: 1,
           sickHours: 0,
           holidayHours: 0,
@@ -94,6 +96,7 @@ describe("ShortHoursMenu (extended)", () => {
     })
     expect(screen.getByTestId("short-menu-delete-button")).toBeInTheDocument();
   })
+
   it("delete is called with correct parameters", () => {
     renderMenu({
       timeEntries: [
@@ -103,7 +106,7 @@ describe("ShortHoursMenu (extended)", () => {
           nightShiftHours: 0,
           restHours: 0,
           travelHours: 0,
-          date: new Date().toISOString().slice(0, 10),
+          date: todayStr,
           task: 1,
           sickHours: 0,
           holidayHours: 0,
@@ -119,8 +122,7 @@ describe("ShortHoursMenu (extended)", () => {
           nightShiftHours: 0,
           restHours: 0,
           travelHours: 0,
-          // yesterday
-          date: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
+          date: yesterdayStr,
           task: 1,
           sickHours: 0,
           holidayHours: 0,
@@ -136,7 +138,7 @@ describe("ShortHoursMenu (extended)", () => {
           nightShiftHours: 0,
           restHours: 0,
           travelHours: 0,
-          date: new Date().toISOString().slice(0, 10),
+          date: todayStr,
           task: 2,
           sickHours: 0,
           holidayHours: 0,
@@ -287,7 +289,6 @@ describe("ShortHoursMenu (extended)", () => {
   });
 
   it("handles confirm submission without overwrite when dates with no entries exist", () => {
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
     const setOpenShortMenuMock = vi.fn();
     const timeEntries = [{date: todayStr, task: 1}];
     renderMenu({
@@ -295,7 +296,7 @@ describe("ShortHoursMenu (extended)", () => {
       setOpenShortMenu: setOpenShortMenuMock,
       openShortMenu: {
         ...baseProps.openShortMenu,
-        startDate: yesterday,
+        startDate: yesterdayStr,
         endDate: todayStr,
         taskId: "1",
       },
@@ -362,4 +363,129 @@ describe("ShortHoursMenu (extended)", () => {
     // Component should not render, so no delete button should exist
     expect(screen.queryByTestId("short-menu-delete-button")).not.toBeInTheDocument();
   });
-}); 
+
+  it("shows Autofill button if ANY day in the range needs filling", () => {
+    const yesterdayKey = yesterdayStr.replaceAll("-", "_");
+    const todayKey = todayStr.replaceAll("-", "_");
+
+    renderMenu({
+      openShortMenu: {
+        startDate: yesterdayStr,
+        endDate: todayStr,
+        taskId: "1",
+      },
+      allTimeEntries: [
+        {
+          id: 1,
+          date: todayStr,
+          dayShiftHours: 8,
+          nightShiftHours: 0,
+          restHours: 0,
+          travelHours: 0,
+          task: 1,
+          sickHours: 0,
+          holidayHours: 0,
+          leaveHours: 0,
+          onCallHours: 0,
+          specialLeaveHours: 0
+        },
+      ],
+      schedule: {
+        [todayKey]: 8,
+        [yesterdayKey]: 8,
+      },
+    });
+
+    expect(screen.getByText("Autofill")).toBeInTheDocument();
+  });
+
+  it("hides Autofill button if ALL days in the range are full", () => {
+    const yesterdayKey = yesterdayStr.replaceAll("-", "_");
+    const todayKey = todayStr.replaceAll("-", "_");
+
+    renderMenu({
+      openShortMenu: {
+        startDate: yesterdayStr,
+        endDate: todayStr,
+        taskId: "1",
+      },
+      allTimeEntries: [
+        {
+          id: 1,
+          date: todayStr,
+          dayShiftHours: 8,
+          nightShiftHours: 0,
+          restHours: 0,
+          travelHours: 0,
+          task: 1,
+          sickHours: 0,
+          holidayHours: 0,
+          leaveHours: 0,
+          onCallHours: 0,
+          specialLeaveHours: 0
+        },
+        {
+          id: 2,
+          date: yesterdayStr,
+          dayShiftHours: 8,
+          nightShiftHours: 0,
+          restHours: 0,
+          travelHours: 0,
+          task: 1,
+          sickHours: 0,
+          holidayHours: 0,
+          leaveHours: 0,
+          onCallHours: 0,
+          specialLeaveHours: 0
+        },
+      ],
+      schedule: {
+        [todayKey]: 8,
+        [yesterdayKey]: 8,
+      },
+    });
+
+    expect(screen.queryByText("Autofill")).not.toBeInTheDocument();
+  });
+
+  it("Autofill only processes dates that require hours", async () => {
+    const yesterdayKey = yesterdayStr.replaceAll("-", "_");
+    const todayKey = todayStr.replaceAll("-", "_");
+
+    renderMenu({
+      openShortMenu: {
+        startDate: yesterdayStr,
+        endDate: todayStr,
+        taskId: "1",
+      },
+      allTimeEntries: [
+        {
+          id: 1,
+          date: todayStr,
+          dayShiftHours: 8,
+          nightShiftHours: 0,
+          restHours: 0,
+          travelHours: 0,
+          task: 1,
+          sickHours: 0,
+          holidayHours: 0,
+          leaveHours: 0,
+          onCallHours: 0,
+          specialLeaveHours: 0
+        },
+      ],
+      schedule: {
+        [todayKey]: 8,
+        [yesterdayKey]: 8,
+      },
+    });
+
+    fireEvent.click(screen.getByText("Autofill"));
+
+    expect(mutateAsyncMock).toHaveBeenCalledWith({
+      dates: [yesterdayStr],
+      taskId: 1,
+      autoFill: true,
+    });
+  });
+});
