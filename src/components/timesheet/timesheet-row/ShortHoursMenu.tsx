@@ -231,7 +231,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       const promise = createTimeEntries({
         dates: autofillDates,
         taskId,
-        autoFill: true,
+        autofill: true,
       });
 
       await toast.promise(promise, {

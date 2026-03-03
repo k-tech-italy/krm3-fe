@@ -172,13 +172,13 @@ describe("ShortHoursMenu (extended)", () => {
     expect(mutateAsyncMock).toHaveBeenCalled();
   });
 
-  it("calls mutateAsync with autoFill true when 'Autofill' is clicked", async () => {
+  it("calls mutateAsync with autofill true when 'Autofill' is clicked", async () => {
     renderMenu();
     fireEvent.click(screen.getByText("Autofill"));
     expect(mutateAsyncMock).toHaveBeenCalledWith({
       dates: [todayStr],
       taskId: 1,
-      autoFill: true,
+      autofill: true,
     });
   });
 
@@ -485,7 +485,7 @@ describe("ShortHoursMenu (extended)", () => {
     expect(mutateAsyncMock).toHaveBeenCalledWith({
       dates: [yesterdayStr],
       taskId: 1,
-      autoFill: true,
+      autofill: true,
     });
   });
 });
