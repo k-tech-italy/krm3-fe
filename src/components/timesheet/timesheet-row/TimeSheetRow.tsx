@@ -1,18 +1,18 @@
-import React, { useMemo } from "react";
-import { TaskHeader } from "./TaskCell";
-import { TimeEntryCell } from "./TimeEntryCell";
-import { getTaskColor } from "../utils/utils";
-import { isNonWorkingDay } from "../utils/timeEntry";
+import React, {useMemo} from "react";
+import {TaskHeader} from "./TaskCell";
+import {TimeEntryCell} from "./TimeEntryCell";
+import {getTaskColor} from "../utils/utils";
+import {isNonWorkingDay} from "../utils/timeEntry";
 import {
   getTimeEntriesForTaskAndDay, isClosed,
   isHoliday,
   isSickDay,
 } from "../utils/timeEntry";
 import {Schedule, Task, TimeEntryType, Timesheet} from "../../../restapi/types";
-import { ShortHoursMenu } from "./ShortHoursMenu";
-import { normalizeDate } from "../utils/dates";
-import { getDayType } from "../utils/timeEntry";
-import { DayType } from "../../../restapi/types";
+import {ShortHoursMenu} from "./ShortHoursMenu";
+import {normalizeDate} from "../utils/dates";
+import {getDayType} from "../utils/timeEntry";
+import {DayType} from "../../../restapi/types";
 import {Plane} from "lucide-react";
 import {Tooltip} from "react-tooltip";
 
@@ -38,25 +38,25 @@ export interface TimeSheetRowProps {
 }
 
 export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
-  timesheet,
-  index,
-  scheduledDays,
-  task,
-  isMonthView,
-  isColumnView,
-  isCellInDragRange,
-  isColumnHighlighted,
-  openTimeEntryModalHandler,
-  openShortMenu,
-  setOpenShortMenu,
-  readOnly,
-  selectedResourceId,
-  holidayOrSickDays,
-  selectedWeekdays,
-  schedule
-}) => {
+                                                            timesheet,
+                                                            index,
+                                                            scheduledDays,
+                                                            task,
+                                                            isMonthView,
+                                                            isColumnView,
+                                                            isCellInDragRange,
+                                                            isColumnHighlighted,
+                                                            openTimeEntryModalHandler,
+                                                            openShortMenu,
+                                                            setOpenShortMenu,
+                                                            readOnly,
+                                                            selectedResourceId,
+                                                            holidayOrSickDays,
+                                                            selectedWeekdays,
+                                                            schedule
+                                                          }) => {
   // Generate color once per task row
-  const { backgroundColor, borderColor } = useMemo(
+  const {backgroundColor, borderColor} = useMemo(
     () => getTaskColor(index, task.color),
     [task.id]
   );
@@ -104,12 +104,12 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
     const type: TimeEntryType = isHoliday(day, timesheet.timeEntries)
       ? TimeEntryType.HOLIDAY
       : isSickDay(day, timesheet.timeEntries)
-      ? TimeEntryType.SICK
-      : isTaskFinished(day, task)
-      ? TimeEntryType.FINISHED
-      : isLockedDay
-      ? TimeEntryType.CLOSED
-      : TimeEntryType.TASK;
+        ? TimeEntryType.SICK
+        : isTaskFinished(day, task)
+          ? TimeEntryType.FINISHED
+          : isLockedDay
+            ? TimeEntryType.CLOSED
+            : TimeEntryType.TASK;
 
     return (
       <div key={dayIndex} className="w-full h-full cursor-pointer relative">
@@ -125,10 +125,10 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
             openTimeEntryModalHandler={() => openTimeEntryModalHandler(task)}
             readOnly={readOnly}
             selectedResourceId={selectedResourceId}
-            timeEntries={timesheet.timeEntries.filter(
+            taskEntries={timesheet.timeEntries.filter(
               (timeEntry) => timeEntry.task === task.id
             )}
-            allTimeEntries={timesheet.timeEntries}
+            timeEntries={timesheet.timeEntries}
             schedule={schedule}
           />
         )}
@@ -143,7 +143,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
           schedule={schedule}
           isColumnHighlighted={isColumnHighlighted(dayIndex)}
           isInDragRange={isCellInDragRange(day, task.id)}
-          colors={{ backgroundColor, borderColor }}
+          colors={{backgroundColor, borderColor}}
           readOnly={readOnly}
           isNoWorkDay={isNonWorkingDay(day, timesheet.days)}
           isInSelectedWeekdays={
@@ -161,7 +161,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
     <React.Fragment key={task.id}>
       <TaskHeader
         isColumnView={isColumnView}
-        colors={{ backgroundColor, borderColor }}
+        colors={{backgroundColor, borderColor}}
         task={task}
         isMonthView={isMonthView}
       />
@@ -185,29 +185,29 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
 
           <span className={`mx-1 ${isMonthView ? "w-[14px]" : "w-[20px]"}`}>
             {timeEntries.some(entry => entry.travelHours > 0) && (
-                <>
-                  <Plane
-                      size={isMonthView ? 14 : 20}
-                      data-tooltip-id={`plane-tooltip-${task.id}`}
-                  />
-                  <Tooltip id={`plane-tooltip-${task.id}`} place="top" style={{ zIndex: 9999 }}>
-                    <div className="text-sm space-y-1">
-                      {timeEntries
-                          .filter(entry => entry.travelHours > 0)
-                          .map(entry => (
-                              <div key={entry.id}>
-                                <span>{entry.date}:</span> {entry.travelHours}h
-                              </div>
-                          ))}
-                    </div>
-                  </Tooltip>
-                </>
+              <>
+                <Plane
+                  size={isMonthView ? 14 : 20}
+                  data-tooltip-id={`plane-tooltip-${task.id}`}
+                />
+                <Tooltip id={`plane-tooltip-${task.id}`} place="top" style={{zIndex: 9999}}>
+                  <div className="text-sm space-y-1">
+                    {timeEntries
+                      .filter(entry => entry.travelHours > 0)
+                      .map(entry => (
+                        <div key={entry.id}>
+                          <span>{entry.date}:</span> {entry.travelHours}h
+                        </div>
+                      ))}
+                  </div>
+                </Tooltip>
+              </>
             )}
           </span>
         </p>
       </div>
       {scheduledDays.map((day, dayIndex) =>
-          renderDayCell(day, dayIndex, lockedDays)
+        renderDayCell(day, dayIndex, lockedDays)
       )}
     </React.Fragment>
   );

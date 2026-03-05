@@ -4,7 +4,7 @@ import {useCreateTimeEntry, useDeleteTimeEntries} from "../../../hooks/useTimesh
 import {displayErrorMessage, getTimeEntriesForSelectedPeriod} from "../utils/utils";
 import {formatDate, getDatesBetween, normalizeDate} from "../utils/dates";
 import {Days, Schedule, TimeEntry} from "../../../restapi/types";
-import {getDatesWithAndWithoutTimeEntries} from "../utils/timeEntry";
+import {getDatesWithAndWithoutTimeEntries, isAutofillable} from "../utils/timeEntry";
 import Krm3Modal from "../../commons/krm3Modal";
 import Krm3Button from "../../commons/Krm3Button";
 import WarningExistingEntry from "../edit-entry/WarningExistEntry";
@@ -25,8 +25,8 @@ interface ShortHoursMenuProps {
     value: { startDate: string; endDate: string; taskId: string } | undefined
   ) => void;
   openTimeEntryModalHandler: () => void;
+  taskEntries: TimeEntry[];
   timeEntries: TimeEntry[];
-  allTimeEntries: TimeEntry[];
   schedule: Schedule;
   days: Days;
   holidayOrSickDays: String[];
@@ -59,8 +59,8 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     selectedResourceId,
     setOpenShortMenu,
     openTimeEntryModalHandler,
+    taskEntries,
     timeEntries,
-    allTimeEntries,
     schedule,
     days,
     holidayOrSickDays,
@@ -93,7 +93,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     } = getDatesWithAndWithoutTimeEntries(
       startDate,
       endDate,
-      timeEntries,
+      taskEntries,
       days,
       true,
       false
@@ -111,7 +111,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
         (date) => !holidayOrSickDays.includes(normalizeDate(date))
       ),
     };
-  }, [openShortMenu, day, taskId, timeEntries]);
+  }, [openShortMenu, day, taskId, taskEntries]);
 
   const options = useMemo(() => {
     return readOnly ? READ_ONLY_OPTIONS : HOUR_OPTIONS;
@@ -216,25 +216,20 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
 
       const datesToProcess = selectedDates || menuData.selectedDates;
 
-      const autofillDates = datesToProcess.filter((dateStr) => {
-        const dayKey = normalizeDate(dateStr).replaceAll("-", "_");
-        const scheduledHours = schedule[dayKey] ?? 0;
-        const totalWorkedHours = calculateTotalHoursForDay(allTimeEntries, dateStr);
-        return totalWorkedHours < scheduledHours;
-      });
+      const autofillDates = datesToProcess.filter((dateStr) => isAutofillable(dateStr, schedule, timeEntries));
 
       if (autofillDates.length === 0) {
-        toast.warning("No dates in the selected range require autofilling.");
+        toast.error("No dates in the selected range require autofilling.");
         return;
       }
 
-      const promise = createTimeEntries({
+      const autofillTimeEntriesPromise = createTimeEntries({
         dates: autofillDates,
         taskId,
         autofill: true,
       });
 
-      await toast.promise(promise, {
+      await toast.promise(autofillTimeEntriesPromise, {
         pending: "Filling hours...",
         success: "Hours filled successfully",
         error: {
@@ -246,7 +241,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
 
       setOpenShortMenu?.(undefined);
     },
-    [menuData, taskId, createTimeEntries, setOpenShortMenu, schedule, allTimeEntries]
+    [menuData, taskId, createTimeEntries, setOpenShortMenu, schedule, timeEntries]
   );
 
 
@@ -258,7 +253,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
         return;
       } else if (label == "Delete") {
         if (openShortMenu) {
-          const timeEntriesToDelete = getTimeEntriesForSelectedPeriod(timeEntries, openShortMenu?.startDate, openShortMenu?.endDate, Number(openShortMenu?.taskId))
+          const timeEntriesToDelete = getTimeEntriesForSelectedPeriod(taskEntries, openShortMenu?.startDate, openShortMenu?.endDate, Number(openShortMenu?.taskId))
           deleteHours(timeEntriesToDelete.map((timeEntry) => timeEntry.id))
           setOpenShortMenu?.(undefined);
         }
@@ -327,19 +322,14 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     if (openShortMenu == null)
       return false
     return getTimeEntriesForSelectedPeriod(
-      timeEntries, openShortMenu?.startDate, openShortMenu?.endDate, Number(openShortMenu?.taskId)).length > 0
+      taskEntries, openShortMenu?.startDate, openShortMenu?.endDate, Number(openShortMenu?.taskId)).length > 0
   }
 
   const isAutofillButtonVisible = () => {
     if (openShortMenu == null || !schedule || !menuData)
       return false
 
-    return menuData.selectedDates.some(dateStr => {
-      const dayKey = normalizeDate(dateStr).replaceAll("-", "_");
-      const scheduledHours = schedule[dayKey] ?? 0;
-      const totalWorkedHours = calculateTotalHoursForDay(allTimeEntries, dateStr);
-      return totalWorkedHours < scheduledHours;
-    });
+    return menuData.selectedDates.some(dateStr => isAutofillable(dateStr, schedule, timeEntries));
   }
   return (
     <div className="relative" ref={menuRef}>

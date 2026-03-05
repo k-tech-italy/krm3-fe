@@ -1,5 +1,6 @@
-import { Days, DayType, TimeEntry, Timesheet } from "../../../restapi/types";
-import { getDatesBetween, normalizeDate } from "./dates";
+import {Days, DayType, Schedule, TimeEntry, Timesheet} from "../../../restapi/types";
+import {getDatesBetween, normalizeDate} from "./dates";
+import {calculateTotalHoursForDay} from "../../../restapi/timesheet.ts";
 
 export const getDatesWithAndWithoutTimeEntries = (
   startDate: Date,
@@ -30,22 +31,19 @@ export const getDatesWithAndWithoutTimeEntries = (
   const withTimeEntries = dates.filter(date => entryDateSet.has(normalizeDate(date)));
   const withoutTimeEntries = dates.filter(date => !entryDateSet.has(normalizeDate(date)));
 
-  return { allDates: dates, withTimeEntries, withoutTimeEntries };
+  return {allDates: dates, withTimeEntries, withoutTimeEntries};
 };
 
-export function calculateTaskHoursForDay(timeEntries: ReadonlyArray<Readonly<TimeEntry>>, date: string | Date)
-{
+export function calculateTaskHoursForDay(timeEntries: ReadonlyArray<Readonly<TimeEntry>>, date: string | Date) {
   const normalizedDate = normalizeDate(date);
   let totalHours = 0;
 
-  for (const entry of timeEntries)
-  {
-    if (entry.date == normalizedDate)
-    {
+  for (const entry of timeEntries) {
+    if (entry.date == normalizedDate) {
       totalHours += (
-          (Number(entry.dayShiftHours) || 0) +
-          (Number(entry.nightShiftHours) || 0) +
-          (Number(entry.travelHours) || 0)
+        (Number(entry.dayShiftHours) || 0) +
+        (Number(entry.nightShiftHours) || 0) +
+        (Number(entry.travelHours) || 0)
       )
     }
   }
@@ -76,11 +74,11 @@ export const isSickDay = (
   );
 };
 
-export const isToday= (date: Date): boolean => {
+export const isToday = (date: Date): boolean => {
   const today = new Date()
   return date.getFullYear() === today.getFullYear() &&
-      date.getMonth() === today.getMonth() &&
-      date.getDate() === today.getDate();
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate();
 };
 
 export const getTimeEntriesForTaskAndDay = (
@@ -99,15 +97,15 @@ export const getTimeEntriesForTaskAndDay = (
 };
 
 
-  /**
-   * Get the DayType for a given date, using the provided days.
-   *
-   * If no days are provided, WORK_DAY is returned.
-   *
-   * @param date the date to get the DayType for
-   * @param days the days to check against
-   * @returns the DayType for the given date
-   */
+/**
+ * Get the DayType for a given date, using the provided days.
+ *
+ * If no days are provided, WORK_DAY is returned.
+ *
+ * @param date the date to get the DayType for
+ * @param days the days to check against
+ * @returns the DayType for the given date
+ */
 export function getDayType(date: Date | string, days?: Days): DayType {
   const normalizedDate = normalizeDate(date);
 
@@ -131,6 +129,7 @@ export function getDayType(date: Date | string, days?: Days): DayType {
 
   return DayType.WORK_DAY;
 }
+
 export function isNonWorkingDay(date: Date | string, days?: Days): boolean {
   const normalizedDate = normalizeDate(date);
 
@@ -144,6 +143,7 @@ export function isNonWorkingDay(date: Date | string, days?: Days): boolean {
   }
   return false
 }
+
 export function isClosed(date: Date | string, days?: Days): boolean {
   const normalizedDate = normalizeDate(date);
 
@@ -185,3 +185,11 @@ export function createHolidaySickDayMaps(timeEntries: TimeEntry[]) {
     },
   };
 }
+
+export const isAutofillable = (dateStr: string, schedule: Schedule, allTimeEntries: TimeEntry[]): boolean => {
+  const dayKey = normalizeDate(dateStr).replaceAll("-", "_");
+  const scheduledHours = schedule[dayKey] ?? 0;
+  const totalWorkedHours = calculateTotalHoursForDay(allTimeEntries, dateStr);
+  return totalWorkedHours < scheduledHours;
+}
+

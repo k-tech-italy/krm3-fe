@@ -48,8 +48,8 @@ describe("ShortHoursMenu (extended)", () => {
     },
     openTimeEntryModalHandler: () => {
     },
+    taskEntries: [],
     timeEntries: [],
-    allTimeEntries: [],
     schedule: {[todayStr.replaceAll("-", "_")]: 8},
     days: {},
     holidayOrSickDays: [],
@@ -75,7 +75,7 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("renders delete option if timeentry is selected", () => {
     renderMenu({
-      timeEntries: [
+      taskEntries: [
         {
           id: 1,
           dayShiftHours: 2,
@@ -99,7 +99,7 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("delete is called with correct parameters", () => {
     renderMenu({
-      timeEntries: [
+      taskEntries: [
         {
           id: 1,
           dayShiftHours: 2,
@@ -185,7 +185,7 @@ describe("ShortHoursMenu (extended)", () => {
   it("hides Autofill button when total hours reach schedule", () => {
     const todayKey = todayStr.replaceAll("-", "_");
     renderMenu({
-      allTimeEntries: [
+      timeEntries: [
         {
           id: 1,
           date: todayStr,
@@ -209,7 +209,7 @@ describe("ShortHoursMenu (extended)", () => {
   it("shows Autofill button when total hours are less than schedule", () => {
     const todayKey = todayStr.replaceAll("-", "_");
     renderMenu({
-      allTimeEntries: [
+      timeEntries: [
         {
           id: 1,
           date: todayStr,
@@ -244,9 +244,9 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("shows confirm modal when clicking hour with existing entries", () => {
     // Simulate daysWithTimeEntries present
-    const timeEntries = [{date: todayStr, task: 1}];
+    const taskEntries = [{date: todayStr, task: 1}];
     renderMenu({
-      timeEntries,
+      taskEntries,
       openShortMenu: {
         ...baseProps.openShortMenu,
         startDate: todayStr,
@@ -261,9 +261,9 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("handles confirm modal actions", () => {
     // Simulate daysWithTimeEntries present
-    const timeEntries = [{date: todayStr, task: 1}];
+    const taskEntries = [{date: todayStr, task: 1}];
     renderMenu({
-      timeEntries,
+      taskEntries,
       openShortMenu: {
         ...baseProps.openShortMenu,
         startDate: todayStr,
@@ -290,9 +290,9 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("handles confirm submission without overwrite when dates with no entries exist", () => {
     const setOpenShortMenuMock = vi.fn();
-    const timeEntries = [{date: todayStr, task: 1}];
+    const taskEntries = [{date: todayStr, task: 1}];
     renderMenu({
-      timeEntries,
+      taskEntries,
       setOpenShortMenu: setOpenShortMenuMock,
       openShortMenu: {
         ...baseProps.openShortMenu,
@@ -311,9 +311,9 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("handles confirm modal close", () => {
     const setOpenShortMenuMock = vi.fn();
-    const timeEntries = [{date: todayStr, task: 1}];
+    const taskEntries = [{date: todayStr, task: 1}];
     renderMenu({
-      timeEntries,
+      taskEntries,
       setOpenShortMenu: setOpenShortMenuMock,
       openShortMenu: {
         ...baseProps.openShortMenu,
@@ -334,9 +334,9 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("does not close menu on mouse leave when confirm modal is open", () => {
     const setOpenShortMenuMock = vi.fn();
-    const timeEntries = [{date: todayStr, task: 1}];
+    const taskEntries = [{date: todayStr, task: 1}];
     renderMenu({
-      timeEntries,
+      taskEntries,
       setOpenShortMenu: setOpenShortMenuMock,
       openShortMenu: {
         ...baseProps.openShortMenu,
@@ -374,7 +374,7 @@ describe("ShortHoursMenu (extended)", () => {
         endDate: todayStr,
         taskId: "1",
       },
-      allTimeEntries: [
+      timeEntries: [
         {
           id: 1,
           date: todayStr,
@@ -409,7 +409,7 @@ describe("ShortHoursMenu (extended)", () => {
         endDate: todayStr,
         taskId: "1",
       },
-      allTimeEntries: [
+      timeEntries: [
         {
           id: 1,
           date: todayStr,
@@ -458,7 +458,7 @@ describe("ShortHoursMenu (extended)", () => {
         endDate: todayStr,
         taskId: "1",
       },
-      allTimeEntries: [
+      timeEntries: [
         {
           id: 1,
           date: todayStr,
