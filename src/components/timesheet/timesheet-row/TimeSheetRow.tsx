@@ -1,20 +1,20 @@
-import React, {useMemo} from "react";
-import {TaskHeader} from "./TaskCell";
-import {TimeEntryCell} from "./TimeEntryCell";
-import {getTaskColor} from "../utils/utils";
-import {isNonWorkingDay} from "../utils/timeEntry";
+import React, { useMemo } from "react";
+import { TaskHeader } from "./TaskCell";
+import { TimeEntryCell } from "./TimeEntryCell";
+import { getTaskColor } from "../utils/utils";
+import { isNonWorkingDay } from "../utils/timeEntry";
 import {
   getTimeEntriesForTaskAndDay, isClosed,
   isHoliday,
   isSickDay,
 } from "../utils/timeEntry";
-import {Schedule, Task, TimeEntryType, Timesheet} from "../../../restapi/types";
-import {ShortHoursMenu} from "./ShortHoursMenu";
-import {normalizeDate} from "../utils/dates";
-import {getDayType} from "../utils/timeEntry";
-import {DayType} from "../../../restapi/types";
-import {Plane} from "lucide-react";
-import {Tooltip} from "react-tooltip";
+import { Schedule, Task, TimeEntryType, Timesheet } from "../../../restapi/types";
+import { ShortHoursMenu } from "./ShortHoursMenu";
+import { normalizeDate } from "../utils/dates";
+import { getDayType } from "../utils/timeEntry";
+import { DayType } from "../../../restapi/types";
+import { Plane } from "lucide-react";
+import { Tooltip } from "react-tooltip";
 
 export interface TimeSheetRowProps {
   timesheet: Timesheet;
@@ -37,24 +37,25 @@ export interface TimeSheetRowProps {
   schedule: Schedule;
 }
 
-export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
-                                                            timesheet,
-                                                            index,
-                                                            scheduledDays,
-                                                            task,
-                                                            isMonthView,
-                                                            isColumnView,
-                                                            isCellInDragRange,
-                                                            isColumnHighlighted,
-                                                            openTimeEntryModalHandler,
-                                                            openShortMenu,
-                                                            setOpenShortMenu,
-                                                            readOnly,
-                                                            selectedResourceId,
-                                                            holidayOrSickDays,
-                                                            selectedWeekdays,
-                                                            schedule
-                                                          }) => {
+export const TimeSheetRow: React.FC<TimeSheetRowProps> = (
+  {
+    timesheet,
+    index,
+    scheduledDays,
+    task,
+    isMonthView,
+    isColumnView,
+    isCellInDragRange,
+    isColumnHighlighted,
+    openTimeEntryModalHandler,
+    openShortMenu,
+    setOpenShortMenu,
+    readOnly,
+    selectedResourceId,
+    holidayOrSickDays,
+    selectedWeekdays,
+    schedule
+  }) => {
   // Generate color once per task row
   const {backgroundColor, borderColor} = useMemo(
     () => getTaskColor(index, task.color),

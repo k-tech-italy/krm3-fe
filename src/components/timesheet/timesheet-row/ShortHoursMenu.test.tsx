@@ -1,8 +1,8 @@
-import {render, screen, fireEvent} from "@testing-library/react";
-import {ShortHoursMenu} from "./ShortHoursMenu";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { ShortHoursMenu } from "./ShortHoursMenu";
 import React from "react";
-import {QueryClient, QueryClientProvider} from "react-query";
-import {vi} from "vitest";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { vi } from "vitest";
 
 const mutateDeleteMock = vi.fn().mockResolvedValue(undefined);
 

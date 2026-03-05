@@ -1,15 +1,14 @@
-import React, {useMemo, useState, useCallback, useRef} from "react";
-import {toast} from "react-toastify";
-import {useCreateTimeEntry, useDeleteTimeEntries} from "../../../hooks/useTimesheet";
-import {displayErrorMessage, getTimeEntriesForSelectedPeriod} from "../utils/utils";
-import {formatDate, getDatesBetween, normalizeDate} from "../utils/dates";
-import {Days, Schedule, TimeEntry} from "../../../restapi/types";
-import {getDatesWithAndWithoutTimeEntries, isAutofillable} from "../utils/timeEntry";
+import React, { useMemo, useState, useCallback, useRef } from "react";
+import { toast } from "react-toastify";
+import { useCreateTimeEntry, useDeleteTimeEntries } from "../../../hooks/useTimesheet";
+import { displayErrorMessage, getTimeEntriesForSelectedPeriod } from "../utils/utils";
+import { formatDate, normalizeDate } from "../utils/dates";
+import { Days, Schedule, TimeEntry } from "../../../restapi/types";
+import { getDatesWithAndWithoutTimeEntries, isAutofillable } from "../utils/timeEntry";
 import Krm3Modal from "../../commons/krm3Modal";
 import Krm3Button from "../../commons/Krm3Button";
 import WarningExistingEntry from "../edit-entry/WarningExistEntry";
-import {TrashIcon} from "lucide-react";
-import {calculateTotalHoursForDay} from "../../../restapi/timesheet.ts";
+import { TrashIcon } from "lucide-react";
 
 interface ShortHoursMenuProps {
   dayToOpen: Date;

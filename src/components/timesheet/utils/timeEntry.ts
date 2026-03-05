@@ -1,6 +1,6 @@
-import {Days, DayType, Schedule, TimeEntry, Timesheet} from "../../../restapi/types";
-import {getDatesBetween, normalizeDate} from "./dates";
-import {calculateTotalHoursForDay} from "../../../restapi/timesheet.ts";
+import { Days, DayType, Schedule, TimeEntry, Timesheet } from "../../../restapi/types";
+import { getDatesBetween, normalizeDate } from "./dates";
+import { calculateTotalHoursForDay } from "../../../restapi/timesheet.ts";
 
 export const getDatesWithAndWithoutTimeEntries = (
   startDate: Date,
