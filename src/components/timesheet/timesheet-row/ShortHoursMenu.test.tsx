@@ -33,6 +33,8 @@ describe("ShortHoursMenu (extended)", () => {
   const todayStr = "2026-02-26";
   const today = new Date(todayStr);
   const yesterdayStr = "2026-02-25";
+  const todayKey = todayStr.replaceAll("-", "_");
+  const yesterdayKey = yesterdayStr.replaceAll("-", "_");
 
   const baseProps = {
     dayToOpen: today,
@@ -182,51 +184,58 @@ describe("ShortHoursMenu (extended)", () => {
     });
   });
 
-  it("hides Autofill button when total hours reach schedule", () => {
-    const todayKey = todayStr.replaceAll("-", "_");
+  const hideAutofillScenarios = [
+    {
+      name: "8h one task",
+      entries: [{date: todayStr, dayShiftHours: 8, taskId: 1}]
+    },
+    {
+      name: "overtime",
+      entries: [{date: todayStr, dayShiftHours: 12, taskId: 1}]
+    },
+    {
+      name: "day entries and task entries",
+      entries: [
+        {date: todayStr, dayShiftHours: 4, taskId: 1},
+        {date: todayStr, leaveHours: 4},
+        {date: todayStr, restHours: 2}
+      ]
+    }
+  ]
+  it.each(hideAutofillScenarios)("hides Autofill button when total hours reach schedule", ({entries}) => {
     renderMenu({
-      timeEntries: [
-        {
-          id: 1,
-          date: todayStr,
-          dayShiftHours: 8,
-          nightShiftHours: 0,
-          restHours: 0,
-          travelHours: 0,
-          task: 1,
-          sickHours: 0,
-          holidayHours: 0,
-          leaveHours: 0,
-          onCallHours: 0,
-          specialLeaveHours: 0,
-        },
-      ],
+      timeEntries: entries,
       schedule: {[todayKey]: 8},
     });
     expect(screen.queryByText("Autofill")).not.toBeInTheDocument();
   });
 
-  it("shows Autofill button when total hours are less than schedule", () => {
-    const todayKey = todayStr.replaceAll("-", "_");
+  const showAutofillScenarios = [
+    {
+      name: "empty day",
+      entries: []
+    },
+    {
+      name: "one task entry",
+      entries: [{date: todayStr, dayShiftHours: 6, taskId: 1}]
+    },
+    {
+      name: "one day entry",
+      entries: [{date: todayStr, leaveHours: 4}]
+    },
+    {
+      name: "day entries and task entries",
+      entries: [
+        {date: todayStr, dayShiftHours: 2, taskId: 1},
+        {date: todayStr, leaveHours: 2},
+        {date: todayStr, restHours: 2}
+      ]
+    }
+  ]
+
+  it.each(showAutofillScenarios)("shows Autofill button when total hours are less than schedule", ({entries}) => {
     renderMenu({
-      timeEntries: [
-        {
-          id: 1,
-          date: todayStr,
-          dayShiftHours: 4,
-          nightShiftHours: 0,
-          restHours: 0,
-          travelHours: 0,
-          task: 1,
-          sickHours: 0,
-          holidayHours: 0,
-          leaveHours: 0,
-          onCallHours: 0,
-          specialLeaveHours: 0,
-          bankFrom: 0,
-          bankTo: 0,
-        },
-      ],
+      timeEntries: entries,
       schedule: {[todayKey]: 8},
     });
     expect(screen.getByText("Autofill")).toBeInTheDocument();
@@ -365,8 +374,6 @@ describe("ShortHoursMenu (extended)", () => {
   });
 
   it("shows Autofill button if ANY day in the range needs filling", () => {
-    const yesterdayKey = yesterdayStr.replaceAll("-", "_");
-    const todayKey = todayStr.replaceAll("-", "_");
 
     renderMenu({
       openShortMenu: {
@@ -400,8 +407,6 @@ describe("ShortHoursMenu (extended)", () => {
   });
 
   it("hides Autofill button if ALL days in the range are full", () => {
-    const yesterdayKey = yesterdayStr.replaceAll("-", "_");
-    const todayKey = todayStr.replaceAll("-", "_");
 
     renderMenu({
       openShortMenu: {
@@ -449,8 +454,6 @@ describe("ShortHoursMenu (extended)", () => {
   });
 
   it("Autofill only processes dates that require hours", async () => {
-    const yesterdayKey = yesterdayStr.replaceAll("-", "_");
-    const todayKey = todayStr.replaceAll("-", "_");
 
     renderMenu({
       openShortMenu: {
