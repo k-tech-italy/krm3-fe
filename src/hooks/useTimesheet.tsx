@@ -1,7 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import {useMutation, useQuery, useQueryClient} from "react-query";
 
-import { AxiosError, AxiosResponse } from "axios";
-import { useGetCurrentUser } from "./useAuth";
+import {AxiosError, AxiosResponse} from "axios";
+import {useGetCurrentUser} from "./useAuth";
 import {
   createTimeEntry,
   getTimesheet,
@@ -11,7 +11,7 @@ import {
 } from "../restapi/timesheet";
 
 export function useCreateTimeEntry(selectedResourceId: number | null) {
-  const { data: currentUser } = useGetCurrentUser();
+  const {data: currentUser} = useGetCurrentUser();
   const resourceId = selectedResourceId
     ? selectedResourceId
     : currentUser?.resource.id;
@@ -37,10 +37,11 @@ export function useCreateTimeEntry(selectedResourceId: number | null) {
       bankTo?: number,
       comment?: string;
       protocolNumber?: string;
-    }) => createTimeEntry({ ...params, resourceId }),
+      autofill?: boolean;
+    }) => createTimeEntry({...params, resourceId}),
     {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["timesheet"] });
+        queryClient.invalidateQueries({queryKey: ["timesheet"]});
       },
     }
   );
@@ -53,9 +54,10 @@ export function useSubmitTimesheet() {
       submitTimesheet(params.resourceId, params.startDate, params.endDate),
     {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["timesheet"] });
+        queryClient.invalidateQueries({queryKey: ["timesheet"]});
       },
-      onError: (error: AxiosError) => {},
+      onError: (error: AxiosError) => {
+      },
     }
   );
 }
@@ -65,7 +67,7 @@ export function useGetTimesheet(
   endDate: string,
   selectedResourceId: number | null
 ) {
-  const { data } = useGetCurrentUser();
+  const {data} = useGetCurrentUser();
   const resourceId = selectedResourceId
     ? selectedResourceId
     : data?.resource?.id;
@@ -94,6 +96,7 @@ export function useGetTimesheet(
     }
   );
 }
+
 export function useDeleteTimeEntries() {
   const queryClient = useQueryClient();
 
@@ -101,9 +104,10 @@ export function useDeleteTimeEntries() {
     (entryIds) => deleteTimeEntries(entryIds),
     {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["timesheet"] });
+        queryClient.invalidateQueries({queryKey: ["timesheet"]});
       },
-      onError: (error: AxiosError) => {},
+      onError: (error: AxiosError) => {
+      },
     }
   );
 }

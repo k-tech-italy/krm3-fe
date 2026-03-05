@@ -1,10 +1,10 @@
 import React, { useMemo, useState, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
-import {useCreateTimeEntry, useDeleteTimeEntries} from "../../../hooks/useTimesheet";
-import {displayErrorMessage, getTimeEntriesForSelectedPeriod} from "../utils/utils";
-import { formatDate, getDatesBetween, normalizeDate } from "../utils/dates";
-import { Days, TimeEntry } from "../../../restapi/types";
-import { getDatesWithAndWithoutTimeEntries } from "../utils/timeEntry";
+import { useCreateTimeEntry, useDeleteTimeEntries } from "../../../hooks/useTimesheet";
+import { displayErrorMessage, getTimeEntriesForSelectedPeriod } from "../utils/utils";
+import { formatDate, normalizeDate } from "../utils/dates";
+import { Days, Schedule, TimeEntry } from "../../../restapi/types";
+import { getDatesWithAndWithoutTimeEntries, isAutofillable } from "../utils/timeEntry";
 import Krm3Modal from "../../commons/krm3Modal";
 import Krm3Button from "../../commons/Krm3Button";
 import WarningExistingEntry from "../edit-entry/WarningExistEntry";
@@ -24,7 +24,9 @@ interface ShortHoursMenuProps {
     value: { startDate: string; endDate: string; taskId: string } | undefined
   ) => void;
   openTimeEntryModalHandler: () => void;
+  taskEntries: TimeEntry[];
   timeEntries: TimeEntry[];
+  schedule: Schedule;
   days: Days;
   holidayOrSickDays: String[];
 }
@@ -35,15 +37,16 @@ interface HourOption {
 }
 
 const HOUR_OPTIONS: readonly HourOption[] = [
-  { label: "2h", value: 2 },
-  { label: "4h", value: 4 },
-  { label: "8h", value: 8 },
-  { label: "More", value: 0 },
-  { label: "Delete", value: 0 },
+  {label: "2h", value: 2},
+  {label: "4h", value: 4},
+  {label: "8h", value: 8},
+  {label: "Autofill", value: -1},
+  {label: "More", value: 0},
+  {label: "Delete", value: 0},
 ] as const;
 
 const READ_ONLY_OPTIONS: readonly HourOption[] = [
-  { label: "Details", value: 0 },
+  {label: "Details", value: 0},
 ] as const;
 
 export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
@@ -55,7 +58,9 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     selectedResourceId,
     setOpenShortMenu,
     openTimeEntryModalHandler,
+    taskEntries,
     timeEntries,
+    schedule,
     days,
     holidayOrSickDays,
   } = props;
@@ -66,7 +71,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     value: number;
   } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const { mutateAsync: createTimeEntries, error } =
+  const {mutateAsync: createTimeEntries, error} =
     useCreateTimeEntry(selectedResourceId);
 
   const menuData = useMemo(() => {
@@ -87,7 +92,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     } = getDatesWithAndWithoutTimeEntries(
       startDate,
       endDate,
-      timeEntries,
+      taskEntries,
       days,
       true,
       false
@@ -105,7 +110,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
         (date) => !holidayOrSickDays.includes(normalizeDate(date))
       ),
     };
-  }, [openShortMenu, day, taskId, timeEntries]);
+  }, [openShortMenu, day, taskId, taskEntries]);
 
   const options = useMemo(() => {
     return readOnly ? READ_ONLY_OPTIONS : HOUR_OPTIONS;
@@ -136,7 +141,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
           pending: "Adding hours...",
           success: "Hours added successfully",
           error: {
-            render({ data }) {
+            render({data}) {
               // When the promise reject, data will contains the error
               return <div> {displayErrorMessage(data)} </div>;
             },
@@ -165,41 +170,79 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     error: deletionError,
   } = useDeleteTimeEntries();
   const deleteHours = useCallback(
-      async (timeEntriesIdsToDelete: number[]) => {
-        if (!menuData) {
-          toast.error("Invalid configuration");
-          return;
-        }
-        const promise = deleteTimeEntries(timeEntriesIdsToDelete)
+    async (timeEntriesIdsToDelete: number[]) => {
+      if (!menuData) {
+        toast.error("Invalid configuration");
+        return;
+      }
+      const promise = deleteTimeEntries(timeEntriesIdsToDelete)
 
-        await toast.promise(
-            promise,
-            {
-              pending: "Deleting hours...",
-              success: "Hours deleted successfuly",
-              error: {
-                render({data}){
-                  return <div>{displayErrorMessage(data)} </div>;
-                }
-              }
-            },
-            {
-              autoClose: 2000,
-              theme: "light",
-              hideProgressBar: false,
-              draggable: true,
+      await toast.promise(
+        promise,
+        {
+          pending: "Deleting hours...",
+          success: "Hours deleted successfuly",
+          error: {
+            render({data}) {
+              return <div>{displayErrorMessage(data)} </div>;
             }
-        )
-      },
-      [
-        menuData,
-        selectedResourceId,
-        deleteTimeEntries,
-        taskId,
-        deletionError,
-        setOpenShortMenu,
-      ]
+          }
+        },
+        {
+          autoClose: 2000,
+          theme: "light",
+          hideProgressBar: false,
+          draggable: true,
+        }
+      )
+    },
+    [
+      menuData,
+      selectedResourceId,
+      deleteTimeEntries,
+      taskId,
+      deletionError,
+      setOpenShortMenu,
+    ]
   )
+
+  const handleFillHours = useCallback(
+    async (selectedDates?: string[]) => {
+      if (!menuData) {
+        toast.error("Invalid configuration");
+        return;
+      }
+
+      const datesToProcess = selectedDates || menuData.selectedDates;
+
+      const autofillDates = datesToProcess.filter((dateStr) => isAutofillable(dateStr, schedule, timeEntries));
+
+      if (autofillDates.length === 0) {
+        toast.error("No dates in the selected range require autofilling.");
+        return;
+      }
+
+      const autofillTimeEntriesPromise = createTimeEntries({
+        dates: autofillDates,
+        taskId,
+        autofill: true,
+      });
+
+      await toast.promise(autofillTimeEntriesPromise, {
+        pending: "Filling hours...",
+        success: "Hours filled successfully",
+        error: {
+          render({data}) {
+            return <div> {displayErrorMessage(data)} </div>;
+          },
+        },
+      });
+
+      setOpenShortMenu?.(undefined);
+    },
+    [menuData, taskId, createTimeEntries, setOpenShortMenu, schedule, timeEntries]
+  );
+
 
   const handleButtonClick = useCallback(
     (label: string, value: number) => {
@@ -208,12 +251,14 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
         setOpenShortMenu?.(undefined);
         return;
       } else if (label == "Delete") {
-        if(openShortMenu)
-        {
-          const timeEntriesToDelete = getTimeEntriesForSelectedPeriod(timeEntries, openShortMenu?.startDate, openShortMenu?.endDate, Number(openShortMenu?.taskId))
+        if (openShortMenu) {
+          const timeEntriesToDelete = getTimeEntriesForSelectedPeriod(taskEntries, openShortMenu?.startDate, openShortMenu?.endDate, Number(openShortMenu?.taskId))
           deleteHours(timeEntriesToDelete.map((timeEntry) => timeEntry.id))
           setOpenShortMenu?.(undefined);
         }
+        return;
+      } else if (label == "Autofill") {
+        handleFillHours();
         return;
       }
 
@@ -222,7 +267,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
         menuData.daysWithTimeEntries.length > 0;
 
       if (hasExistingEntries) {
-        setPendingSubmission({ label, value });
+        setPendingSubmission({label, value});
         setOpenConfirmModal(true);
       } else {
         submitHours(value);
@@ -233,6 +278,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       openTimeEntryModalHandler,
       setOpenShortMenu,
       submitHours,
+      handleFillHours,
     ]
   );
 
@@ -272,10 +318,17 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     return null;
   }
   const isDeleteButtonVisible = () => {
-    if(openShortMenu == null)
+    if (openShortMenu == null)
       return false
-      return getTimeEntriesForSelectedPeriod(
-          timeEntries, openShortMenu?.startDate, openShortMenu?.endDate, Number(openShortMenu?.taskId)).length > 0
+    return getTimeEntriesForSelectedPeriod(
+      taskEntries, openShortMenu?.startDate, openShortMenu?.endDate, Number(openShortMenu?.taskId)).length > 0
+  }
+
+  const isAutofillButtonVisible = () => {
+    if (openShortMenu == null || !schedule || !menuData)
+      return false
+
+    return menuData.selectedDates.some(dateStr => isAutofillable(dateStr, schedule, timeEntries));
   }
   return (
     <div className="relative" ref={menuRef}>
@@ -289,6 +342,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
         <div>
           {options.map((option, index) => {
             if (option.label == "Delete" && !isDeleteButtonVisible()) return null
+            else if (option.label == "Autofill" && !isAutofillButtonVisible()) return null
             return (
               <button
                 key={`menu-option-${index}-${option.label}-${option.value}`}
@@ -300,8 +354,9 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
                 id={`short-menu-${option.label.toLowerCase()}-button`}
                 data-testid={`short-menu-${option.label.toLowerCase()}-button`}
               >
-                {option.label == "Delete" ? <TrashIcon className={'mx-auto text-white'}></TrashIcon> : option.label}
-                </button>)
+                {option.label == "Delete" ?
+                  <TrashIcon className={'mx-auto text-white'}></TrashIcon> : option.label}
+              </button>)
           })}
         </div>
         <div className="px-4 py-2 bg-card rounded-b-md">
