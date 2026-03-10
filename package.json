@@ -14,7 +14,14 @@
     "test": "cross-env REACT_APP_VERSION=$npm_package_version vitest",
     "serve": "cross-env REACT_APP_VERSION=$npm_package_version vite preview",
     "test:coverage": "cross-env REACT_APP_VERSION=$npm_package_version vitest run --coverage",
-    "start-mobile": "cross-env REACT_APP_VERSION=$npm_package_version vite --port 3000 --host"
+    "start-mobile": "cross-env REACT_APP_VERSION=$npm_package_version vite --port 3000 --host",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "lint-staged": "lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,css,md,html}": "prettier --write",
+    "*.{js,jsx,ts,tsx}": "yarn lint"
   },
   "eslintConfig": {
     "extends": [
@@ -75,17 +82,30 @@
   "devDependencies": {
     "@babel/preset-env": "^7.23.3",
     "@babel/preset-react": "^7.23.3",
+    "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.1.11",
     "@types/react-datepicker": "^7.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.57.0",
+    "@typescript-eslint/parser": "^8.57.0",
     "@vitejs/plugin-react": "^4.4.1",
     "@vitest/coverage-v8": "^3.1.1",
     "autoprefixer": "^10.4.21",
     "babel-jest": "^29.7.0",
     "cross-env": "^7.0.3",
+    "eslint": "^10.0.3",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^17.4.0",
+    "husky": "^9.1.7",
     "jest": "^27.5.1",
     "jsdom": "^26.0.0",
+    "lint-staged": "^16.3.3",
+    "prettier": "^3.8.1",
     "react-test-renderer": "^18.2.0",
     "tailwindcss": "^4.1.11",
+    "typescript-eslint": "^8.57.0",
     "vitest": "^3.1.1"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
