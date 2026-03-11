@@ -6,6 +6,9 @@
 !.nvmrc
 !.npmrc
 !.github
+!.prettierrc
+!.prettierignore
+!.husky
 
 downloaded_files
 
