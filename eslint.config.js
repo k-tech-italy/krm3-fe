@@ -1,32 +1,34 @@
-import globals from "globals";
-import js from "@eslint/js";
-import pluginReact from "eslint-plugin-react";
-import pluginReactHooks from "eslint-plugin-react-hooks";
-import pluginJsxA11y from "eslint-plugin-jsx-a11y";
-import tsParser from "@typescript-eslint/parser";
+import eslintReact from "@eslint-react/eslint-plugin";
+import eslintJs from "@eslint/js";
+import { defineConfig } from "eslint/config";
+import tseslint from "typescript-eslint";
 
-export default [
-  js.configs.recommended,
-  {
-    files: ["**/*.{js,jsx,ts,tsx}"],
-    languageOptions: {
-      parser: tsParser,
-      ecmaVersion: "latest",
-      sourceType: "module",
-      globals: globals.browser,
-    },
-    plugins: {
-      react: pluginReact,
-      "react-hooks": pluginReactHooks,
-      "jsx-a11y": pluginJsxA11y,
-    },
-    rules: {
-      "react/react-in-jsx-scope": "off",
-      "react/prop-types": "off",
-      "no-unused-vars": "warn",
-    },
-    settings: {
-      react: { version: "detect" },
+export default defineConfig({
+  files: ["**/*.ts", "**/*.tsx"],
+
+  // Extend recommended rule sets from:
+  // 1. ESLint JS's recommended rules
+  // 2. TypeScript ESLint recommended rules
+  // 3. ESLint React's recommended-typescript rules
+  extends: [
+    eslintJs.configs.recommended,
+    tseslint.configs.recommended,
+    eslintReact.configs["recommended-typescript"],
+  ],
+
+  // Configure language/parsing options
+  languageOptions: {
+    // Use TypeScript ESLint parser for TypeScript files
+    parser: tseslint.parser,
+    parserOptions: {
+      // Enable project service for better TypeScript integration
+      projectService: true,
+      tsconfigRootDir: import.meta.dirname,
     },
   },
-];
+
+  // Custom rule overrides (modify rule levels or disable rules)
+  rules: {
+    "@eslint-react/no-missing-key": "warn",
+  },
+});
