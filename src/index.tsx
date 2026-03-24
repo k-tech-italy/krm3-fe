@@ -6,18 +6,13 @@ import { ThemeProvider } from "next-themes";
 
 const root = createRoot(document.getElementById("root") as HTMLElement);
 
+if (localStorage.getItem("theme") === "auto") {
+  localStorage.removeItem("theme");
+}
+
 root.render(
   <React.StrictMode>
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      storageKey="theme"
-      value={{
-        light: "light",
-        dark: "dark",
-        system: "auto",
-      }}
-    >
+    <ThemeProvider attribute="class" defaultTheme="system" storageKey="theme">
       <App />
     </ThemeProvider>
   </React.StrictMode>
