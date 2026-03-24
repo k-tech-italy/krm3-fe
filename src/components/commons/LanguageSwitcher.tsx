@@ -1,7 +1,7 @@
 import { Languages } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "../../languages";
 import DropDown from "./DropDown";
-import {useChangeLanguage} from "../../hooks/useTranslation.tsx";
+import {useChangeLanguage} from "../../hooks/useChangeLanguage.tsx";
 import {useAuthContext} from "./AuthContext.tsx";
 import {useCookies} from "react-cookie";
 

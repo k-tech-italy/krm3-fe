@@ -23,7 +23,7 @@ interface Props {
   closeModal: () => void;
   readOnly: boolean;
   selectedResourceId: number | null;
-  holidayOrSickDays: String[];
+  holidayOrSickDays: string[];
   noWorkingDays: Days;
 }
 
@@ -255,7 +255,7 @@ export default function EditTimeEntry({
               selected={fromDate}
               className="w-full border border-app rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               onChange={(date: Date | null) => {
-                if (!!date) {
+                if (date) {
                   handleChangeDate(date, "from");
                 }
               }}
@@ -273,7 +273,7 @@ export default function EditTimeEntry({
               selected={toDate}
               className="w-full border border-app rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               onChange={(date: Date | null) => {
-                if (!!date) {
+                if (date) {
                   handleChangeDate(date, "to");
                 }
               }}

@@ -28,7 +28,7 @@ interface ShortHoursMenuProps {
   timeEntries: TimeEntry[];
   schedule: Schedule;
   days: Days;
-  holidayOrSickDays: String[];
+  holidayOrSickDays: string[];
 }
 
 interface HourOption {

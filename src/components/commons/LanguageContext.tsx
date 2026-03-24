@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef } from "react";
+import { createContext, useContext, useEffect } from "react";
 import { useCookies } from "react-cookie";
 import i18n from "i18next";
 

@@ -189,7 +189,7 @@ export function Login() {
                 id="username"
                 name="username"
                 className={`form-control w-full ${
-                  !!error?.username ? "border-red-500" : "border-app"
+                  error?.username ? "border-red-500" : "border-app"
                 } border rounded px-3 py-2 text-app bg-card`}
                 type="text"
                 value={username}
@@ -217,7 +217,7 @@ export function Login() {
                 id="password"
                 name="password"
                 className={`form-control w-full ${
-                  !!error?.password ? "border-red-500" : "border-gray-300"
+                  error?.password ? "border-red-500" : "border-gray-300"
                 } border rounded px-3 py-2`}
                 type="password"
                 value={password}

@@ -59,7 +59,7 @@ function AuthenticatedRoutes() {
     }
 
     const modules = currentUser.config.modules
-    const defautl = currentUser.config.defaultModule
+    const defaultMode = currentUser.config.defaultModule
 
 
   const routeGuards = [
@@ -81,7 +81,7 @@ function AuthenticatedRoutes() {
     },
     {
       guard: true,
-      route: <Route path="/" element={!!defautl ? <Navigate to={'/' + defautl}  /> : <Welcome/> } />,
+      route: <Route path="/" element={defaultMode ? <Navigate to={'/' + defaultMode}  /> : <Welcome/> } />,
     },
     {
       guard: modules.map(m => m.url).includes('trasferte'),

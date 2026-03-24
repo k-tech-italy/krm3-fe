@@ -5,7 +5,7 @@ import {SUPPORTED_LANGUAGES} from "../../languages";
 
 const mockChangeLanguage = vi.fn();
 
-vi.mock("../../hooks/useTranslation.tsx", () => ({
+vi.mock("../../hooks/useChangeLanguage.tsx", () => ({
     useChangeLanguage: () => ({
         mutate: mockChangeLanguage,
         isLoading: false,

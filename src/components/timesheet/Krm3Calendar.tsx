@@ -44,7 +44,7 @@ export default function Krm3Calendar({
     const today = new Date();
 
     // First Monday of the current month
-    let first_monday = new Date();
+    const first_monday = new Date();
     first_monday.setDate(getFirstMondayOfMonth(today));
     return first_monday;
   });
@@ -245,7 +245,7 @@ export default function Krm3Calendar({
   }
 
   function scheduledHoursCompleted(){
-    let hoursLeftToLog: Record<string, number> = {}
+    const hoursLeftToLog: Record<string, number> = {}
     for(const date in typeDays){
       const formattedDate = normalizeDate(date).replaceAll('-', '_')
       hoursLeftToLog[date] = schedule[formattedDate]
