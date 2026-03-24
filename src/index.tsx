@@ -2,14 +2,14 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 
 import { App } from "./App";
-import { ThemeProvider } from "next-themes";
+import { ThemeProviderWrapper } from "./components/commons/ThemeProviderWrapper.tsx";
 
 const root = createRoot(document.getElementById("root") as HTMLElement);
 
 root.render(
   <React.StrictMode>
-    <ThemeProvider>
+    <ThemeProviderWrapper>
       <App />
-    </ThemeProvider>
+    </ThemeProviderWrapper>
   </React.StrictMode>
 );
