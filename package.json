@@ -61,6 +61,7 @@
     "axios-case-converter": "^1.1.0",
     "http-proxy-middleware": "^2.0.6",
     "i18next": "^25.10.9",
+    "i18next-http-backend": "^3.0.2",
     "install": "^0.13.0",
     "lucide-react": "^0.486.0",
     "moment": "^2.29.4",
