@@ -8,7 +8,16 @@ const root = createRoot(document.getElementById("root") as HTMLElement);
 
 root.render(
   <React.StrictMode>
-    <ThemeProvider attribute="class" defaultTheme="dark" storageKey="krm3-theme">
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      storageKey="theme"
+      value={{
+        light: "light",
+        dark: "dark",
+        system: "auto",
+      }}
+    >
       <App />
     </ThemeProvider>
   </React.StrictMode>
