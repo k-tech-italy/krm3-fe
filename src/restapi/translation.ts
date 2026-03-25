@@ -1,7 +1,8 @@
-import { restapi} from "./restapi";
-import {LanguageCode} from "./types";
+import {restapi} from "./restapi";
+import {LanguageMap} from "./types";
 
-export function setDjangoLanguage(langCode: LanguageCode) {
+
+export function setDjangoLanguage(langCode: string) {
     return restapi.post(
         "i18n/setlang/",
         new URLSearchParams({
@@ -14,4 +15,11 @@ export function setDjangoLanguage(langCode: LanguageCode) {
             },
         }
     );
+}
+
+
+export function getSupportedLanguages(): Promise<LanguageMap[]> {
+    return restapi.get('core/supported-languages/').then((res) => {
+        return res.data;
+    });
 }

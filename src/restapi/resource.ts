@@ -1,11 +1,10 @@
-import {LanguageCode} from "./types.ts";
 import {restapi} from "./restapi.ts";
 
 type ResourceResponse = {
-    preferred_language: LanguageCode;
+    preferred_language: string;
 }
 
-export function patchResourcePreferredLanguage(langCode: LanguageCode, resourceId: number): Promise<ResourceResponse> {
+export function patchResourcePreferredLanguage(langCode: string, resourceId: number): Promise<ResourceResponse> {
     return restapi.patch(
         `core/resource/${resourceId}/preferred-language/`,
         {

@@ -7,4 +7,3 @@ export const SUPPORTED_LANGUAGES = [
 ];
 
 export const DEFAULT_LANGUAGE = 'en';
-export const LANGUAGE_CODES = SUPPORTED_LANGUAGES.map(lang => lang.code);
