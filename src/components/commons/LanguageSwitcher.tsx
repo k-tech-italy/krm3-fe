@@ -1,8 +1,8 @@
 import { Languages } from "lucide-react";
 import DropDown from "./DropDown";
-import {useChangeLanguage, useGetSupportedLanguages} from "../../hooks/useTranslation.tsx";
-import {useAuthContext} from "./AuthContext.tsx";
-import {useCookies} from "react-cookie";
+import { useChangeLanguage, useGetSupportedLanguages } from "../../hooks/useTranslation.tsx";
+import { useAuthContext } from "./AuthContext.tsx";
+import { useCookies } from "react-cookie";
 
 export default function LanguageSwitcher() {
   const { mutate: changeLanguage, isLoading } = useChangeLanguage();
@@ -10,7 +10,6 @@ export default function LanguageSwitcher() {
   const { user } = useAuthContext();
   const [cookies] = useCookies(["django_language"]);
   const currentLanguage = cookies.django_language;
-  console.log(languages)
 
   if (!user) throw new Error("User must be logged in");
 
@@ -18,13 +17,13 @@ export default function LanguageSwitcher() {
     {
       items: languages.map(({ languageCode, language }) => ({
         label: language,
-        onClick: () => changeLanguage({ language_code: languageCode, resourceId: user.resource.id }),
+        onClick: () =>
+          changeLanguage({ language_code: languageCode, resourceId: user.resource.id }),
         disabled: isLoading || language === currentLanguage,
         active: languageCode === currentLanguage,
       })),
     },
   ];
-
 
   return <DropDown icon={<Languages />} sections={sections} />;
 }
