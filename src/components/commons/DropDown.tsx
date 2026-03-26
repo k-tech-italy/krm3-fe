@@ -1,5 +1,4 @@
-import { useState, useRef } from 'react';
-
+import { useState, useRef } from "react";
 
 interface DropdownItem {
   label: React.ReactNode;
@@ -13,6 +12,7 @@ interface DropdownItem {
 interface DropdownSection {
   items: DropdownItem[];
   isFooter?: boolean;
+  isClickable?: boolean;
 }
 
 interface DropdownProps {
@@ -23,13 +23,7 @@ interface DropdownProps {
   testId?: string;
 }
 
-export default function DropDown({
-  icon,
-  label,
-  sections,
-  className = "",
-  testId
-}: DropdownProps) {
+export default function DropDown({ icon, label, sections, className = "", testId }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -50,54 +44,55 @@ export default function DropDown({
         onMouseLeave={() => setIsOpen(false)}
         data-testid={testId || "dropdown-menu"}
         className={`absolute right-0 mt-2 w-56 origin-top-right bg-white border border-gray-200 divide-y divide-gray-100 rounded-md shadow focus:outline-none z-10 transition-all duration-200 ease-out transform ${
-          isOpen
-            ? "opacity-100 scale-100"
-            : "opacity-0 scale-95 pointer-events-none"
+          isOpen ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
         }`}
       >
         {sections.map((section, sectionIndex) => (
           <div
             key={sectionIndex}
-            className={section.isFooter
-              ? "py-2 px-4 text-xs text-gray-500 border-t border-gray-100"
-              : "py-1"
+            className={
+              section.isClickable
+                ? "py-2 px-4 text-xs text-gray-500 border-t border-gray-100"
+                : "py-1"
             }
           >
-            {section.items.map((item, itemIndex) => (
+            {section.items.map((item, itemIndex) =>
               item.href ? (
                 <a
                   key={itemIndex}
                   href={item.href}
                   data-testid={item.testId}
                   className={`block w-full text-left ${
-                    section.isFooter ? "" : "px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    section.isClickable ? "" : "px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   }`}
                 >
                   {item.label}
                 </a>
               ) : (
-                  <button
-                      key={itemIndex}
-                      data-testid={item.testId}
-                      onClick={() => {
-                          if (!item.disabled) {
-                              item.onClick?.();
-                              setIsOpen(false);
-                          }
-                      }}
-                      className={`block w-full text-left ${
-                          section.isFooter ? "" : `px-4 py-2 text-sm ${
-                              item.active
-                                  ? "bg-gray-100 text-gray-400 font-semibold cursor-default"
-                                  : "text-gray-700 hover:bg-gray-100"
-                          }`
-                      }`}
-                      disabled={item.disabled}
-                  >
-                      {item.label}
-                  </button>
+                <button
+                  key={itemIndex}
+                  data-testid={item.testId}
+                  onClick={() => {
+                    if (!item.disabled) {
+                      item.onClick?.();
+                      setIsOpen(false);
+                    }
+                  }}
+                  className={`block w-full text-left ${
+                    section.isFooter
+                      ? ""
+                      : `px-4 py-2 text-sm ${
+                          item.active
+                            ? "bg-gray-100 text-gray-400 font-semibold cursor-default"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`
+                  }`}
+                  disabled={item.disabled}
+                >
+                  {item.label}
+                </button>
               )
-            ))}
+            )}
           </div>
         ))}
       </div>
