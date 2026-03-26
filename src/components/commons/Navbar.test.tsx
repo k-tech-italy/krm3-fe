@@ -82,4 +82,17 @@ describe('Navbar', () => {
         expect(screen.getByText("module2")).toBeInTheDocument();
         expect(screen.getByText("Mocked User Menu")).toBeInTheDocument();
     })
+    it('renders language switcher in mobile menu after hamburger click', async () => {
+        vi.spyOn(useView, 'useMediaQuery').mockReturnValue(true);
+        render(<AuthProvider><Navbar /></AuthProvider>);
+
+        // Not visible before menu opens
+        expect(screen.queryByText("Mocked Language switcher")).not.toBeInTheDocument();
+
+        const hamburgerButton = screen.getByRole('button', { name: /toggle menu/i });
+        await userEvent.click(hamburgerButton);
+
+        // Visible after menu opens
+        expect(screen.getByText("Mocked Language switcher")).toBeInTheDocument();
+    })
 })

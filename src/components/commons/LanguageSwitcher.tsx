@@ -25,5 +25,5 @@ export default function LanguageSwitcher() {
     },
   ];
 
-  return <DropDown icon={<Languages />} sections={sections} />;
+  return <DropDown icon={<Languages data-testid="languages-icon" />} sections={sections} />;
 }
