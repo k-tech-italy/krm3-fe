@@ -19,7 +19,7 @@ export default function LanguageSwitcher() {
         label: language,
         onClick: () =>
           changeLanguage({ language_code: languageCode, resourceId: user.resource.id }),
-        disabled: isLoading || language === currentLanguage,
+        disabled: isLoading || languageCode === currentLanguage,
         active: languageCode === currentLanguage,
       })),
     },
