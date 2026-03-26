@@ -1,20 +1,23 @@
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "react-query";
-import { MissionPage } from "./pages/MissionPage";
-import { Mission } from "./components/missions/Mission";
-import { Navbar } from "./components/commons/Navbar";
-import { Login } from "./components/commons/Login";
-import { LogoutPage } from "./pages/Logout";
-import { useMediaQuery } from "./hooks/useView";
-import { useGetCurrentUser } from "./hooks/useAuth";
+import {BrowserRouter, Route, Routes, Navigate} from "react-router-dom";
+import {QueryClient, QueryClientProvider} from "react-query";
+import {MissionPage} from "./pages/MissionPage";
+import {Mission} from "./components/missions/Mission";
+import {Navbar} from "./components/commons/Navbar";
+import {Login} from "./components/commons/Login";
+import {LogoutPage} from "./pages/Logout";
+import {useMediaQuery} from "./hooks/useView";
+import {useGetCurrentUser} from "./hooks/useAuth";
 import Timesheet from "./pages/Timesheet";
 import LoadSpinner from "./components/commons/LoadSpinner";
-import { ToastContainer } from "react-toastify";
+import {ToastContainer} from "react-toastify";
 import "./index.css";
 import { Welcome } from "./pages/Welcome";
 import React from "react";
 import Contacts from "./pages/Contacts.tsx";
 import ContactDetailsPage from "./pages/ContactDetailsPage.tsx";
+import {AuthProvider} from "./components/commons/AuthContext.tsx";
+import {LanguageProvider} from "./components/commons/LanguageContext.tsx";
+import {CookiesProvider} from "react-cookie";
 
 const queryClient = new QueryClient();
 
@@ -42,20 +45,21 @@ export function App() {
     </QueryClientProvider>
   );
 }
+
 function AuthenticatedRoutes() {
-  const { data: currentUser, isLoading, isError } = useGetCurrentUser();
-  const isSmallScreen = useMediaQuery("(max-width: 768px)");
+    const {data: currentUser, isLoading, isError} = useGetCurrentUser();
+    const isSmallScreen = useMediaQuery("(max-width: 768px)");
 
-  if (isLoading) {
-    return <LoadSpinner />;
-  }
-  // Redirect to login if there's an error or no user
-  if (isError || !currentUser) {
-    return <Navigate to="/login" replace />;
-  }
+    if (isLoading) {
+        return <LoadSpinner/>;
+    }
+    // Redirect to login if there's an error or no user
+    if (isError || !currentUser) {
+        return <Navigate to="/login" replace/>;
+    }
 
-  const modules = currentUser.config.modules
-  const defautl = currentUser.config.defaultModule
+    const modules = currentUser.config.modules
+    const defaultModule = currentUser.config.defaultModule
 
 
   const routeGuards = [
@@ -77,7 +81,7 @@ function AuthenticatedRoutes() {
     },
     {
       guard: true,
-      route: <Route path="/" element={!!defautl ? <Navigate to={'/' + defautl}  /> : <Welcome/> } />,
+      route: <Route path="/" element={defaultModule ? <Navigate to={'/' + defaultModule}  /> : <Welcome/> } />,
     },
     {
       guard: modules.map(m => m.url).includes('trasferte'),
@@ -91,7 +95,7 @@ function AuthenticatedRoutes() {
   return (
     <div className="wrapper">
       <div className="main bg-app">
-        <Navbar />
+        <CookiesProvider><AuthProvider><LanguageProvider><Navbar/></LanguageProvider></AuthProvider></CookiesProvider>
         <div className="pb-16">
           <Routes>
             {routeGuards.map((routeGuard, idx) => (

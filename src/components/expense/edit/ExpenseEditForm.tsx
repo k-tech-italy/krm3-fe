@@ -67,7 +67,7 @@ export function ExpenseEditForm(props: Props) {
   }
 
   function handleSelectTypeOfPayment(e: any) {
-    if (!!typeOfPaymentList) {
+    if (typeOfPaymentList) {
       const selected =
         typeOfPaymentList.results
           .filter((payment) => payment.id === Number(e.target.value))
@@ -79,7 +79,7 @@ export function ExpenseEditForm(props: Props) {
   }
 
   function handleSelectTypeOfDocument(e: any) {
-    if (!!typeOfDocumentList) {
+    if (typeOfDocumentList) {
       const selected =
         typeOfDocumentList.results
           .filter((document) => document.id === Number(e.target.value))
@@ -91,7 +91,7 @@ export function ExpenseEditForm(props: Props) {
   }
 
   function handleSelectCategory(e: any) {
-    if (!!categoryList) {
+    if (categoryList) {
       const selected =
         categoryList.results
           .filter((category) => category.id === Number(e.target.value))
@@ -106,7 +106,7 @@ export function ExpenseEditForm(props: Props) {
     props.expense.currency = e.target.value;
     delete error?.currency;
     setExpenseEdit({ ...expenseEdit, currency: e.target.value });
-    if (!!props.expense.amountCurrency) {
+    if (props.expense.amountCurrency) {
       convertCurrencyTo(
         "2023-08-23",
         e.target.value,
@@ -153,7 +153,7 @@ export function ExpenseEditForm(props: Props) {
           <DatePicker
             id="expense-edit-form-day-date-picker"
             selected={
-              !!expenseEdit.day ? new Date(expenseEdit.day) : new Date()
+              expenseEdit.day ? new Date(expenseEdit.day) : new Date()
             }
             className="w-full border border-gray-300 rounded-md p-2"
             onChange={(date: Date | null) => {
@@ -171,7 +171,7 @@ export function ExpenseEditForm(props: Props) {
         <div>
           <select
             className={`w-full border rounded-md p-2 ${
-              !!error?.category ? "border-red-500" : "border-gray-300"
+              error?.category ? "border-red-500" : "border-gray-300"
             }`}
             onChange={handleSelectCategory}
             value={expenseEdit.category?.id}
@@ -206,7 +206,7 @@ export function ExpenseEditForm(props: Props) {
           <select
             data-testid="document-type-select"
             className={`w-full border rounded-md p-2 ${
-              !!error?.documentType ? "border-red-500" : "border-gray-300"
+              error?.documentType ? "border-red-500" : "border-gray-300"
             }`}
             onChange={handleSelectTypeOfDocument}
             value={expenseEdit.documentType?.id || 0}
@@ -247,7 +247,7 @@ export function ExpenseEditForm(props: Props) {
           <select
             data-testid="payment-type-select"
             className={`w-full border rounded-md p-2 ${
-              !!error?.paymentType ? "border-red-500" : "border-gray-300"
+              error?.paymentType ? "border-red-500" : "border-gray-300"
             }`}
             onChange={handleSelectTypeOfPayment}
             value={expenseEdit.paymentType?.id}
@@ -275,7 +275,7 @@ export function ExpenseEditForm(props: Props) {
             step="0.01"
             min="0"
             className={`w-1/2 border rounded-md p-2 text-right ${
-              !!error?.amountCurrency ? "border-red-500" : "border-gray-300"
+              error?.amountCurrency ? "border-red-500" : "border-gray-300"
             }`}
             onChange={handleCurrencyAmount}
             value={expenseEdit.amountCurrency || 0}
@@ -283,7 +283,7 @@ export function ExpenseEditForm(props: Props) {
           <select
             data-testid="currency-select"
             className={`w-1/2 border rounded-md p-2 ${
-              !!error?.currency ? "border-red-500" : "border-gray-300"
+              error?.currency ? "border-red-500" : "border-gray-300"
             }`}
             onChange={handleCurrency}
             value={expenseEdit.currency}
@@ -345,7 +345,7 @@ export function ExpenseEditForm(props: Props) {
           }`}
         >
           Azienda{" "}
-          {!!props.expense.amountReimbursement
+          {props.expense.amountReimbursement
             ? expenseEdit.amountReimbursement
             : ""}{" "}
           €

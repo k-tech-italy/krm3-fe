@@ -126,7 +126,7 @@ describe("Krm3Calendar", () => {
     ];
     for (let i = 1; i <= 31; i++) {
       const date = `2025-07-${String(i).padStart(2, "0")}`;
-      let entry: any = { date };
+      const entry: any = { date };
 
       if (i <= hoursKeys.length) {
         entry[hoursKeys[i - 1]] = 8;

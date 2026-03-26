@@ -32,7 +32,7 @@ export interface TimeSheetRowProps {
   ) => void;
   readOnly: boolean;
   selectedResourceId: number | null;
-  holidayOrSickDays: String[];
+  holidayOrSickDays: string[];
   selectedWeekdays?: Date[];
   schedule: Schedule;
 }

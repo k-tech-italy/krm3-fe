@@ -305,7 +305,7 @@ export default function EditDayEntry({
                   id="day-entry-from-date-picker"
                   className="w-full border border-app rounded-md p-2"
                   onChange={(date: Date | null) => {
-                    if (!!date) {
+                    if (date) {
                       handleChangeDate(date, "from");
                     }
                   }}
@@ -323,7 +323,7 @@ export default function EditDayEntry({
                   id={"day-entry-to-date-picker"}
                   className="w-full border border-app rounded-md p-2"
                   onChange={(date: Date | null) => {
-                    if (!!date) {
+                    if (date) {
                       handleChangeDate(date, "to");
                     }
                   }}

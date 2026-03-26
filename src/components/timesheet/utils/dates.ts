@@ -144,7 +144,7 @@ export function getFirstMondayOfMonth(inputDate: Date): number {
   );
 }
 export function getMondayOfWeek(inputDate: Date): Date {
-  let monday_of_week = new Date(inputDate);
+  const monday_of_week = new Date(inputDate);
 
   monday_of_week.setDate(
       inputDate.getDate() - (inputDate.getDay() == 0 ? 6 : (inputDate.getDay() - 1)));

@@ -11,7 +11,7 @@ export async function loginUser(username: string, password: string) {
 export async function loginGoogle() {
   console.log("Logging in with Google");
   try {
-    let currentUrl = window.location.toString();
+    const currentUrl = window.location.toString();
     const loginUrl =
       window.location.protocol + "//" + window.location.host + "/login";
 

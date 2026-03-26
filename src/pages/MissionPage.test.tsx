@@ -3,7 +3,6 @@ import { MissionPage } from "./MissionPage";
 import { vi } from "vitest";
 import { useGetMissions } from "../hooks/useMissions";
 import { useGetExpense } from "../hooks/useExpense";
-import { useGetCurrentUser } from "../hooks/useAuth";
 import { useMediaQuery } from "../hooks/useView";
 import { UseQueryResult } from "react-query";
 

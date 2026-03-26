@@ -287,3 +287,9 @@ export const enum DayType {
   CLOSED_DAY = "closed",
 }
 export type WeekRange = "whole" | "startOfWeek" | "endOfWeek";
+
+
+export interface LanguageMap {
+  languageCode: string;
+  language: string;
+}

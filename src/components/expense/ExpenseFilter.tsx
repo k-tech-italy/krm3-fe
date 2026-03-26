@@ -18,7 +18,7 @@ export default function ExpenseFilter(props: Props) {
     function handleFilterDate(fromDate: Date, toDate?: Date) {
         const res = props.data.filter((expense) => {
             const dataExpense = new Date(expense.day);
-            return dataExpense >= fromDate && dataExpense <= (!!toDate ? toDate : today);
+            return dataExpense >= fromDate && dataExpense <= (toDate ? toDate : today);
         });
         props.handleFilter(res);
     }
@@ -31,10 +31,10 @@ export default function ExpenseFilter(props: Props) {
                         <label className="block text-sm font-medium mb-1">Dal giorno:</label>
                         <DatePicker
                             id="expense-filter-from-date-picker"
-                            selected={!!fromDate ? fromDate : today}
+                            selected={fromDate ? fromDate : today}
                             className="w-full border border-gray-300 rounded-md p-2"
                             onChange={(date: Date | null) => {
-                                if (!!date) {
+                                if (date) {
                                     setFromDate(date);
                                 }
                             }}
@@ -44,10 +44,10 @@ export default function ExpenseFilter(props: Props) {
                         <label className="block text-sm font-medium mb-1">Al giorno:</label>
                         <DatePicker
                             id="expense-filter-to-date-picker"
-                            selected={!!toDate ? toDate : today}
+                            selected={toDate ? toDate : today}
                             className="w-full border border-gray-300 rounded-md p-2"
                             onChange={(date: Date | null) => {
-                                if (!!date) {
+                                if (date) {
                                     setToDate(date);
                                 }
                             }}
