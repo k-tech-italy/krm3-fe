@@ -80,7 +80,7 @@ export default function DropDown({ icon, label, sections, className = "", testId
                   }}
                   className={`block w-full text-left ${
                     section.isFooter
-                      ? ""
+                      ? "className=py-2 px-4 text-xs text-gray-500"
                       : `px-4 py-2 text-sm ${
                           item.active
                             ? "bg-gray-100 text-gray-400 font-semibold cursor-default"
