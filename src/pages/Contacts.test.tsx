@@ -1,6 +1,6 @@
-import {fireEvent, render, screen} from "@testing-library/react";
+import {fireEvent, render, screen, act} from "@testing-library/react";
 import {vi} from "vitest"
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import {MemoryRouter, Route, Routes} from "react-router-dom";
 
 import * as useGetContacts from "../hooks/useContacts.tsx";
 import Contacts from "./Contacts.tsx";
@@ -51,33 +51,42 @@ const mockContacts = [
 
 describe('Contact Page', () => {
     beforeEach(() => {
+        vi.useFakeTimers();
         vi.spyOn(useGetContacts, "useGetContacts").mockImplementation((params) => {
             let results = [...mockContacts];
             if (params?.active) {
                 results = results.filter(c => c.isActive);
             }
-            
+            if (params?.search) {
+                const query = params.search.toLowerCase();
+                results = results.filter(c =>
+                    c.firstName.toLowerCase().includes(query) ||
+                    c.lastName.toLowerCase().includes(query) ||
+                    `${c.firstName} ${c.lastName}`.toLowerCase().includes(query)
+                );
+            }
+
             const page = params?.page || 1;
             const next = page === 1 ? "http://api/contacts?page=2" : null;
             const previous = page > 1 ? "http://api/contacts?page=1" : null;
 
             return {
-                data: {
-                    results: results,
-                    count: 20,
-                    next: next,
-                    previous: previous
-                },
+                data: {results, count: 20, next, previous},
                 isLoading: false
             } as any;
         });
-    })
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+        vi.restoreAllMocks();
+    });
 
     const renderContacts = () => {
         render(
             <MemoryRouter initialEntries={['/contacts']}>
                 <Routes>
-                    <Route path="/contacts" element={<Contacts />} />
+                    <Route path="/contacts" element={<Contacts/>}/>
                 </Routes>
             </MemoryRouter>
         );
@@ -87,23 +96,23 @@ describe('Contact Page', () => {
         renderContacts();
         expect(screen.getByTestId("contact-grid-tile-1")).toBeInTheDocument();
         expect(screen.getByTestId("contact-grid-tile-2")).toBeInTheDocument();
-        expect(screen.getByText("John Doe")).toBeInTheDocument()
-        expect(screen.getByText("Jack Sparrow")).toBeInTheDocument()
-    })
+        expect(screen.getByText("John Doe")).toBeInTheDocument();
+        expect(screen.getByText("Jack Sparrow")).toBeInTheDocument();
+    });
 
     it('list view', () => {
         renderContacts();
-        fireEvent.click(screen.getByTestId("switch-list-grid"))
+        fireEvent.click(screen.getByTestId("switch-list-grid"));
         expect(screen.getByTestId("contact-list-tile-1")).toBeInTheDocument();
         expect(screen.getByTestId("contact-list-tile-2")).toBeInTheDocument();
-    })
+    });
 
     it('filter active', () => {
         renderContacts();
-        fireEvent.click(screen.getByTestId("switch-active"))
-        expect(screen.getByText("John Doe")).toBeInTheDocument()
-        expect(screen.queryByText("Jack Sparrow")).not.toBeInTheDocument()
-    })
+        fireEvent.click(screen.getByTestId("switch-active"));
+        expect(screen.getByText("John Doe")).toBeInTheDocument();
+        expect(screen.queryByText("Jack Sparrow")).not.toBeInTheDocument();
+    });
 
     it('pagination next page', () => {
         renderContacts();
@@ -114,7 +123,7 @@ describe('Contact Page', () => {
         fireEvent.click(nextButton);
         
         expect(screen.getByText("Page 2")).toBeInTheDocument();
-    })
+    });
 
     it('pagination previous page', () => {
         renderContacts();
@@ -128,6 +137,98 @@ describe('Contact Page', () => {
         fireEvent.click(prevButton);
         
         expect(screen.getByText("Page 1")).toBeInTheDocument();
-    })
+    });
 
-})
+    it('Search works first name', () => {
+        renderContacts();
+        const searchBar = screen.getByRole("textbox");
+        fireEvent.change(searchBar, {target: {value: "John"}});
+
+        // Flush the 300ms debounce
+        act(() => {
+            vi.advanceTimersByTime(300);
+        });
+
+        expect(screen.getByText("John Doe")).toBeInTheDocument();
+        expect(screen.queryByText("Jack Sparrow")).not.toBeInTheDocument();
+    });
+
+    it('Search works last name', () => {
+        renderContacts();
+        const searchBar = screen.getByRole("textbox");
+        fireEvent.change(searchBar, {target: {value: "Sparrow"}});
+
+        act(() => {
+            vi.advanceTimersByTime(300);
+        });
+
+        expect(screen.queryByText("John Doe")).not.toBeInTheDocument();
+        expect(screen.getByText("Jack Sparrow")).toBeInTheDocument();
+    });
+
+    it('Search works first name and last name', () => {
+        renderContacts();
+        const searchBar = screen.getByRole("textbox");
+        fireEvent.change(searchBar, {target: {value: "John Doe"}});
+
+        act(() => {
+            vi.advanceTimersByTime(300);
+        });
+
+        expect(screen.getByText("John Doe")).toBeInTheDocument();
+        expect(screen.queryByText("Jack Sparrow")).not.toBeInTheDocument();
+    });
+
+    it('Can see all contacts if search cleared again', () => {
+        renderContacts();
+        const searchBar = screen.getByRole("textbox");
+
+        // Type a search query
+        fireEvent.change(searchBar, {target: {value: "John"}});
+        act(() => {
+            vi.advanceTimersByTime(300);
+        });
+        expect(screen.queryByText("Jack Sparrow")).not.toBeInTheDocument();
+
+        // Clear the search
+        fireEvent.change(searchBar, {target: {value: ""}});
+        act(() => {
+            vi.advanceTimersByTime(300);
+        });
+
+        expect(screen.getByText("John Doe")).toBeInTheDocument();
+        expect(screen.getByText("Jack Sparrow")).toBeInTheDocument();
+    });
+
+    it('Search resets pagination to page 1', () => {
+        renderContacts();
+
+        // Navigate to page 2
+        fireEvent.click(screen.getByLabelText("Next Page"));
+        expect(screen.getByText("Page 2")).toBeInTheDocument();
+
+        // Typing in the search bar should reset to page 1
+        const searchBar = screen.getByRole("textbox");
+        fireEvent.change(searchBar, {target: {value: "John"}});
+        act(() => {
+            vi.advanceTimersByTime(300);
+        });
+
+        expect(screen.getByText("Page 1")).toBeInTheDocument();
+    });
+
+    it('Search works in list view', () => {
+        renderContacts();
+        fireEvent.click(screen.getByTestId("switch-list-grid"));
+
+        const searchBar = screen.getByRole("textbox");
+        fireEvent.change(searchBar, {target: {value: "John"}});
+        act(() => {
+            vi.advanceTimersByTime(300);
+        });
+
+         expect(screen.getByText("John Doe")).toBeInTheDocument();
+         expect(screen.queryByText("Jack Sparrow")).not.toBeInTheDocument();
+    });
+
+});

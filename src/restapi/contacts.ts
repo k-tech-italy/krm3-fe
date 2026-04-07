@@ -1,7 +1,7 @@
 import {Contact, Page} from "./types.ts";
 import {restapi} from "./restapi.ts";
 
-export function getContacts(params?: { active?: boolean, page?: number }): Promise<Page<Contact>> {
+export function getContacts(params?: { active?: boolean, page?: number, search?: string }): Promise<Page<Contact>> {
     return restapi.get(`core/contacts/`, { params }).then((res) => {
         return res.data;
     });
