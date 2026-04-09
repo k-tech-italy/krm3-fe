@@ -83,7 +83,7 @@ export default function Contacts() {
           </div>
         </div>
       </div>
-      <div className="flex-grow flex items-center justify-center">
+      <div className="flex-grow">
         {isLoading && <div className="p-5 text-center">Loading...</div>}
         {contacts.length === 0 ? (
           <div className="flex flex-col p-5 text-center">
