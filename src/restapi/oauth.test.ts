@@ -19,6 +19,9 @@ describe("oauth API", () => {
   const mockLocation = {
     protocol: "https:",
     host: "example.com",
+    pathname: "/dashboard",
+    search: "",
+    hash: "",
     toString: vi.fn(() => "https://example.com/dashboard"),
     replace: vi.fn(),
   };
@@ -43,8 +46,9 @@ describe("oauth API", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Reset location mock
-    delete (window as any).location;
-    (window as any).location = mockLocation;
+    const windowWithLocation = window as unknown as { location: unknown };
+    delete (windowWithLocation as Partial<typeof windowWithLocation>).location;
+    windowWithLocation.location = mockLocation;
     // Reset localStorage mock
     Object.defineProperty(window, "localStorage", {
       value: localStorageMock,
@@ -55,7 +59,7 @@ describe("oauth API", () => {
 
   afterEach(() => {
     // Restore original values
-    (window as any).location = originalLocation;
+    (window as unknown as { location: Location }).location = originalLocation;
     Object.defineProperty(window, "localStorage", {
       value: originalLocalStorage,
       writable: true,
@@ -98,16 +102,25 @@ describe("oauth API", () => {
   });
 
   describe("loginGoogle", () => {
-    it("should store current URL in localStorage", async () => {
+    it("should store current relative path in localStorage", async () => {
       const mockResponse = { data: { authorizationUrl: "https://google.com/auth" } };
       vi.mocked(restapi.get).mockResolvedValue(mockResponse);
 
       await oauthApi.loginGoogle();
 
-      expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        "next",
-        "https://example.com/dashboard"
-      );
+      expect(localStorageMock.setItem).toHaveBeenCalledWith("next", "/dashboard");
+    });
+
+    it("should fall back to '/' when login is initiated from /login", async () => {
+      const mockResponse = { data: { authorizationUrl: "https://google.com/auth" } };
+      vi.mocked(restapi.get).mockResolvedValue(mockResponse);
+      mockLocation.pathname = "/login";
+      try {
+        await oauthApi.loginGoogle();
+        expect(localStorageMock.setItem).toHaveBeenCalledWith("next", "/");
+      } finally {
+        mockLocation.pathname = "/dashboard";
+      }
     });
 
     it("should make GET request with correct OAuth provider and redirect URI", async () => {
@@ -138,9 +151,7 @@ describe("oauth API", () => {
 
       await oauthApi.loginGoogle();
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "Authorization URL not found in the response"
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith("Authorization URL not found in the response");
       expect(mockLocation.replace).toHaveBeenCalledWith("/login");
 
       consoleErrorSpy.mockRestore();
@@ -153,9 +164,7 @@ describe("oauth API", () => {
 
       await oauthApi.loginGoogle();
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "Authorization URL not found in the response"
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith("Authorization URL not found in the response");
       expect(mockLocation.replace).toHaveBeenCalledWith("/login");
 
       consoleErrorSpy.mockRestore();
@@ -211,28 +220,43 @@ describe("oauth API", () => {
 
       await oauthApi.googleAuthenticate("state with spaces", "code&special=chars");
 
-      const expectedFormBody =
-        "state=state%20with%20spaces&code=code%26special%3Dchars";
-      expect(restapi.post).toHaveBeenCalledWith(
-        "/o/google-oauth2/",
-        expectedFormBody,
-        {
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-        }
-      );
+      const expectedFormBody = "state=state%20with%20spaces&code=code%26special%3Dchars";
+      expect(restapi.post).toHaveBeenCalledWith("/o/google-oauth2/", expectedFormBody, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      });
     });
 
-    it("should return next URL from localStorage after successful authentication", async () => {
+    it("should return next path from localStorage after successful authentication", async () => {
       const mockResponse = { data: { success: true } };
       vi.mocked(restapi.post).mockResolvedValue(mockResponse);
-      localStorageMock.setItem("next", "https://example.com/dashboard");
+      localStorageMock.setItem("next", "/dashboard");
 
       const result = await oauthApi.googleAuthenticate("state123", "code456");
 
-      expect(result).toBe("https://example.com/dashboard");
+      expect(result).toBe("/dashboard");
       expect(localStorageMock.getItem).toHaveBeenCalledWith("next");
+    });
+
+    it("should fall back to '/' when stored next is an absolute URL", async () => {
+      const mockResponse = { data: { success: true } };
+      vi.mocked(restapi.post).mockResolvedValue(mockResponse);
+      localStorageMock.setItem("next", "https://evil.example.com/steal");
+
+      const result = await oauthApi.googleAuthenticate("state123", "code456");
+
+      expect(result).toBe("/");
+    });
+
+    it("should fall back to '/' when stored next points back to /login", async () => {
+      const mockResponse = { data: { success: true } };
+      vi.mocked(restapi.post).mockResolvedValue(mockResponse);
+      localStorageMock.setItem("next", "/login?foo=bar");
+
+      const result = await oauthApi.googleAuthenticate("state123", "code456");
+
+      expect(result).toBe("/");
     });
 
     it("should return default '/' when next URL is not in localStorage", async () => {

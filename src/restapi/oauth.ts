@@ -11,15 +11,16 @@ export async function loginUser(username: string, password: string) {
 export async function loginGoogle() {
   console.log("Logging in with Google");
   try {
-    const currentUrl = window.location.toString();
-    const loginUrl =
-      window.location.protocol + "//" + window.location.host + "/login";
+    const currentPath = window.location.pathname + window.location.search + window.location.hash;
+    const loginUrl = window.location.protocol + "//" + window.location.host + "/login";
 
-    localStorage.setItem(LS_LOGIN_NEXT_URI, currentUrl);
+    // Store only the relative path so React Router can navigate to it.
+    // If the user initiated login from /login itself, fall back to "/" to
+    // avoid bouncing back onto the callback page.
+    const nextPath = currentPath.startsWith("/login") ? "/" : currentPath;
+    localStorage.setItem(LS_LOGIN_NEXT_URI, nextPath);
 
-    const res = await restapi.get(
-      `/o/${oauthProvider}/?redirect_uri=${loginUrl}`
-    );
+    const res = await restapi.get(`/o/${oauthProvider}/?redirect_uri=${loginUrl}`);
 
     if (!res.data || !res.data.authorizationUrl) {
       console.error("Authorization URL not found in the response");
@@ -41,9 +42,7 @@ export async function googleAuthenticate(state: string, code: string) {
       code: code,
     };
     const formBody = Object.keys(data)
-      .map(
-        (key) => encodeURIComponent(key) + "=" + encodeURIComponent(data[key])
-      )
+      .map((key) => encodeURIComponent(key) + "=" + encodeURIComponent(data[key]))
       .join("&");
     try {
       await restapi.post(`/o/google-oauth2/`, formBody, {
@@ -56,8 +55,14 @@ export async function googleAuthenticate(state: string, code: string) {
       // No need to store tokens in localStorage
 
       // redirect to LS_LOGIN_NEXT_URI or to /
-      const next = localStorage.getItem(LS_LOGIN_NEXT_URI) || "/";
+      const storedNext = localStorage.getItem(LS_LOGIN_NEXT_URI);
       localStorage.removeItem(LS_LOGIN_NEXT_URI);
+      // Guard against absolute URLs or login-page bounces; React Router's
+      // navigate() expects a path, not a full URL.
+      let next = storedNext && storedNext.startsWith("/") ? storedNext : "/";
+      if (next.startsWith("/login")) {
+        next = "/";
+      }
       return next;
     } catch (err) {
       console.error("Authentication failed", err);

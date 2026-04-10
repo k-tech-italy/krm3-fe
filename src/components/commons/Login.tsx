@@ -1,11 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import queryString from "query-string";
-import {
-  googleAuthenticate,
-  loginGoogle,
-  loginUser,
-} from "../../restapi/oauth";
+import { googleAuthenticate, loginGoogle, loginUser } from "../../restapi/oauth";
 import { useMediaQuery } from "../../hooks/useView";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import { logout } from "../../restapi/user";
@@ -26,7 +22,8 @@ export function Login() {
   const isSmallScreen = useMediaQuery("(max-width: 767.98px)");
   const location = useLocation();
   const navigate = useNavigate();
-  const { data, isAuthenticated } = useGetCurrentUser();
+  const { data, isAuthenticated, isLoading: isUserLoading } = useGetCurrentUser();
+  const exchangedRef = useRef(false);
   const [showLogin, setShowLogin] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -38,11 +35,18 @@ export function Login() {
     const state = values.state ? values.state : null;
     const code = values.code ? values.code : null;
     if (state && code) {
+      // Guard against React StrictMode double-invoking this effect:
+      // Google/django-social-auth authorization codes are single-use, so a
+      // second call fails state/code validation and leaves us stuck here.
+      if (exchangedRef.current) {
+        return;
+      }
+      exchangedRef.current = true;
       setIsLoading(true);
       googleAuthenticate(state.toString(), code.toString())
         .then((next) => {
           if (next) {
-            navigate(next);
+            navigate(next, { replace: true });
           }
         })
         .catch((err) => {
@@ -61,11 +65,18 @@ export function Login() {
   }, [location, navigate]);
 
   useEffect(() => {
+    // Legacy cleanup: clear any stale cookie from an older app version.
+    // Skip while the user query is still resolving (avoids clobbering a
+    // just-established session) and skip during the Google callback, where
+    // a parallel logout() races the /o/google-oauth2/ POST and can destroy
+    // the freshly-set session cookie.
+    if (isUserLoading) return;
+    const values = queryString.parse(location.search);
+    if (values.state && values.code) return;
     if (!(isAuthenticated && data)) {
-      // Clear Cookie for issue between new and old version of the app
       logout();
     }
-  }, [isAuthenticated, data, navigate]);
+  }, [isAuthenticated, data, isUserLoading, location.search]);
 
   const validateForm = (): ValidationResult => {
     const errors: LoginError = {};
@@ -113,9 +124,12 @@ export function Login() {
     try {
       await loginUser(username, password);
       navigate("/home");
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        "Login failed. Please try again.";
       setError({
-        detail: err.response?.data?.detail || "Login failed. Please try again.",
+        detail,
       });
     } finally {
       setIsLoading(false);
@@ -163,11 +177,7 @@ export function Login() {
   return (
     <div className="flex mt-5 mx-2 justify-center">
       {showLogin ? (
-        <div
-          className={`p-5 bg-card shadow-md rounded ${
-            isSmallScreen ? "w-full" : "w-1/2"
-          }`}
-        >
+        <div className={`p-5 bg-card shadow-md rounded ${isSmallScreen ? "w-full" : "w-1/2"}`}>
           <h2 className="text-2xl font-bold mb-6 text-center text-app">Login</h2>
 
           {error?.detail && (
@@ -197,9 +207,7 @@ export function Login() {
                 autoComplete="username"
                 disabled={isLoading}
                 aria-invalid={!!error?.username}
-                aria-describedby={
-                  error?.username ? "username-error" : undefined
-                }
+                aria-describedby={error?.username ? "username-error" : undefined}
               />
               {error?.username && (
                 <p className="text-red-500 text-sm mt-1 dark:text-red-300" id="username-error">
@@ -225,9 +233,7 @@ export function Login() {
                 autoComplete="current-password"
                 disabled={isLoading}
                 aria-invalid={!!error?.password}
-                aria-describedby={
-                  error?.password ? "password-error" : undefined
-                }
+                aria-describedby={error?.password ? "password-error" : undefined}
               />
               {error?.password && (
                 <p className="text-red-500 text-sm mt-1" id="password-error">
