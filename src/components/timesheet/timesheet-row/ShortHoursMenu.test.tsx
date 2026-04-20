@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { ShortHoursMenu } from "./ShortHoursMenu";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
@@ -15,7 +15,7 @@ vi.mock("../../../hooks/useTimesheet", () => ({
   }),
   useDeleteTimeEntries: () => ({
     mutateAsync: mutateDeleteMock,
-  }),
+  })
 }));
 
 // Mock toast (define functions inside the factory to avoid hoisting issues)
@@ -50,7 +50,7 @@ describe("ShortHoursMenu (extended)", () => {
     openTimeEntryModalHandler: () => {},
     taskEntries: [],
     timeEntries: [],
-    schedule: { [todayStr.replaceAll("-", "_")]: 8 },
+    schedule: {[todayStr.replaceAll("-", "_")]: 8},
     days: {},
     holidayOrSickDays: [],
   };
@@ -64,6 +64,11 @@ describe("ShortHoursMenu (extended)", () => {
     );
   }
 
+  beforeEach(() => {
+    mutateAsyncMock.mockClear();
+    mutateDeleteMock.mockClear();
+  });
+
   // Helper: click a quick hour button by label
   function clickQuickHour(label: "2h" | "4h" | "8h") {
     fireEvent.click(screen.getByTestId(`short-menu-${label}-button`));
@@ -71,7 +76,7 @@ describe("ShortHoursMenu (extended)", () => {
 
   // Helper: type a value into the custom hours input and click Add
   function submitHoursInput(value: string) {
-    const input = screen.getByPlaceholderText("…");
+    const input = screen.getByPlaceholderText("e.g. 2.5");
     fireEvent.change(input, { target: { value } });
     fireEvent.click(screen.getByText("Add"));
   }
@@ -81,7 +86,7 @@ describe("ShortHoursMenu (extended)", () => {
     expect(screen.getByTestId("short-menu-2h-button")).toBeInTheDocument();
     expect(screen.getByTestId("short-menu-4h-button")).toBeInTheDocument();
     expect(screen.getByTestId("short-menu-8h-button")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("…")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("e.g. 2.5")).toBeInTheDocument();
     expect(screen.getByText("Add")).toBeInTheDocument();
     expect(screen.getByText("More")).toBeInTheDocument();
     expect(screen.queryByTestId("short-menu-delete-button")).not.toBeInTheDocument();
@@ -106,7 +111,7 @@ describe("ShortHoursMenu (extended)", () => {
           specialReason: undefined,
           comment: undefined,
         },
-      ],
+      ]
     });
     expect(screen.getByTestId("short-menu-delete-button")).toBeInTheDocument();
   });
@@ -162,16 +167,16 @@ describe("ShortHoursMenu (extended)", () => {
           specialReason: undefined,
           comment: undefined,
         },
-      ],
+      ]
     });
     fireEvent.click(screen.getByTestId("short-menu-delete-button"));
     expect(mutateDeleteMock).toHaveBeenCalledWith([1]);
   });
 
   it("renders readOnly Details option and hides quick buttons and input", () => {
-    renderMenu({ readOnly: true });
+    renderMenu({readOnly: true});
     expect(screen.getByText("Details")).toBeInTheDocument();
-    expect(screen.queryByPlaceholderText("…")).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("e.g. 2.5")).not.toBeInTheDocument();
     expect(screen.queryByText("Add")).not.toBeInTheDocument();
     expect(screen.queryByTestId("short-menu-2h-button")).not.toBeInTheDocument();
     expect(screen.queryByTestId("short-menu-4h-button")).not.toBeInTheDocument();
@@ -180,7 +185,7 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("calls openTimeEntryModalHandler when 'More' is clicked", () => {
     const openTimeEntryModalHandler = vi.fn();
-    renderMenu({ openTimeEntryModalHandler });
+    renderMenu({openTimeEntryModalHandler});
     fireEvent.click(screen.getByText("More"));
     expect(openTimeEntryModalHandler).toHaveBeenCalled();
   });
@@ -211,7 +216,7 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("calls mutateAsync when Enter key is pressed on the custom input", () => {
     renderMenu();
-    const input = screen.getByPlaceholderText("…");
+    const input = screen.getByPlaceholderText("e.g. 2.5");
     fireEvent.change(input, { target: { value: "3" } });
     fireEvent.keyDown(input, { key: "Enter" });
     expect(mutateAsyncMock).toHaveBeenCalled();
@@ -249,22 +254,19 @@ describe("ShortHoursMenu (extended)", () => {
     renderMenu();
     submitHoursInput("0");
     expect(screen.getByText("Enter a value from 0.5 to 8 in 0.5 increments")).toBeInTheDocument();
-    const input = screen.getByPlaceholderText("…");
+    const input = screen.getByPlaceholderText("e.g. 2.5");
     fireEvent.change(input, { target: { value: "4" } });
-    expect(
-      screen.queryByText("Enter a value from 0.5 to 8 in 0.5 increments")
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Enter a value from 0.5 to 8 in 0.5 increments")).not.toBeInTheDocument();
   });
 
   it("accepts valid 0.5 increment values (0.5, 4, 7.5, 8)", () => {
     for (const value of ["0.5", "4", "7.5", "8"]) {
       mutateAsyncMock.mockClear();
-      renderMenu();
+      const { unmount } = renderMenu();
       submitHoursInput(value);
-      expect(
-        screen.queryByText("Enter a value from 0.5 to 8 in 0.5 increments")
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText("Enter a value from 0.5 to 8 in 0.5 increments")).not.toBeInTheDocument();
       expect(mutateAsyncMock).toHaveBeenCalled();
+      unmount();
     }
   });
 
@@ -281,108 +283,92 @@ describe("ShortHoursMenu (extended)", () => {
   const hideAutofillScenarios = [
     {
       name: "8h one task",
-      entries: [{ date: todayStr, dayShiftHours: 8, taskId: 1 }],
+      entries: [{date: todayStr, dayShiftHours: 8, taskId: 1}]
     },
     {
       name: "overtime",
-      entries: [{ date: todayStr, dayShiftHours: 12, taskId: 1 }],
+      entries: [{date: todayStr, dayShiftHours: 12, taskId: 1}]
     },
     {
       name: "day entries and task entries",
       entries: [
-        { date: todayStr, dayShiftHours: 4, taskId: 1 },
-        { date: todayStr, leaveHours: 4 },
-        { date: todayStr, restHours: 2 },
-      ],
-    },
-  ];
-  it.each(hideAutofillScenarios)(
-    "hides Autofill button when total hours reach schedule",
-    ({ entries }) => {
-      renderMenu({
-        timeEntries: entries,
-        schedule: { [todayKey]: 8 },
-      });
-      expect(screen.queryByText("Autofill")).not.toBeInTheDocument();
+        {date: todayStr, dayShiftHours: 4, taskId: 1},
+        {date: todayStr, leaveHours: 4},
+        {date: todayStr, restHours: 2}
+      ]
     }
-  );
+  ];
+  it.each(hideAutofillScenarios)("hides Autofill button when total hours reach schedule", ({entries}) => {
+    renderMenu({
+      timeEntries: entries,
+      schedule: {[todayKey]: 8},
+    });
+    expect(screen.queryByText("Autofill")).not.toBeInTheDocument();
+  });
 
   const showAutofillScenarios = [
     {
       name: "empty day",
-      entries: [],
+      entries: []
     },
     {
       name: "one task entry",
-      entries: [{ date: todayStr, dayShiftHours: 6, taskId: 1 }],
+      entries: [{date: todayStr, dayShiftHours: 6, taskId: 1}]
     },
     {
       name: "one day entry",
-      entries: [{ date: todayStr, leaveHours: 4 }],
+      entries: [{date: todayStr, leaveHours: 4}]
     },
     {
       name: "day entries and task entries",
       entries: [
-        { date: todayStr, dayShiftHours: 2, taskId: 1 },
-        { date: todayStr, leaveHours: 2 },
-        { date: todayStr, restHours: 2 },
-      ],
-    },
+        {date: todayStr, dayShiftHours: 2, taskId: 1},
+        {date: todayStr, leaveHours: 2},
+        {date: todayStr, restHours: 2}
+      ]
+    }
   ];
 
-  it.each(showAutofillScenarios)(
-    "shows Autofill button when total hours are less than schedule",
-    ({ entries }) => {
-      renderMenu({
-        timeEntries: entries,
-        schedule: { [todayKey]: 8 },
-      });
-      expect(screen.getByText("Autofill")).toBeInTheDocument();
-    }
-  );
+  it.each(showAutofillScenarios)("shows Autofill button when total hours are less than schedule", ({entries}) => {
+    renderMenu({
+      timeEntries: entries,
+      schedule: {[todayKey]: 8},
+    });
+    expect(screen.getByText("Autofill")).toBeInTheDocument();
+  });
 
   it("does not render menu if openShortMenu is not visible", () => {
     const queryClient = new QueryClient();
-    const { container } = render(
+    const {container} = render(
       <QueryClientProvider client={queryClient}>
-        <ShortHoursMenu {...baseProps} openShortMenu={null} />
+        <ShortHoursMenu {...baseProps} openShortMenu={null}/>
       </QueryClientProvider>
     );
     expect(container.firstChild).toBeNull();
   });
 
   it("shows confirm modal when clicking a quick hour button with existing entries", () => {
-    const taskEntries = [{ date: todayStr, task: 1 }];
+    const taskEntries = [{date: todayStr, task: 1}];
     renderMenu({
       taskEntries,
-      openShortMenu: {
-        ...baseProps.openShortMenu,
-        startDate: todayStr,
-        endDate: todayStr,
-        taskId: "1",
-      },
+      openShortMenu: { ...baseProps.openShortMenu, startDate: todayStr, endDate: todayStr, taskId: "1" },
     });
     clickQuickHour("2h");
     expect(screen.getByText(/Overwrite existing entries/i)).toBeInTheDocument();
   });
 
   it("shows confirm modal when submitting custom hours with existing entries", () => {
-    const taskEntries = [{ date: todayStr, task: 1 }];
+    const taskEntries = [{date: todayStr, task: 1}];
     renderMenu({
       taskEntries,
-      openShortMenu: {
-        ...baseProps.openShortMenu,
-        startDate: todayStr,
-        endDate: todayStr,
-        taskId: "1",
-      },
+      openShortMenu: { ...baseProps.openShortMenu, startDate: todayStr, endDate: todayStr, taskId: "1" },
     });
     submitHoursInput("3");
     expect(screen.getByText(/Overwrite existing entries/i)).toBeInTheDocument();
   });
 
   it("handles confirm modal actions", () => {
-    const taskEntries = [{ date: todayStr, task: 1 }];
+    const taskEntries = [{date: todayStr, task: 1}];
     renderMenu({
       taskEntries,
       openShortMenu: {
@@ -407,7 +393,7 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("handles confirm submission without overwrite when dates with no entries exist", () => {
     const setOpenShortMenuMock = vi.fn();
-    const taskEntries = [{ date: todayStr, task: 1 }];
+    const taskEntries = [{date: todayStr, task: 1}];
     renderMenu({
       taskEntries,
       setOpenShortMenu: setOpenShortMenuMock,
@@ -427,7 +413,7 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("handles confirm modal close", () => {
     const setOpenShortMenuMock = vi.fn();
-    const taskEntries = [{ date: todayStr, task: 1 }];
+    const taskEntries = [{date: todayStr, task: 1}];
     renderMenu({
       taskEntries,
       setOpenShortMenu: setOpenShortMenuMock,
@@ -440,9 +426,7 @@ describe("ShortHoursMenu (extended)", () => {
     });
     clickQuickHour("2h");
     expect(screen.getByText(/Overwrite existing entries/i)).toBeInTheDocument();
-    const closeButton =
-      screen.getByRole("button", { name: /close/i }) ||
-      document.querySelector('[aria-label="close"]');
+    const closeButton = screen.getByRole('button', {name: /close/i}) || document.querySelector('[aria-label="close"]');
     if (closeButton) {
       fireEvent.click(closeButton);
       expect(setOpenShortMenuMock).toHaveBeenCalledWith(undefined);
@@ -451,7 +435,7 @@ describe("ShortHoursMenu (extended)", () => {
 
   it("does not close menu on mouse leave when confirm modal is open", () => {
     const setOpenShortMenuMock = vi.fn();
-    const taskEntries = [{ date: todayStr, task: 1 }];
+    const taskEntries = [{date: todayStr, task: 1}];
     renderMenu({
       taskEntries,
       setOpenShortMenu: setOpenShortMenuMock,
@@ -470,7 +454,7 @@ describe("ShortHoursMenu (extended)", () => {
   });
 
   it("handles isDeleteButtonVisible when openShortMenu is null", () => {
-    renderMenu({ openShortMenu: null });
+    renderMenu({openShortMenu: null});
     expect(screen.queryByTestId("short-menu-delete-button")).not.toBeInTheDocument();
   });
 
@@ -494,7 +478,7 @@ describe("ShortHoursMenu (extended)", () => {
           holidayHours: 0,
           leaveHours: 0,
           onCallHours: 0,
-          specialLeaveHours: 0,
+          specialLeaveHours: 0
         },
       ],
       schedule: {
@@ -525,7 +509,7 @@ describe("ShortHoursMenu (extended)", () => {
           holidayHours: 0,
           leaveHours: 0,
           onCallHours: 0,
-          specialLeaveHours: 0,
+          specialLeaveHours: 0
         },
         {
           id: 2,
@@ -539,7 +523,7 @@ describe("ShortHoursMenu (extended)", () => {
           holidayHours: 0,
           leaveHours: 0,
           onCallHours: 0,
-          specialLeaveHours: 0,
+          specialLeaveHours: 0
         },
       ],
       schedule: {
@@ -570,7 +554,7 @@ describe("ShortHoursMenu (extended)", () => {
           holidayHours: 0,
           leaveHours: 0,
           onCallHours: 0,
-          specialLeaveHours: 0,
+          specialLeaveHours: 0
         },
       ],
       schedule: {
