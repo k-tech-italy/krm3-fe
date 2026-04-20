@@ -36,18 +36,19 @@ interface HourOption {
   readonly value: number;
 }
 
-const HOUR_OPTIONS: readonly HourOption[] = [
-  {label: "2h", value: 2},
-  {label: "4h", value: 4},
-  {label: "8h", value: 8},
-  {label: "Autofill", value: -1},
-  {label: "More", value: 0},
-  {label: "Delete", value: 0},
+const QUICK_HOUR_OPTIONS: readonly HourOption[] = [
+  { label: "2h", value: 2 },
+  { label: "4h", value: 4 },
+  { label: "8h", value: 8 },
 ] as const;
 
-const READ_ONLY_OPTIONS: readonly HourOption[] = [
-  {label: "Details", value: 0},
+const ACTION_OPTIONS: readonly HourOption[] = [
+  { label: "Autofill", value: -1 },
+  { label: "More", value: 0 },
+  { label: "Delete", value: 0 },
 ] as const;
+
+const READ_ONLY_OPTIONS: readonly HourOption[] = [{ label: "Details", value: 0 }] as const;
 
 export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
   const {
@@ -70,9 +71,10 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     label: string;
     value: number;
   } | null>(null);
+  const [hoursInput, setHoursInput] = useState<string>("");
+  const [hoursError, setHoursError] = useState<string>("");
   const menuRef = useRef<HTMLDivElement>(null);
-  const {mutateAsync: createTimeEntries, error} =
-    useCreateTimeEntry(selectedResourceId);
+  const { mutateAsync: createTimeEntries, error } = useCreateTimeEntry(selectedResourceId);
 
   const menuData = useMemo(() => {
     if (!openShortMenu) {
@@ -89,14 +91,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       allDates,
       withTimeEntries: daysWithTimeEntries,
       withoutTimeEntries: datesWithNoTimeEntries,
-    } = getDatesWithAndWithoutTimeEntries(
-      startDate,
-      endDate,
-      taskEntries,
-      days,
-      true,
-      false
-    );
+    } = getDatesWithAndWithoutTimeEntries(startDate, endDate, taskEntries, days, true, false);
 
     return {
       startDate,
@@ -106,15 +101,9 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       datesWithNoTimeEntries: datesWithNoTimeEntries.filter(
         (date) => !holidayOrSickDays.includes(normalizeDate(date))
       ),
-      selectedDates: allDates.filter(
-        (date) => !holidayOrSickDays.includes(normalizeDate(date))
-      ),
+      selectedDates: allDates.filter((date) => !holidayOrSickDays.includes(normalizeDate(date))),
     };
   }, [openShortMenu, day, taskId, taskEntries]);
-
-  const options = useMemo(() => {
-    return readOnly ? READ_ONLY_OPTIONS : HOUR_OPTIONS;
-  }, [readOnly]);
 
   const submitHours = useCallback(
     async (value: number, selectedDates?: string[]) => {
@@ -123,9 +112,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
         return;
       }
       if (selectedDates && selectedDates.length === 0) {
-        toast.warning(
-          "All selected dates already have entries. You can only overwrite it."
-        );
+        toast.warning("All selected dates already have entries. You can only overwrite it.");
         return;
       }
 
@@ -141,7 +128,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
           pending: "Adding hours...",
           success: "Hours added successfully",
           error: {
-            render({data}) {
+            render({ data }) {
               // When the promise reject, data will contains the error
               return <div> {displayErrorMessage(data)} </div>;
             },
@@ -156,26 +143,18 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       );
       setOpenShortMenu?.(undefined);
     },
-    [
-      menuData,
-      selectedResourceId,
-      createTimeEntries,
-      taskId,
-      error,
-      setOpenShortMenu,
-    ]
+    [menuData, selectedResourceId, createTimeEntries, taskId, error, setOpenShortMenu]
   );
-  const {
-    mutateAsync: deleteTimeEntries,
-    error: deletionError,
-  } = useDeleteTimeEntries();
+
+  const { mutateAsync: deleteTimeEntries, error: deletionError } = useDeleteTimeEntries();
+
   const deleteHours = useCallback(
     async (timeEntriesIdsToDelete: number[]) => {
       if (!menuData) {
         toast.error("Invalid configuration");
         return;
       }
-      const promise = deleteTimeEntries(timeEntriesIdsToDelete)
+      const promise = deleteTimeEntries(timeEntriesIdsToDelete);
 
       await toast.promise(
         promise,
@@ -183,10 +162,10 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
           pending: "Deleting hours...",
           success: "Hours deleted successfuly",
           error: {
-            render({data}) {
+            render({ data }) {
               return <div>{displayErrorMessage(data)} </div>;
-            }
-          }
+            },
+          },
         },
         {
           autoClose: 2000,
@@ -194,17 +173,10 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
           hideProgressBar: false,
           draggable: true,
         }
-      )
+      );
     },
-    [
-      menuData,
-      selectedResourceId,
-      deleteTimeEntries,
-      taskId,
-      deletionError,
-      setOpenShortMenu,
-    ]
-  )
+    [menuData, selectedResourceId, deleteTimeEntries, taskId, deletionError, setOpenShortMenu]
+  );
 
   const handleFillHours = useCallback(
     async (selectedDates?: string[]) => {
@@ -215,7 +187,9 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
 
       const datesToProcess = selectedDates || menuData.selectedDates;
 
-      const autofillDates = datesToProcess.filter((dateStr) => isAutofillable(dateStr, schedule, timeEntries));
+      const autofillDates = datesToProcess.filter((dateStr) =>
+        isAutofillable(dateStr, schedule, timeEntries)
+      );
 
       if (autofillDates.length === 0) {
         toast.error("No dates in the selected range require autofilling.");
@@ -232,7 +206,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
         pending: "Filling hours...",
         success: "Hours filled successfully",
         error: {
-          render({data}) {
+          render({ data }) {
             return <div> {displayErrorMessage(data)} </div>;
           },
         },
@@ -243,31 +217,34 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     [menuData, taskId, createTimeEntries, setOpenShortMenu, schedule, timeEntries]
   );
 
-
   const handleButtonClick = useCallback(
     (label: string, value: number) => {
-      if (label == "More") {
+      if (label === "More") {
         openTimeEntryModalHandler();
         setOpenShortMenu?.(undefined);
         return;
-      } else if (label == "Delete") {
+      } else if (label === "Delete") {
         if (openShortMenu) {
-          const timeEntriesToDelete = getTimeEntriesForSelectedPeriod(taskEntries, openShortMenu?.startDate, openShortMenu?.endDate, Number(openShortMenu?.taskId))
-          deleteHours(timeEntriesToDelete.map((timeEntry) => timeEntry.id))
+          const timeEntriesToDelete = getTimeEntriesForSelectedPeriod(
+            taskEntries,
+            openShortMenu?.startDate,
+            openShortMenu?.endDate,
+            Number(openShortMenu?.taskId)
+          );
+          deleteHours(timeEntriesToDelete.map((timeEntry) => timeEntry.id));
           setOpenShortMenu?.(undefined);
         }
         return;
-      } else if (label == "Autofill") {
+      } else if (label === "Autofill") {
         handleFillHours();
         return;
       }
 
       const hasExistingEntries =
-        menuData?.daysWithTimeEntries &&
-        menuData.daysWithTimeEntries.length > 0;
+        menuData?.daysWithTimeEntries && menuData.daysWithTimeEntries.length > 0;
 
       if (hasExistingEntries) {
-        setPendingSubmission({label, value});
+        setPendingSubmission({ label, value });
         setOpenConfirmModal(true);
       } else {
         submitHours(value);
@@ -279,8 +256,21 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
       setOpenShortMenu,
       submitHours,
       handleFillHours,
+      openShortMenu,
+      taskEntries,
+      deleteHours,
     ]
   );
+
+  const handleHoursInputSubmit = useCallback(() => {
+    const parsed = parseFloat(hoursInput);
+    if (isNaN(parsed) || parsed < 0.5 || parsed > 8 || parsed % 0.5 !== 0) {
+      setHoursError("Enter a value from 0.5 to 8 in 0.5 increments");
+      return;
+    }
+    setHoursError("");
+    handleButtonClick(`${parsed}h`, parsed);
+  }, [hoursInput, handleButtonClick]);
 
   const handleConfirmSubmission = useCallback(
     (overwrite: boolean) => {
@@ -317,19 +307,25 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
   if (!menuData || !menuData.isVisible) {
     return null;
   }
+
   const isDeleteButtonVisible = () => {
-    if (openShortMenu == null)
-      return false
-    return getTimeEntriesForSelectedPeriod(
-      taskEntries, openShortMenu?.startDate, openShortMenu?.endDate, Number(openShortMenu?.taskId)).length > 0
-  }
+    if (openShortMenu == null) return false;
+    return (
+      getTimeEntriesForSelectedPeriod(
+        taskEntries,
+        openShortMenu?.startDate,
+        openShortMenu?.endDate,
+        Number(openShortMenu?.taskId)
+      ).length > 0
+    );
+  };
 
   const isAutofillButtonVisible = () => {
-    if (openShortMenu == null || !schedule || !menuData)
-      return false
+    if (openShortMenu == null || !schedule || !menuData) return false;
 
-    return menuData.selectedDates.some(dateStr => isAutofillable(dateStr, schedule, timeEntries));
-  }
+    return menuData.selectedDates.some((dateStr) => isAutofillable(dateStr, schedule, timeEntries));
+  };
+
   return (
     <div className="relative" ref={menuRef}>
       <div
@@ -340,29 +336,97 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
         aria-labelledby="options-menu"
       >
         <div>
-          {options.map((option, index) => {
-            if (option.label == "Delete" && !isDeleteButtonVisible()) return null
-            else if (option.label == "Autofill" && !isAutofillButtonVisible()) return null
-            return (
+          {readOnly ? (
+            READ_ONLY_OPTIONS.map((option, index) => (
               <button
                 key={`menu-option-${index}-${option.label}-${option.value}`}
                 onClick={() => handleButtonClick(option.label, option.value)}
-                className={`block w-full px-4 py-2 cursor-pointer text-center text-m text-app hover:bg-app hover:text-app focus:bg-app focus:text-app focus:outline-none
-                ${option.label == "Delete" ? "bg-red-600 hover:bg-red-800" : ""}`}
+                className="block w-full px-4 py-2 cursor-pointer text-center text-m text-app hover:bg-app hover:text-app focus:bg-app focus:text-app focus:outline-none"
                 role="menuitem"
                 type="button"
                 id={`short-menu-${option.label.toLowerCase()}-button`}
                 data-testid={`short-menu-${option.label.toLowerCase()}-button`}
               >
-                {option.label == "Delete" ?
-                  <TrashIcon className={'mx-auto text-white'}></TrashIcon> : option.label}
-              </button>)
-          })}
+                {option.label}
+              </button>
+            ))
+          ) : (
+            <>
+              {/* 1. Quick hour buttons */}
+              <div className="flex flex-col border-b border-app">
+                {QUICK_HOUR_OPTIONS.map((option) => (
+                  <button
+                    key={`quick-${option.label}`}
+                    type="button"
+                    onClick={() => handleButtonClick(option.label, option.value)}
+                    className="w-full py-2 text-sm text-app hover:bg-app hover:text-app focus:outline-none"
+                    data-testid={`short-menu-${option.label.toLowerCase()}-button`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* 2. Custom hours input */}
+              <div className="px-4 pt-2 pb-2 border-b border-app">
+                <div className="flex items-center justify-center gap-2">
+                  <input
+                    type="number"
+                    min={0.5}
+                    max={8}
+                    step={0.5}
+                    value={hoursInput}
+                    onChange={(e) => {
+                      setHoursInput(e.target.value);
+                      setHoursError("");
+                    }}
+                    onKeyDown={(e) => e.key === "Enter" && handleHoursInputSubmit()}
+                    placeholder="e.g. 2.5"
+                    className="w-20 border border-app rounded-lg px-1 py-1 text-sm text-center bg-card text-app focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleHoursInputSubmit}
+                    className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium"
+                  >
+                    Add
+                  </button>
+                </div>
+                {hoursError && (
+                  <p className="text-xs text-red-500 mt-1 text-center">{hoursError}</p>
+                )}
+              </div>
+
+              {/* 3. Autofill, More, Delete */}
+              {ACTION_OPTIONS.map((option, index) => {
+                if (option.label === "Delete" && !isDeleteButtonVisible()) return null;
+                if (option.label === "Autofill" && !isAutofillButtonVisible()) return null;
+                return (
+                  <button
+                    key={`menu-option-${index}-${option.label}-${option.value}`}
+                    onClick={() => handleButtonClick(option.label, option.value)}
+                    className={`block w-full px-4 py-2 cursor-pointer text-center text-m text-app hover:bg-app hover:text-app focus:bg-app focus:text-app focus:outline-none
+                    ${option.label === "Delete" ? "bg-red-600 hover:bg-red-800" : ""}`}
+                    role="menuitem"
+                    type="button"
+                    id={`short-menu-${option.label.toLowerCase()}-button`}
+                    data-testid={`short-menu-${option.label.toLowerCase()}-button`}
+                  >
+                    {option.label === "Delete" ? (
+                      <TrashIcon className="mx-auto text-white" />
+                    ) : (
+                      option.label
+                    )}
+                  </button>
+                );
+              })}
+            </>
+          )}
         </div>
+
         <div className="px-4 py-2 bg-card rounded-b-md">
           <p className="text-xs text-app text-center">
-            {normalizeDate(menuData.startDate)} to{" "}
-            {normalizeDate(menuData.endDate)}
+            {normalizeDate(menuData.startDate)} to {normalizeDate(menuData.endDate)}
           </p>
         </div>
       </div>
@@ -376,13 +440,12 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
         >
           <div className="text-sm">
             <p>
-              Selected days from{" "}
-              <strong>{normalizeDate(menuData?.startDate)}</strong> to{" "}
+              Selected days from <strong>{normalizeDate(menuData?.startDate)}</strong> to{" "}
               <strong>{normalizeDate(menuData?.endDate)}</strong>
             </p>
             <p className="my-2">
-              Do you want to proceed with adding{" "}
-              <strong>{pendingSubmission?.label}</strong> to all selected dates?
+              Do you want to proceed with adding <strong>{pendingSubmission?.label}</strong> to all
+              selected dates?
             </p>
 
             <WarningExistingEntry
@@ -400,10 +463,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
                 disabled={menuData.datesWithNoTimeEntries.length === 0}
                 disabledTooltipMessage="No empty Days, you can only overwrite existing entries"
               />
-              <Krm3Button
-                label="Yes, Overwrite"
-                onClick={() => handleConfirmSubmission(true)}
-              />
+              <Krm3Button label="Yes, Overwrite" onClick={() => handleConfirmSubmission(true)} />
             </div>
           </div>
         </Krm3Modal>
