@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { ShortHoursMenu } from "./ShortHoursMenu";
 import React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
@@ -46,10 +46,8 @@ describe("ShortHoursMenu (extended)", () => {
     },
     readOnly: false,
     selectedResourceId: 1,
-    setOpenShortMenu: () => {
-    },
-    openTimeEntryModalHandler: () => {
-    },
+    setOpenShortMenu: () => {},
+    openTimeEntryModalHandler: () => {},
     taskEntries: [],
     timeEntries: [],
     schedule: {[todayStr.replaceAll("-", "_")]: 8},
@@ -66,11 +64,30 @@ describe("ShortHoursMenu (extended)", () => {
     );
   }
 
-  it("renders hour options", () => {
+  beforeEach(() => {
+    mutateAsyncMock.mockClear();
+    mutateDeleteMock.mockClear();
+  });
+
+  // Helper: click a quick hour button by label
+  function clickQuickHour(label: "2h" | "4h" | "8h") {
+    fireEvent.click(screen.getByTestId(`short-menu-${label}-button`));
+  }
+
+  // Helper: type a value into the custom hours input and click Add
+  function submitHoursInput(value: string) {
+    const input = screen.getByPlaceholderText("e.g. 2.5");
+    fireEvent.change(input, { target: { value } });
+    fireEvent.click(screen.getByText("Add"));
+  }
+
+  it("renders quick hour buttons, custom input, and action options", () => {
     renderMenu();
-    expect(screen.getByText("2h")).toBeInTheDocument();
-    expect(screen.getByText("4h")).toBeInTheDocument();
-    expect(screen.getByText("8h")).toBeInTheDocument();
+    expect(screen.getByTestId("short-menu-2h-button")).toBeInTheDocument();
+    expect(screen.getByTestId("short-menu-4h-button")).toBeInTheDocument();
+    expect(screen.getByTestId("short-menu-8h-button")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("e.g. 2.5")).toBeInTheDocument();
+    expect(screen.getByText("Add")).toBeInTheDocument();
     expect(screen.getByText("More")).toBeInTheDocument();
     expect(screen.queryByTestId("short-menu-delete-button")).not.toBeInTheDocument();
   });
@@ -95,9 +112,9 @@ describe("ShortHoursMenu (extended)", () => {
           comment: undefined,
         },
       ]
-    })
+    });
     expect(screen.getByTestId("short-menu-delete-button")).toBeInTheDocument();
-  })
+  });
 
   it("delete is called with correct parameters", () => {
     renderMenu({
@@ -151,14 +168,19 @@ describe("ShortHoursMenu (extended)", () => {
           comment: undefined,
         },
       ]
-    })
-    fireEvent.click(screen.getByTestId("short-menu-delete-button"))
-    expect(mutateDeleteMock).toHaveBeenCalledWith([1])
-  })
+    });
+    fireEvent.click(screen.getByTestId("short-menu-delete-button"));
+    expect(mutateDeleteMock).toHaveBeenCalledWith([1]);
+  });
 
-  it("renders readOnly option", () => {
+  it("renders readOnly Details option and hides quick buttons and input", () => {
     renderMenu({readOnly: true});
     expect(screen.getByText("Details")).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("e.g. 2.5")).not.toBeInTheDocument();
+    expect(screen.queryByText("Add")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("short-menu-2h-button")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("short-menu-4h-button")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("short-menu-8h-button")).not.toBeInTheDocument();
   });
 
   it("calls openTimeEntryModalHandler when 'More' is clicked", () => {
@@ -168,10 +190,84 @@ describe("ShortHoursMenu (extended)", () => {
     expect(openTimeEntryModalHandler).toHaveBeenCalled();
   });
 
-  it("calls mutateAsync when hour option is clicked", () => {
+  it("calls mutateAsync when 2h quick button is clicked", () => {
     renderMenu();
-    fireEvent.click(screen.getByText("2h"));
+    clickQuickHour("2h");
     expect(mutateAsyncMock).toHaveBeenCalled();
+  });
+
+  it("calls mutateAsync when 4h quick button is clicked", () => {
+    renderMenu();
+    clickQuickHour("4h");
+    expect(mutateAsyncMock).toHaveBeenCalled();
+  });
+
+  it("calls mutateAsync when 8h quick button is clicked", () => {
+    renderMenu();
+    clickQuickHour("8h");
+    expect(mutateAsyncMock).toHaveBeenCalled();
+  });
+
+  it("calls mutateAsync when a valid custom hour value is submitted", () => {
+    renderMenu();
+    submitHoursInput("3");
+    expect(mutateAsyncMock).toHaveBeenCalled();
+  });
+
+  it("calls mutateAsync when Enter key is pressed on the custom input", () => {
+    renderMenu();
+    const input = screen.getByPlaceholderText("e.g. 2.5");
+    fireEvent.change(input, { target: { value: "3" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(mutateAsyncMock).toHaveBeenCalled();
+  });
+
+  it("shows validation error for value below 0.5", () => {
+    renderMenu();
+    submitHoursInput("0");
+    expect(screen.getByText("Enter a value from 0.5 to 8 in 0.5 increments")).toBeInTheDocument();
+    expect(mutateAsyncMock).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error for value above 8", () => {
+    renderMenu();
+    submitHoursInput("8.5");
+    expect(screen.getByText("Enter a value from 0.5 to 8 in 0.5 increments")).toBeInTheDocument();
+    expect(mutateAsyncMock).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error for non-0.5 increment (e.g. 1.3)", () => {
+    renderMenu();
+    submitHoursInput("1.3");
+    expect(screen.getByText("Enter a value from 0.5 to 8 in 0.5 increments")).toBeInTheDocument();
+    expect(mutateAsyncMock).not.toHaveBeenCalled();
+  });
+
+  it("shows validation error for non-numeric input", () => {
+    renderMenu();
+    submitHoursInput("abc");
+    expect(screen.getByText("Enter a value from 0.5 to 8 in 0.5 increments")).toBeInTheDocument();
+    expect(mutateAsyncMock).not.toHaveBeenCalled();
+  });
+
+  it("clears validation error when input changes", () => {
+    renderMenu();
+    submitHoursInput("0");
+    expect(screen.getByText("Enter a value from 0.5 to 8 in 0.5 increments")).toBeInTheDocument();
+    const input = screen.getByPlaceholderText("e.g. 2.5");
+    fireEvent.change(input, { target: { value: "4" } });
+    expect(screen.queryByText("Enter a value from 0.5 to 8 in 0.5 increments")).not.toBeInTheDocument();
+  });
+
+  it("accepts valid 0.5 increment values (0.5, 4, 7.5, 8)", () => {
+    for (const value of ["0.5", "4", "7.5", "8"]) {
+      mutateAsyncMock.mockClear();
+      const { unmount } = renderMenu();
+      submitHoursInput(value);
+      expect(screen.queryByText("Enter a value from 0.5 to 8 in 0.5 increments")).not.toBeInTheDocument();
+      expect(mutateAsyncMock).toHaveBeenCalled();
+      unmount();
+    }
   });
 
   it("calls mutateAsync with autofill true when 'Autofill' is clicked", async () => {
@@ -201,7 +297,7 @@ describe("ShortHoursMenu (extended)", () => {
         {date: todayStr, restHours: 2}
       ]
     }
-  ]
+  ];
   it.each(hideAutofillScenarios)("hides Autofill button when total hours reach schedule", ({entries}) => {
     renderMenu({
       timeEntries: entries,
@@ -231,7 +327,7 @@ describe("ShortHoursMenu (extended)", () => {
         {date: todayStr, restHours: 2}
       ]
     }
-  ]
+  ];
 
   it.each(showAutofillScenarios)("shows Autofill button when total hours are less than schedule", ({entries}) => {
     renderMenu({
@@ -251,25 +347,27 @@ describe("ShortHoursMenu (extended)", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it("shows confirm modal when clicking hour with existing entries", () => {
-    // Simulate daysWithTimeEntries present
+  it("shows confirm modal when clicking a quick hour button with existing entries", () => {
     const taskEntries = [{date: todayStr, task: 1}];
     renderMenu({
       taskEntries,
-      openShortMenu: {
-        ...baseProps.openShortMenu,
-        startDate: todayStr,
-        endDate: todayStr,
-        taskId: "1",
-      },
+      openShortMenu: { ...baseProps.openShortMenu, startDate: todayStr, endDate: todayStr, taskId: "1" },
     });
-    fireEvent.click(screen.getByText("2h"));
-    // Modal should appear
+    clickQuickHour("2h");
+    expect(screen.getByText(/Overwrite existing entries/i)).toBeInTheDocument();
+  });
+
+  it("shows confirm modal when submitting custom hours with existing entries", () => {
+    const taskEntries = [{date: todayStr, task: 1}];
+    renderMenu({
+      taskEntries,
+      openShortMenu: { ...baseProps.openShortMenu, startDate: todayStr, endDate: todayStr, taskId: "1" },
+    });
+    submitHoursInput("3");
     expect(screen.getByText(/Overwrite existing entries/i)).toBeInTheDocument();
   });
 
   it("handles confirm modal actions", () => {
-    // Simulate daysWithTimeEntries present
     const taskEntries = [{date: todayStr, task: 1}];
     renderMenu({
       taskEntries,
@@ -280,18 +378,14 @@ describe("ShortHoursMenu (extended)", () => {
         taskId: "1",
       },
     });
-    fireEvent.click(screen.getByText("2h"));
-    // Click "No, Don't Overwrite"
+    clickQuickHour("2h");
     fireEvent.click(screen.getByText(/No, Don't Overwrite/i));
-    // Click "Yes, Overwrite"
     fireEvent.click(screen.getByText(/Yes, Overwrite/i));
-    // Both should call mutateAsyncMock
     expect(mutateAsyncMock).toHaveBeenCalled();
   });
 
   it("handles mouse leave", () => {
     renderMenu();
-    // Simulate mouse leave on the menu
     const menu = screen.getByRole("menu");
     fireEvent.mouseLeave(menu);
     // No assertion needed, just for coverage
@@ -310,9 +404,8 @@ describe("ShortHoursMenu (extended)", () => {
         taskId: "1",
       },
     });
-    fireEvent.click(screen.getByText("2h"));
+    clickQuickHour("2h");
     expect(screen.getByText(/Overwrite existing entries/i)).toBeInTheDocument();
-    // Click "No, Don't Overwrite" - this should only add to dates without entries
     fireEvent.click(screen.getByText(/No, Don't Overwrite/i));
     expect(mutateAsyncMock).toHaveBeenCalled();
     expect(setOpenShortMenuMock).toHaveBeenCalledWith(undefined);
@@ -331,9 +424,8 @@ describe("ShortHoursMenu (extended)", () => {
         taskId: "1",
       },
     });
-    fireEvent.click(screen.getByText("2h"));
+    clickQuickHour("2h");
     expect(screen.getByText(/Overwrite existing entries/i)).toBeInTheDocument();
-    // Find and click the close button (assuming Krm3Modal has a close button)
     const closeButton = screen.getByRole('button', {name: /close/i}) || document.querySelector('[aria-label="close"]');
     if (closeButton) {
       fireEvent.click(closeButton);
@@ -354,27 +446,19 @@ describe("ShortHoursMenu (extended)", () => {
         taskId: "1",
       },
     });
-    // Open confirm modal by clicking hour option
-    fireEvent.click(screen.getByText("2h"));
+    clickQuickHour("2h");
     expect(screen.getByText(/Overwrite existing entries/i)).toBeInTheDocument();
-
-    // Try to leave menu - should not close because modal is open
     const menu = screen.getByRole("menu");
     fireEvent.mouseLeave(menu);
-
-    // Menu should still be visible (setOpenShortMenu should not be called)
     expect(setOpenShortMenuMock).not.toHaveBeenCalledWith(undefined);
   });
 
   it("handles isDeleteButtonVisible when openShortMenu is null", () => {
-    // This tests the early return in isDeleteButtonVisible
     renderMenu({openShortMenu: null});
-    // Component should not render, so no delete button should exist
     expect(screen.queryByTestId("short-menu-delete-button")).not.toBeInTheDocument();
   });
 
   it("shows Autofill button if ANY day in the range needs filling", () => {
-
     renderMenu({
       openShortMenu: {
         startDate: yesterdayStr,
@@ -402,12 +486,10 @@ describe("ShortHoursMenu (extended)", () => {
         [yesterdayKey]: 8,
       },
     });
-
     expect(screen.getByText("Autofill")).toBeInTheDocument();
   });
 
   it("hides Autofill button if ALL days in the range are full", () => {
-
     renderMenu({
       openShortMenu: {
         startDate: yesterdayStr,
@@ -449,12 +531,10 @@ describe("ShortHoursMenu (extended)", () => {
         [yesterdayKey]: 8,
       },
     });
-
     expect(screen.queryByText("Autofill")).not.toBeInTheDocument();
   });
 
   it("Autofill only processes dates that require hours", async () => {
-
     renderMenu({
       openShortMenu: {
         startDate: yesterdayStr,
@@ -482,9 +562,7 @@ describe("ShortHoursMenu (extended)", () => {
         [yesterdayKey]: 8,
       },
     });
-
     fireEvent.click(screen.getByText("Autofill"));
-
     expect(mutateAsyncMock).toHaveBeenCalledWith({
       dates: [yesterdayStr],
       taskId: 1,
