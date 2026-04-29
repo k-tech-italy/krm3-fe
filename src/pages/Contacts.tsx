@@ -2,9 +2,8 @@ import { useGetContacts } from "../hooks/useContacts.tsx";
 import React, { useState } from "react";
 import ContactGridTile from "../components/contacts/ContactGridTile.tsx";
 import ContactListTile from "../components/contacts/ContactListTile.tsx";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import useDebounce from "../hooks/useDebounce.tsx";
-import ContactModal from "../components/contacts/ContactModal.tsx";
 
 export default function Contacts() {
   const [isGridView, setIsGridView] = useState(true);
@@ -12,7 +11,6 @@ export default function Contacts() {
   const [page, setPage] = useState(1);
   const [searchBarValue, setSearchBarValue] = useState("");
   const debouncedSearch = useDebounce(searchBarValue, 300);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: contactsPage, isLoading } = useGetContacts({
     active: onlyActiveSelected ? true : undefined,
@@ -26,17 +24,7 @@ export default function Contacts() {
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-8rem)]">
-      <ContactModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <div className="flex flex-row p-5">
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-colors"
-        >
-          <span className="text-lg leading-none">
-            <Plus />
-          </span>
-          Add Contact
-        </button>
         <div className="flex flex-row mt-2 ml-2">
           Grid
           <div className="relative inline-block w-11 h-5 mx-1">

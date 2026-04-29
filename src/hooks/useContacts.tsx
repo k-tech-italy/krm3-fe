@@ -1,5 +1,14 @@
-import {useQuery} from "react-query";
-import {getContacts, getContact} from "../restapi/contacts.ts";
+import {useMutation, useQuery, useQueryClient} from "react-query";
+import {getContacts, getContact, createContact} from "../restapi/contacts.ts";
+import {Email, Phone} from "../restapi/types.ts";
+import {AxiosError} from "axios";
+
+export interface CreateContactProps {
+  firstName: string;
+  lastName: string;
+  phone?: Phone[];
+  email?: Email[];
+}
 
 export function useGetContacts(params?: { active?: boolean, page?: number, search?: string }){
     return useQuery(
@@ -30,4 +39,20 @@ export function useGetContact(id: number | null) {
             }
         }
     )
+}
+
+
+export function useCreateContact() {
+    const queryClient = useQueryClient();
+
+    return useMutation(
+        (contact: CreateContactProps) => createContact(contact),
+        {
+            onSuccess: () => {
+                queryClient.invalidateQueries({queryKey: ["contacts"]});
+            },
+            onError: (error: AxiosError) => {
+            },
+        }
+    );
 }
