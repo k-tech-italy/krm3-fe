@@ -4,6 +4,9 @@ import ContactGridTile from "../components/contacts/ContactGridTile.tsx";
 import ContactListTile from "../components/contacts/ContactListTile.tsx";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import useDebounce from "../hooks/useDebounce.tsx";
+import { ContactForm } from "../components/contacts/ContactForm.tsx";
+import Krm3Modal from "../components/commons/krm3Modal.tsx";
+import Krm3Button from "../components/commons/Krm3Button.tsx";
 
 export default function Contacts() {
   const [isGridView, setIsGridView] = useState(true);
@@ -11,6 +14,7 @@ export default function Contacts() {
   const [page, setPage] = useState(1);
   const [searchBarValue, setSearchBarValue] = useState("");
   const debouncedSearch = useDebounce(searchBarValue, 300);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: contactsPage, isLoading } = useGetContacts({
     active: onlyActiveSelected ? true : undefined,
@@ -22,67 +26,83 @@ export default function Contacts() {
   const hasNext = !!contactsPage?.next;
   const hasPrevious = !!contactsPage?.previous;
 
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+      setIsModalOpen(false);
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-[calc(100vh-8rem)]">
-      <div className="flex flex-row p-5">
-        <div className="flex flex-row mt-2 ml-2">
-          Grid
-          <div className="relative inline-block w-11 h-5 mx-1">
-            <input
-              id="switch-list-grid"
-              data-testid="switch-list-grid"
-              type="checkbox"
-              className="peer appearance-none w-11 h-5 bg-slate-200 rounded-full checked:bg-slate-400 cursor-pointer transition-colors duration-300"
-              checked={!isGridView}
-              onChange={() => {
-                setIsGridView(!isGridView);
-              }}
-            />
-            <label
-              htmlFor="switch-list-grid"
-              className="absolute top-0 left-0 w-5 h-5 bg-card rounded-full border border-app shadow-sm transition-transform duration-300 peer-checked:translate-x-6 peer-checked:border-slate-800 cursor-pointer"
-            />
+      <div className="flex justify-between">
+        <div className="flex flex-row p-5">
+          <div className="flex flex-row mt-2 ml-2">
+            Grid
+            <div className="relative inline-block w-11 h-5 mx-1">
+              <input
+                id="switch-list-grid"
+                data-testid="switch-list-grid"
+                type="checkbox"
+                className="peer appearance-none w-11 h-5 bg-slate-200 rounded-full checked:bg-slate-400 cursor-pointer transition-colors duration-300"
+                checked={!isGridView}
+                onChange={() => {
+                  setIsGridView(!isGridView);
+                }}
+              />
+              <label
+                htmlFor="switch-list-grid"
+                className="absolute top-0 left-0 w-5 h-5 bg-card rounded-full border border-app shadow-sm transition-transform duration-300 peer-checked:translate-x-6 peer-checked:border-slate-800 cursor-pointer"
+              />
+            </div>
+            Row
           </div>
-          Row
+          <div className="flex flex-row mt-2 ml-10">
+            All
+            <div className="relative inline-block w-11 h-5 mx-1">
+              <input
+                id="switch-active"
+                data-testid="switch-active"
+                type="checkbox"
+                className="peer appearance-none w-11 h-5 bg-slate-200 rounded-full checked:bg-slate-400 cursor-pointer transition-colors duration-300"
+                checked={onlyActiveSelected}
+                onChange={() => {
+                  setOnlyActiveSelected(!onlyActiveSelected);
+                  setPage(1);
+                }}
+              />
+              <label
+                htmlFor="switch-active"
+                className="absolute top-0 left-0 w-5 h-5 bg-card rounded-full border border-app shadow-sm transition-transform duration-300 peer-checked:translate-x-6 peer-checked:border-slate-800 cursor-pointer"
+              />
+            </div>
+            Active
+          </div>
+          <div className="flex flex-row mt-2 ml-10">
+            Search:
+            <div className="px-1">
+              <input
+                type="text"
+                id="search-bar"
+                className="border border-gray-300 rounded-md px-1"
+                placeholder=" search contacts..."
+                value={searchBarValue}
+                onChange={(e) => {
+                  setSearchBarValue(e.target.value);
+                  setPage(1);
+                }}
+              />
+            </div>
+          </div>
         </div>
-        <div className="flex flex-row mt-2 ml-10">
-          All
-          <div className="relative inline-block w-11 h-5 mx-1">
-            <input
-              id="switch-active"
-              data-testid="switch-active"
-              type="checkbox"
-              className="peer appearance-none w-11 h-5 bg-slate-200 rounded-full checked:bg-slate-400 cursor-pointer transition-colors duration-300"
-              checked={onlyActiveSelected}
-              onChange={() => {
-                setOnlyActiveSelected(!onlyActiveSelected);
-                setPage(1);
-              }}
-            />
-            <label
-              htmlFor="switch-active"
-              className="absolute top-0 left-0 w-5 h-5 bg-card rounded-full border border-app shadow-sm transition-transform duration-300 peer-checked:translate-x-6 peer-checked:border-slate-800 cursor-pointer"
-            />
-          </div>
-          Active
-        </div>
-        <div className="flex flex-row mt-2 ml-10">
-          Search:
-          <div className="px-1">
-            <input
-              type="text"
-              id="search-bar"
-              className="border border-gray-300 rounded-md px-1"
-              placeholder=" search contacts..."
-              value={searchBarValue}
-              onChange={(e) => {
-                setSearchBarValue(e.target.value);
-                setPage(1);
-              }}
-            />
-          </div>
+        <div className="flex flex-row mt-2 place-self-center px-8">
+          <Krm3Button label=" + Add new contact" onClick={() => setIsModalOpen(true)} />
+          <Krm3Modal open={isModalOpen} title="Add Contact" onClose={() => setIsModalOpen(false)}>
+            <ContactForm onSuccess={handleSubmit} onCancel={() => setIsModalOpen(false)} />
+          </Krm3Modal>
         </div>
       </div>
+
       <div className="flex-grow">
         {isLoading && <div className="p-5 text-center">Loading...</div>}
         {contacts.length === 0 ? (
