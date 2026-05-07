@@ -341,7 +341,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
               <button
                 key={`menu-option-${index}-${option.label}-${option.value}`}
                 onClick={() => handleButtonClick(option.label, option.value)}
-                className="block w-full px-4 py-2 cursor-pointer text-center text-m text-app hover:bg-app hover:text-app focus:bg-app focus:text-app focus:outline-none"
+                className="block w-full px-4 py-2 cursor-pointer text-center text-m text-app hover:bg-card-dim hover:text-app focus:bg-app focus:text-app focus:outline-none"
                 role="menuitem"
                 type="button"
                 id={`short-menu-${option.label.toLowerCase()}-button`}
@@ -353,13 +353,13 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
           ) : (
             <>
               {/* 1. Quick hour buttons */}
-              <div className="flex flex-col border-b border-app">
+              <div className="flex flex-col">
                 {QUICK_HOUR_OPTIONS.map((option) => (
                   <button
                     key={`quick-${option.label}`}
                     type="button"
                     onClick={() => handleButtonClick(option.label, option.value)}
-                    className="w-full py-2 text-sm text-app hover:bg-app hover:text-app focus:outline-none"
+                    className="w-full py-2 text-sm text-app hover:bg-card-dim hover:text-app hover:cursor-pointer focus:outline-none"
                     data-testid={`short-menu-${option.label.toLowerCase()}-button`}
                   >
                     {option.label}
@@ -368,7 +368,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
               </div>
 
               {/* 2. Custom hours input */}
-              <div className="px-4 pt-2 pb-2 border-b border-app">
+              <div className="px-4 pt-2 pb-2 hover:bg-card-dim">
                 <div className="flex items-center justify-center gap-2">
                   <input
                     type="number"
@@ -387,7 +387,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
                   <button
                     type="button"
                     onClick={handleHoursInputSubmit}
-                    className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium"
+                    className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 hover:cursor-pointer text-white text-sm font-medium"
                   >
                     Add
                   </button>
@@ -405,7 +405,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
                   <button
                     key={`menu-option-${index}-${option.label}-${option.value}`}
                     onClick={() => handleButtonClick(option.label, option.value)}
-                    className={`block w-full px-4 py-2 cursor-pointer text-center text-m text-app hover:bg-app hover:text-app focus:bg-app focus:text-app focus:outline-none
+                    className={`block w-full px-4 py-2 cursor-pointer text-center text-m text-app hover:bg-card-dim hover:cursor-pointer hover:text-app focus:bg-app focus:text-app focus:outline-none
                     ${option.label === "Delete" ? "bg-red-600 hover:bg-red-800" : ""}`}
                     role="menuitem"
                     type="button"
@@ -425,7 +425,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
         </div>
 
         <div className="px-4 py-2 bg-card rounded-b-md">
-          <p className="text-xs text-app text-center">
+          <p className="text-xs text-app text-center cursor-default">
             {normalizeDate(menuData.startDate)} to {normalizeDate(menuData.endDate)}
           </p>
         </div>
