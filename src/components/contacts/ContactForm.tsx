@@ -44,20 +44,28 @@ export function ContactForm({ onSuccess, onCancel }: ContactFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <label>First Name</label>
-      <input name="firstName" value={form.firstName} onChange={handleChange} />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <div className="justify-between flex gap-2">
+        <div className="justify-start-safe flex gap-4">
+          <label className="font-semibold">First Name:</label>
+          <input name="firstName" value={form.firstName} onChange={handleChange} />
+        </div>
 
-      <label>Last Name</label>
-      <input name="lastName" value={form.lastName} onChange={handleChange} />
+        <div className="justify-start-safe flex gap-4">
+          <label className="font-semibold">Last Name:</label>
+          <input name="lastName" value={form.lastName} onChange={handleChange} />
+        </div>
+      </div>
 
-      <label>Email Address(es)</label>
+      <label className="font-semibold">Email Address(es):</label>
       <input name="email" type="email" value={form.email?.address} onChange={handleEmailChange} />
 
-      <label>Telephone Number(s)</label>
+      <label className="font-semibold">Telephone Number(s):</label>
       <input name="phone" type="tel" value={form.phone?.number} onChange={handlePhoneChange} />
-      <Krm3Button label={isLoading ? "Creating..." : "Create contact"} />
-      <Krm3Button label="Cancel" style="secondary" onClick={onCancel} />
+      <div className="flex gap-2 justify-end-safe">
+        <Krm3Button label="Cancel" style="secondary" onClick={onCancel} />
+        <Krm3Button label={isLoading ? "Creating..." : "Create contact"} />
+      </div>
     </form>
   );
 }
