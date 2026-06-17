@@ -1,12 +1,26 @@
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { getContacts, getContact, createContact } from "../restapi/contacts.ts";
-import { Email, Phone } from "../restapi/types.ts";
+import {
+  getClients,
+  getContacts,
+  getContact,
+  createContact,
+  getTitles,
+} from "../restapi/contacts.ts";
+import { Address, Contact, Email, Phone, Website } from "../restapi/types.ts";
 
 export interface CreateContactProps {
   firstName: string;
   lastName: string;
-  phone: Phone;
-  email: Email;
+  jobTitle?: string;
+  title?: string;
+  taxId?: string;
+  picture?: string;
+  company?: number | null;
+  internalNotes?: string;
+  phones: Phone[];
+  emails: Email[];
+  websites: Website[];
+  addresses: Address[];
 }
 
 export function useGetContacts(params?: { active?: boolean; page?: number; search?: string }) {
@@ -39,10 +53,26 @@ export function useGetContact(id: number | null) {
 export function useCreateContact() {
   const queryClient = useQueryClient();
 
-  return useMutation((contact: CreateContactProps) => createContact(contact), {
+  return useMutation((contact: CreateContactProps) => createContact(contact as Partial<Contact>), {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contacts"] });
     },
     onError: () => {},
+  });
+}
+
+export function useGetClients() {
+  return useQuery(["clients"], () => getClients(), {
+    onError: (error) => {
+      console.error("Clients fetch failed:", error);
+    },
+  });
+}
+
+export function useGetTitles() {
+  return useQuery(["titles"], () => getTitles(), {
+    onError: (error) => {
+      console.error("Titles fetch failed:", error);
+    },
   });
 }

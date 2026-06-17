@@ -6,50 +6,61 @@ import ContactDetailsPage from "./ContactDetailsPage.tsx";
 import { Contact } from "../restapi/types.ts";
 
 const mockContacts = [
-    {
-        firstName: "Jack",
-        lastName: "Sparrow",
-        jobTitle: "Pirate",
-        internalNotes: "",
-        isActive: false,
-        id: 2,
-        addresses: [],
-        phones: [{ number: "+48 111 111 111" }],
-        emails: [{ address: "capitan.jack@gmail.com" }],
-        websites: []
-    }
+  {
+    firstName: "Jack",
+    lastName: "Sparrow",
+    jobTitle: "Pirate",
+    internalNotes: "",
+    isActive: false,
+    id: 2,
+    addresses: [],
+    phones: [{ number: "+48 111 111 111" }],
+    emails: [{ address: "capitan.jack@gmail.com" }],
+    websites: [],
+  },
 ] as Contact[];
 
-describe('ContactDetailsPage', () => {
-    beforeEach(() => {
-        vi.spyOn(useGetContacts, "useGetContact").mockImplementation((id: number | null) => {
-            return {
-                data: mockContacts.find(c => c.id === id),
-                isLoading: false,
-                error: null
-            } as any;
-        });
+describe("ContactDetailsPage", () => {
+  beforeEach(() => {
+    vi.spyOn(useGetContacts, "useGetContact").mockImplementation((id: number | null) => {
+      return {
+        data: mockContacts.find((c) => c.id === id),
+        isLoading: false,
+        error: null,
+      } as ReturnType<typeof useGetContacts.useGetContact>;
     });
+  });
 
-    const renderDetails = (id: string) => {
-        render(
-            <MemoryRouter initialEntries={[`/contacts/${id}`]}>
-                <Routes>
-                    <Route path="/contacts/:id" element={<ContactDetailsPage />} />
-                </Routes>
-            </MemoryRouter>
-        );
-    };
+  const renderDetails = (id: string) => {
+    render(
+      <MemoryRouter initialEntries={[`/contacts/${id}`]}>
+        <Routes>
+          <Route path="/contacts/:id" element={<ContactDetailsPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+  };
 
-    it('renders contact details correctly when ID is valid', () => {
-        renderDetails("2");
-        expect(screen.getByText("Jack Sparrow")).toBeInTheDocument();
-        expect(screen.getByText("Pirate")).toBeInTheDocument();
+  it("renders contact details correctly when ID is valid", () => {
+    renderDetails("2");
+    expect(screen.getByText("Jack Sparrow")).toBeInTheDocument();
+    expect(screen.getByText("Pirate")).toBeInTheDocument();
+  });
+
+  it("renders title before name when present", () => {
+    vi.spyOn(useGetContacts, "useGetContact").mockImplementation(() => {
+      return {
+        data: { ...mockContacts[0], title: "doctor", id: 2 },
+        isLoading: false,
+        error: null,
+      } as ReturnType<typeof useGetContacts.useGetContact>;
     });
+    renderDetails("2");
+    expect(screen.getByText(/Doctor\.\s+Jack Sparrow/)).toBeInTheDocument();
+  });
 
-    it('shows error or fallback when ID is invalid', () => {
-        
-        renderDetails("invalid");
-        expect(screen.getByText("Invalid Contact ID")).toBeInTheDocument();
-    });
+  it("shows error or fallback when ID is invalid", () => {
+    renderDetails("invalid");
+    expect(screen.getByText("Invalid Contact ID")).toBeInTheDocument();
+  });
 });

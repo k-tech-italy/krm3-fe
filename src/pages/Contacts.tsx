@@ -26,11 +26,8 @@ export default function Contacts() {
   const hasNext = !!contactsPage?.next;
   const hasPrevious = !!contactsPage?.previous;
 
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) {
-      e.preventDefault();
-      setIsModalOpen(false);
-    }
+  const handleSubmit = () => {
+    setIsModalOpen(false);
   };
 
   return (
