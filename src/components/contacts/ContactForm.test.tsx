@@ -34,7 +34,7 @@ describe("ContactForm", () => {
       mutate: mockMutate,
       isLoading: false,
       reset: vi.fn(),
-    } as ReturnType<typeof useContacts.useCreateContact>);
+    } as unknown as ReturnType<typeof useContacts.useCreateContact>);
   });
 
   it("renders form fields", () => {
