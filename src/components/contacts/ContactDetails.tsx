@@ -17,11 +17,9 @@ const FieldRow = ({
   className?: string;
 }) => (
   <div className={`flex flex-col sm:flex-row sm:items-baseline mb-2 ${className}`}>
-    <span className="text-sm font-bold text-gray-800 sm:w-1/3 min-w-[120px] mb-1 sm:mb-0">
-      {label}
-    </span>
-    <div className="text-gray-900 sm:w-2/3 break-words font-medium">
-      {children || <span className="text-gray-400 font-normal">—</span>}
+    <span className="text-sm font-bold text-app sm:w-1/3 min-w-[120px] mb-1 sm:mb-0">{label}</span>
+    <div className="text-app sm:w-2/3 break-words font-medium">
+      {children || <span className="text-muted font-normal">—</span>}
     </div>
   </div>
 );
@@ -36,24 +34,24 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
   const fullName = `${contact.firstName} ${contact.lastName}`.trim();
 
   return (
-    <div className="bg-gray-100 min-h-full p-4 sm:p-8 flex flex-col items-center">
+    <div className="bg-app min-h-full p-4 sm:p-8 flex flex-col items-center">
       <div className="w-full max-w-5xl mb-4">
         <button
           onClick={close}
           id="back-to-general-view"
-          className="flex items-center text-gray-600 hover:text-gray-900 hover:cursor-pointer transition-colors"
+          className="flex items-center text-muted hover:text-app hover:cursor-pointer transition-colors"
         >
           <ArrowLeft size={24} className="mr-2" />
           <span className="font-bold text-lg">Back</span>
         </button>
       </div>
 
-      <div className="w-full max-w-5xl bg-white shadow-sm border border-gray-300 rounded min-h-[600px] flex flex-col">
+      <div className="w-full max-w-5xl bg-card shadow-sm border border-app rounded min-h-[600px] flex flex-col">
         <div className="p-6 sm:p-10 pb-0">
           <div className="flex flex-col-reverse sm:flex-row justify-between items-start gap-6">
             <div className="flex-1 w-full">
               <div className="mb-6">
-                <h1 className="font-normal text-gray-900 mb-2">
+                <h1 className="font-normal text-app mb-2">
                   {contact.title && (
                     <span className="font-semibold">
                       {contact.title.charAt(0).toUpperCase() + contact.title.slice(1)}.{" "}
@@ -62,7 +60,7 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
                   {fullName}
                 </h1>
                 {contact.company && (
-                  <div className="flex items-center text-gray-600 text-lg">
+                  <div className="flex items-center text-muted text-lg">
                     <span>{contact.company.name}</span>
                   </div>
                 )}
@@ -74,10 +72,10 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
                 <img
                   src={contact.picture}
                   alt={fullName}
-                  className="w-24 h-24 sm:w-32 sm:h-32 object-cover shadow-sm rounded border border-gray-300"
+                  className="w-24 h-24 sm:w-32 sm:h-32 object-cover shadow-sm rounded border border-app"
                 />
               ) : (
-                <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-100 border border-gray-300 flex items-center justify-center text-gray-400 rounded">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 bg-card-dim border border-app flex items-center justify-center text-muted rounded">
                   <User size={48} />
                 </div>
               )}
@@ -98,7 +96,7 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
                   {contact.addresses.map((address, i) => (
                     <div
                       key={address.address || `addr-${i}`}
-                      className="flex items-center text-gray-900 mb-1 last:mb-0"
+                      className="flex items-center text-app mb-1 last:mb-0"
                     >
                       {address.address}
                     </div>
@@ -117,7 +115,7 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
                 {contact.phones.map((p, i) => (
                   <div
                     key={p.number || `phone-${i}`}
-                    className="flex items-center text-gray-900 mb-1 last:mb-0"
+                    className="flex items-center text-app mb-1 last:mb-0"
                   >
                     {p.number}
                   </div>
@@ -128,7 +126,7 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
                 {contact.emails.map((e, i) => (
                   <div
                     key={e.address || `email-${i}`}
-                    className="flex items-center text-gray-900 mb-1 last:mb-0 break-all"
+                    className="flex items-center text-app mb-1 last:mb-0 break-all"
                   >
                     {e.address}
                   </div>
@@ -139,7 +137,7 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
                 {contact.websites.map((w, i) => (
                   <div
                     key={w.url || `site-${i}`}
-                    className="flex items-center text-gray-900 mb-1 last:mb-0 break-all"
+                    className="flex items-center text-app mb-1 last:mb-0 break-all"
                   >
                     {w.url}
                   </div>
@@ -150,42 +148,42 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
         </div>
 
         <div className="mt-12 flex-1 flex flex-col">
-          <div className="px-6 sm:px-10 border-b border-gray-200 flex space-x-8">
+          <div className="px-6 sm:px-10 border-b border-app flex space-x-8">
             <button
               onClick={() => setActiveTab("general")}
-              className={`pb-2 text-sm font-bold border-b-2 transition-colors hover:cursor-pointer ${
+              className={`pb-2 text-sm font-bold border-b-2 hover:cursor-pointer ${
                 activeTab === "general"
-                  ? "border-gray-800 text-gray-900"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-app text-app"
+                  : "border-transparent text-muted hover:text-app hover:border-app"
               }`}
             >
               Contacts & Addresses
             </button>
             <button
               onClick={() => setActiveTab("notes")}
-              className={`pb-2 text-sm font-bold border-b-2 transition-colors hover:cursor-pointer ${
+              className={`pb-2 text-sm font-bold border-b-2 hover:cursor-pointer ${
                 activeTab === "notes"
-                  ? "border-gray-800 text-gray-900"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-app text-app"
+                  : "border-transparent text-muted hover:text-app hover:border-app"
               }`}
             >
               Internal Notes
             </button>
           </div>
 
-          <div className="p-6 sm:p-10 bg-white flex-1">
+          <div className="p-6 sm:p-10 bg-card flex-1">
             {activeTab === "general" && (
-              <div className="text-gray-400 text-sm italic">Additional address details...</div>
+              <div className="text-muted text-sm italic">Additional address details...</div>
             )}
 
             {activeTab === "notes" && (
               <div className="w-full h-full">
                 {contact.internalNotes ? (
-                  <p className="whitespace-pre-wrap text-gray-800 text-sm leading-relaxed font-normal">
+                  <p className="whitespace-pre-wrap text-app text-sm leading-relaxed font-normal">
                     {contact.internalNotes}
                   </p>
                 ) : (
-                  <p className="text-gray-400 italic text-sm">No internal notes.</p>
+                  <p className="text-muted italic text-sm">No internal notes.</p>
                 )}
               </div>
             )}

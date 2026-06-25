@@ -81,7 +81,7 @@ export default function Contacts() {
               <input
                 type="text"
                 id="search-bar"
-                className="border border-gray-300 rounded-md px-1"
+                className="border border-app rounded-md px-1"
                 placeholder=" search contacts..."
                 value={searchBarValue}
                 onChange={(e) => {
@@ -118,7 +118,7 @@ export default function Contacts() {
               <div className="relative p-5">
                 <div
                   className="grid grid-cols-[auto_auto_2fr_2fr_2fr] md:grid-cols-[auto_auto_2fr_2fr_2fr_2fr] items-center
-                                gap-2 m-2 font-bold bg-gray-300 rounded-lg sticky top-0 border-2 border-white"
+                                gap-2 m-2 font-bold bg-card-dim rounded-lg sticky top-0 border-2 border-app"
                 >
                   <div className="w-8 h-8 sm:w-16 sm:h-16" />
                   <div className="w-8 h-8 sm:w-16 sm:h-16" />
@@ -140,16 +140,16 @@ export default function Contacts() {
         <button
           disabled={!hasPrevious || isLoading}
           onClick={() => setPage((p) => p - 1)}
-          className="p-2 rounded-full hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="p-2 rounded-full hover:bg-card-dim disabled:opacity-30 disabled:cursor-not-allowed"
           aria-label="Previous Page"
         >
           <ChevronLeft size={24} />
         </button>
-        <span className="font-bold text-gray-700">Page {page}</span>
+        <span className="font-bold text-app">Page {page}</span>
         <button
           disabled={!hasNext || isLoading}
           onClick={() => setPage((p) => p + 1)}
-          className="p-2 rounded-full hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="p-2 rounded-full hover:bg-card-dim disabled:opacity-30 disabled:cursor-not-allowed"
           aria-label="Next Page"
         >
           <ChevronRight size={24} />

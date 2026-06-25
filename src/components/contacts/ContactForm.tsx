@@ -345,7 +345,7 @@ export function ContactForm({ onSuccess, onCancel }: ContactFormProps) {
           </button>
         </div>
         {form.emails.map((email, i) => (
-          <div key={email.address || `email-${i}`} className="flex flex-col gap-1">
+          <div key={`email-${i}`} className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <input
                 type="email"
@@ -386,7 +386,7 @@ export function ContactForm({ onSuccess, onCancel }: ContactFormProps) {
           </button>
         </div>
         {form.phones.map((phone, i) => (
-          <div key={phone.number || `phone-${i}`} className="flex flex-col gap-1">
+          <div key={`phone-${i}`} className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <input
                 type="tel"

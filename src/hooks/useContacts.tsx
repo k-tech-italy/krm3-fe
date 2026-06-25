@@ -71,6 +71,7 @@ export function useGetClients() {
 
 export function useGetTitles() {
   return useQuery(["titles"], () => getTitles(), {
+    staleTime: Infinity,
     onError: (error) => {
       console.error("Titles fetch failed:", error);
     },
