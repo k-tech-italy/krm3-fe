@@ -23,6 +23,24 @@ export function createContact(data: Partial<Contact>): Promise<Contact> {
   });
 }
 
+export function updateContact(id: number, data: Partial<Contact>): Promise<Contact> {
+  return restapi.put(`core/contacts/${id}/`, data).then((res) => {
+    return res.data;
+  });
+}
+
+export function deleteContact(id: number): Promise<void> {
+  return restapi.delete(`core/contacts/${id}/`).then((res) => {
+    return res.data;
+  });
+}
+
+export function toggleContactActive(id: number, isActive: boolean): Promise<Contact> {
+  return restapi.patch(`core/contacts/${id}/`, { isActive }).then((res) => {
+    return res.data;
+  });
+}
+
 export function getClients(): Promise<Client[]> {
   return restapi.get(`core/client/`).then((res) => res.data.results);
 }

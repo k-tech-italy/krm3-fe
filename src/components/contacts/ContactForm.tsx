@@ -8,11 +8,14 @@ import {
   useGetClients,
   useGetTitles,
 } from "../../hooks/useContacts.tsx";
+import { Contact } from "../../restapi/types.ts";
 import Krm3Button from "../commons/Krm3Button.tsx";
 
 interface ContactFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  initialData?: Contact;
+  onSubmit?: (data: CreateContactProps) => void;
 }
 
 interface FormErrors {
@@ -22,27 +25,56 @@ interface FormErrors {
   picture?: string[];
 }
 
-export function ContactForm({ onSuccess, onCancel }: ContactFormProps) {
-  const { mutate, isLoading } = useCreateContact();
+export function ContactForm({ onSuccess, onCancel, initialData, onSubmit }: ContactFormProps) {
+  const { mutate: createContact, isLoading: isCreating } = useCreateContact();
   const { data: clients, isLoading: clientsLoading } = useGetClients();
   const { data: titles, isLoading: titlesLoading } = useGetTitles();
   const submitModeRef = useRef<"close" | "add_another">("close");
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
-  const [form, setForm] = useState<CreateContactProps>({
-    firstName: "",
-    lastName: "",
-    jobTitle: "",
-    title: "",
-    taxId: "",
-    picture: "",
-    company: null,
-    internalNotes: "",
-    emails: [{ address: "", kind: "" }],
-    phones: [{ number: "", kind: "" }],
-    websites: [],
-    addresses: [{ address: "", kind: "" }],
-  });
+  const isEditMode = !!initialData;
+
+  const getInitialForm = (): CreateContactProps => {
+    if (initialData) {
+      return {
+        firstName: initialData.firstName,
+        lastName: initialData.lastName,
+        jobTitle: initialData.jobTitle || "",
+        title: initialData.title || "",
+        taxId: initialData.taxId || "",
+        picture: initialData.picture || "",
+        company: initialData.company?.id ?? null,
+        internalNotes: initialData.internalNotes || "",
+        emails: initialData.emails.length > 0 ? initialData.emails : [{ address: "", kind: "" }],
+        phones: initialData.phones.length > 0 ? initialData.phones : [{ number: "", kind: "" }],
+        websites: initialData.websites,
+        addresses:
+          initialData.addresses.length > 0 ? initialData.addresses : [{ address: "", kind: "" }],
+      };
+    }
+    return {
+      firstName: "",
+      lastName: "",
+      jobTitle: "",
+      title: "",
+      taxId: "",
+      picture: "",
+      company: null,
+      internalNotes: "",
+      emails: [{ address: "", kind: "" }],
+      phones: [{ number: "", kind: "" }],
+      websites: [],
+      addresses: [{ address: "", kind: "" }],
+    };
+  };
+
+  const [form, setForm] = useState<CreateContactProps>(getInitialForm);
+
+  useEffect(() => {
+    if (initialData) {
+      setForm(getInitialForm());
+    }
+  }, [initialData]);
 
   const debouncedPhones = useDebounce(form.phones, 300);
   const debouncedEmails = useDebounce(form.emails, 300);
@@ -225,7 +257,16 @@ export function ContactForm({ onSuccess, onCancel }: ContactFormProps) {
       addresses: form.addresses.filter((a) => a.address.trim() !== ""),
       websites: form.websites.filter((w) => w.url.trim() !== ""),
     };
-    mutate(cleaned, {
+
+    if (onSubmit) {
+      onSubmit(cleaned);
+      if (isEditMode) {
+        onSuccess?.();
+      }
+      return;
+    }
+
+    createContact(cleaned, {
       onSuccess: () => {
         toast.success("Contact created successfully");
         setForm({
@@ -490,15 +531,25 @@ export function ContactForm({ onSuccess, onCancel }: ContactFormProps) {
       </div>
       <div className="flex gap-2 justify-end pt-2">
         <Krm3Button label="Cancel" style="secondary" onClick={onCancel} />
+        {!isEditMode && (
+          <Krm3Button
+            type="submit"
+            style="secondary"
+            label={isCreating ? "Creating..." : "Create and add another"}
+            onClick={() => (submitModeRef.current = "add_another")}
+          />
+        )}
         <Krm3Button
           type="submit"
-          style="secondary"
-          label={isLoading ? "Creating..." : "Create and add another"}
-          onClick={() => (submitModeRef.current = "add_another")}
-        />
-        <Krm3Button
-          type="submit"
-          label={isLoading ? "Creating..." : "Create contact"}
+          label={
+            isCreating
+              ? isEditMode
+                ? "Updating..."
+                : "Creating..."
+              : isEditMode
+                ? "Update contact"
+                : "Create contact"
+          }
           onClick={() => (submitModeRef.current = "close")}
         />
       </div>
