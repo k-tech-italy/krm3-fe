@@ -43,42 +43,47 @@ export function ContactForm({ onSuccess, onCancel }: ContactFormProps) {
     addresses: [{ address: "", kind: "" }],
   });
 
-  const validateForm = (form: CreateContactProps): FormErrors => {
-    const errors: FormErrors = {};
-
+  const validateEmails = (emails: { address: string }[]): { address?: string[] }[] | undefined => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const validEmails = form.emails.filter(
-      (e) => e.address.trim() !== "" && emailRegex.test(e.address)
-    );
+    const validEmails = emails.filter((e) => e.address.trim() !== "" && emailRegex.test(e.address));
     if (validEmails.length === 0) {
-      const firstEmpty = form.emails.find((e) => e.address.trim() === "");
-      const firstInvalid = form.emails.find(
-        (e) => e.address.trim() !== "" && !emailRegex.test(e.address)
-      );
-      if (firstEmpty) {
-        errors.emails = [{ address: ["At least one valid email is required"] }];
-      } else if (firstInvalid) {
-        errors.emails = [{ address: ["At least one valid email is required"] }];
-      } else {
-        errors.emails = [{ address: ["At least one valid email is required"] }];
-      }
+      return [{ address: ["At least one valid email is required"] }];
     }
+    return undefined;
+  };
 
-    const phoneRegex = /^[+\d\s-]+$/;
-    const phoneErrors: { number?: string[] }[] = form.phones.map((phone) => {
+  const validatePhones = (phones: { number: string }[]): { number?: string[] }[] | undefined => {
+    const phoneRegex = /^\+?\d[\d\s-]*$/;
+    const phoneErrors: { number?: string[] }[] = phones.map((phone) => {
       if (phone.number.trim() !== "" && !phoneRegex.test(phone.number)) {
         return { number: ["Invalid phone format. Use digits, +, spaces, or hyphens only."] };
       }
       return {};
     });
-    if (phoneErrors.some((e) => e.number)) errors.phones = phoneErrors;
+    return phoneErrors.some((e) => e.number) ? phoneErrors : undefined;
+  };
 
-    if (form.picture && form.picture.trim() !== "") {
-      const urlRegex = /^https?:\/\/.+/;
-      if (!urlRegex.test(form.picture)) {
-        errors.picture = ["Invalid URL. Must start with http:// or https://"];
+  const validatePicture = (picture: string | undefined): string[] | undefined => {
+    if (picture && picture.trim() !== "") {
+      const urlRegex = /^https:\/\/.+/;
+      if (!urlRegex.test(picture)) {
+        return ["Invalid URL. Must start with https://"];
       }
     }
+    return undefined;
+  };
+
+  const validateForm = (form: CreateContactProps): FormErrors => {
+    const errors: FormErrors = {};
+
+    const emailErrors = validateEmails(form.emails);
+    if (emailErrors) errors.emails = emailErrors;
+
+    const phoneErrors = validatePhones(form.phones);
+    if (phoneErrors) errors.phones = phoneErrors;
+
+    const pictureErrors = validatePicture(form.picture);
+    if (pictureErrors) errors.picture = pictureErrors;
 
     return errors;
   };
