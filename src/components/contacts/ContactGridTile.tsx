@@ -1,49 +1,85 @@
 import { Contact } from "../../restapi/types.ts";
-import { User } from "lucide-react";
+import { User, Mail, Phone, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface Props {
   contact: Contact;
 }
+
+const InfoRow = ({
+  icon: Icon,
+  text,
+  fallback,
+}: {
+  icon: typeof User;
+  text?: string;
+  fallback: string;
+}) => (
+  <div className="flex items-center gap-2 text-sm text-app">
+    <Icon size={16} className="text-muted shrink-0" />
+    {text ? (
+      <span className="truncate">{text}</span>
+    ) : (
+      <span className="text-muted italic">{fallback}</span>
+    )}
+  </div>
+);
+
 const ContactGridTile = (props: Props) => {
+  const { contact } = props;
+  const fullName = `${contact.firstName} ${contact.lastName}`.trim();
+
+  const firstEmail = contact.emails[0]?.address;
+  const firstPhone = contact.phones[0]?.number;
+  const firstAddress = contact.addresses[0]?.address;
+
   return (
     <Link
-      to={`/contacts/${props.contact.id}`}
-      className="bg-card-dim rounded-xl p-3 sm:p-8 m-2 flex flex-row border-2 border-gray-300 items-center cursor-pointer hover:border-gray-600 hover:brightness-110 transition-colors"
-      id={`contact-grid-tile-${props.contact.id}`}
-      data-testid={`contact-grid-tile-${props.contact.id}`}
+      to={`/contacts/${contact.id}`}
+      className="bg-card rounded-2xl p-4 sm:p-6 border border-app shadow-sm
+                 hover:border-krm3-primary hover:shadow-md transition-all
+                 flex flex-col gap-4"
+      id={`contact-grid-tile-${contact.id}`}
+      data-testid={`contact-grid-tile-${contact.id}`}
     >
-      <div className="relative flex-shrink-0">
-        {props.contact.picture ? (
-          <img
-            src={props.contact.picture}
-            className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-xl"
-          />
-        ) : (
-          <div
-            className="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-xl bg-card-dim border border-gray-400 transition-none flex items-center justify-center"
-            data-testid={`user-picture-placeholder-${props.contact.id}`}
-          >
-            <User size={48} className="opacity-25" />
-          </div>
-        )}
-        {props.contact.company && props.contact.company.picture && (
-          <img
-            src={props.contact.company.picture}
-            className="sm:w-16 sm:h-16 w-12 h-12 object-cover rounded-xl absolute left-1 bottom-1 opacity-60"
-          />
-        )}
+      <div className="flex items-center gap-4">
+        <div className="relative shrink-0">
+          {contact.picture ? (
+            <img
+              src={contact.picture}
+              alt={fullName}
+              className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl"
+            />
+          ) : (
+            <div
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-card-dim border border-app flex items-center justify-center"
+              data-testid={`user-picture-placeholder-${contact.id}`}
+            >
+              <User size={32} className="text-muted opacity-50" />
+            </div>
+          )}
+          {contact.company?.picture && (
+            <img
+              src={contact.company.picture}
+              alt={contact.company.name}
+              className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-8 sm:h-8 border-2 border-card rounded-full object-cover bg-card"
+            />
+          )}
+        </div>
+        <div className="min-w-0">
+          <h3 className="font-semibold text-app truncate">{fullName}</h3>
+          {contact.jobTitle && <p className="text-sm text-muted truncate">{contact.jobTitle}</p>}
+          {contact.company && <p className="text-sm text-muted truncate">{contact.company.name}</p>}
+        </div>
       </div>
 
-      <div className="flex flex-col w-full mt-0 pt-0 ml-5 break-words min-w-0 break-word text-app">
-        <p className="font-bold sm:text-xl text-l">
-          {props.contact.firstName} {props.contact.lastName}
-        </p>
-        <p>{props.contact.addresses.length > 0 ? props.contact.addresses[0].address : ""}</p>
-        <p>{props.contact.emails.length > 0 ? props.contact.emails[0].address : ""}</p>
-        <p>{props.contact.phones.length > 0 ? props.contact.phones[0].number : ""}</p>
+      <div className="space-y-1.5">
+        <InfoRow icon={Mail} text={firstEmail} fallback="No email" />
+        <InfoRow icon={Phone} text={firstPhone} fallback="No phone" />
+        <InfoRow icon={MapPin} text={firstAddress} fallback="No address" />
       </div>
     </Link>
   );
 };
+
 export default ContactGridTile;

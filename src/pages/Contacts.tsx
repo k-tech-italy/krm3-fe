@@ -109,7 +109,7 @@ export default function Contacts() {
         ) : (
           <>
             {isGridView ? (
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 grid-cols-1 p-5">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 grid-cols-1 gap-4 p-5">
                 {contacts.map((contact) => (
                   <ContactGridTile key={contact.id} contact={contact} />
                 ))}

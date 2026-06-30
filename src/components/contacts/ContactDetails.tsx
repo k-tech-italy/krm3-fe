@@ -1,28 +1,46 @@
 import React, { useState } from "react";
-import { ArrowLeft, User } from "lucide-react";
+import { ArrowLeft, User, MapPin, Mail, Phone, Globe, LucideIcon } from "lucide-react";
 import { useGetContact } from "../../hooks/useContacts.tsx";
+import { Address, Email, Phone as PhoneType, Website } from "../../restapi/types.ts";
 
 interface Props {
   contactId: number;
   close: () => void;
 }
 
-const FieldRow = ({
-  label,
-  children,
-  className = "",
-}: {
-  label: string;
-  children: React.ReactNode;
-  className?: string;
-}) => (
-  <div className={`flex flex-col sm:flex-row sm:items-baseline mb-2 ${className}`}>
-    <span className="text-sm font-bold text-app sm:w-1/3 min-w-[120px] mb-1 sm:mb-0">{label}</span>
-    <div className="text-app sm:w-2/3 break-words font-medium">
-      {children || <span className="text-muted font-normal">—</span>}
+interface SectionProps<T> {
+  title: string;
+  icon: LucideIcon;
+  items: T[];
+  renderItem: (item: T, index: number) => React.ReactNode;
+  emptyMessage: string;
+}
+
+function ContactSection<T>({
+  title,
+  icon: Icon,
+  items,
+  renderItem,
+  emptyMessage,
+}: SectionProps<T>) {
+  return (
+    <div className="bg-card-dim rounded-xl p-4 border border-app self-start">
+      <h3 className="text-sm font-bold text-muted uppercase tracking-wide mb-3">
+        <Icon size={18} className="inline-block mr-2 align-text-bottom" />
+        {title}
+      </h3>
+      {items.length > 0 ? (
+        <ul className="space-y-2">
+          {items.map((item, i) => (
+            <li key={i}>{renderItem(item, i)}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted italic">{emptyMessage}</p>
+      )}
     </div>
-  </div>
-);
+  );
+}
 
 export function ContactDetails({ contactId, close }: Props): React.ReactElement {
   const { data: contact, isLoading, error } = useGetContact(contactId);
@@ -39,155 +57,119 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
         <button
           onClick={close}
           id="back-to-general-view"
-          className="flex items-center text-muted hover:text-app hover:cursor-pointer transition-colors"
+          className="flex items-center text-muted hover:text-app transition-colors"
         >
-          <ArrowLeft size={24} className="mr-2" />
+          <ArrowLeft size={20} className="mr-2" />
           <span className="font-bold text-lg">Back</span>
         </button>
       </div>
 
-      <div className="w-full max-w-5xl bg-card shadow-sm border border-app rounded min-h-[600px] flex flex-col">
-        <div className="p-6 sm:p-10 pb-0">
-          <div className="flex flex-col-reverse sm:flex-row justify-between items-start gap-6">
-            <div className="flex-1 w-full">
-              <div className="mb-6">
-                <h1 className="font-normal text-app mb-2">
-                  {contact.title && (
-                    <span className="font-semibold">
-                      {contact.title.charAt(0).toUpperCase() + contact.title.slice(1)}.{" "}
-                    </span>
-                  )}
-                  {fullName}
-                </h1>
-                {contact.company && (
-                  <div className="flex items-center text-muted text-lg">
-                    <span>{contact.company.name}</span>
-                  </div>
-                )}
+      <div className="w-full max-w-5xl bg-card shadow-sm border border-app rounded-2xl min-h-[600px] flex flex-col overflow-hidden">
+        <div className="p-6 sm:p-10 flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+          <div className="relative shrink-0">
+            {contact.picture ? (
+              <img
+                src={contact.picture}
+                alt={fullName}
+                className="w-28 h-28 sm:w-36 sm:h-36 object-cover rounded-2xl shadow-sm border border-app"
+              />
+            ) : (
+              <div className="w-28 h-28 sm:w-36 sm:h-36 bg-card-dim border border-app flex items-center justify-center text-muted rounded-2xl">
+                <User size={56} />
               </div>
-            </div>
-
-            <div className="relative group shrink-0">
-              {contact.picture ? (
-                <img
-                  src={contact.picture}
-                  alt={fullName}
-                  className="w-24 h-24 sm:w-32 sm:h-32 object-cover shadow-sm rounded border border-app"
-                />
-              ) : (
-                <div className="w-24 h-24 sm:w-32 sm:h-32 bg-card-dim border border-app flex items-center justify-center text-muted rounded">
-                  <User size={48} />
-                </div>
-              )}
-              {contact.company?.picture && (
-                <img
-                  src={contact.company.picture}
-                  className="absolute -bottom-2 -right-2 w-10 h-10 border-2 border-white rounded-full object-cover shadow-sm bg-white"
-                  alt="Company logo"
-                />
-              )}
-            </div>
+            )}
+            {contact.company?.picture && (
+              <img
+                src={contact.company.picture}
+                className="absolute -bottom-2 -right-2 w-12 h-12 border-2 border-card rounded-full object-cover shadow-sm bg-card"
+                alt="Company logo"
+              />
+            )}
           </div>
 
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-4">
-            <div className="space-y-1">
-              <div className="flex flex-col sm:flex-row sm:items-start mb-4">
-                <FieldRow label="Address">
-                  {contact.addresses.map((address, i) => (
-                    <div
-                      key={address.address || `addr-${i}`}
-                      className="flex items-center text-app mb-1 last:mb-0"
-                    >
-                      {address.address}
-                    </div>
-                  ))}
-                </FieldRow>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-start mb-4">
-                <FieldRow label="Tax ID">{contact.taxId}</FieldRow>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <FieldRow label="Job Title">{contact.jobTitle}</FieldRow>
-
-              <FieldRow label="Phone">
-                {contact.phones.map((p, i) => (
-                  <div
-                    key={p.number || `phone-${i}`}
-                    className="flex items-center text-app mb-1 last:mb-0"
-                  >
-                    {p.number}
-                  </div>
-                ))}
-              </FieldRow>
-
-              <FieldRow label="Email">
-                {contact.emails.map((e, i) => (
-                  <div
-                    key={e.address || `email-${i}`}
-                    className="flex items-center text-app mb-1 last:mb-0 break-all"
-                  >
-                    {e.address}
-                  </div>
-                ))}
-              </FieldRow>
-
-              <FieldRow label="Website">
-                {contact.websites.map((w, i) => (
-                  <div
-                    key={w.url || `site-${i}`}
-                    className="flex items-center text-app mb-1 last:mb-0 break-all"
-                  >
-                    {w.url}
-                  </div>
-                ))}
-              </FieldRow>
-            </div>
+          <div className="flex-1 text-center sm:text-left">
+            <h1 className="font-normal text-app mb-2">
+              {contact.title && (
+                <span className="text-muted text-2xl font-light mr-1">
+                  {contact.title.charAt(0).toUpperCase() + contact.title.slice(1)}.{" "}
+                </span>
+              )}
+              {fullName}
+            </h1>
+            {contact.jobTitle && <p className="text-lg text-muted">{contact.jobTitle}</p>}
+            {contact.company && <p className="text-lg text-muted">{contact.company.name}</p>}
+            {contact.taxId && <p className="text-sm text-muted mt-2">Tax ID: {contact.taxId}</p>}
           </div>
         </div>
 
-        <div className="mt-12 flex-1 flex flex-col">
-          <div className="px-6 sm:px-10 border-b border-app flex space-x-8">
-            <button
-              onClick={() => setActiveTab("general")}
-              className={`pb-2 text-sm font-bold border-b-2 hover:cursor-pointer ${
-                activeTab === "general"
-                  ? "border-app text-app"
-                  : "border-transparent text-muted hover:text-app hover:border-app"
-              }`}
-            >
-              Contacts & Addresses
-            </button>
-            <button
-              onClick={() => setActiveTab("notes")}
-              className={`pb-2 text-sm font-bold border-b-2 hover:cursor-pointer ${
-                activeTab === "notes"
-                  ? "border-app text-app"
-                  : "border-transparent text-muted hover:text-app hover:border-app"
-              }`}
-            >
-              Internal Notes
-            </button>
-          </div>
+        <div className="border-b border-app flex px-6 sm:px-10 gap-8">
+          <button
+            onClick={() => setActiveTab("general")}
+            className={`pb-3 text-sm font-bold border-b-2 transition-colors ${
+              activeTab === "general"
+                ? "border-krm3-primary text-app"
+                : "border-transparent text-muted hover:text-app"
+            }`}
+          >
+            Contacts & Addresses
+          </button>
+          <button
+            onClick={() => setActiveTab("notes")}
+            className={`pb-3 text-sm font-bold border-b-2 transition-colors ${
+              activeTab === "notes"
+                ? "border-krm3-primary text-app"
+                : "border-transparent text-muted hover:text-app"
+            }`}
+          >
+            Internal Notes
+          </button>
+        </div>
 
-          <div className="p-6 sm:p-10 bg-card flex-1">
-            {activeTab === "general" && (
-              <div className="text-muted text-sm italic">Additional address details...</div>
-            )}
+        <div className="p-6 sm:p-10 bg-card">
+          {activeTab === "general" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+              <ContactSection
+                title="Addresses"
+                icon={MapPin}
+                items={contact.addresses}
+                emptyMessage="No addresses available."
+                renderItem={(a: Address) => <span className="text-app">{a.address}</span>}
+              />
+              <ContactSection
+                title="Emails"
+                icon={Mail}
+                items={contact.emails}
+                emptyMessage="No emails available."
+                renderItem={(e: Email) => <span className="text-app break-all">{e.address}</span>}
+              />
+              <ContactSection
+                title="Phones"
+                icon={Phone}
+                items={contact.phones}
+                emptyMessage="No phones available."
+                renderItem={(p: PhoneType) => <span className="text-app">{p.number}</span>}
+              />
+              <ContactSection
+                title="Websites"
+                icon={Globe}
+                items={contact.websites}
+                emptyMessage="No websites available."
+                renderItem={(w: Website) => <span className="text-app break-all">{w.url}</span>}
+              />
+            </div>
+          )}
 
-            {activeTab === "notes" && (
-              <div className="w-full h-full">
-                {contact.internalNotes ? (
-                  <p className="whitespace-pre-wrap text-app text-sm leading-relaxed font-normal">
-                    {contact.internalNotes}
-                  </p>
-                ) : (
-                  <p className="text-muted italic text-sm">No internal notes.</p>
-                )}
-              </div>
-            )}
-          </div>
+          {activeTab === "notes" && (
+            <div className="w-full h-full">
+              {contact.internalNotes ? (
+                <p className="whitespace-pre-wrap text-app text-sm leading-relaxed font-normal">
+                  {contact.internalNotes}
+                </p>
+              ) : (
+                <p className="text-muted italic text-sm">No internal notes.</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
