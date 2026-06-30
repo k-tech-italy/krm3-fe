@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { toast } from "react-toastify";
 import * as useContacts from "../../hooks/useContacts.tsx";
@@ -133,6 +134,30 @@ describe("ContactForm", () => {
     expect(onSuccess).not.toHaveBeenCalled();
   });
 
+  it("does not show email error after 'Create and add another' resets the form", async () => {
+    vi.useFakeTimers();
+    try {
+      render(<ContactForm />);
+      fillRequired();
+      fireEvent.change(screen.getByPlaceholderText("email@example.com"), {
+        target: { value: "john@example.com" },
+      });
+
+      mockMutate.mockImplementation((_data, options) => options.onSuccess?.());
+      fireEvent.click(screen.getByText("Create and add another"));
+
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByText(/At least one valid email is required/)).not.toBeInTheDocument();
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("still calls onSuccess on 'Create contact' after clicking 'Create and add another' first", () => {
     const onSuccess = vi.fn();
     render(<ContactForm onSuccess={onSuccess} />);
@@ -152,5 +177,88 @@ describe("ContactForm", () => {
 
     fireEvent.click(screen.getByText("Create contact"));
     expect(onSuccess).toHaveBeenCalled();
+  });
+
+  it("keeps phone error aligned with the correct input after removing a row", () => {
+    render(<ContactForm />);
+    fillRequired();
+    fireEvent.change(screen.getByPlaceholderText("email@example.com"), {
+      target: { value: "john@example.com" },
+    });
+
+    fireEvent.click(screen.getByText("Add phone"));
+    fireEvent.click(screen.getByText("Add phone"));
+
+    const phoneInputs = screen.getAllByPlaceholderText("+1234567890");
+    fireEvent.change(phoneInputs[1], { target: { value: "invalid1" } });
+    fireEvent.change(phoneInputs[2], { target: { value: "invalid2" } });
+
+    fireEvent.click(screen.getByText("Create contact"));
+
+    expect(screen.getAllByText(/Invalid phone format/).length).toBe(2);
+
+    const removeButtons = screen.getAllByRole("button", { name: "Remove phone" });
+    fireEvent.click(removeButtons[0]);
+
+    const remainingPhoneInputs = screen.getAllByPlaceholderText("+1234567890");
+    expect(remainingPhoneInputs[0]).toHaveValue("invalid1");
+    expect(remainingPhoneInputs[1]).toHaveValue("invalid2");
+
+    expect(screen.getAllByText(/Invalid phone format/).length).toBe(2);
+  });
+
+  it("shows phone validation error after debounce", async () => {
+    vi.useFakeTimers();
+    try {
+      render(<ContactForm />);
+      fillRequired();
+      fireEvent.change(screen.getByPlaceholderText("email@example.com"), {
+        target: { value: "john@example.com" },
+      });
+
+      fireEvent.change(screen.getByPlaceholderText("+1234567890"), { target: { value: "abc" } });
+
+      expect(screen.queryByText(/Invalid phone format/)).not.toBeInTheDocument();
+
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Invalid phone format/)).toBeInTheDocument();
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not show email error on first render", () => {
+    render(<ContactForm />);
+    expect(screen.queryByText(/At least one valid email is required/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Invalid email format/)).not.toBeInTheDocument();
+  });
+
+  it("shows email validation error after debounce", async () => {
+    vi.useFakeTimers();
+    try {
+      render(<ContactForm />);
+      fillRequired();
+
+      fireEvent.change(screen.getByPlaceholderText("email@example.com"), {
+        target: { value: "not-an-email" },
+      });
+
+      expect(screen.queryByText(/At least one valid email is required/)).not.toBeInTheDocument();
+
+      act(() => {
+        vi.advanceTimersByTime(300);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/At least one valid email is required/)).toBeInTheDocument();
+      });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

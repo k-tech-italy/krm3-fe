@@ -1,6 +1,7 @@
 import { Plus, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import useDebounce from "../../hooks/useDebounce.tsx";
 import {
   CreateContactProps,
   useCreateContact,
@@ -42,6 +43,11 @@ export function ContactForm({ onSuccess, onCancel }: ContactFormProps) {
     websites: [],
     addresses: [{ address: "", kind: "" }],
   });
+
+  const debouncedPhones = useDebounce(form.phones, 300);
+  const debouncedEmails = useDebounce(form.emails, 300);
+  const hasInteractedWithPhones = useRef(false);
+  const hasInteractedWithEmails = useRef(false);
 
   const validateEmails = (emails: { address: string }[]): { address?: string[] }[] | undefined => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -88,6 +94,18 @@ export function ContactForm({ onSuccess, onCancel }: ContactFormProps) {
     return errors;
   };
 
+  useEffect(() => {
+    if (!hasInteractedWithPhones.current) return;
+    const phoneErrors = validatePhones(debouncedPhones);
+    setFormErrors((prev) => ({ ...prev, phones: phoneErrors }));
+  }, [debouncedPhones]);
+
+  useEffect(() => {
+    if (!hasInteractedWithEmails.current) return;
+    const emailErrors = validateEmails(debouncedEmails);
+    setFormErrors((prev) => ({ ...prev, emails: emailErrors }));
+  }, [debouncedEmails]);
+
   const getFieldError = (
     fieldName: keyof FormErrors,
     index?: number,
@@ -126,9 +144,16 @@ export function ContactForm({ onSuccess, onCancel }: ContactFormProps) {
 
   const removeEmail = (index: number) => {
     setForm((prev) => ({ ...prev, emails: prev.emails.filter((_, i) => i !== index) }));
+    setFormErrors((prev) => {
+      if (!prev.emails) return prev;
+      const next = [...prev.emails];
+      next.splice(index, 1);
+      return { ...prev, emails: next.length ? next : undefined };
+    });
   };
 
   const handleEmailChange = (index: number, value: string) => {
+    hasInteractedWithEmails.current = true;
     setForm((prev) => {
       const emails = [...prev.emails];
       emails[index] = { ...emails[index], address: value };
@@ -151,9 +176,16 @@ export function ContactForm({ onSuccess, onCancel }: ContactFormProps) {
 
   const removePhone = (index: number) => {
     setForm((prev) => ({ ...prev, phones: prev.phones.filter((_, i) => i !== index) }));
+    setFormErrors((prev) => {
+      if (!prev.phones) return prev;
+      const next = [...prev.phones];
+      next.splice(index, 1);
+      return { ...prev, phones: next.length ? next : undefined };
+    });
   };
 
   const handlePhoneChange = (index: number, value: string) => {
+    hasInteractedWithPhones.current = true;
     setForm((prev) => {
       const phones = [...prev.phones];
       phones[index] = { ...phones[index], number: value };
@@ -207,6 +239,8 @@ export function ContactForm({ onSuccess, onCancel }: ContactFormProps) {
           addresses: [{ address: "", kind: "" }],
         });
         setFormErrors({});
+        hasInteractedWithEmails.current = false;
+        hasInteractedWithPhones.current = false;
         if (submitModeRef.current === "close") {
           onSuccess?.();
         }
@@ -366,6 +400,7 @@ export function ContactForm({ onSuccess, onCancel }: ContactFormProps) {
                 <button
                   type="button"
                   onClick={() => removeEmail(i)}
+                  aria-label="Remove email"
                   className="text-red-500 hover:text-red-700"
                 >
                   <X size={16} />
@@ -406,6 +441,7 @@ export function ContactForm({ onSuccess, onCancel }: ContactFormProps) {
                 <button
                   type="button"
                   onClick={() => removePhone(i)}
+                  aria-label="Remove phone"
                   className="text-red-500 hover:text-red-700"
                 >
                   <X size={16} />
