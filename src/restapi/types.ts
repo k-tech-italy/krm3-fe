@@ -1,4 +1,3 @@
-
 export enum Role {
   ADMIN = "admin",
   SUPERADMIN = "superadmin",
@@ -164,9 +163,9 @@ export interface User {
     [key in FlagsType]?: boolean;
   };
   config: {
-    modules: module[],
-    defaultModule?: string
-  }
+    modules: module[];
+    defaultModule?: string;
+  };
 }
 
 export const enum FlagsType {
@@ -188,7 +187,9 @@ export interface Task {
   clientName?: string;
   adminUrl?: string;
 }
-export interface Schedule {[date: string]: number}
+export interface Schedule {
+  [date: string]: number;
+}
 export interface TimeEntry {
   id: number;
   date: string;
@@ -217,37 +218,38 @@ export interface Timesheet {
   days: Days;
   schedule?: Schedule;
   bankHours: number;
-  timesheetColors?: HeaderColors
+  timesheetColors?: HeaderColors;
 }
 export interface Phone {
-  number: string,
-  kind?: string
+  number: string;
+  kind?: string;
 }
 export interface Address {
-  address: string,
-  kind?: string
+  address: string;
+  kind?: string;
 }
 export interface Email {
-  address: string,
-  kind?: string
+  address: string;
+  kind?: string;
 }
 export interface Website {
   url: string;
 }
 export interface Contact {
-  id: number,
-  firstName: string,
-  lastName: string,
-  isActive: boolean,
-  internalNotes: string,
-  jobTitle: string,
-  picture?: string,
-  taxId?: string,
-  company?: Client,
-  phones: Phone[],
-  addresses: Address[],
-  emails: Email[],
-  websites: Website[],
+  id: number;
+  firstName: string;
+  lastName: string;
+  isActive: boolean;
+  internalNotes: string;
+  jobTitle: string;
+  title?: string;
+  picture?: string;
+  taxId?: string;
+  company?: Client;
+  phones: Phone[];
+  addresses: Address[];
+  emails: Email[];
+  websites: Website[];
 }
 export interface HeaderColors {
   lessThanScheduleColorBrightTheme: string;
@@ -288,8 +290,12 @@ export const enum DayType {
 }
 export type WeekRange = "whole" | "startOfWeek" | "endOfWeek";
 
-
 export interface LanguageMap {
   languageCode: string;
   language: string;
+}
+
+export interface TitleChoice {
+  value: string;
+  label: string;
 }

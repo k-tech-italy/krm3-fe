@@ -1,50 +1,67 @@
-import {Contact} from "../../restapi/types.ts";
-import { Home, User } from 'lucide-react';
-import {Link} from "react-router-dom";
+import { Contact } from "../../restapi/types.ts";
+import { User, MapPin, Mail, Phone } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface Props {
-    contact: Contact;
+  contact: Contact;
 }
+
 const ContactListTile = (props: Props) => {
-    return (
-        <Link to={`/contacts/${props.contact.id}`}
-            className="bg-gray-200 rounded-xl shadow-xl p-2 sm:p-3 m-2 border border-1 border-gray-500 grid grid-cols-[auto_auto_2fr_2fr_2fr]
-            md:grid-cols-[auto_auto_2fr_2fr_2fr_2fr] items-center gap-2 cursor-pointer hover:bg-gray-300 transition-colors text-gray-900"
-            id={`contact-list-tile-${props.contact.id}`}
-            data-testid={`contact-list-tile-${props.contact.id}`}>
-            {props.contact.picture ?
-                <img
-                    src={props.contact.picture}
-                    className="w-8 h-8 sm:w-16 sm:h-16 object-cover rounded-xl"
-                />
-                :
-                <div className="w-8 h-8 sm:w-16 sm:h-16 rounded-xl bg-gray-100 flex items-center justify-center"
-                     data-testid={`user-picture-placeholder-${props.contact.id}`}>
-                    <User className="opacity-25"/>
-                </div>
+  const { contact } = props;
+  const fullName = `${contact.firstName} ${contact.lastName}`.trim();
 
-            }
-            {props.contact.company && props.contact.company.picture ?
-                <img
-                    src={props.contact.company.picture}
-                    className="w-8 h-8 sm:w-16 sm:h-16 object-cover rounded-xl ml-2 sm:ml-5"
-                />
-                :
-                <div className="w-8 h-8 sm:w-16 sm:h-16 rounded-xl ml-2 sm:ml-5 bg-gray-100 flex items-center justify-center">
-                    <Home data-testid="company-picture-placeholder" className="opacity-25"/>
-                </div>
+  const firstEmail = contact.emails[0]?.address;
+  const firstPhone = contact.phones[0]?.number;
+  const firstAddress = contact.addresses[0]?.address;
 
-            }
+  return (
+    <Link
+      to={`/contacts/${contact.id}`}
+      className="bg-card rounded-xl p-3 border border-app
+                 hover:border-krm3-primary hover:bg-card-dim transition-all
+                 grid grid-cols-[auto_2fr_2fr] md:grid-cols-[auto_2fr_2fr_2fr_2fr]
+                 items-center gap-4"
+      id={`contact-list-tile-${contact.id}`}
+      data-testid={`contact-list-tile-${contact.id}`}
+    >
+      {contact.picture ? (
+        <img
+          src={contact.picture}
+          alt={fullName}
+          className="w-10 h-10 sm:w-14 sm:h-14 object-cover rounded-xl"
+        />
+      ) : (
+        <div
+          className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl bg-card-dim border border-app flex items-center justify-center"
+          data-testid={`user-picture-placeholder-${contact.id}`}
+        >
+          <User size={24} className="text-muted opacity-50" />
+        </div>
+      )}
 
+      <div className="min-w-0">
+        <p className="font-semibold text-app truncate">{fullName}</p>
+        {contact.jobTitle && (
+          <p className="text-xs sm:text-sm text-muted truncate">{contact.jobTitle}</p>
+        )}
+      </div>
 
-            <p className="font-bold sm:text-l text-sm">
-                {props.contact.firstName} {props.contact.lastName}
-            </p>
-            <p className="hidden md:block text-xs sm:text-base">{props.contact.addresses.length > 0 ? props.contact.addresses[0].address : ""}</p>
-            <p className="text-xs sm:text-base">{props.contact.emails.length > 0 ? props.contact.emails[0].address : ""}</p>
-            <p className="text-xs sm:text-base">{props.contact.phones.length > 0 ? props.contact.phones[0].number : ""}</p>
+      <p className="hidden md:flex items-center gap-2 text-sm text-app truncate">
+        <MapPin size={16} className="text-muted shrink-0" />
+        <span className="truncate">{firstAddress || "—"}</span>
+      </p>
 
-        </Link>
-    )
-}
-export default ContactListTile
+      <p className="flex items-center gap-2 text-sm text-app truncate">
+        <Mail size={16} className="text-muted shrink-0" />
+        <span className="truncate">{firstEmail || "—"}</span>
+      </p>
+
+      <p className="flex items-center gap-2 text-xs sm:text-sm text-app truncate">
+        <Phone size={16} className="text-muted shrink-0" />
+        <span className="truncate">{firstPhone || "—"}</span>
+      </p>
+    </Link>
+  );
+};
+
+export default ContactListTile;
