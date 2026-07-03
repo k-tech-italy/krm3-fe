@@ -13,31 +13,38 @@ interface Props {
   id?: string;
 }
 
-const Krm3Button = ({ disabled, onClick, type, style, icon, label, disabledTooltipMessage, additionalStyles="", mobileLabel, id }: Props) => {
+const Krm3Button = ({
+  disabled,
+  onClick,
+  type,
+  style,
+  icon,
+  label,
+  disabledTooltipMessage,
+  additionalStyles = "",
+  mobileLabel,
+  id,
+}: Props) => {
   const styles = {
     primary: {
       buttonStyle:
-        "text-white border-transparent bg-krm3-primary hover:bg-krm3-primary-dark focus:outline-none focus:ring-krm3-primary",
-      disabledStyle:
-        "text-white border-transparent bg-krm3-disabled cursor-not-allowed",
+        "text-white border-transparent bg-krm3-primary hover:bg-krm3-primary-dark focus:outline-none focus:ring-krm3-primary cursor-pointer",
+      disabledStyle: "text-white border-transparent bg-krm3-disabled cursor-not-allowed",
     },
     secondary: {
       buttonStyle:
-        "border-krm3-disabled font-medium rounded-md text-gray-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-krm3-disabled transition-colors duration-200",
-      disabledStyle:
-        "text-white border-transparent bg-krm3-disabled cursor-not-allowed",
+        "border-krm3-disabled font-medium rounded-md text-gray-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-krm3-disabled transition-colors duration-200 cursor-pointer",
+      disabledStyle: "text-white border-transparent bg-krm3-disabled cursor-not-allowed",
     },
     danger: {
       buttonStyle:
-        "text-white border-transparent bg-krm3-danger hover:bg-krm3-danger-dark focus:outline-none focus:ring-krm3-danger",
-      disabledStyle:
-        "text-white border-transparent bg-krm3-disabled cursor-not-allowed",
+        "text-white border-transparent bg-krm3-danger hover:bg-krm3-danger-dark focus:outline-none focus:ring-krm3-danger cursor-pointer",
+      disabledStyle: "text-white border-transparent bg-krm3-disabled cursor-not-allowed",
     },
     default: {
       buttonStyle:
-        "text-white border-transparent bg-krm3-primary hover:bg-krm3-primary-dark focus:outline-none focus:ring-krm3-primary",
-      disabledStyle:
-        "text-white border-transparent bg-krm3-disabled cursor-not-allowed",
+        "text-white border-transparent bg-krm3-primary hover:bg-krm3-primary-dark focus:outline-none focus:ring-krm3-primary cursor-pointer",
+      disabledStyle: "text-white border-transparent bg-krm3-disabled cursor-not-allowed",
     },
   };
 
@@ -58,18 +65,15 @@ const Krm3Button = ({ disabled, onClick, type, style, icon, label, disabledToolt
       >
         {icon && <span className="mr-2">{icon}</span>}
         {mobileLabel ? (
-            <>
-              <span className="sm:inline hidden">{label}</span>
-              <span className="sm:hidden inline">{mobileLabel}</span>
-            </>
+          <>
+            <span className="sm:inline hidden">{label}</span>
+            <span className="sm:hidden inline">{mobileLabel}</span>
+          </>
         ) : (
-            label
+          label
         )}
-
       </button>
-      {disabled && (
-        <Tooltip id={`tooltip-${label}`} content={disabledTooltipMessage} />
-      )}
+      {disabled && <Tooltip id={`tooltip-${label}`} content={disabledTooltipMessage} />}
     </>
   );
 };

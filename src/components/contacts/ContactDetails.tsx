@@ -56,11 +56,12 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
   const { data: contact, isLoading, error, refetch } = useGetContact(contactId);
   const { mutate: updateContact } = useUpdateContact();
   const { mutate: deleteContact, isLoading: isDeleting } = useDeleteContact();
-  const { mutate: toggleContactActive, isLoading: isTogglingActive } = useToggleContactActive();
+  const { mutate: toggleContactActive } = useToggleContactActive();
   const [activeTab, setActiveTab] = useState<"general" | "notes">("general");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isToggleActiveConfirmOpen, setIsToggleActiveConfirmOpen] = useState(false);
+  const [toggleActionLabel, setToggleActionLabel] = useState("Deactivate");
 
   if (isLoading) return <div className="p-8">Loading...</div>;
   if (error || !contact) return <div className="p-8 text-red-500">Error loading contact</div>;
@@ -98,12 +99,12 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
   };
 
   const handleToggleActiveConfirm = () => {
+    setIsToggleActiveConfirmOpen(false);
     toggleContactActive(
       { id: contactId, isActive: !contact.isActive },
       {
         onSuccess: () => {
           toast.success(contact.isActive ? "Contact deactivated" : "Contact activated");
-          setIsToggleActiveConfirmOpen(false);
           refetch();
         },
         onError: (err) => {
@@ -122,7 +123,7 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
         <button
           onClick={close}
           id="back-to-general-view"
-          className="flex items-center text-muted hover:text-app transition-colors"
+          className="flex items-center text-muted hover:text-app transition-colors cursor-pointer"
         >
           <ArrowLeft size={20} className="mr-2" />
           <span className="font-bold text-lg">Back</span>
@@ -138,7 +139,10 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
             id="toggle-active-button"
             label={contact.isActive ? "Deactivate" : "Activate"}
             style="primary"
-            onClick={() => setIsToggleActiveConfirmOpen(true)}
+            onClick={() => {
+              setToggleActionLabel(contact.isActive ? "Deactivate" : "Activate");
+              setIsToggleActiveConfirmOpen(true);
+            }}
           />
           <Krm3Button
             id="delete-button"
@@ -176,7 +180,7 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
             <h1 className="font-normal text-app mb-2">
               {contact.title && (
                 <span className="text-muted text-2xl font-light mr-1">
-                  {contact.title.charAt(0).toUpperCase() + contact.title.slice(1)}.{" "}
+                  {contact.title.charAt(0).toUpperCase() + contact.title.slice(1)}{" "}
                 </span>
               )}
               {fullName}
@@ -190,7 +194,7 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
         <div className="border-b border-app flex px-6 sm:px-10 gap-8">
           <button
             onClick={() => setActiveTab("general")}
-            className={`pb-3 text-sm font-bold border-b-2 transition-colors ${
+            className={`pb-3 text-sm font-bold border-b-2 hover:transition-colors cursor-pointer ${
               activeTab === "general"
                 ? "border-krm3-primary text-app"
                 : "border-transparent text-muted hover:text-app"
@@ -200,7 +204,7 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
           </button>
           <button
             onClick={() => setActiveTab("notes")}
-            className={`pb-3 text-sm font-bold border-b-2 transition-colors ${
+            className={`pb-3 text-sm font-bold border-b-2 hover:transition-colors cursor-pointer ${
               activeTab === "notes"
                 ? "border-krm3-primary text-app"
                 : "border-transparent text-muted hover:text-app"
@@ -225,21 +229,39 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
                 icon={Mail}
                 items={contact.emails}
                 emptyMessage="No emails available."
-                renderItem={(e: Email) => <span className="text-app break-all">{e.address}</span>}
+                renderItem={(e: Email) => (
+                  <a
+                    href={`mailto:${e.address}`}
+                    className="text-krm3-primary hover:underline break-all"
+                  >
+                    {e.address}
+                  </a>
+                )}
               />
               <ContactSection
                 title="Phones"
                 icon={Phone}
                 items={contact.phones}
                 emptyMessage="No phones available."
-                renderItem={(p: PhoneType) => <span className="text-app">{p.number}</span>}
+                renderItem={(p: PhoneType) => (
+                  <a href={`tel:${p.number}`} className="text-krm3-primary hover:underline">
+                    {p.number}
+                  </a>
+                )}
               />
               <ContactSection
                 title="Websites"
                 icon={Globe}
                 items={contact.websites}
                 emptyMessage="No websites available."
-                renderItem={(w: Website) => <span className="text-app break-all">{w.url}</span>}
+                renderItem={(w: Website) => (
+                  <a
+                    href={w.url.startsWith("http") ? w.url : `https://${w.url}`}
+                    className="text-krm3-primary hover:underline break-all"
+                  >
+                    {w.url}
+                  </a>
+                )}
               />
             </div>
           )}
@@ -277,7 +299,7 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
         onClose={() => setIsDeleteConfirmOpen(false)}
       >
         <div className="flex flex-col gap-4">
-          <p className="text-gray-700">
+          <p className="text-app">
             Are you sure you want to delete <strong>{fullName}</strong>? This action cannot be
             undone.
           </p>
@@ -299,14 +321,14 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
 
       <Krm3Modal
         open={isToggleActiveConfirmOpen}
-        title={contact.isActive ? "Deactivate Contact" : "Activate Contact"}
+        title={`${toggleActionLabel} Contact`}
         onClose={() => setIsToggleActiveConfirmOpen(false)}
       >
         <div className="flex flex-col gap-4">
-          <p className="text-gray-700">
-            Are you sure you want to {contact.isActive ? "deactivate" : "activate"}{" "}
-            <strong>{fullName}</strong>?
-            {contact.isActive && " They will no longer appear in active contacts lists."}
+          <p className="text-app">
+            Are you sure you want to {toggleActionLabel.toLowerCase()} <strong>{fullName}</strong>?
+            {toggleActionLabel === "Deactivate" &&
+              " They will no longer appear in active contacts lists."}
           </p>
           <div className="flex gap-2 justify-end">
             <Krm3Button
@@ -316,15 +338,7 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
             />
             <Krm3Button
               id="toggle-active-confirm"
-              label={
-                isTogglingActive
-                  ? contact.isActive
-                    ? "Deactivating..."
-                    : "Activating..."
-                  : contact.isActive
-                    ? "Deactivate"
-                    : "Activate"
-              }
+              label={toggleActionLabel}
               style="primary"
               onClick={handleToggleActiveConfirm}
             />

@@ -105,7 +105,7 @@ describe("ContactDetailsPage", () => {
       } as unknown as ReturnType<typeof useContacts.useGetContact>;
     });
     renderDetails("2");
-    expect(screen.getByRole("heading", { name: /Doctor\.\s+Jack Sparrow/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Doctor\s+Jack Sparrow/ })).toBeInTheDocument();
   });
 
   it("shows error or fallback when ID is invalid", () => {
