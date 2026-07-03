@@ -62,7 +62,11 @@ export function ContactForm({ onSuccess, onCancel }: ContactFormProps) {
     const phoneRegex = /^\+?\d[\d\s-]*$/;
     const phoneErrors: { number?: string[] }[] = phones.map((phone) => {
       if (phone.number.trim() !== "" && !phoneRegex.test(phone.number)) {
-        return { number: ["Invalid phone format. Use digits, +, spaces, or hyphens only."] };
+        return {
+          number: [
+            "Invalid phone format. Start with an optional +, followed by digits. Spaces and hyphens are allowed between digits.",
+          ],
+        };
       }
       return {};
     });
