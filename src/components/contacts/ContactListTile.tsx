@@ -17,10 +17,10 @@ const ContactListTile = (props: Props) => {
   return (
     <Link
       to={`/contacts/${contact.id}`}
-      className="bg-card rounded-xl p-3 border border-app
+      className={`rounded-xl p-3 border border-app
                  hover:border-krm3-primary hover:bg-card-dim transition-all
                  grid grid-cols-[auto_2fr_2fr] md:grid-cols-[auto_2fr_2fr_2fr_2fr]
-                 items-center gap-4"
+                 items-center gap-4 ${contact.isActive ? "bg-card" : "bg-card-dim opacity-70"}`}
       id={`contact-list-tile-${contact.id}`}
       data-testid={`contact-list-tile-${contact.id}`}
     >

@@ -10,7 +10,7 @@ import Krm3Button from "../components/commons/Krm3Button.tsx";
 
 export default function Contacts() {
   const [isGridView, setIsGridView] = useState(true);
-  const [onlyActiveSelected, setOnlyActiveSelected] = useState(false);
+  const [onlyActiveSelected, setOnlyActiveSelected] = useState(true);
   const [page, setPage] = useState(1);
   const [searchBarValue, setSearchBarValue] = useState("");
   const debouncedSearch = useDebounce(searchBarValue, 300);
@@ -55,14 +55,14 @@ export default function Contacts() {
             Row
           </div>
           <div className="flex flex-row mt-2 ml-10">
-            All
+            Active
             <div className="relative inline-block w-11 h-5 mx-1">
               <input
                 id="switch-active"
                 data-testid="switch-active"
                 type="checkbox"
                 className="peer appearance-none w-11 h-5 bg-slate-200 rounded-full checked:bg-slate-400 cursor-pointer transition-colors duration-300"
-                checked={onlyActiveSelected}
+                checked={!onlyActiveSelected}
                 onChange={() => {
                   setOnlyActiveSelected(!onlyActiveSelected);
                   setPage(1);
@@ -73,7 +73,7 @@ export default function Contacts() {
                 className="absolute top-0 left-0 w-5 h-5 bg-card rounded-full border border-app shadow-sm transition-transform duration-300 peer-checked:translate-x-6 peer-checked:border-slate-800 cursor-pointer"
               />
             </div>
-            Active
+            All
           </div>
           <div className="flex flex-row mt-2 ml-10">
             Search:
