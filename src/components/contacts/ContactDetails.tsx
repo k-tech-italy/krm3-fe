@@ -1,5 +1,15 @@
 import React, { useState } from "react";
-import { ArrowLeft, User, MapPin, Mail, Phone, Globe, LucideIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  User,
+  MapPin,
+  Mail,
+  Phone,
+  Globe,
+  CircleCheck,
+  CircleX,
+  LucideIcon,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import {
   useGetContact,
@@ -154,7 +164,24 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
       </div>
 
       <div className="w-full max-w-5xl bg-card shadow-sm border border-app rounded-2xl min-h-[600px] flex flex-col overflow-hidden">
-        <div className="p-6 sm:p-10 flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+        <div className="relative p-6 sm:p-10 flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+          <div
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-1.5 text-sm font-medium"
+            data-testid="contact-status-indicator"
+          >
+            {contact.isActive ? (
+              <>
+                <CircleCheck size={16} className="text-green-600" />
+                <span className="text-green-600">Active</span>
+              </>
+            ) : (
+              <>
+                <CircleX size={16} className="text-red-600" />
+                <span className="text-red-600">Inactive</span>
+              </>
+            )}
+          </div>
+
           <div className="relative shrink-0">
             {contact.picture ? (
               <img
