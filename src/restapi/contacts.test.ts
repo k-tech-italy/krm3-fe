@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { AxiosResponse } from "axios";
-import { createContact, getContacts, getContact, getClients } from "./contacts";
+import {
+  createContact,
+  getContacts,
+  getContact,
+  getClients,
+  toggleContactActive,
+} from "./contacts";
 import { restapi } from "./restapi";
 import type { Contact } from "./types";
 
@@ -8,6 +14,7 @@ vi.mock("./restapi", () => ({
   restapi: {
     get: vi.fn(),
     post: vi.fn(),
+    patch: vi.fn(),
   },
 }));
 
@@ -185,6 +192,53 @@ describe("createContact", () => {
 
     expect(restapi.post).toHaveBeenCalledWith("core/contacts/", expect.any(Object));
     expect(result).toEqual(contactMock);
+  });
+});
+
+describe("toggleContactActive", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const contactMock: Contact = {
+    id: 1,
+    firstName: "John",
+    lastName: "Doe",
+    jobTitle: "Software developer",
+    internalNotes: "",
+    picture: "example.url",
+    isActive: true,
+    addresses: [],
+    phones: [],
+    emails: [],
+    websites: [],
+    company: {
+      id: 1,
+      name: "singlewave",
+      picture: "path/to/picture.jpg",
+    },
+  };
+
+  it("should PATCH isActive to false", async () => {
+    vi.mocked(restapi.patch).mockResolvedValueOnce({ data: contactMock } as AxiosResponse);
+
+    const result = await toggleContactActive(1, false);
+
+    expect(restapi.patch).toHaveBeenCalledOnce();
+    expect(restapi.patch).toHaveBeenCalledWith("core/contacts/1/", { isActive: false });
+    expect(result).toEqual(contactMock);
+  });
+
+  it("should PATCH isActive to true", async () => {
+    vi.mocked(restapi.patch).mockResolvedValueOnce({
+      data: { ...contactMock, isActive: true },
+    } as AxiosResponse);
+
+    const result = await toggleContactActive(2, true);
+
+    expect(restapi.patch).toHaveBeenCalledOnce();
+    expect(restapi.patch).toHaveBeenCalledWith("core/contacts/2/", { isActive: true });
+    expect(result.isActive).toBe(true);
   });
 });
 

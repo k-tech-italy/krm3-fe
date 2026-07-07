@@ -36,9 +36,9 @@ const ContactGridTile = (props: Props) => {
   return (
     <Link
       to={`/contacts/${contact.id}`}
-      className="bg-card rounded-2xl p-4 sm:p-6 border border-app shadow-sm
+      className={`rounded-2xl p-4 sm:p-6 border border-app shadow-sm
                  hover:border-krm3-primary hover:shadow-md transition-all
-                 flex flex-col gap-4"
+                 flex flex-col gap-4 ${contact.isActive ? "bg-card" : "bg-card-dim opacity-70"}`}
       id={`contact-grid-tile-${contact.id}`}
       data-testid={`contact-grid-tile-${contact.id}`}
     >

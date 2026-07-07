@@ -34,4 +34,11 @@ describe("ContactGridTile", () => {
     renderTile({ ...contact, picture: undefined });
     expect(screen.getByTestId("user-picture-placeholder-1")).toBeInTheDocument();
   });
+
+  it("applies dim styling for inactive contact", () => {
+    renderTile({ ...contact, isActive: false });
+    const tile = screen.getByTestId("contact-grid-tile-1");
+    expect(tile.className).toContain("bg-card-dim");
+    expect(tile.className).toContain("opacity-70");
+  });
 });

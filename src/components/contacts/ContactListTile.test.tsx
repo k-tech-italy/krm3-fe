@@ -28,4 +28,15 @@ describe("ContactListTile", () => {
     expect(screen.getByText("123 Main St")).toBeInTheDocument();
     expect(screen.getByText("john@test.com")).toBeInTheDocument();
   });
+
+  it("applies dim styling for inactive contact", () => {
+    render(
+      <MemoryRouter>
+        <ContactListTile contact={{ ...contact, isActive: false }} />
+      </MemoryRouter>
+    );
+    const tile = screen.getByTestId("contact-list-tile-1");
+    expect(tile.className).toContain("bg-card-dim");
+    expect(tile.className).toContain("opacity-70");
+  });
 });

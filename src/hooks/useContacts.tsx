@@ -4,6 +4,9 @@ import {
   getContacts,
   getContact,
   createContact,
+  updateContact,
+  deleteContact,
+  toggleContactActive,
   getTitles,
 } from "../restapi/contacts.ts";
 import { Address, Contact, Email, Phone, Website } from "../restapi/types.ts";
@@ -76,4 +79,52 @@ export function useGetTitles() {
       console.error("Titles fetch failed:", error);
     },
   });
+}
+
+export function useUpdateContact() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ({ id, data }: { id: number; data: CreateContactProps }) =>
+      updateContact(id, data as Partial<Contact>),
+    {
+      onSuccess: (_, { id }) => {
+        queryClient.invalidateQueries({ queryKey: ["contacts"] });
+        queryClient.invalidateQueries({ queryKey: ["contact", id] });
+      },
+      onError: (error) => {
+        console.error("Contact update failed:", error);
+      },
+    }
+  );
+}
+
+export function useDeleteContact() {
+  const queryClient = useQueryClient();
+
+  return useMutation((id: number) => deleteContact(id), {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+    },
+    onError: (error) => {
+      console.error("Contact delete failed:", error);
+    },
+  });
+}
+
+export function useToggleContactActive() {
+  const queryClient = useQueryClient();
+
+  return useMutation(
+    ({ id, isActive }: { id: number; isActive: boolean }) => toggleContactActive(id, isActive),
+    {
+      onSuccess: (_, { id }) => {
+        queryClient.invalidateQueries({ queryKey: ["contacts"] });
+        queryClient.invalidateQueries({ queryKey: ["contact", id] });
+      },
+      onError: (error) => {
+        console.error("Contact toggle active failed:", error);
+      },
+    }
+  );
 }
