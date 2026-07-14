@@ -18,6 +18,7 @@ import {
   useToggleContactActive,
   CreateContactProps,
 } from "../../hooks/useContacts.tsx";
+import { useGetCurrentUser } from "../../hooks/useAuth.tsx";
 import { ContactForm } from "./ContactForm.tsx";
 import Krm3Modal from "../commons/krm3Modal.tsx";
 import Krm3Button from "../commons/Krm3Button.tsx";
@@ -64,6 +65,7 @@ function ContactSection<T>({
 
 export function ContactDetails({ contactId, close }: Props): React.ReactElement {
   const { data: contact, isLoading, error, refetch } = useGetContact(contactId);
+  const { userCan } = useGetCurrentUser();
   const { mutate: updateContact } = useUpdateContact();
   const { mutate: deleteContact, isLoading: isDeleting } = useDeleteContact();
   const { mutate: toggleContactActive } = useToggleContactActive();
@@ -75,6 +77,9 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
 
   if (isLoading) return <div className="p-8">Loading...</div>;
   if (error || !contact) return <div className="p-8 text-red-500">Error loading contact</div>;
+
+  const canChangeContact = userCan(["core.change_contact"]);
+  const canDeleteContact = userCan(["core.delete_contact"]);
 
   const fullName = `${contact.firstName} ${contact.lastName}`.trim();
 
@@ -139,27 +144,33 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
           <span className="font-bold text-lg">Back</span>
         </button>
         <div className="flex gap-2">
-          <Krm3Button
-            id="edit-button"
-            label="Edit"
-            style="secondary"
-            onClick={() => setIsEditModalOpen(true)}
-          />
-          <Krm3Button
-            id="toggle-active-button"
-            label={contact.isActive ? "Deactivate" : "Activate"}
-            style="primary"
-            onClick={() => {
-              setToggleActionLabel(contact.isActive ? "Deactivate" : "Activate");
-              setIsToggleActiveConfirmOpen(true);
-            }}
-          />
-          <Krm3Button
-            id="delete-button"
-            label="Delete"
-            style="danger"
-            onClick={() => setIsDeleteConfirmOpen(true)}
-          />
+          {canChangeContact && (
+            <>
+              <Krm3Button
+                id="edit-button"
+                label="Edit"
+                style="secondary"
+                onClick={() => setIsEditModalOpen(true)}
+              />
+              <Krm3Button
+                id="toggle-active-button"
+                label={contact.isActive ? "Deactivate" : "Activate"}
+                style="primary"
+                onClick={() => {
+                  setToggleActionLabel(contact.isActive ? "Deactivate" : "Activate");
+                  setIsToggleActiveConfirmOpen(true);
+                }}
+              />
+            </>
+          )}
+          {canDeleteContact && (
+            <Krm3Button
+              id="delete-button"
+              label="Delete"
+              style="danger"
+              onClick={() => setIsDeleteConfirmOpen(true)}
+            />
+          )}
         </div>
       </div>
 
