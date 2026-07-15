@@ -11,6 +11,7 @@ import {
   LucideIcon,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import { isForbidden } from "../../restapi/errors.ts";
 import {
   useGetContact,
   useUpdateContact,
@@ -93,8 +94,11 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
           refetch();
         },
         onError: (err) => {
-          toast.error("Failed to update contact");
-          console.error(err);
+          toast.error(
+            isForbidden(err)
+              ? "You don't have permission to update contacts"
+              : "Failed to update contact"
+          );
         },
       }
     );
@@ -107,8 +111,11 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
         close();
       },
       onError: (err) => {
-        toast.error("Failed to delete contact");
-        console.error(err);
+        toast.error(
+          isForbidden(err)
+            ? "You don't have permission to delete contacts"
+            : "Failed to delete contact"
+        );
       },
     });
   };
@@ -123,10 +130,12 @@ export function ContactDetails({ contactId, close }: Props): React.ReactElement 
           refetch();
         },
         onError: (err) => {
+          const msg = contact.isActive
+            ? "Failed to deactivate contact"
+            : "Failed to activate contact";
           toast.error(
-            contact.isActive ? "Failed to deactivate contact" : "Failed to activate contact"
+            isForbidden(err) ? "You don't have permission to change contact status" : msg
           );
-          console.error(err);
         },
       }
     );

@@ -92,9 +92,6 @@ export function useUpdateContact() {
         queryClient.invalidateQueries({ queryKey: ["contacts"] });
         queryClient.invalidateQueries({ queryKey: ["contact", id] });
       },
-      onError: (error) => {
-        console.error("Contact update failed:", error);
-      },
     }
   );
 }
@@ -105,9 +102,6 @@ export function useDeleteContact() {
   return useMutation((id: number) => deleteContact(id), {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contacts"] });
-    },
-    onError: (error) => {
-      console.error("Contact delete failed:", error);
     },
   });
 }
@@ -121,9 +115,6 @@ export function useToggleContactActive() {
       onSuccess: (_, { id }) => {
         queryClient.invalidateQueries({ queryKey: ["contacts"] });
         queryClient.invalidateQueries({ queryKey: ["contact", id] });
-      },
-      onError: (error) => {
-        console.error("Contact toggle active failed:", error);
       },
     }
   );
