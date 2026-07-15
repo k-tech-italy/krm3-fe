@@ -1,6 +1,7 @@
 import { Plus, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import { isForbidden } from "../../restapi/errors.ts";
 import useDebounce from "../../hooks/useDebounce.tsx";
 import {
   CreateContactProps,
@@ -291,6 +292,10 @@ export function ContactForm({ onSuccess, onCancel, initialData, onSubmit }: Cont
         }
       },
       onError: (err: unknown) => {
+        if (isForbidden(err)) {
+          toast.error("You don't have permission to create a contact");
+          return;
+        }
         const axiosError = err as { response?: { data?: FormErrors } };
         setFormErrors(axiosError?.response?.data || { detail: ["An error occurred"] });
       },

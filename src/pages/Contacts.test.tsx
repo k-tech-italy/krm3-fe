@@ -2,6 +2,7 @@ import { fireEvent, render, screen, act } from "@testing-library/react";
 import { vi } from "vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 
+import * as useAuth from "../hooks/useAuth.tsx";
 import * as useGetContacts from "../hooks/useContacts.tsx";
 import Contacts from "./Contacts.tsx";
 import { Contact, Page } from "../restapi/types.ts";
@@ -55,6 +56,10 @@ const mockContacts = [
 describe("Contact Page", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
+      userCan: () => true,
+      isAuthenticated: true,
+    } as unknown as ReturnType<typeof useAuth.useGetCurrentUser>);
     vi.spyOn(useGetContacts, "useGetContacts").mockImplementation((params) => {
       let results = [...mockContacts];
       if (params?.active) {
@@ -239,5 +244,23 @@ describe("Contact Page", () => {
 
     expect(screen.getByText("John Doe")).toBeInTheDocument();
     expect(screen.queryByText("Jack Sparrow")).not.toBeInTheDocument();
+  });
+
+  it("shows add button when user has core.add_contact permission", () => {
+    vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
+      userCan: (perms: string[]) => perms.includes("core.add_contact"),
+      isAuthenticated: true,
+    } as unknown as ReturnType<typeof useAuth.useGetCurrentUser>);
+    renderContacts();
+    expect(screen.getByText("+ Add new contact")).toBeInTheDocument();
+  });
+
+  it("hides add button when user lacks core.add_contact permission", () => {
+    vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
+      userCan: () => false,
+      isAuthenticated: true,
+    } as unknown as ReturnType<typeof useAuth.useGetCurrentUser>);
+    renderContacts();
+    expect(screen.queryByText("+ Add new contact")).not.toBeInTheDocument();
   });
 });

@@ -1,3 +1,4 @@
+import { useGetCurrentUser } from "../hooks/useAuth.tsx";
 import { useGetContacts } from "../hooks/useContacts.tsx";
 import React, { useState } from "react";
 import ContactGridTile from "../components/contacts/ContactGridTile.tsx";
@@ -15,6 +16,9 @@ export default function Contacts() {
   const [searchBarValue, setSearchBarValue] = useState("");
   const debouncedSearch = useDebounce(searchBarValue, 300);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const { userCan } = useGetCurrentUser();
+  const canAddContact = userCan(["core.add_contact"]);
 
   const { data: contactsPage, isLoading } = useGetContacts({
     active: onlyActiveSelected ? true : undefined,
@@ -93,7 +97,9 @@ export default function Contacts() {
           </div>
         </div>
         <div className="flex flex-row mt-2 place-self-center px-8">
-          <Krm3Button label=" + Add new contact" onClick={() => setIsModalOpen(true)} />
+          {canAddContact && (
+            <Krm3Button label=" + Add new contact" onClick={() => setIsModalOpen(true)} />
+          )}
           <Krm3Modal open={isModalOpen} title="Add Contact" onClose={() => setIsModalOpen(false)}>
             <ContactForm onSuccess={handleSubmit} onCancel={() => setIsModalOpen(false)} />
           </Krm3Modal>

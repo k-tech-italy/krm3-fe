@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { vi } from "vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "react-query";
+import * as useAuth from "../hooks/useAuth.tsx";
 import * as useContacts from "../hooks/useContacts.tsx";
 import ContactDetailsPage from "./ContactDetailsPage.tsx";
 import { Contact } from "../restapi/types.ts";
@@ -48,6 +49,11 @@ describe("ContactDetailsPage", () => {
     vi.clearAllMocks();
     toggleContactActiveMutate = vi.fn((_vars, options) => options?.onSuccess?.());
     deleteContactMutate = vi.fn((_id, options) => options?.onSuccess?.());
+
+    vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
+      userCan: () => true,
+      isAuthenticated: true,
+    } as unknown as ReturnType<typeof useAuth.useGetCurrentUser>);
 
     vi.spyOn(useContacts, "useGetContact").mockImplementation((id: number | null) => {
       return {
@@ -171,5 +177,55 @@ describe("ContactDetailsPage", () => {
     });
 
     expect(screen.getByTestId("contacts-list")).toBeInTheDocument();
+  });
+
+  it("shows Edit and Toggle buttons when user has change_contact permission", () => {
+    vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
+      userCan: (perms: string[]) => perms.includes("core.change_contact"),
+      isAuthenticated: true,
+    } as unknown as ReturnType<typeof useAuth.useGetCurrentUser>);
+    renderDetails("2");
+    expect(screen.getByTestId("edit-button")).toBeInTheDocument();
+    expect(screen.getByTestId("toggle-active-button")).toBeInTheDocument();
+  });
+
+  it("hides Edit and Toggle buttons when user lacks change_contact permission", () => {
+    vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
+      userCan: () => false,
+      isAuthenticated: true,
+    } as unknown as ReturnType<typeof useAuth.useGetCurrentUser>);
+    renderDetails("2");
+    expect(screen.queryByTestId("edit-button")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("toggle-active-button")).not.toBeInTheDocument();
+  });
+
+  it("shows Delete button when user has delete_contact permission", () => {
+    vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
+      userCan: (perms: string[]) => perms.includes("core.delete_contact"),
+      isAuthenticated: true,
+    } as unknown as ReturnType<typeof useAuth.useGetCurrentUser>);
+    renderDetails("2");
+    expect(screen.getByTestId("delete-button")).toBeInTheDocument();
+  });
+
+  it("hides Delete button when user lacks delete_contact permission", () => {
+    vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
+      userCan: (perms: string[]) => !perms.includes("core.delete_contact"),
+      isAuthenticated: true,
+    } as unknown as ReturnType<typeof useAuth.useGetCurrentUser>);
+    renderDetails("2");
+    expect(screen.queryByTestId("delete-button")).not.toBeInTheDocument();
+  });
+
+  it("hides all action buttons when user lacks both permissions", () => {
+    vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
+      userCan: () => false,
+      isAuthenticated: true,
+    } as unknown as ReturnType<typeof useAuth.useGetCurrentUser>);
+    renderDetails("2");
+    expect(screen.queryByTestId("edit-button")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("toggle-active-button")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("delete-button")).not.toBeInTheDocument();
+    expect(screen.getByText("Back")).toBeInTheDocument();
   });
 });
