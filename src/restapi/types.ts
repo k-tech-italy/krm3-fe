@@ -54,6 +54,7 @@ export interface Project {
 }
 
 export interface ExpenseError {
+  day: string[] | undefined;
   amountCurrency: string[] | undefined;
   category: string[] | undefined;
   documentType: string[] | undefined;

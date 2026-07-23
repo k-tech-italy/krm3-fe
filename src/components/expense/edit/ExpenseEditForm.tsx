@@ -19,14 +19,12 @@ interface Props {
 }
 
 export function ExpenseEditForm(props: Props) {
-  const [expenseEdit, setExpenseEdit] = useState<ExpenseInterface>(
-    props.expense
-  );
+  const [expenseEdit, setExpenseEdit] = useState<ExpenseInterface>(props.expense);
   const [error, setError] = useState<ExpenseError | undefined>(props.error);
   const [amountError, setAmountError] = useState(false);
   const [amountBase, setAmountBase] = useState("");
   const [progressBar, setProgressBar] = useState({ now: 0, max: 100 });
-  const [showProgressBar, setShowProgressBar] = useState(false);
+  const [, setShowProgressBar] = useState(false);
 
   const currencyList = useGetCurrencies();
   const typeOfPaymentList = useGetTypeOfPayment();
@@ -34,23 +32,18 @@ export function ExpenseEditForm(props: Props) {
   const typeOfDocumentList = useGetDocumentType();
 
   useEffect(() => {
-    setExpenseEdit((prev) => props.expense);
+    setExpenseEdit(props.expense);
   }, [props.expense]);
 
   useEffect(() => {
-    setError((prev) => props.error);
+    setError(props.error);
   }, [props.error]);
 
-  function handleCurrencyAmount(e: any) {
+  function handleCurrencyAmount(e: React.ChangeEvent<HTMLInputElement>) {
     //convert currency and check error refund < amount
-    convertCurrencyTo(
-      "2023-08-23",
-      props.expense.currency,
-      e.target.value,
-      "EUR"
-    )
+    convertCurrencyTo("2023-08-23", props.expense.currency, e.target.value, "EUR")
       .then((res) => {
-        setAmountBase((prev) => res);
+        setAmountBase(res);
         setAmountError(false);
       })
       .catch(() => setAmountError(true));
@@ -66,7 +59,7 @@ export function ExpenseEditForm(props: Props) {
         }*/
   }
 
-  function handleSelectTypeOfPayment(e: any) {
+  function handleSelectTypeOfPayment(e: React.ChangeEvent<HTMLSelectElement>) {
     if (typeOfPaymentList) {
       const selected =
         typeOfPaymentList.results
@@ -78,7 +71,7 @@ export function ExpenseEditForm(props: Props) {
     }
   }
 
-  function handleSelectTypeOfDocument(e: any) {
+  function handleSelectTypeOfDocument(e: React.ChangeEvent<HTMLSelectElement>) {
     if (typeOfDocumentList) {
       const selected =
         typeOfDocumentList.results
@@ -90,42 +83,36 @@ export function ExpenseEditForm(props: Props) {
     }
   }
 
-  function handleSelectCategory(e: any) {
+  function handleSelectCategory(e: React.ChangeEvent<HTMLSelectElement>) {
     if (categoryList) {
       const selected =
-        categoryList.results
-          .filter((category) => category.id === Number(e.target.value))
-          .at(0) || props.expense.category;
+        categoryList.results.filter((category) => category.id === Number(e.target.value)).at(0) ||
+        props.expense.category;
       props.expense.category = selected;
       delete error?.category;
       setExpenseEdit({ ...expenseEdit, category: selected });
     }
   }
 
-  function handleCurrency(e: any) {
+  function handleCurrency(e: React.ChangeEvent<HTMLSelectElement>) {
     props.expense.currency = e.target.value;
     delete error?.currency;
     setExpenseEdit({ ...expenseEdit, currency: e.target.value });
     if (props.expense.amountCurrency) {
-      convertCurrencyTo(
-        "2023-08-23",
-        e.target.value,
-        props.expense.amountCurrency,
-        "EUR"
-      )
+      convertCurrencyTo("2023-08-23", e.target.value, props.expense.amountCurrency, "EUR")
         .then((res) => {
           props.expense.amountBase = res;
-          setAmountBase((prev) => res);
+          setAmountBase(res);
           setAmountError(false);
         })
         .catch(() => setAmountError(true));
     }
   }
 
-  function handleUploadImage(e: any): void {
+  function handleUploadImage(e: React.ChangeEvent<HTMLInputElement>): void {
     const fileReader = new FileReader();
     fileReader.readAsDataURL(e.target.files[0]);
-    fileReader.onloadstart = (pe) => {
+    fileReader.onloadstart = () => {
       setShowProgressBar(true);
     };
     fileReader.onprogress = (pe) => {
@@ -152,18 +139,20 @@ export function ExpenseEditForm(props: Props) {
         <div className="sm:col-span-2">
           <DatePicker
             id="expense-edit-form-day-date-picker"
-            selected={
-              expenseEdit.day ? new Date(expenseEdit.day) : new Date()
-            }
-            className="w-full border border-gray-300 rounded-md p-2"
+            selected={expenseEdit.day ? new Date(expenseEdit.day) : new Date()}
+            className={`w-full border rounded-md p-2 ${
+              error?.day ? "border-red-500" : "border-gray-300"
+            }`}
             onChange={(date: Date | null) => {
               setExpenseEdit({
                 ...expenseEdit,
                 day: moment(date).format("YYYY-MM-DD"),
               });
               props.expense.day = moment(date).format("YYYY-MM-DD");
+              delete error?.day;
             }}
           />
+          {!!error?.day && <div className="text-red-500 text-sm mt-1">{error.day}</div>}
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
@@ -177,18 +166,15 @@ export function ExpenseEditForm(props: Props) {
             value={expenseEdit.category?.id}
             data-testid="category-select"
           >
-            {[
-              { id: 0, title: "Scegli la categoria" },
-              ...(categoryList?.results || []),
-            ].map((category) => (
-              <option key={category.id} value={category.id}>
-                {category?.title}
-              </option>
-            ))}
+            {[{ id: 0, title: "Scegli la categoria" }, ...(categoryList?.results || [])].map(
+              (category) => (
+                <option key={category.id} value={category.id}>
+                  {category?.title}
+                </option>
+              )
+            )}
           </select>
-          {!!error?.category && (
-            <div className="text-red-500 text-sm mt-1">{error.category}</div>
-          )}
+          {!!error?.category && <div className="text-red-500 text-sm mt-1">{error.category}</div>}
         </div>
         {!!categoryList && (
           <div className="text-center">
@@ -211,19 +197,16 @@ export function ExpenseEditForm(props: Props) {
             onChange={handleSelectTypeOfDocument}
             value={expenseEdit.documentType?.id || 0}
           >
-            {[
-              { id: 0, title: "Scegli un documento" },
-              ...(typeOfDocumentList?.results || []),
-            ].map((doc) => (
-              <option key={doc.id} value={doc.id}>
-                {doc?.title}
-              </option>
-            ))}
+            {[{ id: 0, title: "Scegli un documento" }, ...(typeOfDocumentList?.results || [])].map(
+              (doc) => (
+                <option key={doc.id} value={doc.id}>
+                  {doc?.title}
+                </option>
+              )
+            )}
           </select>
           {!!error?.documentType && (
-            <div className="text-red-500 text-sm mt-1">
-              {error.documentType}
-            </div>
+            <div className="text-red-500 text-sm mt-1">{error.documentType}</div>
           )}
         </div>
       </div>
@@ -288,18 +271,14 @@ export function ExpenseEditForm(props: Props) {
             onChange={handleCurrency}
             value={expenseEdit.currency}
           >
-            {[{ id: 0, iso3: "scegli" }, ...(currencyList?.results || [])].map(
-              (c) => (
-                <option value={c.iso3} key={c.iso3}>
-                  {c.iso3}
-                </option>
-              )
-            )}
+            {[{ id: 0, iso3: "scegli" }, ...(currencyList?.results || [])].map((c) => (
+              <option value={c.iso3} key={c.iso3}>
+                {c.iso3}
+              </option>
+            ))}
           </select>
         </div>
-        {!!error?.currency && (
-          <div className="text-red-500 text-sm mt-1">{error.currency}</div>
-        )}
+        {!!error?.currency && <div className="text-red-500 text-sm mt-1">{error.currency}</div>}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
         <label className="font-semibold">Importo in €</label>
@@ -338,25 +317,17 @@ export function ExpenseEditForm(props: Props) {
         </div>
         <label
           className={`font-semibold ${
-            !!props.expense.amountReimbursement &&
-            parseFloat(props.expense.amountReimbursement) < 1
+            !!props.expense.amountReimbursement && parseFloat(props.expense.amountReimbursement) < 1
               ? "text-red-500"
               : ""
           }`}
         >
-          Azienda{" "}
-          {props.expense.amountReimbursement
-            ? expenseEdit.amountReimbursement
-            : ""}{" "}
-          €
+          Azienda {props.expense.amountReimbursement ? expenseEdit.amountReimbursement : ""} €
         </label>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
         <div className="sm:col-span-3 flex items-center space-x-2">
-          <input
-            type="checkbox"
-            className="form-checkbox h-5 w-5 text-blue-600"
-          />
+          <input type="checkbox" className="form-checkbox h-5 w-5 text-blue-600" />
           <label className="font-semibold">Approvazione</label>
         </div>
       </div>
