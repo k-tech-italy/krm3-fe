@@ -110,8 +110,10 @@ export function ExpenseEditForm(props: Props) {
   }
 
   function handleUploadImage(e: React.ChangeEvent<HTMLInputElement>): void {
+    const file = e.target.files?.[0];
+    if (!file) return;
     const fileReader = new FileReader();
-    fileReader.readAsDataURL(e.target.files[0]);
+    fileReader.readAsDataURL(file);
     fileReader.onloadstart = () => {
       setShowProgressBar(true);
     };
