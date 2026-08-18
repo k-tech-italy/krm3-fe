@@ -1,7 +1,7 @@
 import { useMediaQuery } from "../../hooks/useView";
 import React, { useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
-import { useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { FileText, Clock, CalendarRange, Plane } from "lucide-react";
 import UserMenu from "./UserMenu.tsx";
 import LanguageSwitcher from "./LanguageSwitcher.tsx";
@@ -11,7 +11,6 @@ export function Navbar() {
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const { user } = useAuthContext();
   const location = useLocation();
-  const currentLocation = location.pathname.replace("/", "");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -24,6 +23,10 @@ export function Navbar() {
     default: <FileText size={24} data-testid={"default-icon"} />,
   };
 
+  function moduleUrl(itemUrl: string) {
+    return itemUrl.startsWith("/") ? itemUrl : `/${itemUrl}`;
+  }
+
   return (
     <nav className="bg-app text-app shadow py-2 px-8 border-b-1 border-app">
       <div className="flex justify-between">
@@ -35,14 +38,14 @@ export function Navbar() {
             <div className="flex space-x-4">
               {user?.config.modules.map((item, idx) => (
                 <React.Fragment key={idx}>
-                  <a
+                  <NavLink
                     key={idx}
-                    href={item.url}
-                    className={`text-base font-medium  hover:text-krm3-primary
-                ${currentLocation === item.url ? "text-krm3-primary" : "text-app"}`}
+                    to={moduleUrl(item.url)}
+                    className={({ isActive }) => `text-base font-medium  hover:text-krm3-primary
+                    ${isActive ? "text-krm3-primary" : "text-app"}`}
                   >
                     {item.label}
-                  </a>
+                  </NavLink>
                 </React.Fragment>
               ))}
             </div>
@@ -86,19 +89,17 @@ export function Navbar() {
               const icon = mobileMenuIconMap[item.url] || mobileMenuIconMap.default;
 
               return (
-                <a
+                <NavLink
                   key={idx}
-                  href={item.url}
-                  className={`text-base font-medium hover:text-krm3-primary px-2 py-1 rounded flex items-center space-x-3
-                    ${
-                      currentLocation === item.url
-                        ? "text-krm3-primary bg-krm3-primary/10"
-                        : "text-app"
-                    }`}
+                  to={moduleUrl(item.url)}
+                  className={({
+                    isActive,
+                  }) => `text-base font-medium hover:text-krm3-primary px-2 py-1 rounded flex items-center space-x-3
+                    ${isActive ? "text-krm3-primary bg-krm3-primary/10" : "text-app"}`}
                 >
                   {icon}
                   <span>{item.label}</span>
-                </a>
+                </NavLink>
               );
             })}
 
