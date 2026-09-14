@@ -1,23 +1,20 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import "react-datepicker/dist/react-datepicker.css";
-import { Days, Task, TimeEntry } from "../../../restapi/types.ts";
-import {
-  useDeleteTimeEntries,
-  useCreateTimeEntry,
-} from "../../../hooks/useTimesheet.tsx";
+import { DayEntry, Days, Task, TaskEntry } from "../../../restapi/types.ts";
+import { useCreateTaskEntry, useDeleteTaskEntries } from "../../../hooks/useTimesheet.tsx";
 import { displayErrorMessage } from "../utils/utils.ts";
-import { formatDate, getDatesBetween, normalizeDate } from "../utils/dates.ts";
+import { getDatesBetween, normalizeDate } from "../utils/dates.ts";
 import DatePicker from "react-datepicker";
 import WarningExistingEntry from "./WarningExistEntry.tsx";
 import ErrorMessage from "./ErrorMessage.tsx";
 import Krm3Button from "../../commons/Krm3Button.tsx";
 import { CheckIcon, TrashIcon } from "lucide-react";
-import { getDatesWithAndWithoutTimeEntries } from "../utils/timeEntry.ts";
 
 interface Props {
   task: Task;
-  timeEntries: TimeEntry[];
+  taskEntries: TaskEntry[];
+  dayEntries: DayEntry[];
   startDate: Date;
   endDate: Date;
   closeModal: () => void;
@@ -27,9 +24,10 @@ interface Props {
   noWorkingDays: Days;
 }
 
-export default function EditTimeEntry({
+export default function EditTaskEntry({
   task,
-  timeEntries,
+  taskEntries,
+  dayEntries,
   closeModal,
   startDate,
   endDate,
@@ -37,81 +35,61 @@ export default function EditTimeEntry({
   selectedResourceId,
   holidayOrSickDays,
   noWorkingDays,
-}: Props) {
-  const startEntry: TimeEntry | undefined = timeEntries.find(
-    (item) =>
-      normalizeDate(item.date) === normalizeDate(startDate) &&
-      item.task == task.id
-  );
-  const [fromDate, setFromDate] = useState<Date>(
-    startDate <= endDate ? startDate : endDate
-  );
-  const [toDate, setToDate] = useState<Date>(
-    endDate >= startDate ? endDate : startDate
-  );
+}: Readonly<Props>) {
+  const getTaskEntryDate = (entry: TaskEntry): string | undefined =>
+    dayEntries.find((dayEntry) => dayEntry.id === entry.dayEntry)?.day;
 
-  const [daysWithTimeEntries, setDaysWithTimeEntries] = useState<string[]>(
-    getDatesWithAndWithoutTimeEntries(
-      formatDate(fromDate),
-      formatDate(toDate),
-      timeEntries,
+  const getDatesByEntryPresence = (rangeStart: Date, rangeEnd: Date) => {
+    const isMultiDaySelection = normalizeDate(rangeStart) !== normalizeDate(rangeEnd);
+
+    const allDates = getDatesBetween(
+      rangeStart,
+      rangeEnd,
       noWorkingDays,
-      true,
-      false
-    ).withTimeEntries.filter(
-      (date) => !holidayOrSickDays.includes(normalizeDate(date))
-    )
+      isMultiDaySelection
+    ).filter((date) => !holidayOrSickDays.includes(normalizeDate(date)));
+
+    const entryDates = new Set(
+      taskEntries
+        .map(getTaskEntryDate)
+        .filter((date): date is string => date !== undefined)
+        .map(normalizeDate)
+    );
+
+    return {
+      allDates,
+      withTaskEntries: allDates.filter((date) => entryDates.has(normalizeDate(date))),
+      withoutTaskEntries: allDates.filter((date) => !entryDates.has(normalizeDate(date))),
+    };
+  };
+
+  const startEntry = taskEntries.find((entry) => {
+    const entryDate = getTaskEntryDate(entry);
+    return entryDate && normalizeDate(entryDate) === normalizeDate(startDate);
+  });
+  const [fromDate, setFromDate] = useState<Date>(startDate <= endDate ? startDate : endDate);
+  const [toDate, setToDate] = useState<Date>(endDate >= startDate ? endDate : startDate);
+
+  const [daysWithTaskEntries, setDaysWithTaskEntries] = useState<string[]>(
+    () => getDatesByEntryPresence(fromDate, toDate).withTaskEntries
   );
   const [overrideEntries, setOverrideEntries] = useState<boolean>(true);
 
   function handleChangeDate(date: Date, type: "from" | "to") {
     if (type === "from") {
       setFromDate(date);
-      setDaysWithTimeEntries(
-        getDatesWithAndWithoutTimeEntries(
-          date,
-          formatDate(toDate),
-          timeEntries,
-          noWorkingDays,
-          true,
-          false
-        ).withTimeEntries.filter(
-          (date) => !holidayOrSickDays.includes(normalizeDate(date))
-        )
-      );
-      if (date > toDate)
-      {
-        setToDate(date)
+      setDaysWithTaskEntries(getDatesByEntryPresence(date, toDate).withTaskEntries);
+      if (date > toDate) {
+        setToDate(date);
       }
     } else {
       setToDate(date);
-      setDaysWithTimeEntries(
-        getDatesWithAndWithoutTimeEntries(
-          formatDate(fromDate),
-          date,
-          timeEntries,
-          noWorkingDays,
-          true,
-          false
-        ).withTimeEntries.filter(
-          (date) => !holidayOrSickDays.includes(normalizeDate(date))
-        )
-      );
-      if (date < fromDate)
-      {
+      setDaysWithTaskEntries(getDatesByEntryPresence(fromDate, date).withTaskEntries);
+      if (date < fromDate) {
         setFromDate(date);
       }
     }
   }
-
-  const [totalHours, setTotalHours] = useState<number>(
-    startEntry
-      ? Number(startEntry.dayShiftHours) +
-          Number(startEntry.nightShiftHours) +
-          Number(startEntry.travelHours) +
-          Number(startEntry.onCallHours)
-      : 0
-  );
 
   const [dayShiftHours, setDayShiftHours] = useState<number>(
     startEntry ? Number(startEntry.dayShiftHours) : 0
@@ -125,31 +103,23 @@ export default function EditTimeEntry({
   const [travelHours, setTravelHours] = useState<number>(
     startEntry ? Number(startEntry.travelHours) : 0
   );
+  const totalHours = dayShiftHours + nightShiftHours + travelHours + onCallHours;
 
-  const [comment, setComment] = useState<string>(
-    startEntry && startEntry.comment ? startEntry.comment : ""
-  );
+  const [comment, setComment] = useState<string>(startEntry?.comment ? startEntry.comment : "");
 
   const {
-    mutateAsync: deleteTimeEntries,
+    mutateAsync: deleteTaskEntries,
     error: deletionError,
     isLoading,
-  } = useDeleteTimeEntries();
-  const { mutateAsync: createTimeEntries, error: creationError } =
-    useCreateTimeEntry(selectedResourceId);
+  } = useDeleteTaskEntries();
+  const { mutateAsync: createTaskEntries, error: creationError } =
+    useCreateTaskEntry(selectedResourceId);
 
-  const { withoutTimeEntries, allDates } = getDatesWithAndWithoutTimeEntries(
-    formatDate(fromDate),
-    formatDate(toDate),
-    timeEntries,
-    noWorkingDays,
-    true,
-    false
-  );
+  const { withoutTaskEntries, allDates } = getDatesByEntryPresence(fromDate, toDate);
 
   function getDatesToSave() {
     if (!overrideEntries) {
-      return withoutTimeEntries.filter(filterDatesToSave);
+      return withoutTaskEntries.filter(filterDatesToSave);
     } else {
       return allDates.filter(filterDatesToSave);
     }
@@ -170,21 +140,26 @@ export default function EditTimeEntry({
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    const promise = createTimeEntries({
+    const datesToSave = getDatesToSave();
+    const entryPayload = {
+      nightShiftHours,
+      dayShiftHours,
+      onCallHours,
+      travelHours,
+      comment,
+      metadata: {},
+    };
+    const promise = createTaskEntries({
       taskId: task.id,
-      dates: getDatesToSave(),
-      nightShiftHours: nightShiftHours,
-      dayShiftHours: dayShiftHours,
-      onCallHours: onCallHours,
-      travelHours: travelHours,
-      comment: comment,
+      dates: datesToSave,
+      ...entryPayload,
     });
 
     toast.promise(
       promise,
       {
-        pending: "Adding hours...",
-        success: "Hours added successfully",
+        pending: "Saving hours...",
+        success: "Hours saved successfully",
         error: {
           render({ data }) {
             return <div>{displayErrorMessage(data)}</div>;
@@ -203,15 +178,17 @@ export default function EditTimeEntry({
   };
 
   function handleDeleteEntries() {
-    const timeEntriesIds = timeEntries
-      .filter(
-        (timeEntry) =>
-          normalizeDate(fromDate) <= normalizeDate(timeEntry.date) &&
-          normalizeDate(toDate) >= normalizeDate(timeEntry.date) &&
-          task.id === timeEntry.task
-      )
-      .map((timeEntry) => timeEntry.id);
-    const promise = deleteTimeEntries(timeEntriesIds);
+    const taskEntryIds = taskEntries
+      .filter((taskEntry) => {
+        const entryDate = getTaskEntryDate(taskEntry);
+        return (
+          entryDate !== undefined &&
+          normalizeDate(fromDate) <= normalizeDate(entryDate) &&
+          normalizeDate(toDate) >= normalizeDate(entryDate)
+        );
+      })
+      .map((taskEntry) => taskEntry.id);
+    const promise = deleteTaskEntries(taskEntryIds);
 
     toast.promise(
       promise,
@@ -236,21 +213,20 @@ export default function EditTimeEntry({
   }
 
   return (
-    <form
-      onSubmit={submit}
-      className="space-y-6"
-      id="edit-time-entry-container"
-    >
+    <form onSubmit={submit} className="space-y-6" id="edit-task-entry-container">
       {/* Date Selection Section */}
       <div className="space-y-4" id="datepickers-container">
         <h3 className="text-lg font-medium text-app">Date Range</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4" id="datepickers">
           <div>
-            <label className="block text-sm font-medium text-app mb-2">
+            <label
+              htmlFor="task-entry-from-date-picker"
+              className="block text-sm font-medium text-app mb-2"
+            >
               From Date
             </label>
             <DatePicker
-              id="time-entry-from-date-picker"
+              id="task-entry-from-date-picker"
               dateFormat="yyyy-MM-dd"
               selected={fromDate}
               className="w-full border border-app rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -264,11 +240,14 @@ export default function EditTimeEntry({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-app mb-2">
+            <label
+              htmlFor="task-entry-to-date-picker"
+              className="block text-sm font-medium text-app mb-2"
+            >
               To Date
             </label>
             <DatePicker
-              id="time-entry-to-date-picker"
+              id="task-entry-to-date-picker"
               dateFormat="yyyy-MM-dd"
               selected={toDate}
               className="w-full border border-app rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -305,7 +284,7 @@ export default function EditTimeEntry({
           id="details-container"
         >
           <div>
-            <label className="block text-sm font-medium text-app mb-2">
+            <label htmlFor="daytime-input" className="block text-sm font-medium text-app mb-2">
               Daytime Hours
             </label>
             <input
@@ -319,16 +298,13 @@ export default function EditTimeEntry({
               placeholder="0.00"
               onChange={(e) => {
                 setDayShiftHours(Number(e.target.value));
-                setTotalHours(
-                  Number(e.target.value) + nightShiftHours + travelHours
-                );
               }}
               disabled={readOnly}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-app mb-2">
+            <label htmlFor="nightime-input" className="block text-sm font-medium text-app mb-2">
               Nighttime Hours
             </label>
             <input
@@ -342,16 +318,13 @@ export default function EditTimeEntry({
               placeholder="0.00"
               onChange={(e) => {
                 setNightShiftHours(Number(e.target.value));
-                setTotalHours(
-                  Number(e.target.value) + dayShiftHours + travelHours
-                );
               }}
               disabled={readOnly}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-app mb-2">
+            <label htmlFor="travelHours-input" className="block text-sm font-medium text-app mb-2">
               Travel Hours
             </label>
             <input
@@ -365,16 +338,13 @@ export default function EditTimeEntry({
               placeholder="0.00"
               onChange={(e) => {
                 setTravelHours(Number(e.target.value));
-                setTotalHours(
-                  dayShiftHours + Number(e.target.value) + nightShiftHours
-                );
               }}
               disabled={readOnly}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-app mb-2">
+            <label htmlFor="oncall-input" className="block text-sm font-medium text-app mb-2">
               On Call Hours
             </label>
             <input
@@ -398,6 +368,7 @@ export default function EditTimeEntry({
       {/* Comment Section */}
       <div className="space-y-2" id="comment-section">
         <label
+          htmlFor="comment-textarea"
           className="block text-sm font-medium text-app"
           id="comment-label"
         >
@@ -418,30 +389,25 @@ export default function EditTimeEntry({
 
       {!readOnly && (
         <WarningExistingEntry
-          disabled={withoutTimeEntries.filter(filterDatesToSave).length === 0}
+          disabled={withoutTaskEntries.filter(filterDatesToSave).length === 0}
           disabledTooltipMessage="No empty Days, you can only overwrite existing entries"
           message="Holiday, Sick days and N/A entries will be skipped automatically."
-          daysWithTimeEntries={daysWithTimeEntries}
+          daysWithEntries={daysWithTaskEntries}
+          entryLabel="Task entries"
           overrideEntries={overrideEntries}
           setOverrideEntries={setOverrideEntries}
           isCheckbox
         />
       )}
 
-      {totalHours > 24 && (
-        <ErrorMessage message="Total hours cannot exceed 24 hours per day." />
-      )}
+      {totalHours > 24 && <ErrorMessage message="Total hours cannot exceed 24 hours per day." />}
 
       {!!creationError && (
-        <ErrorMessage
-          message={displayErrorMessage(creationError) || "Creation Error"}
-        />
+        <ErrorMessage message={displayErrorMessage(creationError) || "Creation Error"} />
       )}
 
       {!!deletionError && (
-        <ErrorMessage
-          message={displayErrorMessage(deletionError) || "Deletion Error"}
-        />
+        <ErrorMessage message={displayErrorMessage(deletionError) || "Deletion Error"} />
       )}
 
       {/* Action Buttons */}
@@ -450,7 +416,7 @@ export default function EditTimeEntry({
         className="flex items-center justify-between pt-6 border-t border-app"
       >
         <Krm3Button
-          disabled={daysWithTimeEntries.length === 0 || readOnly}
+          disabled={daysWithTaskEntries.length === 0 || readOnly}
           type="button"
           style="danger"
           onClick={handleDeleteEntries}

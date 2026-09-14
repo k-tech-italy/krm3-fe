@@ -1,5 +1,5 @@
 import { Days, DayType } from "../../../restapi/types";
-import { getDayType } from "./timeEntry";
+import { getDayType } from "./entryUtils";
 
 /**
  * Create a Date at local noon (to avoid timezone/DST shifts)
@@ -22,19 +22,17 @@ export function normalizeDate(input: Date | string): string {
 }
 
 export function isDayInRange(
-    start: string | Date,
-    end: string | Date,
-    day: string | Date
+  start: string | Date,
+  end: string | Date,
+  day: string | Date
 ): boolean {
   const startDate = new Date(start);
   const endDate = new Date(end);
   const dayDate = new Date(day);
 
-  [startDate, endDate, dayDate].forEach(d => d.setHours(0, 0, 0, 0));
-  if(startDate < endDate)
-    return dayDate >= startDate && dayDate <= endDate;
-  else
-    return dayDate >= endDate && dayDate <=  startDate;
+  [startDate, endDate, dayDate].forEach((d) => d.setHours(0, 0, 0, 0));
+  if (startDate < endDate) return dayDate >= startDate && dayDate <= endDate;
+  else return dayDate >= endDate && dayDate <= startDate;
 }
 
 /**
@@ -99,33 +97,25 @@ export function getDatesBetween(
   startDate: Date | string,
   endDate: Date | string,
   days: Days,
-  skipNonWorkingDays = true,
+  skipNonWorkingDays = true
 ): string[] {
   const dates = getDateRange(startDate, endDate);
 
   if (skipNonWorkingDays) {
-    return dates
-      .filter((date) => getDayType(date, days) === DayType.WORK_DAY)
-      .map(normalizeDate);
+    return dates.filter((date) => getDayType(date, days) === DayType.WORK_DAY).map(normalizeDate);
   }
 
-  return dates
-    .filter((date) => getDayType(date, days) !== DayType.CLOSED_DAY)
-    .map(normalizeDate);
+  return dates.filter((date) => getDayType(date, days) !== DayType.CLOSED_DAY).map(normalizeDate);
 }
 
 export function isOverlappingWeek(weekStart: Date): boolean {
-  const weekEnd = new Date(weekStart)
-  weekEnd.setDate(weekEnd.getDate() + 6)
-  return weekStart.getMonth() !== weekEnd.getMonth()
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+  return weekStart.getMonth() !== weekEnd.getMonth();
 }
 
 export function getFirstMondayOfMonth(inputDate: Date): number {
-  const firstDayOfMonth = new Date(
-    inputDate.getFullYear(),
-    inputDate.getMonth(),
-    1
-  );
+  const firstDayOfMonth = new Date(inputDate.getFullYear(), inputDate.getMonth(), 1);
 
   const addToGetMonday = {
     0: 1,
@@ -138,16 +128,14 @@ export function getFirstMondayOfMonth(inputDate: Date): number {
   } as const;
   type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
-  return (
-    firstDayOfMonth.getDate() +
-    addToGetMonday[firstDayOfMonth.getDay() as Weekday]
-  );
+  return firstDayOfMonth.getDate() + addToGetMonday[firstDayOfMonth.getDay() as Weekday];
 }
 export function getMondayOfWeek(inputDate: Date): Date {
   const monday_of_week = new Date(inputDate);
 
   monday_of_week.setDate(
-      inputDate.getDate() - (inputDate.getDay() == 0 ? 6 : (inputDate.getDay() - 1)));
+    inputDate.getDate() - (inputDate.getDay() == 0 ? 6 : inputDate.getDay() - 1)
+  );
   return monday_of_week;
 }
 
@@ -157,24 +145,22 @@ export function getFirstDayOfMonth(input: Date): Date {
 export function getLastDayOfMonth(input: Date): Date {
   return new Date(input.getFullYear(), input.getMonth() + 1, 0);
 }
-export function convertStringToDate(stringDate: string)
-{
+export function convertStringToDate(stringDate: string) {
   return new Date(stringDate);
 }
 export function getFilteredWeekDates(
-  selectedWeekRange: 'startOfWeek' | 'endOfWeek' | 'whole',
+  selectedWeekRange: "startOfWeek" | "endOfWeek" | "whole",
   isMonthView: boolean,
   days: Date[]
 ): Date[] | undefined {
-
-return days.filter((date) => {
-  if (!isMonthView && selectedWeekRange !== 'whole') {
-    if (selectedWeekRange === 'startOfWeek') {
-      return date.getMonth() === days[0].getMonth();
-    } else {
-      return date.getMonth() !== days[0].getMonth();
+  return days.filter((date) => {
+    if (!isMonthView && selectedWeekRange !== "whole") {
+      if (selectedWeekRange === "startOfWeek") {
+        return date.getMonth() === days[0].getMonth();
+      } else {
+        return date.getMonth() !== days[0].getMonth();
+      }
     }
-  }
-  return true;
-});
+    return true;
+  });
 }

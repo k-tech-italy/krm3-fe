@@ -1,8 +1,8 @@
-import {Days, Schedule, Task, TimeEntry} from "../../restapi/types";
+import { DayEntry, Days, Schedule, Task, TaskEntry, WeekRange } from "../../restapi/types";
 import { useState, useMemo, useEffect } from "react";
-import {ChevronLeft, ChevronRight, Landmark} from "lucide-react";
+import { ChevronLeft, ChevronRight, Landmark } from "lucide-react";
 import Krm3Modal from "../commons/krm3Modal";
-import EditTimeEntry from "./edit-entry/EditTimeEntry";
+import EditTaskEntry from "./edit-entry/EditTaskEntry";
 import { TimeSheetTable } from "./TimesheetTable";
 import EditDayEntry from "./edit-entry/EditDayEntry";
 import VisualizationActions from "./VisualizationActions";
@@ -11,35 +11,35 @@ import {
   formatDate,
   formatDayAndMonth,
   formatMonthName,
-  getFirstMondayOfMonth, getMondayOfWeek,
+  getFirstMondayOfMonth,
   isOverlappingWeek,
   normalizeDate,
 } from "./utils/dates";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import ErrorMessage from "./edit-entry/ErrorMessage";
-import { WeekRange } from "../../restapi/types";
 import { displayErrorMessage, getHolidayAndSickDays } from "./utils/utils";
 import Krm3Button from "../commons/Krm3Button";
-import {useSubmitTimesheet} from "../../hooks/useTimesheet";
+import { useSubmitTimesheet } from "../../hooks/useTimesheet";
 import { toast } from "react-toastify";
 import { useMediaQuery } from "react-responsive";
 
 export default function Krm3Calendar({
   selectedResourceId,
-}: {
+}: Readonly<{
   selectedResourceId: number | null;
-}) {
+}>) {
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
-  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
+  const [taskEntries, setTaskEntries] = useState<TaskEntry[]>([]);
+  const [dayEntries, setDayEntries] = useState<DayEntry[]>([]);
   const [typeDays, setTypeDays] = useState<Days>();
-  const [openTimeEntryModal, setOpenTimeEntryModal] = useState<boolean>(false);
+  const [isEntryModalOpen, setIsEntryModalOpen] = useState<boolean>(false);
   const [isDayEntry, setIsDayEntry] = useState<boolean>(false);
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [isMonth, setIsMonth] = useState<boolean>(true);
-  const [schedule, setSchedule] = useState<Schedule>({})
+  const [schedule, setSchedule] = useState<Schedule>({});
   const { isColumnView, setColumnView } = useColumnViewPreference();
-  const [bankHours, setBankHours] = useState(0)
+  const [bankHours, setBankHours] = useState(0);
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
 
@@ -48,28 +48,23 @@ export default function Krm3Calendar({
     first_monday.setDate(getFirstMondayOfMonth(today));
     return first_monday;
   });
-  const bankDelta = timeEntries.reduce((acc, timeEntry) => {
-    return acc + Number(timeEntry.bankTo) - Number(timeEntry.bankFrom)
-  }, 0)
-  const [selectedWeekRange, setSelectedWeekRange] = useState<WeekRange>(() =>
-      {
-        const today = new Date();
-        if(!isOverlappingWeek(currentWeekStart))
-          return "whole"
-        else if(today.getDate() > 7)
-          return "startOfWeek"
-        else
-          return "endOfWeek"
-      }
-  );
+  const bankDelta = dayEntries.reduce((total, dayEntry) => {
+    return total + Number(dayEntry.bank);
+  }, 0);
+
+  const [selectedWeekRange, setSelectedWeekRange] = useState<WeekRange>(() => {
+    const today = new Date();
+    if (!isOverlappingWeek(currentWeekStart)) return "whole";
+    else if (today.getDate() > 7) return "startOfWeek";
+    else return "endOfWeek";
+  });
   useEffect(() => {
     if (!isOverlappingWeek(currentWeekStart)) {
       setSelectedWeekRange("whole");
     }
   }, [currentWeekStart]);
   const { data, userCan } = useGetCurrentUser();
-  const { mutateAsync: mutateSubmitTimesheet, error: submitTimesheetError } =
-    useSubmitTimesheet();
+  const { mutateAsync: mutateSubmitTimesheet, error: submitTimesheetError } = useSubmitTimesheet();
 
   const isEditViewAnotherUser = useMemo(() => {
     return data?.resource?.id !== selectedResourceId;
@@ -99,16 +94,12 @@ export default function Krm3Calendar({
 
   const scheduledDays = useMemo(() => {
     const days = [];
-    const currentMonth = (selectedWeekRange == "endOfWeek") ?
-        currentWeekStart.getMonth() + 1
-        :
-        currentWeekStart.getMonth()
+    const currentMonth =
+      selectedWeekRange == "endOfWeek"
+        ? currentWeekStart.getMonth() + 1
+        : currentWeekStart.getMonth();
 
-    const monthLength = new Date(
-      currentWeekStart.getFullYear(),
-      currentMonth + 1,
-      0
-    ).getDate();
+    const monthLength = new Date(currentWeekStart.getFullYear(), currentMonth + 1, 0).getDate();
     let numberOfDays = 7;
     if (isMonth) {
       numberOfDays = monthLength;
@@ -133,8 +124,7 @@ export default function Krm3Calendar({
     ? currentWeekStart.getMonth() === new Date().getMonth() &&
       currentWeekStart.getFullYear() === new Date().getFullYear()
     : currentWeekStart <= new Date() &&
-      new Date() <=
-        new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000);
+      new Date() <= new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000);
 
   const navigatePrev = () => {
     const newDate = new Date(currentWeekStart);
@@ -142,29 +132,19 @@ export default function Krm3Calendar({
       newDate.setMonth(currentWeekStart.getMonth() - 1);
 
       newDate.setDate(getFirstMondayOfMonth(newDate));
-    }
-    else
-    {
-      if (selectedWeekRange == "whole")
-      {
-        const previousWeekStart = new Date(currentWeekStart);
-        previousWeekStart.setDate(currentWeekStart.getDate() - 7);
+    } else if (selectedWeekRange == "whole") {
+      const previousWeekStart = new Date(currentWeekStart);
+      previousWeekStart.setDate(currentWeekStart.getDate() - 7);
 
-        if (isOverlappingWeek(previousWeekStart))
-        {
-          setSelectedWeekRange("endOfWeek");
-        }
-        newDate.setDate(currentWeekStart.getDate() - 7);
+      if (isOverlappingWeek(previousWeekStart)) {
+        setSelectedWeekRange("endOfWeek");
       }
-      else if (selectedWeekRange == "endOfWeek")
-      {
-        setSelectedWeekRange("startOfWeek");
-      }
-      else
-      {
-        newDate.setDate(currentWeekStart.getDate() - 7);
-        setSelectedWeekRange("whole");
-      }
+      newDate.setDate(currentWeekStart.getDate() - 7);
+    } else if (selectedWeekRange == "endOfWeek") {
+      setSelectedWeekRange("startOfWeek");
+    } else {
+      newDate.setDate(currentWeekStart.getDate() - 7);
+      setSelectedWeekRange("whole");
     }
     setCurrentWeekStart(newDate);
   };
@@ -175,43 +155,30 @@ export default function Krm3Calendar({
       newDate.setMonth(currentWeekStart.getMonth() + 1);
 
       newDate.setDate(getFirstMondayOfMonth(newDate));
-    } else {
-      if (selectedWeekRange == "whole")
-      {
-        const nextWeekStart = new Date(currentWeekStart);
-        nextWeekStart.setDate(currentWeekStart.getDate() + 7);
+    } else if (selectedWeekRange == "whole") {
+      const nextWeekStart = new Date(currentWeekStart);
+      nextWeekStart.setDate(currentWeekStart.getDate() + 7);
 
-        if (isOverlappingWeek(nextWeekStart))
-        {
-          setSelectedWeekRange("startOfWeek");
-        }
-        newDate.setDate(currentWeekStart.getDate() + 7);
+      if (isOverlappingWeek(nextWeekStart)) {
+        setSelectedWeekRange("startOfWeek");
       }
-      else if (selectedWeekRange == "startOfWeek")
-      {
-        setSelectedWeekRange("endOfWeek");
-      }
-      else
-      {
-        newDate.setDate(currentWeekStart.getDate() + 7);
-        setSelectedWeekRange("whole");
-      }
+      newDate.setDate(currentWeekStart.getDate() + 7);
+    } else if (selectedWeekRange == "startOfWeek") {
+      setSelectedWeekRange("endOfWeek");
+    } else {
+      newDate.setDate(currentWeekStart.getDate() + 7);
+      setSelectedWeekRange("whole");
     }
     setCurrentWeekStart(newDate);
   };
-  const holidayOrSickDays = getHolidayAndSickDays(
-    timeEntries,
-    scheduledDays.days
-  );
+  const holidayOrSickDays = getHolidayAndSickDays(dayEntries, scheduledDays.days);
 
   async function handleSubmitTimesheet() {
     if (data && scheduledDays.days) {
       const promise = mutateSubmitTimesheet({
         resourceId: selectedResourceId || data?.resource.id,
         startDate: normalizeDate(scheduledDays.days[0]),
-        endDate: normalizeDate(
-          scheduledDays.days[scheduledDays.days.length - 1]
-        ),
+        endDate: normalizeDate(scheduledDays.days[scheduledDays.days.length - 1]),
       });
 
       await toast.promise(
@@ -232,10 +199,7 @@ export default function Krm3Calendar({
   }
 
   function disabledSubmitButtonText() {
-    if (
-      !!typeDays &&
-      Object.values(typeDays).every((day) => day.closed === true)
-    ) {
+    if (!!typeDays && Object.values(typeDays).every((day) => day.closed === true)) {
       return "Timesheet is already submitted";
     } else if (!isMonth) {
       return "Only available for month view";
@@ -244,32 +208,40 @@ export default function Krm3Calendar({
     }
   }
 
-  function scheduledHoursCompleted(){
-    const hoursLeftToLog: Record<string, number> = {}
-    for(const date in typeDays){
-      const formattedDate = normalizeDate(date).replaceAll('-', '_')
-      hoursLeftToLog[date] = schedule[formattedDate]
-    }
-    const hoursKeys: (keyof TimeEntry)[] = [
-      'travelHours',
-      'holidayHours',
-      'specialLeaveHours',
-      'restHours',
-      'sickHours',
-      'nightShiftHours',
-      'dayShiftHours',
-      'leaveHours',
-      'onCallHours',
-      'bankFrom'
-    ];
-    for (const timeEntry of timeEntries) {
-      for (const hoursType of hoursKeys) {
-        hoursLeftToLog[timeEntry.date] -= Number(timeEntry[hoursType]) || 0
-      }
+  function scheduledHoursCompleted() {
+    const hoursLeftToLog: Record<string, number> = {};
+
+    for (const date in typeDays) {
+      const scheduleKey = normalizeDate(date).replaceAll("-", "_");
+      hoursLeftToLog[normalizeDate(date)] = Number(schedule[scheduleKey]) || 0;
     }
 
-    return !Object.values(hoursLeftToLog).some(hours => hours > 0)
+    for (const dayEntry of dayEntries) {
+      const date = normalizeDate(dayEntry.day);
+
+      if (!(date in hoursLeftToLog)) {
+        continue;
+      }
+
+      const absenceHours =
+        dayEntry.isSick || dayEntry.askedHoliday ? Number(dayEntry.dueHours) || 0 : 0;
+
+      const loggedHours =
+        (Number(dayEntry.dayHours) || 0) +
+        (Number(dayEntry.nightHours) || 0) +
+        (Number(dayEntry.travelHours) || 0) +
+        (Number(dayEntry.leaveHours) || 0) +
+        (Number(dayEntry.specialLeaveHours) || 0) +
+        (Number(dayEntry.restHours) || 0) +
+        absenceHours -
+        (Number(dayEntry.bank) || 0);
+
+      hoursLeftToLog[date] -= loggedHours;
+    }
+
+    return !Object.values(hoursLeftToLog).some((hours) => hours > 0);
   }
+
   return (
     <>
       {accessDenied ? (
@@ -277,15 +249,8 @@ export default function Krm3Calendar({
       ) : (
         <div id="krm3-calendar-container">
           <div className="flex justify-between">
-            <div
-              className="flex  items-center justify-between min-w-[180px]"
-              id="calendar-navigation"
-            >
-              <button
-                id="nav-prev-btn"
-                onClick={navigatePrev}
-                className="cursor-pointer"
-              >
+            <div className="flex  items-center justify-between min-w-45" id="calendar-navigation">
+              <button id="nav-prev-btn" onClick={navigatePrev} className="cursor-pointer">
                 <ChevronLeft />
               </button>
               <span className="font-medium" id="date-range-display">
@@ -295,43 +260,41 @@ export default function Krm3Calendar({
                   <div>
                     <span
                       data-testid={"week-start"}
-                      className={`${
-                        selectedWeekRange == "startOfWeek" ? "font-bold" : ""
-                      }`}
+                      className={`${selectedWeekRange == "startOfWeek" ? "font-bold" : ""}`}
                     >
                       {formatDayAndMonth(scheduledDays.days[0])}
                     </span>{" "}
                     -{" "}
                     <span
-                        data-testid={"week-end"}
-                      className={`${
-                        selectedWeekRange == "endOfWeek" ? "font-bold" : ""
-                      }`}
+                      data-testid={"week-end"}
+                      className={`${selectedWeekRange == "endOfWeek" ? "font-bold" : ""}`}
                     >
                       {formatDayAndMonth(scheduledDays.days[6])}
                     </span>
                   </div>
                 )}
               </span>
-              <button
-                onClick={navigateNext}
-                className="cursor-pointer"
-                id="nav-next-btn"
-              >
+              <button onClick={navigateNext} className="cursor-pointer" id="nav-next-btn">
                 <ChevronRight />
               </button>
             </div>
 
             <div className={`flex flex-col md:flex-row items-center gap-2 mr-4 my-0`}>
-              <Landmark size={isDesktop ? 40 : 30} data-testid="landmark-icon"/>
-              <div className={'flex flex-col'}>
-                <p data-testid={"bank-total"}
-                   className={`font-bold my-0 md:text-2xl ${bankHours >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+              <Landmark size={isDesktop ? 40 : 30} data-testid="landmark-icon" />
+              <div className={"flex flex-col"}>
+                <p
+                  data-testid={"bank-total"}
+                  className={`font-bold my-0 md:text-2xl ${bankHours >= 0 ? "text-green-500" : "text-red-500"}`}
+                >
                   {bankHours.toFixed(2).replace(/\.?0+$/, "")}h
                 </p>
-                <p className={`font-bold ${bankDelta >= 0 ? 'text-green-500': 'text-red-500 hidden md:block'}`}
-                data-testid={"bank-delta"}>
-                  (𝚫 = {bankDelta >= 0 ? '+' : ''}{bankDelta.toFixed(2).replace(/\.?0+$/, "")}h)</p>
+                <p
+                  className={`font-bold ${bankDelta >= 0 ? "text-green-500" : "text-red-500 hidden md:block"}`}
+                  data-testid={"bank-delta"}
+                >
+                  (𝚫 = {bankDelta >= 0 ? "+" : ""}
+                  {bankDelta.toFixed(2).replace(/\.?0+$/, "")}h)
+                </p>
               </div>
             </div>
             <Krm3Button
@@ -351,9 +314,7 @@ export default function Krm3Calendar({
                     const weekStart = new Date(today.setDate(diff));
                     if (isOverlappingWeek(weekStart)) {
                       setSelectedWeekRange(
-                        currentWeekStart > weekStart
-                          ? "endOfWeek"
-                          : "startOfWeek"
+                        currentWeekStart > weekStart ? "endOfWeek" : "startOfWeek"
                       );
                     }
                     return weekStart;
@@ -376,22 +337,21 @@ export default function Krm3Calendar({
           />
           <TimeSheetTable
             isColumnView={isColumnView}
-            setOpenTimeEntryModal={setOpenTimeEntryModal}
+            setIsEntryModalOpen={setIsEntryModalOpen}
             setSelectedTask={setSelectedTask}
-            setTimeEntries={setTimeEntries}
+            setTaskEntries={setTaskEntries}
+            setDayEntries={setDayEntries}
             setNoWorkingDay={setTypeDays}
             setIsDayEntry={setIsDayEntry}
             setStartDate={setStartDate}
             setEndDate={setEndDate}
             scheduledDays={scheduledDays}
             startDate={startDate}
-            endDate={endDate}
             selectedResourceId={selectedResourceId}
             readOnly={readOnly}
             selectedWeekRange={selectedWeekRange}
             setSchedule={setSchedule}
             setBankHours={setBankHours}
-            schedule={schedule}
           />
           <div className="flex justify-end items-center mt-4">
             <Krm3Button
@@ -400,68 +360,65 @@ export default function Krm3Calendar({
               label="Submit Timesheet"
               disabled={
                 !isMonth ||
-                (!!typeDays &&
-                  Object.values(typeDays).every((day) => day.closed === true))
-                  || !scheduledHoursCompleted()
+                (!!typeDays && Object.values(typeDays).every((day) => day.closed === true)) ||
+                !scheduledHoursCompleted()
               }
               disabledTooltipMessage={disabledSubmitButtonText()}
             />
           </div>
-          {/*OpenTimeEntry modal is opened by drag & drop which is not testable in unit test, but it's tested in integration tests*/}
+          {/* The entry modal is opened by drag and drop, which is covered by integration tests. */}
           {/* v8 ignore next 40 */}
-          {openTimeEntryModal &&
-            selectedTask &&
-            startDate &&
-            endDate &&
-            typeDays && (
-              <Krm3Modal
-                open={openTimeEntryModal}
-                onClose={() => {
-                  setOpenTimeEntryModal(false);
-                }}
-                children={
-                  <>
-                    {isDayEntry ? (
-                      <EditDayEntry
-                        onClose={() => {
-                          setOpenTimeEntryModal(false);
-                        }}
-                        startDate={startDate}
-                        endDate={endDate}
-                        timeEntries={timeEntries}
-                        readOnlyByRole={readOnly}
-                        selectedResourceId={selectedResourceId}
-                        calendarDays={typeDays}
-                        schedule={schedule}
-                      />
-                    ) : (
-                      <EditTimeEntry
+          {isEntryModalOpen && (isDayEntry || selectedTask) && startDate && endDate && typeDays && (
+            <Krm3Modal
+              open={isEntryModalOpen}
+              onClose={() => {
+                setIsEntryModalOpen(false);
+              }}
+              children={
+                <>
+                  {isDayEntry ? (
+                    <EditDayEntry
+                      onClose={() => {
+                        setIsEntryModalOpen(false);
+                      }}
+                      startDate={startDate}
+                      endDate={endDate}
+                      dayEntries={dayEntries}
+                      taskEntries={taskEntries}
+                      readOnlyByRole={readOnly}
+                      selectedResourceId={selectedResourceId}
+                      calendarDays={typeDays}
+                      schedule={schedule}
+                    />
+                  ) : (
+                    selectedTask && (
+                      <EditTaskEntry
                         holidayOrSickDays={holidayOrSickDays}
                         noWorkingDays={typeDays}
                         startDate={startDate}
                         endDate={endDate}
                         task={selectedTask}
-                        timeEntries={timeEntries.filter(
-                          (timeEntry) => timeEntry.task === selectedTask.id
+                        taskEntries={taskEntries.filter(
+                          (taskEntry) => taskEntry.task === selectedTask?.id
                         )}
+                        dayEntries={dayEntries}
                         closeModal={() => {
-                          setOpenTimeEntryModal(false);
+                          setIsEntryModalOpen(false);
                         }}
                         readOnly={readOnly}
                         selectedResourceId={selectedResourceId}
                       />
-                    )}
-                  </>
-                }
-                title={
-                  isDayEntry
-                    ? "Day Entry"
-                    : `${readOnly ? "View" : "Add"} Time Entry for ${
-                        selectedTask.title
-                      }`
-                }
-              />
-            )}
+                    )
+                  )}
+                </>
+              }
+              title={
+                isDayEntry
+                  ? "Day Entry"
+                  : `${readOnly ? "View" : "Add"} Task Entry for ${selectedTask?.title}`
+              }
+            />
+          )}
         </div>
       )}
     </>
