@@ -1,7 +1,7 @@
-import {HeaderColors, Schedule, TimeEntry} from "../../../restapi/types";
-import {isDayInRange, normalizeDate} from "./dates";
-import {isHoliday, isSickDay, isToday} from "./timeEntry";
-
+import { HeaderColors, Schedule } from "../../../restapi/types";
+import { normalizeDate } from "./dates";
+import { isToday } from "./entryUtils";
+import { isAxiosError } from "axios";
 
 export const defaultColors: string[] = [
   "#A7C7E7", // Soft blue
@@ -26,42 +26,45 @@ export function getTaskColor(
   taskColor?: string
 ): { backgroundColor: string; borderColor: string } {
   const color =
-    !taskColor || taskColor === ""
-      ? defaultColors[row % defaultColors.length]
-      : taskColor;
+    !taskColor || taskColor === "" ? defaultColors[row % defaultColors.length] : taskColor;
   const backgroundColor = `${color}50`;
   const borderColor = color;
   return { backgroundColor, borderColor };
 }
 
 /**
- * Display the error message from the API response.
- * @param error The error object that is passed from the API call.
- * @returns The error message as a string or undefined if it is not available.
+ * Extracts an error message from an Axios API error.
+ *
+ * Extracts and joins messages from strings, arrays, and nested field errors.
+ * Otherwise, returns a generic fallback message.
+ *
+ * @param error - The unknown error returned by an API request.
+ * @returns The API error message or `"an error occurred"` when unavailable.
  */
-export function displayErrorMessage(error?: any): string {
-  // Check if the error has a response with data and take the first error field
-  if (
-    !!error &&
-    error.response &&
-    error.response.data &&
-    error.response.data["error"]
-  ) {
-    return error.response.data["error"] as string;
-  } else {
-    return "an error occurred";
+function extractErrorMessages(value: unknown): string[] {
+  if (typeof value === "string") {
+    const validatorError = value.match(/^_verify_[^:]+:\s*\['([\s\S]*)'\]$/);
+    return [validatorError ? validatorError[1].replaceAll("\\'", "'") : value];
   }
+
+  if (Array.isArray(value)) {
+    return value.flatMap(extractErrorMessages);
+  }
+
+  if (value && typeof value === "object") {
+    return Object.values(value).flatMap(extractErrorMessages);
+  }
+
+  return [];
 }
 
-export function getHolidayAndSickDays(
-  timeEntries: TimeEntry[],
-  dates: Date[]
-): string[] {
-  return dates
-    .filter(
-      (date) => isHoliday(date, timeEntries) || isSickDay(date, timeEntries)
-    )
-    .map(normalizeDate);
+export function displayErrorMessage(error?: unknown): string {
+  if (!isAxiosError(error)) {
+    return "an error occurred";
+  }
+
+  const messages = extractErrorMessages(error.response?.data);
+  return messages.length > 0 ? messages.join(" — ") : "an error occurred";
 }
 
 export function isValidUrl(url: string) {
@@ -74,23 +77,23 @@ export function isValidUrl(url: string) {
 }
 
 export function getTileBgColorProps(
-    day: Date,
-    totalWorkedHours: number,
-    schedule: Schedule,
-    isClosed?: boolean,
-    colors?: HeaderColors,
-    isHolidayOrSickDay?: boolean
+  day: Date,
+  totalWorkedHours: number,
+  schedule: Schedule,
+  isClosed?: boolean,
+  colors?: HeaderColors,
+  isHolidayOrSickDay?: boolean
 ): { className: string; style?: React.CSSProperties } {
   if (isToday(day)) {
     return { className: "bg-table-today" };
   }
-  if(isHolidayOrSickDay){
-    if(colors) {
+  if (isHolidayOrSickDay) {
+    if (colors) {
       return {
         className: `dynamic-header-bg`,
         style: {
-          '--header-bg-light': colors.exactScheduleColorBrightTheme,
-          '--header-bg-dark': colors.exactScheduleColorDarkTheme,
+          "--header-bg-light": colors.exactScheduleColorBrightTheme,
+          "--header-bg-dark": colors.exactScheduleColorDarkTheme,
         } as React.CSSProperties,
       };
     }
@@ -122,12 +125,12 @@ export function getTileBgColorProps(
         lightColor = colors.lessThanScheduleColorBrightTheme;
         darkColor = colors.lessThanScheduleColorDarkTheme;
       }
-      
+
       return {
         className: `dynamic-header-bg`,
         style: {
-          '--header-bg-light': lightColor,
-          '--header-bg-dark': darkColor,
+          "--header-bg-light": lightColor,
+          "--header-bg-dark": darkColor,
         } as React.CSSProperties,
       };
     }
@@ -135,16 +138,4 @@ export function getTileBgColorProps(
   }
 
   return { className: "bg-closed" };
-}
-
-export function getTimeEntriesForSelectedPeriod(
-    timeEntries: TimeEntry[],
-    start_date: string,
-    end_date: string,
-    taskId: number | null = null
-) {
-  return timeEntries.filter((timeEntry) =>
-      isDayInRange(start_date, end_date, timeEntry.date) &&
-      (taskId === null || timeEntry.task === taskId)
-  );
 }
