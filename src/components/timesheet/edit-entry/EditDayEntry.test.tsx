@@ -1,667 +1,639 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DayEntry, TaskEntry } from "../../../restapi/types";
 import EditDayEntry from "./EditDayEntry";
-import { vi } from "vitest";
-import {TimeEntry} from "../../../restapi/types.ts";
-import EditTimeEntry from "./EditTimeEntry.tsx";
-import {getLastDayOfMonth} from "../utils/dates.ts";
 
-const mutateDeleteMock = vi.fn().mockResolvedValue(undefined);
+const saveDays = vi.fn().mockResolvedValue({});
+const clearDays = vi.fn().mockResolvedValue({});
+const deleteDay = vi.fn().mockResolvedValue({});
 
-const calendarDays = () => ({
-    "2024-06-01": { closed: false, hol: false, nwd: false },
-    "2024-06-02": { closed: false, hol: false, nwd: false },
-    "2024-06-03": { closed: false, hol: false, nwd: false },
-    "2024-06-04": { closed: false, hol: false, nwd: false },
-    "2024-06-10": { closed: false, hol: false, nwd: false },
-});
-
-const submitMock = vi.fn().mockResolvedValue({})
 vi.mock("../../../hooks/useTimesheet", () => ({
-  useCreateTimeEntry: () => ({
-    mutateAsync: submitMock,
-    isLoading: false,
-    isError: false,
-    error: null,
-  }),
-  useDeleteTimeEntries: () => ({
-    mutateAsync: mutateDeleteMock,
-  }),
+  useSaveDayEntries: () => ({ mutateAsync: saveDays, isLoading: false, error: null }),
+  useClearDayEntries: () => ({ mutateAsync: clearDays, isLoading: false, error: null }),
+  useDeleteDayEntries: () => ({ mutateAsync: deleteDay, isLoading: false, error: null }),
   useGetSpecialReason: () => ({
-    data: [],
+    data: [{ id: 1, title: "Medical appointment" }],
     isLoading: false,
     error: null,
   }),
 }));
-vi.mock("react-tooltip", () => ({
-  Tooltip: () => <div data-testid="tooltip" />,
-}));
+vi.mock("react-tooltip", () => ({ Tooltip: () => <div /> }));
+
+const calendarDays = {
+  "2024-06-01": { closed: false, hol: false, nwd: false },
+  "2024-06-02": { closed: false, hol: false, nwd: false },
+  "2024-06-03": { closed: false, hol: false, nwd: false },
+};
+const makeDayEntry = (overrides: Partial<DayEntry> = {}): DayEntry =>
+  ({
+    id: 1,
+    day: "2024-06-01",
+    closed: false,
+    isHoliday: false,
+    askedHoliday: false,
+    isSick: false,
+    leaveHours: 0,
+    specialLeaveHours: 0,
+    restHours: 0,
+    bank: 0,
+    dueHours: 8,
+    comment: null,
+    protocolNumber: null,
+    ...overrides,
+  }) as DayEntry;
+const baseProps = {
+  startDate: new Date("2024-06-01"),
+  endDate: new Date("2024-06-03"),
+  dayEntries: [] as DayEntry[],
+  taskEntries: [],
+  onClose: vi.fn(),
+  readOnlyByRole: false,
+  selectedResourceId: 1,
+  calendarDays,
+  schedule: { "2024_06_01": 8, "2024_06_02": 8, "2024_06_03": 8 },
+};
 
 describe("EditDayEntry", () => {
-  const baseProps = {
-    startDate: new Date("2024-06-01"),
-    endDate: new Date("2024-06-03"),
-    timeEntries: [],
-    onClose: vi.fn(),
-    readOnlyByRole: false,
-    selectedResourceId: 1,
-    calendarDays: calendarDays(),
-    schedule: {},
-  };
-  it("renders form and entry type options", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("renders day-entry controls", () => {
     render(<EditDayEntry {...baseProps} />);
-    expect(screen.getByText(/days/i)).toBeInTheDocument();
     expect(screen.getByText(/entry type/i)).toBeInTheDocument();
     expect(screen.getByText(/holiday/i)).toBeInTheDocument();
     expect(screen.getByText(/sick day/i)).toBeInTheDocument();
   });
-  it("calls onClose when Cancel is clicked", () => {
-    render(<EditDayEntry {...baseProps} />);
-    fireEvent.click(screen.getByText(/cancel/i));
-    expect(baseProps.onClose).toHaveBeenCalled();
-  });
-  it("renders delete button when leave exist", () => {
-    const timeEntries: TimeEntry[] = [
-      {
-        date: '2024-06-01',
-        id: 1,
-        dayShiftHours: 0,
-        sickHours: 0,
-        holidayHours: 0,
-        leaveHours: 2,
-        specialLeaveHours: 0,
-        travelHours: 0,
-        restHours: 0,
-        nightShiftHours: 0,
-        onCallHours: 0,
-        task: 1,
-        bankFrom: 0,
-        bankTo: 0,
-      }
-    ]
-    render(<EditDayEntry {...baseProps} timeEntries={timeEntries}/>);
-    expect(screen.getByText('Delete')).toBeInTheDocument();
-  })
-  it("renders delete button when special leave exist", () => {
-    const timeEntries: TimeEntry[] = [
-      {
-        date: '2024-06-01',
-        id: 1,
-        dayShiftHours: 0,
-        sickHours: 0,
-        holidayHours: 0,
-        leaveHours: 0,
-        specialLeaveHours: 5,
-        travelHours: 0,
-        restHours: 0,
-        nightShiftHours: 0,
-        onCallHours: 0,
-        task: 1,
-        bankFrom: 0,
-        bankTo: 0,
-      }
-    ]
-    render(<EditDayEntry {...baseProps} timeEntries={timeEntries}/>);
-    expect(screen.getByText('Delete')).toBeInTheDocument();
-  })
-  it("renders delete button when rest exist", () => {
-    const timeEntries: TimeEntry[] = [
-      {
-        date: '2024-06-01',
-        id: 1,
-        dayShiftHours: 0,
-        sickHours: 0,
-        holidayHours: 0,
-        leaveHours: 0,
-        specialLeaveHours: 0,
-        travelHours: 0,
-        restHours: 1,
-        nightShiftHours: 0,
-        onCallHours: 0,
-        task: 1,
-        bankFrom: 0,
-        bankTo: 0,
-      }
-    ]
-    render(<EditDayEntry {...baseProps} timeEntries={timeEntries}/>);
-    expect(screen.getByText('Delete')).toBeInTheDocument();
-  })
-  it("do not render delete button when there is no rest or leave entry", () => {
-    const timeEntries: TimeEntry[] = [
-      {
-        date: '2024-06-01',
-        id: 1,
-        dayShiftHours: 2,
-        sickHours: 0,
-        holidayHours: 0,
-        leaveHours: 0,
-        specialLeaveHours: 0,
-        travelHours: 0,
-        restHours: 0,
-        nightShiftHours: 0,
-        onCallHours: 0,
-        task: 1,
-        bankFrom: 0,
-        bankTo: 0,
-      }
-    ]
-    render(<EditDayEntry {...baseProps} timeEntries={timeEntries}/>);
-    expect(screen.queryByText('Delete')).toBeNull();
-  })
-  it("delete only leaves/rests when clicked on delete button", () => {
-    const timeEntries: TimeEntry[] = [
-      {
-        date: '2024-06-01',
-        id: 1,
-        dayShiftHours: 0,
-        sickHours: 0,
-        holidayHours: 0,
-        leaveHours: 0,
-        specialLeaveHours: 0,
-        travelHours: 0,
-        restHours: 1,
-        nightShiftHours: 0,
-        onCallHours: 0,
-        task: 1,
-        bankFrom: 0,
-        bankTo: 0,
-      },
-      {
-        date: '2024-06-02',
-        id: 2,
-        dayShiftHours: 0,
-        sickHours: 0,
-        holidayHours: 0,
-        leaveHours: 2,
-        specialLeaveHours: 0,
-        travelHours: 0,
-        restHours: 0,
-        nightShiftHours: 0,
-        onCallHours: 0,
-        task: 1,
-        bankFrom: 0,
-        bankTo: 0,
-      },
-      {
-        date: '2024-06-01',
-        id: 3,
-        dayShiftHours: 2,
-        sickHours: 0,
-        holidayHours: 0,
-        leaveHours: 0,
-        specialLeaveHours: 0,
-        travelHours: 0,
-        restHours: 0,
-        nightShiftHours: 0,
-        onCallHours: 0,
-        task: 1,
-        bankFrom: 0,
-        bankTo: 0,
-      },
-      {
-        date: '2024-06-03',
-        id: 4,
-        dayShiftHours: 0,
-        sickHours: 0,
-        holidayHours: 0,
-        leaveHours: 0,
-        specialLeaveHours: 4,
-        travelHours: 0,
-        restHours: 0,
-        nightShiftHours: 0,
-        onCallHours: 0,
-        task: 1,
-        bankFrom: 0,
-        bankTo: 0,
-      }
-    ]
-    render(<EditDayEntry {...baseProps} timeEntries={timeEntries}/>);
-    screen.getByText('Delete').click()
-    expect(mutateDeleteMock).toHaveBeenCalledWith([1, 2, 4]);
-  })
-  it.each([
-    'dayShiftHours', 'holidayHours', 'leaveHours', 'specialLeaveHours', 'travelHours',
-      'restHours', 'nightShiftHours', 'onCallHours', 'sickHours'
-  ])("clear button deletes all TimeEntries for selected days", (entryType) => {
-    const props = {
-      startDate: new Date("2024-06-10"),
-      endDate: new Date("2024-06-20"),
-      timeEntries: [],
-      onClose: vi.fn(),
-      readOnlyByRole: false,
-      selectedResourceId: 1,
-      calendarDays: calendarDays(),
-      schedule: {}
-    };
-    const timeEntries: TimeEntry[] = []
-    for (let i = 0; i < 10; i++) {
-      timeEntries.push(
-          {
-            date: `2024-06-1${i}`,
-            id: i,
-            dayShiftHours: 0,
-            sickHours: 0,
-            holidayHours: 0,
-            leaveHours: 0,
-            specialLeaveHours: 0,
-            travelHours: 0,
-            restHours: 0,
-            nightShiftHours: 0,
-            onCallHours: 0,
-            task: 1,
-            bankFrom: 0,
-            bankTo: 0,
-          });
-      (timeEntries[i] as any)[entryType] = 8
-    }
-    render(<EditDayEntry {...props} timeEntries={timeEntries} />);
-    screen.getByTestId('clear-button').click()
-    expect(mutateDeleteMock).toHaveBeenCalledWith([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-  })
-  it("if none of selected days have schedule of 0 hours user should be able to log leave, rest, special leave, holiday, sick day" , () => {
-    const schedule = {
-      "2024_06_01": 5,
-      "2024_06_02": 5,
-      "2024_06_03": 8,
-    }
-    render(<EditDayEntry {...baseProps} schedule={schedule}/>);
-    expect(screen.getByTestId("get-from-bank-hour-input")).toBeEnabled()
-    expect(screen.getByTestId("day-entry-leave-hour-input")).toBeInTheDocument()
-    expect(screen.getByTestId("day-entry-rest-hour-input")).toBeInTheDocument()
-    fireEvent.click(screen.getByTestId("day-entry-holiday-div"))
-    expect(screen.getByTestId("day-entry-holiday-radio")).toBeChecked()
-    fireEvent.click(screen.getByTestId("day-entry-sick-div"))
-    expect(screen.getByTestId("day-entry-sick-radio")).toBeChecked()
-    fireEvent.click(screen.getByTestId("day-entry-sick-div"))
-    expect(screen.getByTestId("day-entry-leave-hour-input")).toBeInTheDocument()
-    expect(screen.getByTestId("day-entry-rest-hour-input")).toBeInTheDocument()
-    expect(screen.getByText("Rest Hours")).toBeInTheDocument()
-    fireEvent.click(screen.getByTestId("day-entry-holiday-div"))
-    expect(screen.getByTestId("day-entry-holiday-div").className).toContain("bg-yellow-100")
-    fireEvent.click(screen.getByTestId("day-entry-sick-div"))
-    expect(screen.getByTestId("day-entry-sick-div").className).toContain("bg-yellow-100")
-  })
 
-  it("if one of selected days have schedule of 0 hours user shouldn't be able to log leave, rest, special leave, holiday, sick day" , () => {
-    const schedule = {
-      "2024_06_01": 5,
-      "2024_06_02": 0,
-      "2024_06_03": 8,
-    }
-    render(<EditDayEntry {...baseProps} schedule={schedule}/>);
-    expect(screen.getByTestId("get-from-bank-hour-input")).toBeDisabled()
-    expect(screen.getByTestId("day-entry-leave-hour-input")).toBeInTheDocument()
-    expect(screen.getByTestId("day-entry-rest-hour-input")).toBeInTheDocument()
-    fireEvent.click(screen.getByTestId("day-entry-holiday-div"))
-    expect(screen.getByTestId("day-entry-holiday-radio")).not.toBeChecked()
-    expect(screen.getByTestId("day-entry-leave-hour-input")).toBeInTheDocument()
-    fireEvent.click(screen.getByTestId("day-entry-sick-div"))
-    expect(screen.getByTestId("day-entry-sick-radio")).not.toBeChecked()
-    expect(screen.getByTestId("day-entry-leave-hour-input")).toBeInTheDocument()
-    fireEvent.click(screen.getByTestId("day-entry-holiday-div"))
-    expect(screen.getByTestId("day-entry-holiday-div").className).toContain("cursor-not-allowed")
-    fireEvent.click(screen.getByTestId("day-entry-sick-div"))
-    expect(screen.getByTestId("day-entry-sick-div").className).toContain("cursor-not-allowed")
-  })
-  it("handle data change and submit", () => {
-    const timeEntries: TimeEntry[] = [
-      {
-        date: '2024-06-01',
-        id: 1,
-        dayShiftHours: 0,
-        sickHours: 0,
-        holidayHours: 0,
-        leaveHours: 0,
-        specialLeaveHours: 0,
-        travelHours: 0,
-        restHours: 1,
-        nightShiftHours: 0,
-        onCallHours: 0,
-        task: null,
-        bankFrom: 0,
-        bankTo: 0,
-      },
-      {
-        date: '2024-06-02',
-        id: 2,
-        dayShiftHours: 0,
-        sickHours: 0,
-        holidayHours: 0,
-        leaveHours: 0,
-        specialLeaveHours: 0,
-        travelHours: 0,
-        restHours: 1,
-        nightShiftHours: 0,
-        onCallHours: 0,
-        task: null,
-        bankFrom: 0,
-        bankTo: 0,
-      },
-      {
-        date: '2024-06-03',
-        id: 3,
-        dayShiftHours: 2,
-        sickHours: 0,
-        holidayHours: 0,
-        leaveHours: 0,
-        specialLeaveHours: 0,
-        travelHours: 0,
-        restHours: 0,
-        nightShiftHours: 0,
-        onCallHours: 0,
-        task: 1,
-        bankFrom: 0,
-        bankTo: 0,
-      },
-      {
-        date: '2024-06-04',
-        id: 4,
-        dayShiftHours: 0,
-        sickHours: 0,
-        holidayHours: 0,
-        leaveHours: 0,
-        specialLeaveHours: 4,
-        travelHours: 0,
-        restHours: 0,
-        nightShiftHours: 0,
-        onCallHours: 0,
-        task: null,
-        bankFrom: 0,
-        bankTo: 0,
-      }
-    ]
-    const schedule = {
-      "2024_06_01": 2,
-      "2024_06_02": 2,
-      "2024_06_03": 2,
-      "2024_06_04": 2,
-    }
-    const calendarDaysExtended = {
-      ...calendarDays(),
-      "2024-06-04": { closed: false, hol: false, nwd: false },
-    }
-    const props = {
-      ...baseProps,
-      startDate: new Date("2024-06-02"),
-      endDate: new Date("2024-06-04"),
-      timeEntries: timeEntries,
-      schedule: schedule,
-      calendarDays: calendarDaysExtended
-    }
-    render(<EditDayEntry {...props}/>);
-    const submitButton = document.getElementById("day-entry-submit-button") as HTMLButtonElement
-    fireEvent.submit(submitButton.form as HTMLFormElement)
-    expect(submitMock).toBeCalledWith(
-        expect.objectContaining({
-          dates: [
-              "2024-06-02",
-              "2024-06-03",
-              "2024-06-04",
-          ],
-          restHours: 1
-        })
-    )
-  })
-  const cases = [
-    {
-      date: '2024-06-01',
-      id: 1,
-      dayShiftHours: 0,
-      sickHours: 0,
-      holidayHours: 0,
-      leaveHours: 1,
-      specialLeaveHours: 0,
-      travelHours: 0,
-      restHours: 0,
-      nightShiftHours: 0,
-      onCallHours: 0,
-      task: null,
-      bankFrom: 0,
-      bankTo: 0,
-    },
-    {
-      date: '2024-06-01',
-      id: 1,
-      dayShiftHours: 0,
-      sickHours: 0,
-      holidayHours: 0,
-      leaveHours: 0,
-      specialLeaveHours: 1,
-      travelHours: 0,
-      restHours: 0,
-      nightShiftHours: 0,
-      onCallHours: 0,
-      task: null,
-      bankFrom: 0,
-      bankTo: 0,
-    },
-    {
-      date: '2024-06-01',
-      id: 1,
-      dayShiftHours: 0,
-      sickHours: 0,
-      holidayHours: 2,
-      leaveHours: 0,
-      specialLeaveHours: 0,
-      travelHours: 0,
-      restHours: 0,
-      nightShiftHours: 0,
-      onCallHours: 0,
-      task: null,
-      bankFrom: 0,
-      bankTo: 0,
-    },
-    {
-      date: '2024-06-01',
-      id: 1,
-      dayShiftHours: 0,
-      sickHours: 2,
-      holidayHours: 0,
-      leaveHours: 0,
-      specialLeaveHours: 0,
-      travelHours: 0,
-      restHours: 0,
-      nightShiftHours: 0,
-      onCallHours: 0,
-      task: null,
-      bankFrom: 0,
-      bankTo: 0,
-      comment: "some sick day"
-    },
-    {
-      date: '2024-06-01',
-      id: 1,
-      dayShiftHours: 0,
-      sickHours: 0,
-      holidayHours: 0,
-      leaveHours: 0,
-      specialLeaveHours: 0,
-      travelHours: 0,
-      restHours: 0,
-      nightShiftHours: 0,
-      onCallHours: 0,
-      task: null,
-      bankFrom: 1,
-      bankTo: 0,
-    },
-    {
-      date: '2024-06-01',
-      id: 1,
-      dayShiftHours: 0,
-      sickHours: 0,
-      holidayHours: 0,
-      leaveHours: 0,
-      specialLeaveHours: 0,
-      travelHours: 0,
-      restHours: 0,
-      nightShiftHours: 0,
-      onCallHours: 0,
-      task: null,
-      bankFrom: 0,
-      bankTo: 1,
-    }
-  ]
-  cases.forEach((timeEntry) => {
-    it(`submit should be called with start entry params`, () => {
-      const schedule = {
-        "2024_06_01": 2,
-        "2024_06_02": 2,
-        "2024_06_03": 2,
-        "2024_06_04": 2,
-      }
-      const timeEntries: TimeEntry[] = [
-        {
-          date: '2024-06-03',
-          id: 1,
-          dayShiftHours: 0.5,
-          sickHours: 0.5,
-          holidayHours: 0.5,
-          leaveHours: 0.5,
-          specialLeaveHours: 0.5,
-          travelHours: 0.5,
-          restHours: 0.5,
-          nightShiftHours: 0.5,
-          onCallHours: 0.5,
-          task: null,
-          bankFrom: 0,
-          bankTo: 0,
-        },
-        timeEntry
-      ]
-      render(<EditDayEntry {...baseProps} timeEntries={timeEntries} schedule={schedule}/>);
-      const submitButton = document.getElementById("day-entry-submit-button") as HTMLButtonElement
-      fireEvent.submit(submitButton.form as HTMLFormElement)
-      expect(submitMock).toBeCalledWith(
-          expect.objectContaining({
-            ...(timeEntry.sickHours > 0 ? { sickHours: timeEntry.sickHours } : {}),
-            ...(timeEntry.holidayHours > 0 ? { holidayHours: timeEntry.holidayHours } : {}),
-            ...(timeEntry.leaveHours > 0 ? { leaveHours: timeEntry.leaveHours } : {}),
-            ...(timeEntry.specialLeaveHours > 0 ? { specialLeaveHours: timeEntry.specialLeaveHours } : {}),
-            ...(timeEntry.restHours > 0 ? { restHours: timeEntry.restHours } : {}),
-            ...(timeEntry.bankFrom > 0 ? { bankFrom: timeEntry.bankFrom } : {}),
-            ...(timeEntry.bankTo > 0 ? { bankTo: timeEntry.bankTo } : {}),
-          })
+  it("creates day entries for the selected range", async () => {
+    render(<EditDayEntry {...baseProps} />);
+    fireEvent.click(screen.getByTestId("day-entry-holiday-div"));
+    fireEvent.click(screen.getByTestId("day-entry-submit-button"));
+    await waitFor(() => expect(saveDays).toHaveBeenCalledTimes(1));
+    expect(saveDays).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dates: ["2024-06-01", "2024-06-02", "2024-06-03"],
+        askedHoliday: true,
+      })
+    );
+  });
+
+  it("updates an existing day entry", async () => {
+    render(
+      <EditDayEntry {...baseProps} dayEntries={[makeDayEntry()]} endDate={baseProps.startDate} />
+    );
+    fireEvent.click(screen.getByTestId("day-entry-holiday-div"));
+    fireEvent.click(screen.getByTestId("day-entry-submit-button"));
+    await waitFor(() =>
+      expect(saveDays).toHaveBeenCalledWith(
+        expect.objectContaining({ dates: ["2024-06-01"], askedHoliday: true })
       )
-    });
+    );
   });
-  it("handle hours change", () => {
-    const schedule = {
-      "2024_06_01": 2,
-      "2024_06_02": 2,
-      "2024_06_03": 2,
-      "2024_06_04": 2,
-    }
-    render(<EditDayEntry {...baseProps} schedule={schedule}/>);
-    fireEvent.change(screen.getByTestId("day-entry-leave-hour-input"), {target: {value : 2}})
-    expect(screen.getByTestId("day-entry-leave-hour-input")).toHaveValue(2)
-    fireEvent.change(screen.getByTestId("day-entry-special-leave-hour-input"), {target: {value : 1}})
-    expect(screen.getByTestId("day-entry-special-leave-hour-input")).toHaveValue(1)
-  })
-  it("renders leave, rest, specialLeave error", () => {
-    const schedule = {
-      "2024_06_01": 4,
-      "2024_06_02": 2,
-      "2024_06_03": 4,
-    }
-    render(<EditDayEntry {...baseProps} schedule={schedule}/>);
-    fireEvent.change(screen.getByTestId("day-entry-leave-hour-input"), { target: { value: "1" }})
-    fireEvent.change(screen.getByTestId("day-entry-special-leave-hour-input"), { target: { value: "1" }})
 
-    fireEvent.change(screen.getByTestId("day-entry-rest-hour-input"), { target: { value: "1" }})
-    expect(screen.getByText("No overtime allowed when logging leave, special leave or rest hours. Maximum allowed for 2024-06-02 is 2 hours, Total hours: 3")).
-    toBeInTheDocument()
+  it("disables Save when no values have changed", () => {
+    render(
+      <EditDayEntry {...baseProps} dayEntries={[makeDayEntry()]} endDate={baseProps.startDate} />
+    );
 
-    fireEvent.change(document.getElementById("day-entry-from-date-picker") as HTMLElement, { target: { value: "2024-06-03" }})
-    expect(screen.queryByText(
-        "No overtime allowed when logging leave, special leave or rest hours. Maximum allowed for 2024-06-02 is 2 hours, Total hours: 3")).
-    not.toBeInTheDocument()
+    expect(screen.getByTestId("day-entry-submit-button")).toBeDisabled();
+    expect(saveDays).not.toHaveBeenCalled();
+  });
 
-    fireEvent.change(document.getElementById("day-entry-from-date-picker") as HTMLElement, { target: { value: "2024-06-01" }})
-    expect(screen.getByText(
-        "No overtime allowed when logging leave, special leave or rest hours. Maximum allowed for 2024-06-02 is 2 hours, Total hours: 3")).
-    toBeInTheDocument()
+  it("saves a comment without requiring another day-entry value", async () => {
+    render(
+      <EditDayEntry {...baseProps} dayEntries={[makeDayEntry()]} endDate={baseProps.startDate} />
+    );
 
-    fireEvent.change(document.getElementById("day-entry-to-date-picker") as HTMLElement, { target: { value: "2024-06-01" }})
-    expect(screen.queryByText(
-        "No overtime allowed when logging leave, special leave or rest hours. Maximum allowed for 2024-06-02 is 2 hours, Total hours: 3")).
-    not.toBeInTheDocument()
-  })
+    fireEvent.change(screen.getByLabelText(/comments/i), {
+      target: { value: "Updated comment" },
+    });
+    fireEvent.click(screen.getByTestId("day-entry-submit-button"));
 
-  it("cannot change entry type in read only mode", () => {
-    const schedule = {
-      "2024_06_01": 2,
-      "2024_06_02": 2,
-      "2024_06_03": 2,
-      "2024_06_04": 2,
-    }
-    const calendarDaysClosed = {
-      "2024-06-01": { closed: true, hol: false, nwd: false },
-      "2024-06-02": { closed: true, hol: false, nwd: false },
-      "2024-06-03": { closed: true, hol: false, nwd: false },
-      "2024-06-10": { closed: true, hol: false, nwd: false },
-    };
-    render(<EditDayEntry {...baseProps} schedule={schedule} calendarDays={calendarDaysClosed}/>);
-    // In readonly mode (when calendar days are closed), the entry type doesn't change, so input is not shown
-    expect(screen.queryByTestId("day-entry-leave-hour-input")).toBeDisabled()
-  })
-  it("Adding leave when overhours are logged should display error", () => {
-    const schedule = {
-      "2024_06_01": 2,
-      "2024_06_02": 2,
-      "2024_06_03": 2,
-      "2024_06_04": 2,
-    }
-    const timeEntries: TimeEntry[] = [
-      {
-        date: '2024-06-01',
-        id: 1,
-        dayShiftHours: 3,
-        sickHours: 0,
-        holidayHours: 0,
-        leaveHours: 0,
-        specialLeaveHours: 0,
-        travelHours: 0,
-        restHours: 0,
-        nightShiftHours: 0,
-        onCallHours: 0,
-        task: 1,
-        bankFrom: 0,
-        bankTo: 0,
-      }
-    ]
-    render(<EditDayEntry {...baseProps} schedule={schedule} timeEntries={timeEntries}/>);
-    fireEvent.change(screen.getByTestId("day-entry-leave-hour-input"), {target: {value : 2}})
-    expect(screen.getByText(/No overtime allowed when logging leave, special leave or rest hours.*Maximum allowed for 2024-06-01.*is 2 hours.*Total hours.*5/, {exact: false})).toBeInTheDocument()
-  })
-  it("setting from date later than to date updates to date", () => {
-    render(<EditDayEntry {...baseProps} />);
-    const fromDatePicker = document.getElementById("day-entry-from-date-picker") as HTMLElement
-    const toDatePicker = document.getElementById("day-entry-to-date-picker") as HTMLElement
-    fireEvent.change(fromDatePicker, { target: { value: "2024-06-04" }})
+    await waitFor(() =>
+      expect(saveDays).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dates: ["2024-06-01"],
+          comment: "Updated comment",
+        })
+      )
+    );
+  });
 
-    expect(toDatePicker).toHaveValue("2024-06-04")
-  })
-  it("setting to date earlier than from date updates from date", () => {
-    const startDate = new Date("2024-06-02")
-    const endDate = new Date("2024-06-03")
-    render(<EditDayEntry {...baseProps} startDate={startDate} endDate={endDate}/>);
-    const fromDatePicker = document.getElementById("day-entry-from-date-picker") as HTMLElement
-    const toDatePicker = document.getElementById("day-entry-to-date-picker") as HTMLElement
-    fireEvent.change(toDatePicker, { target: { value: "2024-06-01" }})
+  it("clears an existing comment", async () => {
+    render(
+      <EditDayEntry
+        {...baseProps}
+        dayEntries={[makeDayEntry({ comment: "Existing comment" })]}
+        endDate={baseProps.startDate}
+      />
+    );
 
-    expect(fromDatePicker).toHaveValue("2024-06-01")
-  })
-  it("cannot set date earlier than earliest calendar date", () => {
-    render(<EditDayEntry {...baseProps} />);
-    const fromDatePicker = document.getElementById("day-entry-from-date-picker") as HTMLElement
-    fireEvent.click(fromDatePicker)
-    fireEvent.click(document.getElementsByClassName("react-datepicker__day--031")[0] as HTMLElement)
-    expect(fromDatePicker).toHaveValue("2024-06-01")
-  })
-  it("cannot set date later than latest calendar date", () => {
-    render(<EditDayEntry {...baseProps} />);
-    const toDatePicker = document.getElementById("day-entry-to-date-picker") as HTMLElement
-    fireEvent.click(toDatePicker)
-    fireEvent.click(document.getElementsByClassName("react-datepicker__day--001")[1] as HTMLElement)
-    expect(toDatePicker).toHaveValue("2024-06-03")
-  })
+    fireEvent.change(screen.getByLabelText(/comments/i), { target: { value: "" } });
+    fireEvent.click(screen.getByTestId("day-entry-submit-button"));
+
+    await waitFor(() =>
+      expect(saveDays).toHaveBeenCalledWith(
+        expect.objectContaining({ dates: ["2024-06-01"], comment: "" })
+      )
+    );
+  });
+
+  it("saves zero when removing bank hours from an existing day entry", async () => {
+    render(
+      <EditDayEntry
+        {...baseProps}
+        dayEntries={[makeDayEntry({ bank: 3 })]}
+        endDate={baseProps.startDate}
+      />
+    );
+
+    fireEvent.change(screen.getByTestId("save-bank-hour-input"), {
+      target: { value: "0" },
+    });
+    fireEvent.click(screen.getByTestId("day-entry-submit-button"));
+
+    await waitFor(() =>
+      expect(saveDays).toHaveBeenCalledWith(
+        expect.objectContaining({ dates: ["2024-06-01"], bank: 0 })
+      )
+    );
+  });
+
+  it("rejects a bank withdrawal above the hours available after task work", () => {
+    const existingDayEntry = makeDayEntry();
+    const taskEntry = {
+      id: 2,
+      task: 1,
+      dayEntry: existingDayEntry.id,
+      dayShiftHours: 8,
+      nightShiftHours: 0,
+      travelHours: 0,
+      onCallHours: 0,
+      comment: null,
+      metadata: {},
+    } as TaskEntry;
+
+    render(
+      <EditDayEntry
+        {...baseProps}
+        dayEntries={[existingDayEntry]}
+        taskEntries={[taskEntry]}
+        endDate={baseProps.startDate}
+      />
+    );
+    fireEvent.change(screen.getByTestId("get-from-bank-hour-input"), {
+      target: { value: "1" },
+    });
+
+    expect(screen.getByText(/bank withdrawal hours/i)).toBeInTheDocument();
+    expect(screen.getByTestId("day-entry-submit-button")).toBeDisabled();
+    expect(saveDays).not.toHaveBeenCalled();
+  });
+
+  it("accepts a bank withdrawal equal to the available hours", async () => {
+    const existingDayEntry = makeDayEntry();
+    const taskEntry = {
+      id: 2,
+      task: 1,
+      dayEntry: existingDayEntry.id,
+      dayShiftHours: 4,
+      nightShiftHours: 0,
+      travelHours: 0,
+      onCallHours: 0,
+      comment: null,
+      metadata: {},
+    } as TaskEntry;
+
+    render(
+      <EditDayEntry
+        {...baseProps}
+        dayEntries={[existingDayEntry]}
+        taskEntries={[taskEntry]}
+        endDate={baseProps.startDate}
+      />
+    );
+    fireEvent.change(screen.getByTestId("get-from-bank-hour-input"), {
+      target: { value: "4" },
+    });
+    fireEvent.click(screen.getByTestId("day-entry-submit-button"));
+
+    await waitFor(() =>
+      expect(saveDays).toHaveBeenCalledWith(expect.objectContaining({ bank: -4 }))
+    );
+  });
+
+  it("rejects a bank deposit that leaves effective hours below scheduled hours", () => {
+    const existingDayEntry = makeDayEntry();
+    const taskEntry = {
+      id: 2,
+      task: 1,
+      dayEntry: existingDayEntry.id,
+      dayShiftHours: 8,
+      nightShiftHours: 0,
+      travelHours: 0,
+      onCallHours: 0,
+      comment: null,
+      metadata: {},
+    } as TaskEntry;
+
+    render(
+      <EditDayEntry
+        {...baseProps}
+        dayEntries={[existingDayEntry]}
+        taskEntries={[taskEntry]}
+        endDate={baseProps.startDate}
+      />
+    );
+    fireEvent.change(screen.getByTestId("save-bank-hour-input"), {
+      target: { value: "1" },
+    });
+
+    expect(screen.getByText(/cannot deposit 1 bank hours/i)).toBeInTheDocument();
+    expect(screen.getByTestId("day-entry-submit-button")).toBeDisabled();
+    expect(saveDays).not.toHaveBeenCalled();
+  });
+
+  it("accepts a bank deposit that leaves exactly the scheduled hours", async () => {
+    const existingDayEntry = makeDayEntry();
+    const taskEntry = {
+      id: 2,
+      task: 1,
+      dayEntry: existingDayEntry.id,
+      dayShiftHours: 9,
+      nightShiftHours: 0,
+      travelHours: 0,
+      onCallHours: 0,
+      comment: null,
+      metadata: {},
+    } as TaskEntry;
+
+    render(
+      <EditDayEntry
+        {...baseProps}
+        dayEntries={[existingDayEntry]}
+        taskEntries={[taskEntry]}
+        endDate={baseProps.startDate}
+      />
+    );
+    fireEvent.change(screen.getByTestId("save-bank-hour-input"), {
+      target: { value: "1" },
+    });
+    fireEvent.click(screen.getByTestId("day-entry-submit-button"));
+
+    await waitFor(() =>
+      expect(saveDays).toHaveBeenCalledWith(expect.objectContaining({ bank: 1 }))
+    );
+    expect(screen.queryByText(/bank withdrawal hours/i)).not.toBeInTheDocument();
+  });
+
+  it("accepts a bank deposit that leaves overtime hours", async () => {
+    const existingDayEntry = makeDayEntry();
+    const taskEntry = {
+      id: 2,
+      task: 1,
+      dayEntry: existingDayEntry.id,
+      dayShiftHours: 11,
+      nightShiftHours: 0,
+      travelHours: 0,
+      onCallHours: 0,
+      comment: null,
+      metadata: {},
+    } as TaskEntry;
+
+    render(
+      <EditDayEntry
+        {...baseProps}
+        dayEntries={[existingDayEntry]}
+        taskEntries={[taskEntry]}
+        endDate={baseProps.startDate}
+      />
+    );
+    fireEvent.change(screen.getByTestId("save-bank-hour-input"), {
+      target: { value: "2" },
+    });
+    fireEvent.click(screen.getByTestId("day-entry-submit-button"));
+
+    await waitFor(() =>
+      expect(saveDays).toHaveBeenCalledWith(expect.objectContaining({ bank: 2 }))
+    );
+    expect(screen.queryByText(/bank withdrawal hours/i)).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["holiday", "day-entry-holiday-div"],
+    ["sick", "day-entry-sick-div"],
+  ])("rejects bank deposits when selecting %s", (_entryType, entryTypeTestId) => {
+    const existingDayEntry = makeDayEntry();
+    const taskEntry = {
+      id: 2,
+      task: 1,
+      dayEntry: existingDayEntry.id,
+      dayShiftHours: 16,
+      nightShiftHours: 0,
+      travelHours: 0,
+      onCallHours: 0,
+      comment: null,
+      metadata: {},
+    } as TaskEntry;
+
+    render(
+      <EditDayEntry
+        {...baseProps}
+        dayEntries={[existingDayEntry]}
+        taskEntries={[taskEntry]}
+        endDate={baseProps.startDate}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId(entryTypeTestId));
+    fireEvent.change(screen.getByTestId("save-bank-hour-input"), {
+      target: { value: "8" },
+    });
+
+    expect(
+      screen.getByText("Bank hours cannot be used during holidays or sick days.")
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("day-entry-submit-button")).toBeDisabled();
+    expect(saveDays).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["holiday", "day-entry-holiday-div"],
+    ["sick", "day-entry-sick-div"],
+  ])("rejects bank withdrawals when selecting %s", (_entryType, entryTypeTestId) => {
+    render(
+      <EditDayEntry {...baseProps} dayEntries={[makeDayEntry()]} endDate={baseProps.startDate} />
+    );
+
+    fireEvent.click(screen.getByTestId(entryTypeTestId));
+    fireEvent.change(screen.getByTestId("get-from-bank-hour-input"), {
+      target: { value: "4" },
+    });
+
+    expect(
+      screen.getByText("Bank hours cannot be used during holidays or sick days.")
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("day-entry-submit-button")).toBeDisabled();
+    expect(saveDays).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["leave", "day-entry-leave-hour-input"],
+    ["rest", "day-entry-rest-hour-input"],
+    ["special leave", "day-entry-special-leave-hour-input"],
+  ])("rejects bank deposits during %s", (_dayEntryType, hoursInputTestId) => {
+    render(<EditDayEntry {...baseProps} endDate={baseProps.startDate} />);
+
+    fireEvent.change(screen.getByTestId(hoursInputTestId), {
+      target: { value: "2" },
+    });
+    fireEvent.change(screen.getByTestId("save-bank-hour-input"), {
+      target: { value: "1" },
+    });
+
+    expect(
+      screen.getByText("Bank hours cannot be deposited during leave, rest, or special leave.")
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("day-entry-submit-button")).toBeDisabled();
+    expect(saveDays).not.toHaveBeenCalled();
+  });
+
+  it("allows bank withdrawals during leave", async () => {
+    render(<EditDayEntry {...baseProps} endDate={baseProps.startDate} />);
+
+    fireEvent.change(screen.getByTestId("day-entry-leave-hour-input"), {
+      target: { value: "2" },
+    });
+    fireEvent.change(screen.getByTestId("get-from-bank-hour-input"), {
+      target: { value: "2" },
+    });
+    fireEvent.click(screen.getByTestId("day-entry-submit-button"));
+
+    await waitFor(() =>
+      expect(saveDays).toHaveBeenCalledWith(expect.objectContaining({ bank: -2, leaveHours: 2 }))
+    );
+  });
+
+  it("clears the protocol number when changing a sick day to a holiday", async () => {
+    render(
+      <EditDayEntry
+        {...baseProps}
+        dayEntries={[makeDayEntry({ isSick: true, protocolNumber: "12345" })]}
+        endDate={baseProps.startDate}
+      />
+    );
+    fireEvent.click(screen.getByTestId("day-entry-holiday-div"));
+    fireEvent.click(screen.getByTestId("day-entry-submit-button"));
+
+    await waitFor(() =>
+      expect(saveDays).toHaveBeenCalledWith(
+        expect.objectContaining({ isSick: false, protocolNumber: null })
+      )
+    );
+  });
+
+  it("rejects a protocol number containing non-digit characters", () => {
+    render(<EditDayEntry {...baseProps} endDate={baseProps.startDate} />);
+
+    fireEvent.click(screen.getByTestId("day-entry-sick-div"));
+    const protocolNumberInput = screen.getByLabelText(/protocol number/i);
+    fireEvent.change(protocolNumberInput, { target: { value: "124ABC" } });
+
+    expect(protocolNumberInput).toHaveAttribute("type", "text");
+    expect(protocolNumberInput).toHaveAttribute("inputmode", "numeric");
+    expect(screen.getByText("Protocol number must contain digits only.")).toBeInTheDocument();
+    expect(screen.getByTestId("day-entry-submit-button")).toBeDisabled();
+    expect(saveDays).not.toHaveBeenCalled();
+  });
+
+  it("accepts a protocol number containing digits only", async () => {
+    render(<EditDayEntry {...baseProps} endDate={baseProps.startDate} />);
+
+    fireEvent.click(screen.getByTestId("day-entry-sick-div"));
+    fireEvent.change(screen.getByLabelText(/protocol number/i), {
+      target: { value: "00124" },
+    });
+    fireEvent.click(screen.getByTestId("day-entry-submit-button"));
+
+    await waitFor(() =>
+      expect(saveDays).toHaveBeenCalledWith(expect.objectContaining({ protocolNumber: "00124" }))
+    );
+    expect(screen.queryByText("Protocol number must contain digits only.")).not.toBeInTheDocument();
+  });
+
+  it("clears the special leave reason when changing special leave to a holiday", async () => {
+    render(
+      <EditDayEntry
+        {...baseProps}
+        dayEntries={[makeDayEntry({ specialLeaveHours: 2, specialLeaveReason: 1 })]}
+        endDate={baseProps.startDate}
+      />
+    );
+    fireEvent.click(screen.getByTestId("day-entry-holiday-div"));
+    fireEvent.click(screen.getByTestId("day-entry-submit-button"));
+
+    await waitFor(() =>
+      expect(saveDays).toHaveBeenCalledWith(
+        expect.objectContaining({ specialLeaveHours: 0, specialLeaveReason: null })
+      )
+    );
+  });
+
+  it("requires a reason when special leave hours are entered", () => {
+    render(<EditDayEntry {...baseProps} endDate={baseProps.startDate} />);
+
+    fireEvent.change(screen.getByTestId("day-entry-special-leave-hour-input"), {
+      target: { value: "2" },
+    });
+
+    expect(screen.getByText("Please select a reason for the special leave.")).toBeInTheDocument();
+    expect(screen.getByTestId("day-entry-submit-button")).toBeDisabled();
+    expect(saveDays).not.toHaveBeenCalled();
+  });
+
+  it("allows special leave hours when a reason is selected", async () => {
+    render(<EditDayEntry {...baseProps} endDate={baseProps.startDate} />);
+
+    fireEvent.change(screen.getByTestId("day-entry-special-leave-hour-input"), {
+      target: { value: "2" },
+    });
+    fireEvent.change(screen.getByRole("combobox", { name: "Reason" }), {
+      target: { value: "1" },
+    });
+    fireEvent.click(screen.getByTestId("day-entry-submit-button"));
+
+    await waitFor(() =>
+      expect(saveDays).toHaveBeenCalledWith(
+        expect.objectContaining({ specialLeaveHours: 2, specialLeaveReason: 1 })
+      )
+    );
+  });
+
+  it("clears the special leave reason when special leave hours are set to zero", async () => {
+    render(
+      <EditDayEntry
+        {...baseProps}
+        dayEntries={[makeDayEntry({ specialLeaveHours: 2, specialLeaveReason: 1 })]}
+        endDate={baseProps.startDate}
+      />
+    );
+
+    const reasonSelect = screen.getByRole("combobox", { name: "Reason" });
+    expect(reasonSelect).toHaveValue("1");
+
+    fireEvent.change(screen.getByTestId("day-entry-special-leave-hour-input"), {
+      target: { value: "0" },
+    });
+
+    expect(reasonSelect).toHaveValue("");
+
+    fireEvent.click(screen.getByTestId("day-entry-submit-button"));
+
+    await waitFor(() =>
+      expect(saveDays).toHaveBeenCalledWith(
+        expect.objectContaining({
+          specialLeaveHours: 0,
+          specialLeaveReason: null,
+        })
+      )
+    );
+  });
+
+  it("does not reduce available leave hours when task entries contain on-call hours", async () => {
+    const existingDayEntry = makeDayEntry();
+    const taskEntry = {
+      id: 2,
+      task: 1,
+      dayEntry: existingDayEntry.id,
+      dayShiftHours: 0,
+      nightShiftHours: 0,
+      travelHours: 0,
+      onCallHours: 8,
+      comment: null,
+      metadata: {},
+    } as TaskEntry;
+
+    render(
+      <EditDayEntry
+        {...baseProps}
+        dayEntries={[existingDayEntry]}
+        taskEntries={[taskEntry]}
+        endDate={baseProps.startDate}
+      />
+    );
+    fireEvent.change(screen.getByTestId("day-entry-leave-hour-input"), {
+      target: { value: "8" },
+    });
+    fireEvent.click(screen.getByTestId("day-entry-submit-button"));
+
+    await waitFor(() =>
+      expect(saveDays).toHaveBeenCalledWith(expect.objectContaining({ leaveHours: 8 }))
+    );
+    expect(screen.queryByText(/No overtime allowed/i)).not.toBeInTheDocument();
+  });
+
+  it("deletes existing day entries", async () => {
+    render(
+      <EditDayEntry
+        {...baseProps}
+        dayEntries={[
+          makeDayEntry({ id: 1, day: "2024-06-01", leaveHours: 2 }),
+          makeDayEntry({ id: 2, day: "2024-06-02", bank: 1 }),
+        ]}
+      />
+    );
+    fireEvent.click(screen.getByTestId("clear-button"));
+    await waitFor(() => expect(clearDays).toHaveBeenCalledWith([1, 2]));
+  });
+
+  it("clears a public holiday when it has task entries", async () => {
+    const holidayEntry = makeDayEntry({ id: 3, day: "2024-06-01", isHoliday: true });
+    const taskEntry = {
+      id: 4,
+      task: 1,
+      dayEntry: holidayEntry.id,
+      dayShiftHours: 8,
+      nightShiftHours: 0,
+      travelHours: 0,
+      onCallHours: 0,
+      comment: null,
+      metadata: {},
+    } as TaskEntry;
+
+    render(
+      <EditDayEntry
+        {...baseProps}
+        dayEntries={[holidayEntry]}
+        taskEntries={[taskEntry]}
+        endDate={baseProps.startDate}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId("clear-button"));
+    await waitFor(() => expect(clearDays).toHaveBeenCalledWith([holidayEntry.id]));
+  });
+
+  it("clears non-task data in one request", async () => {
+    render(
+      <EditDayEntry
+        {...baseProps}
+        dayEntries={[
+          makeDayEntry({ id: 1, day: "2024-06-01", leaveHours: 2 }),
+          makeDayEntry({ id: 2, day: "2024-06-02", bank: 1 }),
+        ]}
+      />
+    );
+    fireEvent.click(screen.getByTestId("delete-button"));
+    await waitFor(() => expect(deleteDay).toHaveBeenCalledWith([1, 2]));
+    expect(clearDays).not.toHaveBeenCalled();
+  });
+
+  it("does not show Delete for task-only day entries", () => {
+    render(<EditDayEntry {...baseProps} dayEntries={[makeDayEntry()]} />);
+    expect(screen.queryByTestId("delete-button")).not.toBeInTheDocument();
+  });
+
+  it("uses the Day entries warning label", () => {
+    render(<EditDayEntry {...baseProps} dayEntries={[makeDayEntry()]} />);
+    expect(screen.getByText(/Day entries already exist/i)).toBeInTheDocument();
+  });
 });

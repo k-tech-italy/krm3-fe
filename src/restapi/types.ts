@@ -179,8 +179,8 @@ export interface Task {
   title: string;
   basketTitle?: string;
   color?: string;
-  startDate: Date;
-  endDate?: Date;
+  startDate: Date | string;
+  endDate?: Date | string;
   workPrice?: number;
   onCallPrice?: number;
   travelPrice?: number;
@@ -191,32 +191,51 @@ export interface Task {
 export interface Schedule {
   [date: string]: number;
 }
-export interface TimeEntry {
+
+export interface DayEntry {
   id: number;
-  date: string;
-  task: number | null;
-  taskTitle?: string;
-  lastModified?: string;
-  dayShiftHours: number;
-  sickHours: number;
-  holidayHours: number;
-  specialLeaveHours: number;
-  leaveHours: number;
-  nightShiftHours: number;
-  travelHours: number;
-  onCallHours: number;
-  bankTo: number;
-  bankFrom: number;
-  restHours: number;
-  specialLeaveReason?: string;
-  comment?: string;
-  protocolNumber?: string;
-  metaData?: JSON;
+  day: string;
+  lastModified: string;
+  closed: boolean;
+  comment: string | null;
+  contract: number;
+  timesheet: number | null;
+  resource: number;
+  bank: DecimalValue;
+  dueHours: DecimalValue;
+  travelHours: DecimalValue;
+  dayHours: DecimalValue;
+  nightHours: DecimalValue;
+  onCallHours: DecimalValue;
+  isHoliday: boolean;
+  askedHoliday: boolean;
+  leaveHours: DecimalValue;
+  specialLeaveHours: DecimalValue;
+  specialLeaveReason: number | null;
+  protocolNumber: string | null;
+  isSick: boolean;
+  restHours: DecimalValue;
+  overtimeHours: DecimalValue;
+  mealVoucher: number;
+}
+export interface TaskEntry {
+  id: number;
+  task: number;
+  taskTitle?: string | null;
+  dayEntry: number;
+  dayShiftHours: DecimalValue;
+  onCallHours: DecimalValue;
+  travelHours: DecimalValue;
+  nightShiftHours: DecimalValue;
+  comment: string | null;
+  metadata: Record<string, unknown>;
 }
 export interface Timesheet {
+  submitted: boolean;
   tasks: Task[];
-  timeEntries: TimeEntry[];
-  days: Days;
+  dayEntries?: DayEntry[];
+  taskEntries?: TaskEntry[];
+  days: string[];
   schedule?: Schedule;
   bankHours: number;
   timesheetColors?: HeaderColors;
@@ -261,6 +280,7 @@ export interface HeaderColors {
   moreThanScheduleColorDarkTheme: string;
 }
 
+// TODO: Remove this interface once the backend is updated to return days in the correct format.//verify is not used anymore
 export interface Days {
   [key: string]: { hol: boolean; nwd: boolean; closed: boolean };
 }
@@ -271,7 +291,7 @@ export interface SpecialReason {
   fromDate: string;
   toDate: string;
 }
-export const enum TimeEntryType {
+export const enum TaskEntryCellType {
   TASK = "task",
   HOLIDAY = "holiday",
   SICK = "sick",
@@ -300,3 +320,37 @@ export interface TitleChoice {
   value: string;
   label: string;
 }
+
+export interface TaskEntryPayload {
+  resourceId: number;
+  taskId: number;
+  dates: string[];
+  dayShiftHours?: number;
+  nightShiftHours?: number;
+  onCallHours?: number;
+  travelHours?: number;
+  comment?: string;
+  autofill?: boolean;
+  metadata?: Record<string, unknown>;
+}
+
+export interface DayEntriesPayload {
+  resourceId: number;
+  dates: string[];
+  bank?: number;
+  askedHoliday?: boolean;
+  leaveHours?: number;
+  specialLeaveHours?: number;
+  specialLeaveReason?: number | null;
+  isSick?: boolean;
+  restHours?: number;
+  comment?: string;
+  protocolNumber?: string | null;
+}
+
+export interface TaskPeriod {
+  bounds: string;
+  lower: string;
+  upper: string | null;
+}
+export type DecimalValue = string | number;

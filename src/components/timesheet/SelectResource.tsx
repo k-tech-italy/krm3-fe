@@ -27,9 +27,9 @@ const SelectResourceComponent = ({
     }
   }, [data]);
 
-  const handleResourceChange = (
-    selectedOption: SingleValue<{ value: number; label: string }>
-  ) => {
+  if (!data?.isSuperuser) return null;
+
+  const handleResourceChange = (selectedOption: SingleValue<{ value: number; label: string }>) => {
     setSelectedResourceId(selectedOption ? selectedOption.value : null);
   };
 
@@ -47,26 +47,28 @@ const SelectResourceComponent = ({
               styles={{
                 menu: (base) => ({
                   ...base,
-                  backgroundColor: 'var(--color-selector-menu)',
+                  backgroundColor: "var(--color-selector-menu)",
                 }),
                 option: (base, state) => ({
                   ...base,
-                  backgroundColor: state.isSelected ? 'var(--color-selector-selected)'
-                      : state.isFocused ? 'var(--color-selector-focused)'
-                          : '',
+                  backgroundColor: state.isSelected
+                    ? "var(--color-selector-selected)"
+                    : state.isFocused
+                      ? "var(--color-selector-focused)"
+                      : "",
                 }),
-                control: (base) =>({
+                control: (base) => ({
                   ...base,
-                  color: 'var(--color-body-text)',
-                  backgroundColor: 'var(--color-selector-controller)',
+                  color: "var(--color-body-text)",
+                  backgroundColor: "var(--color-selector-controller)",
                 }),
                 singleValue: (base) => ({
                   ...base,
-                  color: 'var(--color-body-text)',
+                  color: "var(--color-body-text)",
                 }),
                 placeholder: (base) => ({
                   ...base,
-                  color: 'var(--color-body-text)',
+                  color: "var(--color-body-text)",
                 }),
               }}
               isClearable
