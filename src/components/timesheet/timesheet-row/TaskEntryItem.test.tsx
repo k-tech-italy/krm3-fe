@@ -1,30 +1,24 @@
 import { render, screen } from "@testing-library/react";
-import { TimeEntryItem } from "./TimeEntryItem";
-import React from "react";
+import { TaskEntry } from "../../../restapi/types";
+import { TaskEntryItem } from "./TaskEntryItem";
 
-describe("TimeEntryItem", () => {
-  const entry = {
+describe("TaskEntryItem", () => {
+  const entry: TaskEntry = {
     id: 1,
+    task: 1,
+    taskTitle: null,
+    dayEntry: 1,
     dayShiftHours: 2,
     nightShiftHours: 1,
-    restHours: 0,
-    travelHours: 0,
-    date: new Date().toISOString(),
-    task: 1,
-    sickHours: 0,
-    holidayHours: 0,
-    leaveHours: 0,
     onCallHours: 0,
-    specialLeaveHours: 0,
-    specialReason: undefined,
-    comment: undefined,
-    bankFrom: 0,
-    bankTo: 0
+    travelHours: 0,
+    comment: null,
+    metadata: {},
   };
 
   it("renders with isMonthView false", () => {
     render(
-      <TimeEntryItem
+      <TaskEntryItem
         entry={entry}
         taskId={1}
         isMonthView={false}
@@ -37,7 +31,7 @@ describe("TimeEntryItem", () => {
 
   it("renders with isMonthView true", () => {
     render(
-      <TimeEntryItem
+      <TaskEntryItem
         entry={entry}
         taskId={1}
         isMonthView={true}
@@ -47,4 +41,4 @@ describe("TimeEntryItem", () => {
     );
     expect(screen.getByText("3")).toBeInTheDocument();
   });
-}); 
+});
