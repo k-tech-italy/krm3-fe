@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import { SpecialDayCell } from "./SpecialDayCell";
 import React from "react";
-import { TimeEntryType } from "../../../restapi/types";
+import { TaskEntryCellType } from "../../../restapi/types";
 
 describe("SpecialDayCell", () => {
   const baseProps = {
@@ -13,21 +13,19 @@ describe("SpecialDayCell", () => {
 
   it("renders for holiday", () => {
     const { container } = render(
-      <SpecialDayCell {...baseProps} type={TimeEntryType.HOLIDAY} />
+      <SpecialDayCell {...baseProps} type={TaskEntryCellType.HOLIDAY} />
     );
     expect(container.querySelector('[id^="holiday-cell-"]')).toBeInTheDocument();
   });
 
   it("renders for sick", () => {
-    const { container } = render(
-      <SpecialDayCell {...baseProps} type={TimeEntryType.SICK} />
-    );
+    const { container } = render(<SpecialDayCell {...baseProps} type={TaskEntryCellType.SICK} />);
     expect(container.querySelector('[id^="sick-day-cell-"]')).toBeInTheDocument();
   });
 
   it("renders for finished", () => {
     const { container } = render(
-      <SpecialDayCell {...baseProps} type={TimeEntryType.FINISHED} />
+      <SpecialDayCell {...baseProps} type={TaskEntryCellType.FINISHED} />
     );
     expect(container.querySelector('[id^="task-finished-cell-"]')).toBeInTheDocument();
     expect(container).toHaveTextContent("N/A");
@@ -35,48 +33,48 @@ describe("SpecialDayCell", () => {
 
   it("renders for default (unknown type)", () => {
     const { container } = render(
-      <SpecialDayCell {...baseProps} type={"unknown" as TimeEntryType} />
+      <SpecialDayCell {...baseProps} type={"unknown" as TaskEntryCellType} />
     );
     expect(container.firstChild).toBeInTheDocument();
   });
 
   it("renders holiday with month view", () => {
     const { container } = render(
-      <SpecialDayCell {...baseProps} type={TimeEntryType.HOLIDAY} isMonthView={true} />
+      <SpecialDayCell {...baseProps} type={TaskEntryCellType.HOLIDAY} isMonthView={true} />
     );
     expect(container.querySelector('[id^="holiday-cell-"]')).toBeInTheDocument();
     // Icon size should be 20 when isMonthView is true
-    const icon = container.querySelector('svg');
-    expect(icon).toHaveAttribute('width', '20');
+    const icon = container.querySelector("svg");
+    expect(icon).toHaveAttribute("width", "20");
   });
 
   it("renders sick day with month view", () => {
     const { container } = render(
-      <SpecialDayCell {...baseProps} type={TimeEntryType.SICK} isMonthView={true} />
+      <SpecialDayCell {...baseProps} type={TaskEntryCellType.SICK} isMonthView={true} />
     );
     expect(container.querySelector('[id^="sick-day-cell-"]')).toBeInTheDocument();
     // Icon size should be 16 when isMonthView is true
-    const icon = container.querySelector('svg');
-    expect(icon).toHaveAttribute('width', '16');
+    const icon = container.querySelector("svg");
+    expect(icon).toHaveAttribute("width", "16");
   });
 
   it("renders holiday without month view (larger icons)", () => {
     const { container } = render(
-      <SpecialDayCell {...baseProps} type={TimeEntryType.HOLIDAY} isMonthView={false} />
+      <SpecialDayCell {...baseProps} type={TaskEntryCellType.HOLIDAY} isMonthView={false} />
     );
     expect(container.querySelector('[id^="holiday-cell-"]')).toBeInTheDocument();
     // Icon size should be 26 when isMonthView is false
-    const icon = container.querySelector('svg');
-    expect(icon).toHaveAttribute('width', '26');
+    const icon = container.querySelector("svg");
+    expect(icon).toHaveAttribute("width", "26");
   });
 
   it("renders sick day without month view (larger icons)", () => {
     const { container } = render(
-      <SpecialDayCell {...baseProps} type={TimeEntryType.SICK} isMonthView={false} />
+      <SpecialDayCell {...baseProps} type={TaskEntryCellType.SICK} isMonthView={false} />
     );
     expect(container.querySelector('[id^="sick-day-cell-"]')).toBeInTheDocument();
     // Icon size should be 22 when isMonthView is false
-    const icon = container.querySelector('svg');
-    expect(icon).toHaveAttribute('width', '22');
+    const icon = container.querySelector("svg");
+    expect(icon).toHaveAttribute("width", "22");
   });
-}); 
+});

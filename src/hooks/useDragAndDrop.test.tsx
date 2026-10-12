@@ -1,14 +1,13 @@
 import { renderHook, act } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { useDragAndDrop, DragCallbacks } from "./useDragAndDrop";
-import { Timesheet, TimeEntry, Task } from "../restapi/types";
+import { DayEntry, Task, TaskEntry, Timesheet } from "../restapi/types";
+
 import * as dates from "../components/timesheet/utils/dates";
 
 // Mock the dates utility
 vi.mock("../components/timesheet/utils/dates", async () => {
-  const actual = await vi.importActual<typeof dates>(
-    "../components/timesheet/utils/dates"
-  );
+  const actual = await vi.importActual<typeof dates>("../components/timesheet/utils/dates");
   return {
     ...actual,
     getDateRange: vi.fn(),
@@ -26,36 +25,66 @@ describe("useDragAndDrop", () => {
 
   const mockTask: Task = {
     id: 1,
-    mission: 1,
-    name: "Development",
-    defaultHours: 8,
-    type: "work",
-  } as any;
-
-  const mockTimeEntry: TimeEntry = {
-    id: 100,
-    task: 1,
-    date: "2024-01-01",
-    hours: 8,
-    notes: "",
-  } as any;
-
-  const mockTimesheet: Timesheet = {
-    id: 1,
-    resource: 1,
+    title: "Development",
     startDate: "2024-01-01",
     endDate: "2024-01-05",
+  };
+
+  const mockDayEntry: DayEntry = {
+    id: 10,
+    day: "2024-01-01",
+    lastModified: "2024-01-01T00:00:00Z",
+    closed: false,
+    comment: null,
+    contract: 1,
+    timesheet: null,
+    resource: 1,
+    bank: 0,
+    dueHours: 8,
+    travelHours: 0,
+    dayHours: 8,
+    nightHours: 0,
+    onCallHours: 0,
+    isHoliday: false,
+    askedHoliday: false,
+    leaveHours: 0,
+    specialLeaveHours: 0,
+    specialLeaveReason: null,
+    protocolNumber: null,
+    isSick: false,
+    restHours: 0,
+    overtimeHours: 0,
+    mealVoucher: 0,
+  };
+
+  const mockTaskEntry: TaskEntry = {
+    id: 100,
+    task: mockTask.id,
+    taskTitle: mockTask.title,
+    dayEntry: mockDayEntry.id,
+    dayShiftHours: 8,
+    nightShiftHours: 0,
+    onCallHours: 0,
+    travelHours: 0,
+    comment: null,
+    metadata: {},
+  };
+
+  const mockTimesheet: Timesheet = {
+    submitted: false,
     tasks: [mockTask],
-    timeEntries: [mockTimeEntry],
-    days: {} as any,
-  } as any;
+    dayEntries: [mockDayEntry],
+    taskEntries: [mockTaskEntry],
+    days: ["2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04", "2024-01-05"],
+    bankHours: 0,
+  };
 
   let mockCallbacks: DragCallbacks;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockCallbacks = {
-      onTimeEntryDrag: vi.fn(),
+      onTaskEntryDrag: vi.fn(),
       onColumnDrag: vi.fn(),
       onDragStart: vi.fn(),
     };
@@ -181,8 +210,7 @@ describe("useDragAndDrop", () => {
       });
 
       expect(mockCallbacks.onColumnDrag).toHaveBeenCalledWith({
-        task: mockTask,
-        timeEntries: mockTimesheet.timeEntries,
+        startDate: scheduledDays[0],
         endDate: scheduledDays[2],
       });
     });
@@ -215,7 +243,7 @@ describe("useDragAndDrop", () => {
   });
 
   describe("cell drag", () => {
-    it("should handle cell drag start with existing time entry", () => {
+    it("should handle cell drag start with existing task entry", () => {
       const { result } = renderHook(() =>
         useDragAndDrop({
           scheduledDays,
@@ -234,15 +262,13 @@ describe("useDragAndDrop", () => {
 
       expect(result.current.activeId).toBe(cellId);
       expect(result.current.dragType).toBe("cell");
-      expect(result.current.draggedOverCells).toEqual([
-        new Date("2024-01-01"),
-      ]);
+      expect(result.current.draggedOverCells).toEqual([new Date("2024-01-01")]);
       expect(mockCallbacks.onDragStart).toHaveBeenCalledWith({
         startDate: new Date("2024-01-01"),
       });
     });
 
-    it("should handle cell drag start without existing time entry", () => {
+    it("should handle cell drag start without existing task entry", () => {
       const { result } = renderHook(() =>
         useDragAndDrop({
           scheduledDays,
@@ -337,7 +363,7 @@ describe("useDragAndDrop", () => {
       expect(result.current.draggedOverCells).toEqual(initialCells);
     });
 
-    it("should call onTimeEntryDrag callback on drag end", () => {
+    it("should call onTaskEntryDrag callback on drag end", () => {
       const { result } = renderHook(() =>
         useDragAndDrop({
           scheduledDays,
@@ -361,9 +387,8 @@ describe("useDragAndDrop", () => {
         });
       });
 
-      expect(mockCallbacks.onTimeEntryDrag).toHaveBeenCalledWith({
+      expect(mockCallbacks.onTaskEntryDrag).toHaveBeenCalledWith({
         task: mockTask,
-        timeEntries: mockTimesheet.timeEntries,
         endDate: new Date(new Date("2024-01-03").toDateString()),
       });
     });
@@ -392,7 +417,7 @@ describe("useDragAndDrop", () => {
         });
       });
 
-      expect(mockCallbacks.onTimeEntryDrag).not.toHaveBeenCalled();
+      expect(mockCallbacks.onTaskEntryDrag).not.toHaveBeenCalled();
     });
 
     it("should reset state after cell drag end", () => {
@@ -523,12 +548,8 @@ describe("useDragAndDrop", () => {
           });
         });
 
-        expect(
-          result.current.isCellInDragRange(new Date("2024-01-01"), 1)
-        ).toBe(true);
-        expect(
-          result.current.isCellInDragRange(new Date("2024-01-02"), 1)
-        ).toBe(true);
+        expect(result.current.isCellInDragRange(new Date("2024-01-01"), 1)).toBe(true);
+        expect(result.current.isCellInDragRange(new Date("2024-01-02"), 1)).toBe(true);
       });
 
       it("should return false when cell is not in drag range", () => {
@@ -548,9 +569,7 @@ describe("useDragAndDrop", () => {
           });
         });
 
-        expect(
-          result.current.isCellInDragRange(new Date("2024-01-05"), 1)
-        ).toBe(false);
+        expect(result.current.isCellInDragRange(new Date("2024-01-05"), 1)).toBe(false);
       });
 
       it("should return false when task id does not match", () => {
@@ -570,9 +589,7 @@ describe("useDragAndDrop", () => {
           });
         });
 
-        expect(
-          result.current.isCellInDragRange(new Date("2024-01-01"), 2)
-        ).toBe(false);
+        expect(result.current.isCellInDragRange(new Date("2024-01-01"), 2)).toBe(false);
       });
     });
 
@@ -689,7 +706,7 @@ describe("useDragAndDrop", () => {
   });
 
   describe("edge cases", () => {
-    it("should handle empty timesheet tasks", () => {
+    it("should handle column dragging with no tasks", () => {
       const emptyTimesheet = {
         ...mockTimesheet,
         tasks: [],
@@ -715,13 +732,16 @@ describe("useDragAndDrop", () => {
         });
       });
 
-      expect(mockCallbacks.onColumnDrag).not.toHaveBeenCalled();
+      expect(mockCallbacks.onColumnDrag).toHaveBeenCalledWith({
+        startDate: scheduledDays[0],
+        endDate: scheduledDays[2],
+      });
     });
 
-    it("should handle missing time entries", () => {
-      const timesheetNoEntries = {
+    it("should handle missing task entries", () => {
+      const timesheetNoEntries: Timesheet = {
         ...mockTimesheet,
-        timeEntries: [],
+        taskEntries: [],
       };
 
       const { result } = renderHook(() =>
@@ -747,9 +767,8 @@ describe("useDragAndDrop", () => {
         });
       });
 
-      expect(mockCallbacks.onTimeEntryDrag).toHaveBeenCalledWith({
+      expect(mockCallbacks.onTaskEntryDrag).toHaveBeenCalledWith({
         task: mockTask,
-        timeEntries: [],
         endDate: new Date(new Date("2024-01-03").toDateString()),
       });
     });

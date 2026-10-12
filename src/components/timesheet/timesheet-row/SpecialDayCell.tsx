@@ -1,6 +1,6 @@
 import React from "react";
 import { TreePalm, Stethoscope } from "lucide-react";
-import { TimeEntryType } from "../../../restapi/types";
+import { TaskEntryCellType } from "../../../restapi/types";
 
 interface Props {
   day: Date;
@@ -10,16 +10,10 @@ interface Props {
     backgroundColor: string;
     borderColor: string;
   };
-  type: TimeEntryType;
+  type: TaskEntryCellType;
 }
 
-export const SpecialDayCell: React.FC<Props> = ({
-  day,
-  taskId,
-  type,
-  isMonthView,
-  colors,
-}) => {
+export const SpecialDayCell: React.FC<Props> = ({ day, taskId, type, isMonthView, colors }) => {
   const cellId = `${day.toDateString()}-${taskId}`;
 
   // Define cell styling based on type
@@ -28,25 +22,13 @@ export const SpecialDayCell: React.FC<Props> = ({
       case "holiday":
         return {
           id: `holiday-cell-${cellId}`,
-          icon: (
-            <TreePalm
-              strokeWidth={1.5}
-              color="black"
-              size={isMonthView ? 20 : 26}
-            />
-          ),
+          icon: <TreePalm strokeWidth={1.5} color="black" size={isMonthView ? 20 : 26} />,
           style: { backgroundColor: colors.backgroundColor },
         };
       case "sick":
         return {
           id: `sick-day-cell-${cellId}`,
-          icon: (
-            <Stethoscope
-              strokeWidth={2.25}
-              color="black"
-              size={isMonthView ? 16 : 22}
-            />
-          ),
+          icon: <Stethoscope strokeWidth={2.25} color="black" size={isMonthView ? 16 : 22} />,
           style: { backgroundColor: colors.backgroundColor },
         };
       case "finished":
@@ -68,9 +50,7 @@ export const SpecialDayCell: React.FC<Props> = ({
       style={style}
       className={`h-full w-full text-center flex items-center justify-center cursor-not-allowed`}
     >
-      <div className={` h-full flex justify-center items-center`}>
-        {icon}
-      </div>
+      <div className={` h-full flex justify-center items-center`}>{icon}</div>
     </div>
   );
 };

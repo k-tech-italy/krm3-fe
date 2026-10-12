@@ -14,15 +14,10 @@ import {
 } from "./useMissions";
 import * as missionApi from "../restapi/mission";
 import * as useAuth from "./useAuth";
-import {
-  MissionInterface,
-  Resource,
-  Client,
-  Country,
-  City,
-  Project,
-  Page,
-} from "../restapi/types";
+import { MissionInterface, Resource, Client, Country, City, Project, Page } from "../restapi/types";
+
+type CurrentUserResult = ReturnType<typeof useAuth.useGetCurrentUser>;
+type CreateMissionResponse = Awaited<ReturnType<typeof missionApi.createMission>>;
 
 // Mock the mission API
 vi.mock("../restapi/mission", () => ({
@@ -105,7 +100,9 @@ describe("useMissions hooks", () => {
     };
 
     it("should create a mission successfully", async () => {
-      vi.mocked(missionApi.createMission).mockResolvedValue({ data: mockMission } as any);
+      vi.mocked(missionApi.createMission).mockResolvedValue({
+        data: mockMission,
+      } as unknown as CreateMissionResponse);
 
       const { result } = renderHook(() => useCreateMission(), {
         wrapper: createWrapper(),
@@ -121,9 +118,7 @@ describe("useMissions hooks", () => {
     });
 
     it("should handle create mission error", async () => {
-      vi.mocked(missionApi.createMission).mockRejectedValue(
-        new Error("Failed to create mission")
-      );
+      vi.mocked(missionApi.createMission).mockRejectedValue(new Error("Failed to create mission"));
 
       const { result } = renderHook(() => useCreateMission(), {
         wrapper: createWrapper(),
@@ -139,7 +134,9 @@ describe("useMissions hooks", () => {
     });
 
     it("should invalidate missions queries on success", async () => {
-      vi.mocked(missionApi.createMission).mockResolvedValue({ data: mockMission } as any);
+      vi.mocked(missionApi.createMission).mockResolvedValue({
+        data: mockMission,
+      } as unknown as CreateMissionResponse);
 
       const queryClient = new QueryClient();
       const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
@@ -231,7 +228,7 @@ describe("useMissions hooks", () => {
           resource: { id: 1, firstName: "John", lastName: "Doe" } as Resource,
           isStaff: false,
         },
-      } as any);
+      } as unknown as CurrentUserResult);
 
       vi.mocked(missionApi.getMissions).mockResolvedValue(mockMissions);
 
@@ -254,7 +251,7 @@ describe("useMissions hooks", () => {
           resource: { id: 2, firstName: "Jane", lastName: "Admin" } as Resource,
           isStaff: true,
         },
-      } as any);
+      } as unknown as CurrentUserResult);
 
       vi.mocked(missionApi.getMissions).mockResolvedValue(mockMissions);
 
@@ -277,7 +274,7 @@ describe("useMissions hooks", () => {
           resource: null,
           isStaff: false,
         },
-      } as any);
+      } as unknown as CurrentUserResult);
 
       vi.mocked(missionApi.getMissions).mockResolvedValue(mockMissions);
 
@@ -300,11 +297,9 @@ describe("useMissions hooks", () => {
           resource: { id: 1, firstName: "John", lastName: "Doe" } as Resource,
           isStaff: false,
         },
-      } as any);
+      } as unknown as CurrentUserResult);
 
-      vi.mocked(missionApi.getMissions).mockRejectedValue(
-        new Error("Failed to fetch missions")
-      );
+      vi.mocked(missionApi.getMissions).mockRejectedValue(new Error("Failed to fetch missions"));
 
       const { result } = renderHook(() => useGetMissions(), {
         wrapper: createWrapper(),
@@ -324,7 +319,7 @@ describe("useMissions hooks", () => {
           resource: { id: 5, firstName: "Test", lastName: "User" } as Resource,
           isStaff: false,
         },
-      } as any);
+      } as unknown as CurrentUserResult);
 
       vi.mocked(missionApi.getMissions).mockResolvedValue(mockMissions);
 
@@ -389,9 +384,7 @@ describe("useMissions hooks", () => {
     });
 
     it("should return undefined when resources fetch fails", async () => {
-      vi.mocked(missionApi.getResources).mockRejectedValue(
-        new Error("Failed to fetch resources")
-      );
+      vi.mocked(missionApi.getResources).mockRejectedValue(new Error("Failed to fetch resources"));
 
       const { result } = renderHook(() => useGetResources(), {
         wrapper: createWrapper(),
@@ -403,9 +396,7 @@ describe("useMissions hooks", () => {
     });
 
     it("should return undefined initially before data loads", () => {
-      vi.mocked(missionApi.getResources).mockImplementation(
-        () => new Promise(() => {})
-      );
+      vi.mocked(missionApi.getResources).mockImplementation(() => new Promise(() => {}));
 
       const { result } = renderHook(() => useGetResources(), {
         wrapper: createWrapper(),
@@ -430,6 +421,9 @@ describe("useMissions hooks", () => {
     ];
 
     it("should fetch and return active resources", async () => {
+      vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
+        data: { isSuperuser: true },
+      } as unknown as CurrentUserResult);
       vi.mocked(missionApi.getActiveResources).mockResolvedValue(mockActiveResources);
 
       const { result } = renderHook(() => useGetActiveResources(), {
@@ -444,6 +438,9 @@ describe("useMissions hooks", () => {
     });
 
     it("should return undefined when active resources fetch fails", async () => {
+      vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
+        data: { isSuperuser: true },
+      } as unknown as CurrentUserResult);
       vi.mocked(missionApi.getActiveResources).mockRejectedValue(
         new Error("Failed to fetch active resources")
       );
@@ -458,15 +455,29 @@ describe("useMissions hooks", () => {
     });
 
     it("should return undefined initially before data loads", () => {
-      vi.mocked(missionApi.getActiveResources).mockImplementation(
-        () => new Promise(() => {})
-      );
+      vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
+        data: { isSuperuser: true },
+      } as unknown as CurrentUserResult);
+      vi.mocked(missionApi.getActiveResources).mockImplementation(() => new Promise(() => {}));
 
       const { result } = renderHook(() => useGetActiveResources(), {
         wrapper: createWrapper(),
       });
 
       expect(result.current).toBeUndefined();
+    });
+
+    it("does not fetch active resources for a regular user", async () => {
+      vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
+        data: { isSuperuser: false },
+      } as unknown as CurrentUserResult);
+
+      renderHook(() => useGetActiveResources(), {
+        wrapper: createWrapper(),
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(missionApi.getActiveResources).not.toHaveBeenCalled();
     });
   });
 
@@ -496,9 +507,7 @@ describe("useMissions hooks", () => {
     });
 
     it("should return undefined when clients fetch fails", async () => {
-      vi.mocked(missionApi.getClients).mockRejectedValue(
-        new Error("Failed to fetch clients")
-      );
+      vi.mocked(missionApi.getClients).mockRejectedValue(new Error("Failed to fetch clients"));
 
       const { result } = renderHook(() => useGetClients(), {
         wrapper: createWrapper(),
@@ -510,9 +519,7 @@ describe("useMissions hooks", () => {
     });
 
     it("should return undefined initially before data loads", () => {
-      vi.mocked(missionApi.getClients).mockImplementation(
-        () => new Promise(() => {})
-      );
+      vi.mocked(missionApi.getClients).mockImplementation(() => new Promise(() => {}));
 
       const { result } = renderHook(() => useGetClients(), {
         wrapper: createWrapper(),
@@ -548,9 +555,7 @@ describe("useMissions hooks", () => {
     });
 
     it("should return undefined when countries fetch fails", async () => {
-      vi.mocked(missionApi.getCountries).mockRejectedValue(
-        new Error("Failed to fetch countries")
-      );
+      vi.mocked(missionApi.getCountries).mockRejectedValue(new Error("Failed to fetch countries"));
 
       const { result } = renderHook(() => useGetCountries(), {
         wrapper: createWrapper(),
@@ -562,9 +567,7 @@ describe("useMissions hooks", () => {
     });
 
     it("should return undefined initially before data loads", () => {
-      vi.mocked(missionApi.getCountries).mockImplementation(
-        () => new Promise(() => {})
-      );
+      vi.mocked(missionApi.getCountries).mockImplementation(() => new Promise(() => {}));
 
       const { result } = renderHook(() => useGetCountries(), {
         wrapper: createWrapper(),
@@ -600,9 +603,7 @@ describe("useMissions hooks", () => {
     });
 
     it("should return undefined when cities fetch fails", async () => {
-      vi.mocked(missionApi.getCities).mockRejectedValue(
-        new Error("Failed to fetch cities")
-      );
+      vi.mocked(missionApi.getCities).mockRejectedValue(new Error("Failed to fetch cities"));
 
       const { result } = renderHook(() => useGetCitiess(), {
         wrapper: createWrapper(),
@@ -614,9 +615,7 @@ describe("useMissions hooks", () => {
     });
 
     it("should return undefined initially before data loads", () => {
-      vi.mocked(missionApi.getCities).mockImplementation(
-        () => new Promise(() => {})
-      );
+      vi.mocked(missionApi.getCities).mockImplementation(() => new Promise(() => {}));
 
       const { result } = renderHook(() => useGetCitiess(), {
         wrapper: createWrapper(),
@@ -652,9 +651,7 @@ describe("useMissions hooks", () => {
     });
 
     it("should return undefined when projects fetch fails", async () => {
-      vi.mocked(missionApi.getProjects).mockRejectedValue(
-        new Error("Failed to fetch projects")
-      );
+      vi.mocked(missionApi.getProjects).mockRejectedValue(new Error("Failed to fetch projects"));
 
       const { result } = renderHook(() => useGetProjects(), {
         wrapper: createWrapper(),
@@ -666,9 +663,7 @@ describe("useMissions hooks", () => {
     });
 
     it("should return undefined initially before data loads", () => {
-      vi.mocked(missionApi.getProjects).mockImplementation(
-        () => new Promise(() => {})
-      );
+      vi.mocked(missionApi.getProjects).mockImplementation(() => new Promise(() => {}));
 
       const { result } = renderHook(() => useGetProjects(), {
         wrapper: createWrapper(),
@@ -734,9 +729,7 @@ describe("useMissions hooks", () => {
     });
 
     it("should handle error when fetching specific mission", async () => {
-      vi.mocked(missionApi.getMission).mockRejectedValue(
-        new Error("Failed to fetch mission")
-      );
+      vi.mocked(missionApi.getMission).mockRejectedValue(new Error("Failed to fetch mission"));
 
       const { result } = renderHook(() => useGetMission(1), {
         wrapper: createWrapper(),
