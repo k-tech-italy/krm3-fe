@@ -41,7 +41,7 @@ export function CreateMissionForm(props: Props) {
   }, [props.error]);
 
   function handleChangeResource(e: any): void {
-    if (!!resources) {
+    if (resources) {
       const selected =
         resources.results
           .filter((res) => res.id === Number(e.target.value))
@@ -53,7 +53,7 @@ export function CreateMissionForm(props: Props) {
   }
 
   function handleChangeProject(e: any): void {
-    if (!!projects) {
+    if (projects) {
       const selected =
         projects.results
           .filter((res) => res.id === Number(e.target.value))
@@ -65,13 +65,13 @@ export function CreateMissionForm(props: Props) {
   }
 
   function handleChangeCountry(e: any): void {
-    if (!!countries) {
+    if (countries) {
       setCountry((prev) => e.target.value);
     }
   }
 
   function handleChangeCity(e: any): void {
-    if (!!cities) {
+    if (cities) {
       const selected =
         cities.results.filter((c) => c.id === Number(e.target.value)).at(0) ||
         props.mission.city;
@@ -81,7 +81,7 @@ export function CreateMissionForm(props: Props) {
     }
   }
   function handleChangeCurrency(e: any): void {
-    if (!!currencies) {
+    if (currencies) {
       const selected =
         currencies.results.filter((c) => c.iso3 === e.target.value).at(0) ||
         props.mission.defaultCurrency;
@@ -99,7 +99,7 @@ export function CreateMissionForm(props: Props) {
           <input
             data-testid="title-input"
             className={`w-full border rounded-md p-2 ${
-              !!error?.resource ? "border-red-500" : "border-gray-300"
+              error?.resource ? "border-red-500" : "border-gray-300"
             } `}
             onChange={(e) => {
               props.mission.title = e.target.value;
@@ -118,7 +118,7 @@ export function CreateMissionForm(props: Props) {
           <select
             data-testid="first-name-select"
             className={`w-full border rounded-md p-2 ${
-              !!error?.resource ? "border-red-500" : "border-gray-300"
+              error?.resource ? "border-red-500" : "border-gray-300"
             } `}
             value={mission?.resource?.id}
             onChange={handleChangeResource}
@@ -144,7 +144,7 @@ export function CreateMissionForm(props: Props) {
           <select
             data-testid="project-select"
             className={`w-full border rounded-md p-2 ${
-              !!error?.project ? "border-red-500" : "border-gray-300"
+              error?.project ? "border-red-500" : "border-gray-300"
             } `}
             value={mission?.project?.id}
             onChange={handleChangeProject}
@@ -195,7 +195,7 @@ export function CreateMissionForm(props: Props) {
           <select
             data-testid="city-select"
             className={`w-full border rounded-md p-2 ${
-              !!error?.city ? "border-red-500" : "border-gray-300"
+              error?.city ? "border-red-500" : "border-gray-300"
             } `}
             value={props.mission?.city?.id}
             onChange={handleChangeCity}
@@ -225,7 +225,7 @@ export function CreateMissionForm(props: Props) {
           <select
             data-testid="currency-select"
             className={`w-full border rounded-md p-2 ${
-              !!error?.defaultCurrency ? "border-red-500" : "border-gray-300"
+              error?.defaultCurrency ? "border-red-500" : "border-gray-300"
             } `}
             value={props.mission?.defaultCurrency?.iso3}
             onChange={handleChangeCurrency}
@@ -253,7 +253,7 @@ export function CreateMissionForm(props: Props) {
           <DatePicker
             id="create-mission-form-from-date-picker"
             selected={
-              !!mission.fromDate ? new Date(mission.fromDate) : new Date()
+              mission.fromDate ? new Date(mission.fromDate) : new Date()
             }
             className="w-full border rounded-md p-2 border-gray-300"
             onChange={(date: Date | null) => {
@@ -272,7 +272,7 @@ export function CreateMissionForm(props: Props) {
         <div className="sm:w-2/4 w-full">
           <DatePicker
             id="create-mission-form-to-date-picker"
-            selected={!!mission.toDate ? new Date(mission.toDate) : new Date()}
+            selected={mission.toDate ? new Date(mission.toDate) : new Date()}
             className="w-full border rounded-md p-2 border-gray-300"
             onChange={(date: Date | null) => {
               setMission({

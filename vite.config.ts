@@ -37,6 +37,17 @@ export default defineConfig(({ mode }) => {
       coverage: {
         provider: 'v8',
         reporter: ['text', 'text-summary', 'lcov'],
+        exclude: [
+          '**/node_modules/**',
+          '**/dist/**',
+          '**/cypress/**',
+          '**/.{idea,git,cache,output,temp}/**',
+          '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
+          '**/setupProxy.js',
+          '**/tailwind.config.js',
+          '**/react-app-env.d.ts',
+          '**/vite-env.d.ts',
+        ],
       },
     },
   };

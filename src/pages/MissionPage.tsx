@@ -77,7 +77,7 @@ export function MissionPage() {
                     { accessorKey: "title", header: "Title" },
                     { accessorKey: "resource", header: "Resource" },
                   ]}
-                  data={(!!dataFiltered ? dataFiltered : data.results).map(
+                  data={(dataFiltered ? dataFiltered : data.results).map(
                     (item) => ({
                       id: item.id,
                       fromDate: item.fromDate,
@@ -114,7 +114,7 @@ export function MissionPage() {
                 { accessorKey: "resource", header: "Risorsa" },
                 { accessorKey: "amountCurrency", header: "Importo in EUR" },
               ]}
-              data={(!!expenseFiltered
+              data={(expenseFiltered
                 ? expenseFiltered
                 : exepenses.results
               ).map((item: ExpenseInterface) => ({

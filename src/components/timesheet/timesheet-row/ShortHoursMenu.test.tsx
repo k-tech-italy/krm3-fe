@@ -1,220 +1,145 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { ShortHoursMenu } from "./ShortHoursMenu";
-import React from "react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DayEntry, TaskEntry } from "../../../restapi/types";
+import { ShortHoursMenu } from "./ShortHoursMenu";
 
-const mutateDeleteMock = vi.fn().mockResolvedValue(undefined);
-
-// Mock useCreateTimeEntry
-const mutateAsyncMock = vi.fn();
+const createTask = vi.fn().mockResolvedValue({});
+const deleteTasks = vi.fn().mockResolvedValue({});
 vi.mock("../../../hooks/useTimesheet", () => ({
-  useCreateTimeEntry: () => ({
-    mutateAsync: mutateAsyncMock,
-    error: null,
-  }),
-  useDeleteTimeEntries: () => ({
-    mutateAsync: mutateDeleteMock,
-  })
+  useCreateTaskEntry: () => ({ mutateAsync: createTask, error: null }),
+  useDeleteTaskEntries: () => ({ mutateAsync: deleteTasks }),
 }));
+vi.mock("../../../hooks/useAuth", () => ({
+  useGetCurrentUser: () => ({ data: { resource: { id: 1 } } }),
+}));
+vi.mock("react-toastify", () => ({
+  toast: { error: vi.fn(), warning: vi.fn(), promise: vi.fn((promise) => promise) },
+}));
+vi.mock("react-tooltip", () => ({ Tooltip: () => <div /> }));
 
-// Mock toast (define functions inside the factory to avoid hoisting issues)
-vi.mock("react-toastify", () => {
-  return {
-    toast: {
-      error: vi.fn(),
-      warning: vi.fn(),
-      promise: vi.fn(),
-    },
-  };
-});
+const day = new Date("2025-01-15T12:00:00");
+const dayEntry = { id: 11, day: "2025-01-15", closed: false } as DayEntry;
+const taskEntry = {
+  id: 21,
+  task: 3,
+  dayEntry: 11,
+  dayShiftHours: 2,
+  nightShiftHours: 0,
+  onCallHours: 0,
+  travelHours: 0,
+  comment: null,
+  metadata: {},
+} as TaskEntry;
+const baseProps = {
+  dayToOpen: day,
+  taskId: 3,
+  openShortMenu: { startDate: "2025-01-15", endDate: "2025-01-15", taskId: "3" },
+  readOnly: false,
+  selectedResourceId: 1,
+  setOpenShortMenu: vi.fn(),
+  openTaskEntryModal: vi.fn(),
+  taskEntries: [] as TaskEntry[],
+  dayEntries: [] as DayEntry[],
+  schedule: { "2025_01_15": 8 },
+};
+const renderMenu = (overrides = {}) =>
+  render(
+    <QueryClientProvider client={new QueryClient()}>
+      <ShortHoursMenu {...baseProps} {...overrides} />
+    </QueryClientProvider>
+  );
 
-describe("ShortHoursMenu (extended)", () => {
-  const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
-  const baseProps = {
-    dayToOpen: today,
-    taskId: 1,
-    openShortMenu: {
-      startDate: todayStr,
-      endDate: todayStr,
-      taskId: "1",
-    },
-    readOnly: false,
-    selectedResourceId: 1,
-    setOpenShortMenu: () => {},
-    openTimeEntryModalHandler: () => {},
-    timeEntries: [],
-    days: {},
-    holidayOrSickDays: [],
-  };
-  function renderMenu(props = {}) {
-    const queryClient = new QueryClient();
-    return render(
-      <QueryClientProvider client={queryClient}>
-        <ShortHoursMenu {...baseProps} {...props} />
-      </QueryClientProvider>
-    );
-  }
+describe("ShortHoursMenu", () => {
+  beforeEach(() => vi.clearAllMocks());
 
-  it("renders hour options", () => {
+  it("creates task-entry hours from a quick option", async () => {
     renderMenu();
-    expect(screen.getByText("2h")).toBeInTheDocument();
-    expect(screen.getByText("4h")).toBeInTheDocument();
-    expect(screen.getByText("8h")).toBeInTheDocument();
-    expect(screen.getByText("More")).toBeInTheDocument();
-    expect(screen.queryByTestId("short-menu-delete-button")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("short-menu-2h-button"));
+    await waitFor(() => expect(createTask).toHaveBeenCalled());
   });
-  it("renders delete option if timeentry is selected", () => {
-    renderMenu({timeEntries: [
-        {
-          id: 1,
-          dayShiftHours: 2,
-          nightShiftHours: 1,
-          restHours: 0,
-          travelHours: 0,
-          date: new Date().toISOString().slice(0, 10),
-          task: 1,
-          sickHours: 0,
-          holidayHours: 0,
-          leaveHours: 0,
-          onCallHours: 0,
-          specialLeaveHours: 0,
-          specialReason: undefined,
-          comment: undefined,
-        },
-      ]
-    })
-    expect(screen.getByTestId("short-menu-delete-button")).toBeInTheDocument();
-  })
-  it("delete is called with correct parameters", () => {
-    renderMenu({timeEntries: [
-        {
-          id: 1,
-          dayShiftHours: 2,
-          nightShiftHours: 0,
-          restHours: 0,
-          travelHours: 0,
-          date: new Date().toISOString().slice(0, 10),
-          task: 1,
-          sickHours: 0,
-          holidayHours: 0,
-          leaveHours: 0,
-          onCallHours: 0,
-          specialLeaveHours: 0,
-          specialReason: undefined,
-          comment: undefined,
-        },
-        {
-          id: 2,
-          dayShiftHours: 2,
-          nightShiftHours: 0,
-          restHours: 0,
-          travelHours: 0,
-          // yesterday
-          date: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
-          task: 1,
-          sickHours: 0,
-          holidayHours: 0,
-          leaveHours: 0,
-          onCallHours: 0,
-          specialLeaveHours: 0,
-          specialReason: undefined,
-          comment: undefined,
-        },
-        {
-          id: 3,
-          dayShiftHours: 2,
-          nightShiftHours: 0,
-          restHours: 0,
-          travelHours: 0,
-          date: new Date().toISOString().slice(0, 10),
-          task: 2,
-          sickHours: 0,
-          holidayHours: 0,
-          leaveHours: 0,
-          onCallHours: 0,
-          specialLeaveHours: 0,
-          specialReason: undefined,
-          comment: undefined,
-        },
-      ]
-    })
-    fireEvent.click(screen.getByTestId("short-menu-delete-button"))
-    expect(mutateDeleteMock).toHaveBeenCalledWith([1])
-  })
 
-  it("renders readOnly option", () => {
+  it("rejects a quick option above the hours available after leave", async () => {
+    renderMenu({
+      dayEntries: [
+        {
+          ...dayEntry,
+          dueHours: 8,
+          leaveHours: 4,
+          specialLeaveHours: 0,
+          restHours: 0,
+          bank: 0,
+        },
+      ],
+    });
+    fireEvent.click(screen.getByTestId("short-menu-8h-button"));
+
+    await waitFor(() => expect(createTask).not.toHaveBeenCalled());
+  });
+
+  it("sends non-working days in a multi-day selection", async () => {
+    renderMenu({
+      dayToOpen: new Date("2025-01-17T12:00:00"),
+      openShortMenu: { startDate: "2025-01-15", endDate: "2025-01-17", taskId: "3" },
+      schedule: {
+        "2025_01_15": 8,
+        "2025_01_16": 0,
+        "2025_01_17": 8,
+      },
+    });
+    fireEvent.click(screen.getByTestId("short-menu-2h-button"));
+
+    await waitFor(() =>
+      expect(createTask).toHaveBeenCalledWith(
+        expect.objectContaining({ dates: ["2025-01-15", "2025-01-16", "2025-01-17"] })
+      )
+    );
+  });
+
+  it("keeps a non-working day in a single-day selection", async () => {
+    renderMenu({
+      dayToOpen: new Date("2025-01-16T12:00:00"),
+      openShortMenu: { startDate: "2025-01-16", endDate: "2025-01-16", taskId: "3" },
+      schedule: { "2025_01_16": 0 },
+    });
+    fireEvent.click(screen.getByTestId("short-menu-2h-button"));
+
+    await waitFor(() =>
+      expect(createTask).toHaveBeenCalledWith(expect.objectContaining({ dates: ["2025-01-16"] }))
+    );
+  });
+
+  it("requests backend autofill with zero daytime hours", async () => {
+    renderMenu();
+    fireEvent.click(screen.getByTestId("short-menu-autofill-button"));
+
+    await waitFor(() =>
+      expect(createTask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dates: ["2025-01-15"],
+          taskId: 3,
+          autofill: true,
+          dayShiftHours: 0,
+        })
+      )
+    );
+  });
+
+  it("opens the task-entry modal from More", () => {
+    renderMenu();
+    fireEvent.click(screen.getByText("More"));
+    expect(baseProps.openTaskEntryModal).toHaveBeenCalled();
+  });
+
+  it("deletes existing task entries", async () => {
+    renderMenu({ dayEntries: [dayEntry], taskEntries: [taskEntry] });
+    fireEvent.click(screen.getByTestId("short-menu-delete-button"));
+    await waitFor(() => expect(deleteTasks).toHaveBeenCalledWith([21]));
+  });
+
+  it("shows Details in read-only mode", () => {
     renderMenu({ readOnly: true });
     expect(screen.getByText("Details")).toBeInTheDocument();
+    expect(screen.queryByTestId("short-menu-2h-button")).not.toBeInTheDocument();
   });
-
-  it("calls openTimeEntryModalHandler when 'More' is clicked", () => {
-    const openTimeEntryModalHandler = vi.fn();
-    renderMenu({ openTimeEntryModalHandler });
-    fireEvent.click(screen.getByText("More"));
-    expect(openTimeEntryModalHandler).toHaveBeenCalled();
-  });
-
-  it("calls mutateAsync when hour option is clicked", () => {
-    renderMenu();
-    fireEvent.click(screen.getByText("2h"));
-    expect(mutateAsyncMock).toHaveBeenCalled();
-  });
-
-  it("does not render menu if openShortMenu is not visible", () => {
-    const queryClient = new QueryClient();
-    const { container } = render(
-      <QueryClientProvider client={queryClient}>
-        <ShortHoursMenu {...baseProps} openShortMenu={null} />
-      </QueryClientProvider>
-    );
-    expect(container.firstChild).toBeNull();
-  });
-
-  it("shows confirm modal when clicking hour with existing entries", () => {
-    // Simulate daysWithTimeEntries present
-    const timeEntries = [{ date: todayStr, task: 1 }];
-    renderMenu({
-      timeEntries,
-      openShortMenu: {
-        ...baseProps.openShortMenu,
-        startDate: todayStr,
-        endDate: todayStr,
-        taskId: "1",
-      },
-    });
-    fireEvent.click(screen.getByText("2h"));
-    // Modal should appear
-    expect(screen.getByText(/Overwrite existing entries/i)).toBeInTheDocument();
-  });
-
-  it("handles confirm modal actions", () => {
-    // Simulate daysWithTimeEntries present
-    const timeEntries = [{ date: todayStr, task: 1 }];
-    renderMenu({
-      timeEntries,
-      openShortMenu: {
-        ...baseProps.openShortMenu,
-        startDate: todayStr,
-        endDate: todayStr,
-        taskId: "1",
-      },
-    });
-    fireEvent.click(screen.getByText("2h"));
-    // Click "No, Don't Overwrite"
-    fireEvent.click(screen.getByText(/No, Don't Overwrite/i));
-    // Click "Yes, Overwrite"
-    fireEvent.click(screen.getByText(/Yes, Overwrite/i));
-    // Both should call mutateAsyncMock
-    expect(mutateAsyncMock).toHaveBeenCalled();
-  });
-
-  it("handles mouse leave", () => {
-    renderMenu();
-    // Simulate mouse leave on the menu
-    const menu = screen.getByRole("menu");
-    fireEvent.mouseLeave(menu);
-    // No assertion needed, just for coverage
-  });
-}); 
+});

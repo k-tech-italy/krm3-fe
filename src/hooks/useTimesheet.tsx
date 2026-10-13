@@ -3,41 +3,53 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 import { AxiosError, AxiosResponse } from "axios";
 import { useGetCurrentUser } from "./useAuth";
 import {
-  createTimeEntry,
   getTimesheet,
-  deleteTimeEntries,
   getSpecialReason,
   submitTimesheet,
+  createTaskEntry,
+  clearDayEntries,
+  deleteDayEntry,
+  deleteDayEntries,
+  deleteTaskEntries,
+  saveDayEntries,
 } from "../restapi/timesheet";
+import { DayEntriesPayload, TaskEntryPayload } from "../restapi/types";
 
-export function useCreateTimeEntry(selectedResourceId: number | null) {
+export function useCreateTaskEntry(selectedResourceId: number | null) {
   const { data: currentUser } = useGetCurrentUser();
-  const resourceId = selectedResourceId
-    ? selectedResourceId
-    : currentUser?.resource.id;
+  const resourceId = selectedResourceId || currentUser?.resource.id;
+
   const queryClient = useQueryClient();
+
   if (resourceId === undefined) {
     throw new Error("Resource ID is undefined");
   }
+
   return useMutation(
-    (params: {
-      taskId?: number;
-      dates: string[];
-      dayShiftHours?: number;
-      sickHours?: number;
-      holidayHours?: number;
-      leaveHours?: number;
-      nightShiftHours?: number;
-      travelHours?: number;
-      onCallHours?: number;
-      restHours?: number;
-      specialLeaveHours?: number;
-      specialLeaveReason?: string;
-      bankFrom?: number,
-      bankTo?: number,
-      comment?: string;
-      protocolNumber?: string;
-    }) => createTimeEntry({ ...params, resourceId }),
+    (params: Omit<TaskEntryPayload, "resourceId">) =>
+      createTaskEntry({
+        ...params,
+        resourceId,
+      }),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["timesheet"] });
+      },
+    }
+  );
+}
+
+export function useSaveDayEntries(selectedResourceId: number | null) {
+  const { data: currentUser } = useGetCurrentUser();
+  const resourceId = selectedResourceId || currentUser?.resource.id;
+  const queryClient = useQueryClient();
+
+  if (resourceId === undefined) {
+    throw new Error("Resource ID is undefined");
+  }
+
+  return useMutation(
+    (params: Omit<DayEntriesPayload, "resourceId">) => saveDayEntries({ ...params, resourceId }),
     {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["timesheet"] });
@@ -55,7 +67,6 @@ export function useSubmitTimesheet() {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["timesheet"] });
       },
-      onError: (error: AxiosError) => {},
     }
   );
 }
@@ -66,9 +77,7 @@ export function useGetTimesheet(
   selectedResourceId: number | null
 ) {
   const { data } = useGetCurrentUser();
-  const resourceId = selectedResourceId
-    ? selectedResourceId
-    : data?.resource?.id;
+  const resourceId = selectedResourceId || data?.resource?.id;
 
   return useQuery(
     ["timesheet", resourceId, startDate, endDate],
@@ -94,28 +103,60 @@ export function useGetTimesheet(
     }
   );
 }
-export function useDeleteTimeEntries() {
+
+export function useDeleteDayEntry() {
   const queryClient = useQueryClient();
 
-  return useMutation<AxiosResponse, AxiosError, number[]>(
-    (entryIds) => deleteTimeEntries(entryIds),
+  return useMutation<AxiosResponse, AxiosError, number>(
+    (dayEntryId) => deleteDayEntry(dayEntryId),
     {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["timesheet"] });
       },
-      onError: (error: AxiosError) => {},
+    }
+  );
+}
+
+export function useDeleteDayEntries() {
+  const queryClient = useQueryClient();
+
+  return useMutation<AxiosResponse, AxiosError, number[]>(
+    (entryIds) => deleteDayEntries(entryIds),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["timesheet"] });
+      },
+    }
+  );
+}
+
+export function useClearDayEntries() {
+  const queryClient = useQueryClient();
+
+  return useMutation<AxiosResponse, AxiosError, number[]>((entryIds) => clearDayEntries(entryIds), {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["timesheet"] });
+    },
+  });
+}
+
+export function useDeleteTaskEntries() {
+  const queryClient = useQueryClient();
+
+  return useMutation<AxiosResponse, AxiosError, number[]>(
+    (entryIds) => deleteTaskEntries(entryIds),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["timesheet"] });
+      },
     }
   );
 }
 
 export function useGetSpecialReason(fromDate: string, toDate: string) {
-  return useQuery(
-    ["special-reason", fromDate, toDate],
-    () => getSpecialReason(fromDate, toDate),
-    {
-      onError: (error) => {
-        return error;
-      },
-    }
-  );
+  return useQuery(["special-reason", fromDate, toDate], () => getSpecialReason(fromDate, toDate), {
+    onError: (error) => {
+      return error;
+    },
+  });
 }

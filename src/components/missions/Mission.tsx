@@ -60,7 +60,7 @@ export function Mission() {
                             { accessorKey: 'paymentType_title', header: 'Tipo di pagamento' },
                             { accessorKey: 'documentType_title', header: 'Tipo di documento' },
                         ]}
-                        data={!!data ? data.expenses.slice(0).map((item) => {
+                        data={data ? data.expenses.slice(0).map((item) => {
                             return {
                                 ...item,
                                 category_title: item.category.title,

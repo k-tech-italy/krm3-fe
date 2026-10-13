@@ -10,13 +10,7 @@ interface Krm3ModalProps {
   title?: string;
 }
 
-export default function Krm3Modal({
-  open,
-  onClose,
-  children,
-  title,
-  width,
-}: Krm3ModalProps) {
+export default function Krm3Modal({ open, onClose, children, title, width }: Krm3ModalProps) {
   // Handle body scroll lock
   useEffect(() => {
     if (open) {
@@ -32,7 +26,7 @@ export default function Krm3Modal({
   // Modal styles that match original component
   const customStyles = {
     overlay: {
-      backgroundColor: "rgba(0, 0, 0, 0.2)",
+      backgroundColor: "rgba(0, 0, 0, 0.6)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -69,11 +63,9 @@ export default function Krm3Modal({
     >
       <div className="relative flex flex-col bg-card">
         <div className="flex justify-between items-center p-4 sm:p-6 border-b-app">
-          <p className="text-xl sm:text-2xl font-semibold text-app">
-            {title}
-          </p>
+          <p className="text-xl sm:text-2xl font-semibold text-app">{title}</p>
           <button
-            className="text-app hover:text-krm3-primary focus:outline-none focus:ring-2 focus:ring-krm3-primary rounded p-1"
+            className="text-app hover:text-krm3-primary focus:outline-none focus:ring-2 focus:ring-krm3-primary rounded p-1 cursor-pointer"
             onClick={onClose}
             aria-label="Close modal"
           >
