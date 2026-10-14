@@ -43,7 +43,7 @@ describe("SelectResource", () => {
     render(<SelectResource setSelectedResourceId={setSelectedResourceMock} />);
     expect(screen.getByText("Kowal Jan")).toBeInTheDocument();
   });
-  it("does not show the selector for a regular user and keeps their resource selected", async () => {
+  it("shows the selector for a user who can view other timesheets", () => {
     vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
       data: {
         isSuperuser: false,
@@ -53,7 +53,43 @@ describe("SelectResource", () => {
           lastName: "Kowal",
         },
       },
-      userCan: () => true,
+      userCan: (permissions: string[]) => permissions.includes("core.view_any_timesheet"),
+    } as unknown as CurrentUserResult);
+
+    render(<SelectResource setSelectedResourceId={setSelectedResourceMock} />);
+
+    expect(screen.getByText("Select Resource:")).toBeInTheDocument();
+    expect(document.getElementById("resource-select")).toBeInTheDocument();
+  });
+  it("shows the selector for a user who can manage other timesheets", () => {
+    vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
+      data: {
+        isSuperuser: false,
+        resource: {
+          id: 1,
+          firstName: "Jan",
+          lastName: "Kowal",
+        },
+      },
+      userCan: (permissions: string[]) => permissions.includes("core.manage_any_timesheet"),
+    } as unknown as CurrentUserResult);
+
+    render(<SelectResource setSelectedResourceId={setSelectedResourceMock} />);
+
+    expect(screen.getByText("Select Resource:")).toBeInTheDocument();
+    expect(document.getElementById("resource-select")).toBeInTheDocument();
+  });
+  it("does not show the selector without permission and keeps the user's resource selected", async () => {
+    vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
+      data: {
+        isSuperuser: false,
+        resource: {
+          id: 1,
+          firstName: "Jan",
+          lastName: "Kowal",
+        },
+      },
+      userCan: () => false,
     } as unknown as CurrentUserResult);
 
     render(<SelectResource setSelectedResourceId={setSelectedResourceMock} />);

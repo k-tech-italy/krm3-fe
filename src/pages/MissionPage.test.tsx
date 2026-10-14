@@ -4,11 +4,45 @@ import { vi } from "vitest";
 import { useGetMissions } from "../hooks/useMissions";
 import { useGetExpense } from "../hooks/useExpense";
 import { useMediaQuery } from "../hooks/useView";
-import { UseQueryResult } from "react-query";
+
+type FilterResourceMockProps = {
+  handleFilter: (data: Record<string, unknown>[]) => void;
+  data: { results: Record<string, unknown>[] };
+};
+
+type TableRow = {
+  id: number;
+  mission_title?: string;
+  resource?: string;
+  amountCurrency?: string;
+};
+
+type TableMockProps = {
+  data: TableRow[];
+  onClickRow: (row: TableRow) => void;
+};
+
+type ExpenseFilterMockProps = {
+  handleFilter: (data: Record<string, unknown>[]) => void;
+  data: Record<string, unknown>[];
+};
+
+type ModalMockProps = {
+  show: boolean;
+  onClose: () => void;
+};
+
+const { mockNavigate } = vi.hoisted(() => ({
+  mockNavigate: vi.fn(),
+}));
 
 // Mock the modules to return mock functions
 vi.mock("../hooks/useMissions", () => ({
   useGetMissions: vi.fn(),
+}));
+
+vi.mock("react-router-dom", () => ({
+  useNavigate: () => mockNavigate,
 }));
 
 vi.mock("../hooks/useExpense", () => ({
@@ -28,7 +62,7 @@ vi.mock("../components/commons/LoadSpinner", () => ({
   default: () => <div>Loading...</div>,
 }));
 vi.mock("../components/missions/filter", () => ({
-  default: ({ handleFilter, data }: any) => (
+  default: ({ handleFilter, data }: FilterResourceMockProps) => (
     <div>
       FilterResource
       <button onClick={() => handleFilter([data.results[0]])}>Apply Filter</button>
@@ -37,11 +71,11 @@ vi.mock("../components/missions/filter", () => ({
 }));
 
 vi.mock("../components/commons/Krm3Table", () => ({
-  default: ({ data, columns, onClickRow }: any) => (
+  default: ({ data, onClickRow }: TableMockProps) => (
     <table>
       <tbody>
-        {data.map((row: any, i: number) => (
-          <tr key={i} onClick={() => onClickRow(row)} data-testid={`row-${i}`}>
+        {data.map((row, i) => (
+          <tr key={row.id} onClick={() => onClickRow(row)} data-testid={`row-${i}`}>
             <td data-testid={`id-${i}`}>{row.id}</td>
             <td data-testid={`mission-title-${i}`}>{row.mission_title}</td>
             <td data-testid={`resource-${i}`}>{row.resource}</td>
@@ -53,7 +87,7 @@ vi.mock("../components/commons/Krm3Table", () => ({
   ),
 }));
 vi.mock("../components/expense/ExpenseFilter", () => ({
-  default: ({ handleFilter, data }: any) => (
+  default: ({ handleFilter, data }: ExpenseFilterMockProps) => (
     <div>
       ExpenseFilter
       <button onClick={() => handleFilter([data[0]])}>Apply Expense Filter</button>
@@ -61,7 +95,7 @@ vi.mock("../components/expense/ExpenseFilter", () => ({
   ),
 }));
 vi.mock("../components/expense/edit/ExpenseEdit", () => ({
-  ExpenseEdit: ({ show, onClose }: any) =>
+  ExpenseEdit: ({ show, onClose }: ModalMockProps) =>
     show ? (
       <div>
         ExpenseEditModal
@@ -70,20 +104,13 @@ vi.mock("../components/expense/edit/ExpenseEdit", () => ({
     ) : null,
 }));
 vi.mock("../components/missions/create/CreateMission", () => ({
-  default: ({ show, onClose }: any) =>
+  default: ({ show, onClose }: ModalMockProps) =>
     show ? (
       <div>
         MissionModal<button onClick={onClose}>Close</button>
       </div>
     ) : null,
 }));
-
-beforeAll(() => {
-  Object.defineProperty(window, "location", {
-    value: { ...window.location, replace: vi.fn() },
-    writable: true,
-  });
-});
 
 // Create mock references for all hooks
 const mockUseGetMissions = vi.mocked(useGetMissions);
@@ -116,16 +143,18 @@ const mockExpenseData = {
 
 describe("MissionPage", () => {
   beforeEach(() => {
+    mockNavigate.mockClear();
+
     // Set default mock return values
     mockUseGetMissions.mockReturnValue({
       isLoading: false,
       isError: false,
       data: mockMissionData,
-    } as UseQueryResult<any>);
+    } as ReturnType<typeof useGetMissions>);
 
     mockUseGetExpense.mockReturnValue({
       data: mockExpenseData,
-    } as UseQueryResult<any>);
+    } as ReturnType<typeof useGetExpense>);
 
     mockUseMediaQuery.mockReturnValue(false);
     mockUserPermissions.value = ["core.add_mission"];
@@ -151,7 +180,7 @@ describe("MissionPage", () => {
   it("renders loading state", () => {
     mockUseGetMissions.mockReturnValueOnce({
       isLoading: true,
-    } as UseQueryResult<any>);
+    } as ReturnType<typeof useGetMissions>);
     render(<MissionPage />);
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
@@ -160,7 +189,7 @@ describe("MissionPage", () => {
     mockUseGetMissions.mockReturnValueOnce({
       isLoading: false,
       isError: true,
-    } as UseQueryResult<any>);
+    } as ReturnType<typeof useGetMissions>);
     render(<MissionPage />);
     expect(screen.getByText(/errore/i)).toBeInTheDocument();
   });
@@ -191,7 +220,7 @@ describe("MissionPage", () => {
 
     mockUseGetExpense.mockReturnValue({
       data: { results: [expenseWithInvalidMission] },
-    } as UseQueryResult<any>);
+    } as ReturnType<typeof useGetExpense>);
 
     render(<MissionPage />);
     fireEvent.click(screen.getByText(/spese/i));
@@ -203,14 +232,9 @@ describe("MissionPage", () => {
   });
 
   it("navigates to mission detail when clicking on mission row", () => {
-    const mockReplace = vi.fn();
-    Object.defineProperty(window, "location", {
-      value: { ...window.location, replace: mockReplace },
-      writable: true,
-    });
     render(<MissionPage />);
     fireEvent.click(screen.getByTestId("row-0"));
-    expect(mockReplace).toHaveBeenCalledWith("/trasferte/1");
+    expect(mockNavigate).toHaveBeenCalledWith("/trasferte/1");
   });
 
   it("sets selected expense when clicking on expense row", () => {

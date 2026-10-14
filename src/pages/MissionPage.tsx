@@ -12,8 +12,10 @@ import Tabs from "../components/commons/TopTabs";
 import Krm3Table from "../components/commons/Krm3Table";
 import { missionDisplayTitle } from "../utils/mission";
 import { ExpenseEdit } from "../components/expense/edit/ExpenseEdit";
+import { useNavigate } from "react-router-dom";
 
 export function MissionPage() {
+  const navigate = useNavigate();
   const { isLoading, data, isError } = useGetMissions();
   const isSmallScreen = useMediaQuery("(max-width: 767.98px)");
   const { data: exepenses } = useGetExpense();
@@ -25,12 +27,12 @@ export function MissionPage() {
   const canAddMission = userCan(["core.add_mission"]);
   const [activeTab, setActiveTab] = useState<string>("trasferte");
 
-  function handleFilter(e: any) {
-    setDataFiltered(e);
+  function handleFilter(data: MissionInterface[]) {
+    setDataFiltered(data);
   }
 
-  function handleFilterExpense(e: any): void {
-    setExpenseFiltered(e);
+  function handleFilterExpense(data: ExpenseInterface[]): void {
+    setExpenseFiltered(data);
   }
 
   return (
@@ -61,7 +63,7 @@ export function MissionPage() {
                 )}
                 <FilterResource handleFilter={handleFilter} data={data} isAdmin={user?.isStaff} />
                 <Krm3Table
-                  onClickRow={(item) => window.location.replace(`/trasferte/${item.id}`)}
+                  onClickRow={(item) => navigate(`/trasferte/${item.id}`)}
                   columns={[
                     { accessorKey: "id", header: "Id" },
                     { accessorKey: "number", header: "Number" },

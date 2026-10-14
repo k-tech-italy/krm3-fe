@@ -12,6 +12,7 @@ import { parseApiErrors } from "../../utils/apiErrors";
 import MissionSummary from "./Summary";
 import BreadcrumbMission from "../commons/Breadcrumb";
 import Krm3Table from "../commons/Krm3Table";
+import { Plane } from "lucide-react";
 
 export function Mission() {
   const isSmallScreen = useMediaQuery("(max-width: 767.98px)");
@@ -54,7 +55,11 @@ export function Mission() {
         <div>
           <BreadcrumbMission
             page={[
-              { title: "Home", url: "/trasferte" },
+              {
+                title: "Trasferte",
+                url: "/trasferte",
+                icon: <Plane size={20} data-testid="breadcrumb-trasferte-icon" />,
+              },
               { title: "Mission", url: "" },
             ]}
           />

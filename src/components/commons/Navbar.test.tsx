@@ -5,7 +5,7 @@ import * as useView from "../../hooks/useView.tsx";
 import * as useAuth from "../../hooks/useAuth";
 import userEvent from "@testing-library/user-event";
 import { AuthProvider } from "./AuthContext.tsx";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 
 describe("Navbar", () => {
   beforeEach(() => {
@@ -41,12 +41,17 @@ describe("Navbar", () => {
       },
     } as unknown as ReturnType<typeof useAuth.useGetCurrentUser>);
   });
+  function LocationDisplay() {
+    const location = useLocation();
+    return <div data-testid="current-location">{location.pathname}</div>;
+  }
   function renderNavbar(initialPath = "/") {
     return render(
       <MemoryRouter initialEntries={[initialPath]}>
         <AuthProvider>
           <Navbar />
         </AuthProvider>
+        <LocationDisplay />
       </MemoryRouter>
     );
   }
@@ -58,6 +63,13 @@ describe("Navbar", () => {
     expect(screen.getByText("module2")).toHaveClass("text-app");
     expect(screen.getByText("module1")).toHaveAttribute("href", "/module1");
     expect(screen.getByText("Mocked User Menu")).toBeInTheDocument();
+  });
+  it("navigates to the root without reloading when clicking the logo", async () => {
+    renderNavbar("/module1");
+
+    await userEvent.click(screen.getByRole("link", { name: "KRM³" }));
+
+    expect(screen.getByTestId("current-location")).toHaveTextContent("/");
   });
   it("renders on small screen", () => {
     vi.spyOn(useView, "useMediaQuery").mockReturnValue(true);

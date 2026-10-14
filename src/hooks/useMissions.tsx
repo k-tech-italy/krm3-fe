@@ -53,9 +53,11 @@ export function useGetResources(enabled = true) {
 }
 
 export function useGetActiveResources() {
-  const { data: user } = useGetCurrentUser();
+  const { userCan } = useGetCurrentUser();
+  const canViewOtherTimesheets =
+    userCan(["core.view_any_timesheet"]) || userCan(["core.manage_any_timesheet"]);
   const resources = useQuery("activeResources", () => getActiveResources(), {
-    enabled: !!user?.isSuperuser,
+    enabled: canViewOtherTimesheets,
   });
   return resources.data;
 }
