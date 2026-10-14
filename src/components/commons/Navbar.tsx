@@ -31,9 +31,9 @@ export function Navbar() {
     <nav className="bg-app text-app shadow py-2 px-8 border-b-1 border-app">
       <div className="flex justify-between">
         <div className="flex flex-end space-x-4 items-baseline">
-          <a className="text-xl font-bold " href="/">
+          <NavLink className="text-xl font-bold " to="/">
             KRM³
-          </a>
+          </NavLink>
           {!isSmallScreen && (
             <div className="flex space-x-4">
               {user?.config.modules.map((item, idx) => (

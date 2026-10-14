@@ -106,6 +106,7 @@ function makeProps() {
     selectedWeekRange: "whole" as const,
     setBankHours: vi.fn(),
     setIsSubmitted: vi.fn(),
+    setHasTimesheet: vi.fn(),
   };
 }
 
@@ -162,12 +163,24 @@ describe("TimeSheetTable", () => {
       expect(props.setDayEntries).toHaveBeenCalledWith(timesheet.dayEntries);
       expect(props.setSchedule).toHaveBeenCalledWith(timesheet.schedule);
       expect(props.setBankHours).toHaveBeenCalledWith(4);
+      expect(props.setHasTimesheet).toHaveBeenCalledWith(true);
     });
     expect(props.setNoWorkingDay).toHaveBeenCalledWith({
       "2025-01-15": { closed: false, hol: false, nwd: false },
       "2025-01-16": { closed: false, hol: false, nwd: true },
       "2025-01-17": { closed: false, hol: false, nwd: false },
     });
+  });
+
+  it("reports that no timesheet is available while loading", async () => {
+    mockUseGetTimesheet.mockReturnValue({ data: undefined, isLoading: true } as ReturnType<
+      typeof useGetTimesheet
+    >);
+    const props = makeProps();
+
+    render(<TimeSheetTable {...props} />);
+
+    await waitFor(() => expect(props.setHasTimesheet).toHaveBeenCalledWith(false));
   });
 
   it("marks every calendar day as closed when the timesheet is submitted", async () => {

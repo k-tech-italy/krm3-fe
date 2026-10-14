@@ -1,7 +1,8 @@
-import { Home } from "lucide-react";
+import type { ReactNode } from "react";
+import { NavLink } from "react-router-dom";
 
 interface Props {
-  page: { title: string; url: string }[];
+  page: { title: string; url: string; icon?: ReactNode }[];
 }
 
 function BreadcrumbMission(props: Props) {
@@ -10,25 +11,20 @@ function BreadcrumbMission(props: Props) {
       <ol className="flex space-x-2">
         {props.page.map((p, i) => (
           <li
-            key={i}
+            key={`${p.url}-${p.title}`}
             className={`flex items-center ${props.page.length - 1 === i ? "font-semibold text-gray-900" : "text-gray-500"}`}
             data-testid={`breadcrumb-item-${i}`}
           >
-            {p.title === "Home" ? (
-              <a href={p.url}>
-                <Home
-                  size={20}
-                  className="mr-1 cursor-pointer"
-                  data-testid={"breadcrumb-home-icon"}
-                />
-              </a>
-            ) : (
-              <a
-                href={p.url}
-                className={`${props.page.length - 1 === i ? "pointer-events-none" : "hover:underline"}`}
-              >
+            {props.page.length - 1 === i ? (
+              <span className="flex items-center" aria-current="page">
+                {p.icon && <span className="mr-1">{p.icon}</span>}
                 {p.title}
-              </a>
+              </span>
+            ) : (
+              <NavLink to={p.url} className="flex items-center hover:underline">
+                {p.icon && <span className="mr-1">{p.icon}</span>}
+                {p.title}
+              </NavLink>
             )}
             {i < props.page.length - 1 && <span className="mx-2 text-gray-400">/</span>}
           </li>
