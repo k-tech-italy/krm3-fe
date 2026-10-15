@@ -36,6 +36,10 @@ describe("Navbar", () => {
               url: "module2",
               label: "module2",
             },
+            {
+              url: "be/",
+              label: "Report",
+            },
           ],
         },
       },
@@ -62,7 +66,15 @@ describe("Navbar", () => {
     expect(screen.getByText("module1")).toHaveClass("text-krm3-primary");
     expect(screen.getByText("module2")).toHaveClass("text-app");
     expect(screen.getByText("module1")).toHaveAttribute("href", "/module1");
+    expect(screen.getByRole("link", { name: "Report" })).toHaveAttribute("href", "/be/");
     expect(screen.getByText("Mocked User Menu")).toBeInTheDocument();
+  });
+  it("uses a regular link for Django modules", () => {
+    renderNavbar("/module1");
+
+    const reportLink = screen.getByRole("link", { name: "Report" });
+    expect(reportLink).toHaveAttribute("href", "/be/");
+    expect(reportLink).not.toHaveAttribute("aria-current");
   });
   it("navigates to the root without reloading when clicking the logo", async () => {
     renderNavbar("/module1");
