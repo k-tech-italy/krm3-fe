@@ -1,7 +1,7 @@
 import { useMediaQuery } from "../../hooks/useView";
 import React, { useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
-import { useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { FileText, Clock, CalendarRange, Plane } from "lucide-react";
 import UserMenu from "./UserMenu.tsx";
 import LanguageSwitcher from "./LanguageSwitcher.tsx";
@@ -11,7 +11,6 @@ export function Navbar() {
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const { user } = useAuthContext();
   const location = useLocation();
-  const currentLocation = location.pathname.replace("/", "");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -24,25 +23,48 @@ export function Navbar() {
     default: <FileText size={24} data-testid={"default-icon"} />,
   };
 
+  function moduleUrl(itemUrl: string) {
+    return itemUrl.startsWith("/") ? itemUrl : `/${itemUrl}`;
+  }
+
+  // Django renders /be/ pages, so their links must bypass React Router and reload the document.
+  function isDjangoModule(itemUrl: string) {
+    return itemUrl.replace(/^\//, "").startsWith("be/");
+  }
+
+  function moduleLink(item: { url: string; label: string }, className: string) {
+    const url = moduleUrl(item.url);
+
+    if (isDjangoModule(item.url)) {
+      return (
+        <a href={url} className={className}>
+          {item.label}
+        </a>
+      );
+    }
+
+    return (
+      <NavLink
+        to={url}
+        className={({ isActive }) => `${className} ${isActive ? "text-krm3-primary" : "text-app"}`}
+      >
+        {item.label}
+      </NavLink>
+    );
+  }
+
   return (
     <nav className="bg-app text-app shadow py-2 px-8 border-b-1 border-app">
       <div className="flex justify-between">
         <div className="flex flex-end space-x-4 items-baseline">
-          <a className="text-xl font-bold " href="/">
+          <NavLink className="text-xl font-bold " to="/">
             KRM³
-          </a>
+          </NavLink>
           {!isSmallScreen && (
             <div className="flex space-x-4">
               {user?.config.modules.map((item, idx) => (
                 <React.Fragment key={idx}>
-                  <a
-                    key={idx}
-                    href={item.url}
-                    className={`text-base font-medium  hover:text-krm3-primary
-                ${currentLocation === item.url ? "text-krm3-primary" : "text-app"}`}
-                  >
-                    {item.label}
-                  </a>
+                  {moduleLink(item, "text-base font-medium hover:text-krm3-primary")}
                 </React.Fragment>
               ))}
             </div>
@@ -85,20 +107,31 @@ export function Navbar() {
             {user?.config.modules.map((item, idx) => {
               const icon = mobileMenuIconMap[item.url] || mobileMenuIconMap.default;
 
+              if (isDjangoModule(item.url)) {
+                return (
+                  <a
+                    key={idx}
+                    href={moduleUrl(item.url)}
+                    className="text-base font-medium hover:text-krm3-primary px-2 py-1 rounded flex items-center space-x-3 text-app"
+                  >
+                    {icon}
+                    <span>{item.label}</span>
+                  </a>
+                );
+              }
+
               return (
-                <a
+                <NavLink
                   key={idx}
-                  href={item.url}
-                  className={`text-base font-medium hover:text-krm3-primary px-2 py-1 rounded flex items-center space-x-3
-                    ${
-                      currentLocation === item.url
-                        ? "text-krm3-primary bg-krm3-primary/10"
-                        : "text-app"
-                    }`}
+                  to={moduleUrl(item.url)}
+                  className={({
+                    isActive,
+                  }) => `text-base font-medium hover:text-krm3-primary px-2 py-1 rounded flex items-center space-x-3
+                    ${isActive ? "text-krm3-primary bg-krm3-primary/10" : "text-app"}`}
                 >
                   {icon}
                   <span>{item.label}</span>
-                </a>
+                </NavLink>
               );
             })}
 

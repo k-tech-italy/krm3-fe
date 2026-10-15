@@ -9,7 +9,9 @@ const SelectResourceComponent = ({
   setSelectedResourceId: (id: number | null) => void;
 }) => {
   const resources = useGetActiveResources();
-  const { data } = useGetCurrentUser();
+  const { data, userCan } = useGetCurrentUser();
+  const canViewOtherTimesheets =
+    userCan(["core.view_any_timesheet"]) || userCan(["core.manage_any_timesheet"]);
 
   const getSelectOptions = () => {
     if (!resources) return [];
@@ -27,7 +29,7 @@ const SelectResourceComponent = ({
     }
   }, [data]);
 
-  if (!data?.isSuperuser) return null;
+  if (!canViewOtherTimesheets) return null;
 
   const handleResourceChange = (selectedOption: SingleValue<{ value: number; label: string }>) => {
     setSelectedResourceId(selectedOption ? selectedOption.value : null);

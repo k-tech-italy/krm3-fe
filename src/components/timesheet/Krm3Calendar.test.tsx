@@ -79,7 +79,7 @@ describe("Krm3Calendar", () => {
   }
   const schedule: Schedule = {};
   for (let i = 1; i < 32; i++) {
-    schedule[`2025_07_${i / 10 >= 1 ? String(i) : "0" + i}`] = 8;
+    schedule[`2025-07-${i / 10 >= 1 ? String(i) : "0" + i}`] = 8;
   }
 
   beforeEach(() => {
@@ -128,7 +128,7 @@ describe("Krm3Calendar", () => {
     }
     const schedule: Schedule = {};
     for (let i = 1; i < 32; i++) {
-      schedule[`2025_07_${i / 10 >= 1 ? String(i) : "0" + i}`] = 8;
+      schedule[`2025-07-${i / 10 >= 1 ? String(i) : "0" + i}`] = 8;
     }
     mockUseGetTimesheet.mockReturnValue({
       data: {
@@ -183,6 +183,38 @@ describe("Krm3Calendar", () => {
     ).toBeDisabled();
   });
 
+  test("submit button is disabled when the timesheet is empty", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        submitted: false,
+        tasks: [],
+        taskEntries: [],
+        dayEntries: [],
+        days: Object.keys(days),
+        schedule,
+        bankHours: 0,
+      },
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeDisabled();
+  });
+
+  test("submit button is hidden when no timesheet is available", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={null} />);
+
+    expect(screen.queryByRole("button", { name: /Submit Timesheet/i })).not.toBeInTheDocument();
+  });
+
   it("submit button is enabled when minimum hours of different types are scheduled", () => {
     const days: Record<
       string,
@@ -197,7 +229,7 @@ describe("Krm3Calendar", () => {
     }
     const schedule: Schedule = {};
     for (let i = 1; i < 32; i++) {
-      schedule[`2025_07_${i / 10 >= 1 ? String(i) : "0" + i}`] = 8;
+      schedule[`2025-07-${i / 10 >= 1 ? String(i) : "0" + i}`] = 8;
     }
     const completedDayEntries: DayEntry[] = [];
 
