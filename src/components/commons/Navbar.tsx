@@ -27,6 +27,32 @@ export function Navbar() {
     return itemUrl.startsWith("/") ? itemUrl : `/${itemUrl}`;
   }
 
+  // Django renders /be/ pages, so their links must bypass React Router and reload the document.
+  function isDjangoModule(itemUrl: string) {
+    return itemUrl.replace(/^\//, "").startsWith("be/");
+  }
+
+  function moduleLink(item: { url: string; label: string }, className: string) {
+    const url = moduleUrl(item.url);
+
+    if (isDjangoModule(item.url)) {
+      return (
+        <a href={url} className={className}>
+          {item.label}
+        </a>
+      );
+    }
+
+    return (
+      <NavLink
+        to={url}
+        className={({ isActive }) => `${className} ${isActive ? "text-krm3-primary" : "text-app"}`}
+      >
+        {item.label}
+      </NavLink>
+    );
+  }
+
   return (
     <nav className="bg-app text-app shadow py-2 px-8 border-b-1 border-app">
       <div className="flex justify-between">
@@ -38,14 +64,7 @@ export function Navbar() {
             <div className="flex space-x-4">
               {user?.config.modules.map((item, idx) => (
                 <React.Fragment key={idx}>
-                  <NavLink
-                    key={idx}
-                    to={moduleUrl(item.url)}
-                    className={({ isActive }) => `text-base font-medium  hover:text-krm3-primary
-                    ${isActive ? "text-krm3-primary" : "text-app"}`}
-                  >
-                    {item.label}
-                  </NavLink>
+                  {moduleLink(item, "text-base font-medium hover:text-krm3-primary")}
                 </React.Fragment>
               ))}
             </div>
@@ -87,6 +106,19 @@ export function Navbar() {
           <div className="flex flex-col space-y-3">
             {user?.config.modules.map((item, idx) => {
               const icon = mobileMenuIconMap[item.url] || mobileMenuIconMap.default;
+
+              if (isDjangoModule(item.url)) {
+                return (
+                  <a
+                    key={idx}
+                    href={moduleUrl(item.url)}
+                    className="text-base font-medium hover:text-krm3-primary px-2 py-1 rounded flex items-center space-x-3 text-app"
+                  >
+                    {icon}
+                    <span>{item.label}</span>
+                  </a>
+                );
+              }
 
               return (
                 <NavLink
