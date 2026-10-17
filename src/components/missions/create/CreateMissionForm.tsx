@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import moment from "moment";
-import {
-  MissionError,
-  MissionInterface,
-  Project,
-} from "../../../restapi/types";
+import { MissionError, MissionInterface, Project } from "../../../restapi/types";
 import {
   useGetClients,
   useGetResources,
@@ -43,9 +39,8 @@ export function CreateMissionForm(props: Props) {
   function handleChangeResource(e: any): void {
     if (resources) {
       const selected =
-        resources.results
-          .filter((res) => res.id === Number(e.target.value))
-          .at(0) || props.mission.resource;
+        resources.results.filter((res) => res.id === Number(e.target.value)).at(0) ||
+        props.mission.resource;
       props.mission.resource = selected;
       delete error?.resource;
       setMission({ ...mission, resource: selected });
@@ -55,9 +50,8 @@ export function CreateMissionForm(props: Props) {
   function handleChangeProject(e: any): void {
     if (projects) {
       const selected =
-        projects.results
-          .filter((res) => res.id === Number(e.target.value))
-          .at(0) || props.mission.project;
+        projects.results.filter((res) => res.id === Number(e.target.value)).at(0) ||
+        props.mission.project;
       props.mission.project = selected;
       delete error?.project;
       setMission({ ...mission, project: selected });
@@ -73,8 +67,7 @@ export function CreateMissionForm(props: Props) {
   function handleChangeCity(e: any): void {
     if (cities) {
       const selected =
-        cities.results.filter((c) => c.id === Number(e.target.value)).at(0) ||
-        props.mission.city;
+        cities.results.filter((c) => c.id === Number(e.target.value)).at(0) || props.mission.city;
       props.mission.city = selected;
       delete error?.city;
       setMission({ ...mission, city: selected });
@@ -107,9 +100,7 @@ export function CreateMissionForm(props: Props) {
               delete error?.title;
             }}
           />
-          {!!error?.title && (
-            <p className="text-red-500 text-sm mt-1">{error.title}</p>
-          )}
+          {!!error?.title && <p className="text-red-500 text-sm mt-1">{error.title}</p>}
         </div>
       </div>
 
@@ -124,18 +115,13 @@ export function CreateMissionForm(props: Props) {
             value={mission?.resource?.id}
             onChange={handleChangeResource}
           >
-            {[
-              { id: 0, firstName: "Risorsa" },
-              ...(resources?.results || []),
-            ].map((res) => (
+            {[{ id: 0, firstName: "Risorsa" }, ...(resources?.results || [])].map((res) => (
               <option key={res.id} value={res.id}>
                 {res.firstName}
               </option>
             ))}
           </select>
-          {!!error?.resource && (
-            <p className="text-red-500 text-sm mt-1">{error.resource}</p>
-          )}
+          {!!error?.resource && <p className="text-red-500 text-sm mt-1">{error.resource}</p>}
         </div>
       </div>
 
@@ -150,23 +136,13 @@ export function CreateMissionForm(props: Props) {
             value={mission?.project?.id}
             onChange={handleChangeProject}
           >
-            {[
-              { id: 0, name: "progetto" } as Project,
-              ...(projects?.results || []),
-            ].map((res) => (
+            {[{ id: 0, name: "progetto" } as Project, ...(projects?.results || [])].map((res) => (
               <option key={res.id} value={res.id}>
-                {res.name} (
-                {
-                  clients?.results.filter((c) => c.id === res.client).at(0)
-                    ?.name
-                }
-                )
+                {res.name} ({clients?.results.filter((c) => c.id === res.client).at(0)?.name})
               </option>
             ))}
           </select>
-          {!!error?.project && (
-            <p className="text-red-500 text-sm mt-1">{error.project}</p>
-          )}
+          {!!error?.project && <p className="text-red-500 text-sm mt-1">{error.project}</p>}
         </div>
       </div>
 
@@ -179,13 +155,11 @@ export function CreateMissionForm(props: Props) {
             value={country}
             onChange={handleChangeCountry}
           >
-            {[{ id: 0, name: "Paese" }, ...(countries?.results || [])].map(
-              (res) => (
-                <option key={res.id} value={res.id}>
-                  {res.name}
-                </option>
-              )
-            )}
+            {[{ id: 0, name: "Paese" }, ...(countries?.results || [])].map((res) => (
+              <option key={res.id} value={res.id}>
+                {res.name}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -203,25 +177,19 @@ export function CreateMissionForm(props: Props) {
           >
             {[
               { id: 0, name: "Città" },
-              ...(cities?.results.filter(
-                (c) => c.country === Number(country)
-              ) || []),
+              ...(cities?.results.filter((c) => c.country === Number(country)) || []),
             ].map((res) => (
               <option key={res.id} value={res.id}>
                 {res.name}
               </option>
             ))}
           </select>
-          {!!error?.city && (
-            <p className="text-red-500 text-sm mt-1">{error.city}</p>
-          )}
+          {!!error?.city && <p className="text-red-500 text-sm mt-1">{error.city}</p>}
         </div>
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center">
-        <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">
-          Valuta di base
-        </label>
+        <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">Valuta di base</label>
         <div className="sm:w-2/4 w-full">
           <select
             data-testid="currency-select"
@@ -231,10 +199,7 @@ export function CreateMissionForm(props: Props) {
             value={props.mission?.defaultCurrency?.iso3}
             onChange={handleChangeCurrency}
           >
-            {[
-              { iso3: "valuta", title: "valuta" },
-              ...(currencies?.results || []),
-            ].map((res) => (
+            {[{ iso3: "valuta", title: "valuta" }, ...(currencies?.results || [])].map((res) => (
               <option key={res.iso3} value={res.iso3}>
                 {res.iso3}
               </option>
@@ -247,15 +212,11 @@ export function CreateMissionForm(props: Props) {
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center">
-        <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">
-          Dal giorno
-        </label>
+        <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">Dal giorno</label>
         <div className="sm:w-2/4 w-full">
           <DatePicker
             id="create-mission-form-from-date-picker"
-            selected={
-              mission.fromDate ? new Date(mission.fromDate) : new Date()
-            }
+            selected={mission.fromDate ? new Date(mission.fromDate) : new Date()}
             className="w-full border rounded-md p-2 border-gray-300"
             onChange={(date: Date | null) => {
               setMission({
