@@ -6,7 +6,9 @@ import { useMediaQuery } from "../../hooks/useView";
 import { ExpenseEdit } from "../expense/edit/ExpenseEdit";
 import { TotalsExpense } from "../expense/TotalExpense";
 import LoadSpinner from "../commons/LoadSpinner";
-import { useGetMission } from "../../hooks/useMissions";
+import { useGetMission, useSubmitMission } from "../../hooks/useMissions";
+import { useGetCurrentUser } from "../../hooks/useAuth";
+import { parseApiErrors } from "../../utils/apiErrors";
 import MissionSummary from './Summary';
 import BreadcrumbMission from '../commons/Breadcrumb';
 import Krm3Table from '../commons/Krm3Table';
@@ -17,7 +19,23 @@ export function Mission() {
     const [selectedExpense, setSelectedExpense] = useState<ExpenseInterface | null>();
     const id = Number(useParams().id);
     const { isLoading, data, isError } = useGetMission(id);
+    const { data: currentUser, userCan } = useGetCurrentUser();
+    const submitMission = useSubmitMission();
+    const [submitErrors, setSubmitErrors] = useState<string[]>([]);
     const today = new Date()
+
+    // same rule as the backend: the mission owner or a mission manager
+    const canSubmit = !!data && (
+        (!!currentUser?.resource && currentUser.resource.id === data.resource.id)
+        || userCan(["core.manage_any_mission"])
+    );
+
+    function handleSubmit() {
+        setSubmitErrors([]);
+        submitMission.mutate(id, {
+            onError: (err) => setSubmitErrors(parseApiErrors(err).general),
+        });
+    }
 
 
     const defaultExpense = {
@@ -40,7 +58,13 @@ export function Mission() {
             {!!data && (
                 <div>
                     <BreadcrumbMission page={[{ title: 'Home', url: '/#' }, { title: 'Mission', url: '' }]} />
-                    <MissionSummary data={data} />
+                    <MissionSummary
+                        data={data}
+                        canSubmit={canSubmit}
+                        isSubmitting={submitMission.isLoading}
+                        submitErrors={submitErrors}
+                        onSubmit={handleSubmit}
+                    />
                    
                     {!isSmallScreen && (
                         <div className="d-grid gap-2 d-md-block mb-2 text-end">

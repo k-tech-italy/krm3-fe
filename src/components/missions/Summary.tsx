@@ -1,9 +1,20 @@
-import { MissionInterface } from '../../restapi/types';
+import { MissionInterface, MissionStatus } from '../../restapi/types';
 import { CalendarDays, MapPin, User, Briefcase, Hash } from 'lucide-react';
+import { missionDisplayTitle } from '../../utils/mission';
 
 interface Props {
   data: MissionInterface;
+  canSubmit?: boolean;
+  isSubmitting?: boolean;
+  submitErrors?: string[];
+  onSubmit?: () => void;
 }
+
+const STATUS_BADGE: Record<MissionStatus, { label: string; className: string }> = {
+  DRAFT: { label: 'Draft', className: 'bg-gray-500' },
+  SUBMITTED: { label: 'Submitted', className: 'bg-green-600' },
+  CANCELLED: { label: 'Cancelled', className: 'bg-red-600' },
+};
 
 export default function MissionSummary(props: Props) {
   const calculateDays = () => {
@@ -21,15 +32,42 @@ export default function MissionSummary(props: Props) {
     <div className="shadow-md  border border-app rounded-lg mb-6 bg-card">
       <div className="border-b border-gray-300 p-5">
       <div className="flex items-center justify-between">
-        <h4 className="text-xl font-bold text-app">{props.data.title}</h4>
-        <span className="bg-green-600 text-white text-xs font-medium rounded-full px-4 py-1">
-        Attesa
-        </span>
+        <h4 className="text-xl font-bold text-app">{missionDisplayTitle(props.data)}</h4>
+        <div className="flex items-center space-x-3">
+        {props.canSubmit && props.data.status === 'DRAFT' && (
+          <button
+            type="button"
+            data-testid="submit-mission-button"
+            className="bg-krm3-primary text-white text-sm px-4 py-1 rounded shadow hover:bg-krm3-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={props.isSubmitting}
+            onClick={props.onSubmit}
+          >
+            {props.isSubmitting ? 'Submitting...' : 'Submit'}
+          </button>
+        )}
+        {STATUS_BADGE[props.data.status] && (
+          <span
+            data-testid="mission-status"
+            className={`${STATUS_BADGE[props.data.status].className} text-white text-xs font-medium rounded-full px-4 py-1`}
+          >
+            {STATUS_BADGE[props.data.status].label}
+          </span>
+        )}
+        </div>
       </div>
       <div className="flex items-center mt-3 text-app">
         <Hash size={18} className="mr-2 text-app" />
-        <small className="text-sm">Number Mission: {props.data.number}</small>
+        <small className="text-sm">
+          {props.data.number != null
+            ? `Number Mission: ${props.data.number}`
+            : 'Number Mission: assigned on submission'}
+        </small>
       </div>
+      {!!props.submitErrors?.length && (
+        <div data-testid="submit-mission-errors" className="mt-3 p-3 bg-red-100 text-red-700 rounded-lg">
+          {props.submitErrors.map((message) => <p key={message}>{message}</p>)}
+        </div>
+      )}
       </div>
 
       <div className="p-5">

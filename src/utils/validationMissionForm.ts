@@ -4,9 +4,7 @@ import { MissionError, MissionInterface } from "../restapi/types";
 export function validateMission(mission: MissionInterface): Promise<MissionInterface> {
     const error = {} as MissionError;
 
-    if (!mission.title) {
-        error.title =  ['this field is required'];
-    }    
+    // title is optional: the backend generates it on submission when left blank
     if (!mission.fromDate) {
         error.fromDate =  ['this field is required'];
     }

@@ -196,9 +196,38 @@ describe('CreateMission', () => {
                     }),
                     {
                         onSuccess: expect.any(Function),
+                        onError: expect.any(Function),
                     }
             )
         })
+    })
+    it('saves without a title', async () => {
+        createMissionMock.mockClear()
+        render(<CreateMission {...props}/>)
+        fireEvent.change(screen.getByTestId("title-input"), { target: {value: ""}} )
+        fireEvent.click(screen.getByTestId("save-button"))
+        await waitFor(() => expect(createMissionMock).toBeCalled())
+    })
+    it('shows the server validation errors', async () => {
+        const failingMutate = vi.fn((_variables, options?: {onError?: (err: unknown) => void}) => {
+            options?.onError?.({
+                message: "Request failed with status code 400",
+                response: {data: {nonFieldErrors: ["to_date must be > from_date"]}},
+            })
+        })
+        vi.spyOn(useMissions, "useCreateMission").mockReturnValue({
+            isError: true,
+            mutate: failingMutate,
+            error: null,
+            isLoading: false,
+        } as unknown as ReturnType<typeof useMissions.useCreateMission>);
+        onCloseMock.mockClear()
+        render(<CreateMission {...props}/>)
+        fireEvent.click(screen.getByTestId("save-button"))
+        await waitFor(() =>
+            expect(screen.getByTestId("create-mission-errors")).toHaveTextContent("to_date must be > from_date")
+        )
+        expect(onCloseMock).not.toBeCalled()
     })
     it('should render loading info', () => {
         vi.spyOn(useMissions, "useCreateMission").mockReturnValue({

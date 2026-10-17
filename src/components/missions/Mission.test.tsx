@@ -3,6 +3,7 @@ import {render, screen, fireEvent} from "@testing-library/react";
 import {vi} from "vitest"
 import * as useMissons from "../../hooks/useMissions";
 import * as useView from "../../hooks/useView";
+import * as useAuth from "../../hooks/useAuth";
 
 vi.mock("../expense/edit/ExpenseEdit", () => {
     return { ExpenseEdit: vi.fn(() => <div>Mocked ExpenseEdit</div>)}
@@ -57,6 +58,7 @@ describe('Mission', () => {
                 fromDate: "2025-01-01",
                 id: 1,
                 number: 1,
+                status: "SUBMITTED" as const,
                 title: "some mission",
                 project: {
                     id: 1,
@@ -116,6 +118,63 @@ describe('Mission', () => {
             errorUpdateCount: 0
         })
         vi.spyOn(useView, "useMediaQuery").mockReturnValue(false)
+        mockCurrentUser({resourceId: 1})
+        submitMutate.mockReset()
+        vi.spyOn(useMissons, "useSubmitMission").mockReturnValue({mutate: submitMutate, isLoading: false} as unknown as ReturnType<typeof useMissons.useSubmitMission>)
+    })
+
+    const submitMutate = vi.fn()
+
+    function mockCurrentUser({resourceId, perms = []}: {resourceId?: number, perms?: string[]}) {
+        vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
+            data: {resource: resourceId ? {id: resourceId} : null},
+            userCan: (required: string[]) => required.every((p) => perms.includes(p)),
+        } as unknown as ReturnType<typeof useAuth.useGetCurrentUser>)
+    }
+
+    function mockDraftMission() {
+        const current = useMissons.useGetMission(1)
+        vi.spyOn(useMissons, "useGetMission").mockReturnValue({
+            ...current,
+            data: {...current.data, status: "DRAFT", number: null, title: ""},
+        } as unknown as ReturnType<typeof useMissons.useGetMission>)
+    }
+
+    it('shows the status and hides submit for a submitted mission', () => {
+        render(<Mission />)
+        expect(screen.getByTestId("mission-status")).toHaveTextContent("Submitted")
+        expect(screen.queryByTestId("submit-mission-button")).not.toBeInTheDocument()
+    })
+    it('owner can submit a draft mission', () => {
+        mockDraftMission()
+        render(<Mission />)
+        expect(screen.getByTestId("mission-status")).toHaveTextContent("Draft")
+        expect(screen.getByText("Number Mission: assigned on submission")).toBeInTheDocument()
+        expect(screen.getByText("Warsaw 2025-01-01 - 2026-01-01")).toBeInTheDocument()
+        fireEvent.click(screen.getByTestId("submit-mission-button"))
+        expect(submitMutate).toBeCalledWith(1, {onError: expect.any(Function)})
+    })
+    it('hides submit for a draft of another resource without manage permission', () => {
+        mockDraftMission()
+        mockCurrentUser({resourceId: 99, perms: ["core.view_any_mission"]})
+        render(<Mission />)
+        expect(screen.queryByTestId("submit-mission-button")).not.toBeInTheDocument()
+    })
+    it('mission manager can submit a draft of another resource', () => {
+        mockDraftMission()
+        mockCurrentUser({resourceId: 99, perms: ["core.manage_any_mission"]})
+        render(<Mission />)
+        expect(screen.getByTestId("submit-mission-button")).toBeInTheDocument()
+    })
+    it('shows submit errors', async () => {
+        mockDraftMission()
+        submitMutate.mockImplementation((_id, options) => options.onError({
+            message: "Request failed with status code 400",
+            response: {data: ["Cannot change status SUBMITTED to SUBMITTED"]},
+        }))
+        render(<Mission />)
+        fireEvent.click(screen.getByTestId("submit-mission-button"))
+        expect(await screen.findByTestId("submit-mission-errors")).toHaveTextContent("Cannot change status")
     })
     it('renders correctly', () => {
         render(<Mission />)

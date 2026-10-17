@@ -19,13 +19,6 @@ vi.mock("./restapi", () => ({
   },
 }));
 
-// Mock moment
-vi.mock("moment", () => ({
-  default: vi.fn((date: string) => ({
-    year: () => 2024,
-  })),
-}));
-
 describe("mission API", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -57,19 +50,18 @@ describe("mission API", () => {
         project: 10,
         city: 1,
         resource: 5,
-        year: 2024,
         defaultCurrency: "USD",
       });
     });
 
-    it("should extract year from toDate", async () => {
+    it("should not send year (derived by the backend from fromDate)", async () => {
       const mockResponse = { data: mockMissionParams };
       vi.mocked(restapi.post).mockResolvedValue(mockResponse);
 
       await missionApi.createMission(mockMissionParams);
 
       const callArgs = vi.mocked(restapi.post).mock.calls[0][1] as any;
-      expect(callArgs).toHaveProperty("year", 2024);
+      expect(callArgs).not.toHaveProperty("year");
     });
 
     it("should transform nested objects to IDs", async () => {
@@ -103,7 +95,7 @@ describe("mission API", () => {
       const missionWithExtraProps = {
         ...mockMissionParams,
         description: "Test mission",
-        status: "active",
+        status: "SUBMITTED",
       } as MissionInterface;
       const mockResponse = { data: missionWithExtraProps };
       vi.mocked(restapi.post).mockResolvedValue(mockResponse);
@@ -112,7 +104,19 @@ describe("mission API", () => {
 
       const callArgs = vi.mocked(restapi.post).mock.calls[0][1] as any;
       expect(callArgs).toHaveProperty("description", "Test mission");
-      expect(callArgs).toHaveProperty("status", "active");
+      expect(callArgs).toHaveProperty("status", "SUBMITTED");
+    });
+  });
+
+  describe("submitMission", () => {
+    it("should POST to the submit action and return the mission", async () => {
+      const submitted = { id: 7, status: "SUBMITTED", number: 3 } as MissionInterface;
+      vi.mocked(restapi.post).mockResolvedValue({ data: submitted });
+
+      const result = await missionApi.submitMission(7);
+
+      expect(restapi.post).toHaveBeenCalledWith("missions/mission/7/submit/");
+      expect(result).toEqual(submitted);
     });
   });
 
