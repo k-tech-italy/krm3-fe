@@ -1,87 +1,100 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import { MissionError, MissionInterface } from "../../../restapi/types";
-import { CreateMissionForm } from './CreateMissionForm';
-import { useCreateMission } from '../../../hooks/useMissions';
-import { validateMission } from '../../../utils/validationMissionForm';
-import { parseApiErrors } from '../../../utils/apiErrors';
+import { CreateMissionForm } from "./CreateMissionForm";
+import { useCreateMission } from "../../../hooks/useMissions";
+import { validateMission } from "../../../utils/validationMissionForm";
+import { parseApiErrors } from "../../../utils/apiErrors";
 import "react-datepicker/dist/react-datepicker.css";
-import moment from 'moment';
-import Krm3Modal from '../../commons/krm3Modal';
+import moment from "moment";
+import Krm3Modal from "../../commons/krm3Modal";
 
 const today = new Date();
 const mission = {
-    fromDate: moment(today).format('YYYY-MM-DD'),
-    toDate: moment(today).format('YYYY-MM-DD')
+  fromDate: moment(today).format("YYYY-MM-DD"),
+  toDate: moment(today).format("YYYY-MM-DD"),
 } as MissionInterface;
 
 interface Props {
-    onClose: () => void;
-    show: boolean;
+  onClose: () => void;
+  show: boolean;
 }
 
 export function CreateMission(props: Props) {
-    const { mutate, isLoading } = useCreateMission();
-    const [missionError, setMissionError] = useState<MissionError>();
-    const [generalErrors, setGeneralErrors] = useState<string[]>([]);
+  const { mutate, isLoading } = useCreateMission();
+  const [missionError, setMissionError] = useState<MissionError>();
+  const [generalErrors, setGeneralErrors] = useState<string[]>([]);
 
-    function handleMission(mission: MissionInterface) {
-        setGeneralErrors([]);
-        mutate(mission, {
-            onSuccess: () => props.onClose(),
-            onError: (err) => {
-                const { fields, general } = parseApiErrors(err);
-                setMissionError(fields as unknown as MissionError);
-                setGeneralErrors(general);
-            },
-        });
-    }
+  function handleMission(mission: MissionInterface) {
+    setGeneralErrors([]);
+    mutate(mission, {
+      onSuccess: () => props.onClose(),
+      onError: (err) => {
+        const { fields, general } = parseApiErrors(err);
+        setMissionError(fields as unknown as MissionError);
+        setGeneralErrors(general);
+      },
+    });
+  }
 
-    function saveData() {
-        validateMission(mission)
-            .then(res => handleMission(res))
-            .catch((err) => setMissionError(err));
-    }
+  function saveData() {
+    validateMission(mission)
+      .then((res) => handleMission(res))
+      .catch((err) => setMissionError(err));
+  }
 
-    if (!props.show) return null;
+  if (!props.show) return null;
 
-    return (
-        <Krm3Modal open={props.show} onClose={props.onClose} title={'Create Mission'} children={
-            <>
-                <CreateMissionForm mission={mission} error={missionError} />
-                {generalErrors.length > 0 && (
-                    <div data-testid="create-mission-errors" className="m-4 p-4 bg-red-100 text-red-700 rounded-lg">
-                        {generalErrors.map((message) => <p key={message}>{message}</p>)}
-                    </div>
-                )}
-                <div className="flex justify-end items-center p-6 space-x-4">
-                    <button
-                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 focus:outline-none"
-                        onClick={props.onClose}
-                    >
-                        Close
-                    </button>
-                    <button
-                        data-testid="save-button"
-                        className={`px-4 py-2 text-white rounded-lg focus:outline-none ${isLoading
-                                ? 'bg-yellow-400 cursor-not-allowed'
-                                : 'bg-krm3-primary hover:bg-krm3-primary-dark'
-                            }`}
-                        disabled={isLoading}
-                        onClick={saveData}
-                    >
-                        {isLoading ? (
-                            <div className="flex items-center">
-                                <div className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full mr-2" role="status">
-                                    <span className="visually-hidden">Loading...</span>
-                                </div>
-                            </div>
-                        ) : (
-                            <>Save</>
-                        )}
-                    </button>
+  return (
+    <Krm3Modal
+      open={props.show}
+      onClose={props.onClose}
+      title={"Create Mission"}
+      children={
+        <>
+          <CreateMissionForm mission={mission} error={missionError} />
+          {generalErrors.length > 0 && (
+            <div
+              data-testid="create-mission-errors"
+              className="m-4 p-4 bg-red-100 text-red-700 rounded-lg"
+            >
+              {generalErrors.map((message) => (
+                <p key={message}>{message}</p>
+              ))}
+            </div>
+          )}
+          <div className="flex justify-end items-center p-6 space-x-4">
+            <button
+              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 focus:outline-none"
+              onClick={props.onClose}
+            >
+              Close
+            </button>
+            <button
+              data-testid="save-button"
+              className={`px-4 py-2 text-white rounded-lg focus:outline-none ${
+                isLoading
+                  ? "bg-yellow-400 cursor-not-allowed"
+                  : "bg-krm3-primary hover:bg-krm3-primary-dark"
+              }`}
+              disabled={isLoading}
+              onClick={saveData}
+            >
+              {isLoading ? (
+                <div className="flex items-center">
+                  <div
+                    className="spinner-border animate-spin inline-block w-4 h-4 border-2 rounded-full mr-2"
+                    role="status"
+                  >
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
                 </div>
-            </>} />
-    );
-
-
+              ) : (
+                <>Save</>
+              )}
+            </button>
+          </div>
+        </>
+      }
+    />
+  );
 }

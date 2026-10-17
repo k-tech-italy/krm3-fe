@@ -63,7 +63,11 @@ describe("useMissions hooks", () => {
 
   describe("useSubmitMission", () => {
     it("should submit the mission and invalidate mission queries", async () => {
-      vi.mocked(missionApi.submitMission).mockResolvedValue({ id: 1, status: "SUBMITTED", number: 3 } as MissionInterface);
+      vi.mocked(missionApi.submitMission).mockResolvedValue({
+        id: 1,
+        status: "SUBMITTED",
+        number: 3,
+      } as MissionInterface);
       const queryClient = new QueryClient();
       const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
       const wrapper = ({ children }: { children: React.ReactNode }) => (

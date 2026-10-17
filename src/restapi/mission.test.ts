@@ -1,15 +1,7 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import * as missionApi from "./mission";
 import { restapi } from "./restapi";
-import {
-  City,
-  Client,
-  Country,
-  MissionInterface,
-  Page,
-  Project,
-  Resource,
-} from "./types";
+import { City, Client, Country, MissionInterface, Page, Project, Resource } from "./types";
 
 // Mock the restapi module
 vi.mock("./restapi", () => ({
@@ -27,7 +19,12 @@ describe("mission API", () => {
   describe("createMission", () => {
     const mockCity: City = { id: 1, name: "Rome" } as City;
     const mockProject: Project = { id: 10, name: "Test Project" } as Project;
-    const mockResource: Resource = { id: 5, firstName: "John", lastName: "Doe", profile: { id: 1, picture: "", user: 5 } } as Resource;
+    const mockResource: Resource = {
+      id: 5,
+      firstName: "John",
+      lastName: "Doe",
+      profile: { id: 1, picture: "", user: 5 },
+    } as Resource;
 
     const mockMissionParams: MissionInterface = {
       id: 1,
@@ -235,8 +232,18 @@ describe("mission API", () => {
       next: null,
       previous: null,
       results: [
-        { id: 1, firstName: "John", lastName: "Doe", profile: { id: 1, picture: "", user: 1 } } as Resource,
-        { id: 2, firstName: "Jane", lastName: "Smith", profile: { id: 2, picture: "", user: 2 } } as Resource,
+        {
+          id: 1,
+          firstName: "John",
+          lastName: "Doe",
+          profile: { id: 1, picture: "", user: 1 },
+        } as Resource,
+        {
+          id: 2,
+          firstName: "Jane",
+          lastName: "Smith",
+          profile: { id: 2, picture: "", user: 2 },
+        } as Resource,
       ],
     };
 
@@ -291,8 +298,18 @@ describe("mission API", () => {
   describe("getActiveResources", () => {
     it("should fetch active resources", async () => {
       const mockActiveResources: Resource[] = [
-        { id: 1, firstName: "John", lastName: "Doe", profile: { id: 1, picture: "", user: 1 } } as Resource,
-        { id: 2, firstName: "Jane", lastName: "Smith", profile: { id: 2, picture: "", user: 2 } } as Resource,
+        {
+          id: 1,
+          firstName: "John",
+          lastName: "Doe",
+          profile: { id: 1, picture: "", user: 1 },
+        } as Resource,
+        {
+          id: 2,
+          firstName: "Jane",
+          lastName: "Smith",
+          profile: { id: 2, picture: "", user: 2 },
+        } as Resource,
       ];
 
       vi.mocked(restapi.get).mockResolvedValue({ data: mockActiveResources });
@@ -328,10 +345,7 @@ describe("mission API", () => {
         count: 2,
         next: null,
         previous: null,
-        results: [
-          { id: 1, name: "Client A" } as Client,
-          { id: 2, name: "Client B" } as Client,
-        ],
+        results: [{ id: 1, name: "Client A" } as Client, { id: 2, name: "Client B" } as Client],
       };
 
       vi.mocked(restapi.get).mockResolvedValue({ data: mockClients });
