@@ -28,6 +28,7 @@ describe('FilterResource Component', () => {
                 toDate: "2025-02-02",
                 id: 1,
                 number: 1,
+                status: "SUBMITTED" as const,
                 title: "some mission",
                 project: {
                     id: 1,
@@ -101,6 +102,7 @@ describe('FilterResource Component', () => {
                     toDate: "2026-06-03",
                     id: 2,
                     number: 2,
+                    status: "SUBMITTED" as const,
                     title: "another mission",
                     project: {
                         id: 2,

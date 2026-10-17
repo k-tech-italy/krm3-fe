@@ -3,6 +3,7 @@ import { MissionError, MissionInterface } from "../../../restapi/types";
 import { CreateMissionForm } from './CreateMissionForm';
 import { useCreateMission } from '../../../hooks/useMissions';
 import { validateMission } from '../../../utils/validationMissionForm';
+import { parseApiErrors } from '../../../utils/apiErrors';
 import "react-datepicker/dist/react-datepicker.css";
 import moment from 'moment';
 import Krm3Modal from '../../commons/krm3Modal';
@@ -19,17 +20,23 @@ interface Props {
 }
 
 export function CreateMission(props: Props) {
-    const { mutate, isLoading, isError, error } = useCreateMission();
+    const { mutate, isLoading } = useCreateMission();
     const [missionError, setMissionError] = useState<MissionError>();
+    const [generalErrors, setGeneralErrors] = useState<string[]>([]);
 
     function handleMission(mission: MissionInterface) {
+        setGeneralErrors([]);
         mutate(mission, {
-            onSuccess: () => props.onClose()
+            onSuccess: () => props.onClose(),
+            onError: (err) => {
+                const { fields, general } = parseApiErrors(err);
+                setMissionError(fields as unknown as MissionError);
+                setGeneralErrors(general);
+            },
         });
     }
 
     function saveData() {
-        console.log(mission, 'save');
         validateMission(mission)
             .then(res => handleMission(res))
             .catch((err) => setMissionError(err));
@@ -41,9 +48,9 @@ export function CreateMission(props: Props) {
         <Krm3Modal open={props.show} onClose={props.onClose} title={'Create Mission'} children={
             <>
                 <CreateMissionForm mission={mission} error={missionError} />
-                {isError && (
-                    <div className="m-4 p-4 bg-red-100 text-red-700 rounded-lg">
-                        <p>{error.message}</p>
+                {generalErrors.length > 0 && (
+                    <div data-testid="create-mission-errors" className="m-4 p-4 bg-red-100 text-red-700 rounded-lg">
+                        {generalErrors.map((message) => <p key={message}>{message}</p>)}
                     </div>
                 )}
                 <div className="flex justify-end items-center p-6 space-x-4">

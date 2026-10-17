@@ -6,6 +6,7 @@ describe('TotalExpense', () => {
         mission: {
         id: 1,
         number: 2025,
+        status: "SUBMITTED" as const,
         title: "Business trip to Berlin",
         fromDate: "2025-01-10",
         toDate: "2025-01-15",

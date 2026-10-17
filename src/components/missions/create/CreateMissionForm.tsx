@@ -94,12 +94,13 @@ export function CreateMissionForm(props: Props) {
   return (
     <form className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center">
-        <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">Titolo</label>
+        <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">Titolo (opzionale)</label>
         <div className="sm:w-2/4 w-full">
           <input
             data-testid="title-input"
+            placeholder="Generato automaticamente all'invio se vuoto"
             className={`w-full border rounded-md p-2 ${
-              error?.resource ? "border-red-500" : "border-gray-300"
+              error?.title ? "border-red-500" : "border-gray-300"
             } `}
             onChange={(e) => {
               props.mission.title = e.target.value;

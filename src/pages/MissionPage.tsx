@@ -10,6 +10,7 @@ import { useGetExpense } from "../hooks/useExpense";
 import ExpenseFilter from "../components/expense/ExpenseFilter";
 import Tabs from "../components/commons/TopTabs";
 import Krm3Table from "../components/commons/Krm3Table";
+import { missionDisplayTitle } from "../utils/mission";
 import { ExpenseEdit } from "../components/expense/edit/ExpenseEdit";
 
 export function MissionPage() {
@@ -72,6 +73,8 @@ export function MissionPage() {
                   }
                   columns={[
                     { accessorKey: "id", header: "Id" },
+                    { accessorKey: "number", header: "Number" },
+                    { accessorKey: "status", header: "Status" },
                     { accessorKey: "fromDate", header: "From" },
                     { accessorKey: "toDate", header: "To" },
                     { accessorKey: "title", header: "Title" },
@@ -80,9 +83,11 @@ export function MissionPage() {
                   data={(dataFiltered ? dataFiltered : data.results).map(
                     (item) => ({
                       id: item.id,
+                      number: item.number ?? "-",
+                      status: item.status,
                       fromDate: item.fromDate,
                       toDate: item.toDate,
-                      title: item.title,
+                      title: missionDisplayTitle(item),
                       resource: `${item.resource.firstName} ${item.resource.lastName}`,
                     })
                   )}

@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   useCreateMission,
+  useSubmitMission,
   useGetMissions,
   useGetResources,
   useGetActiveResources,
@@ -22,6 +23,7 @@ type CreateMissionResponse = Awaited<ReturnType<typeof missionApi.createMission>
 // Mock the mission API
 vi.mock("../restapi/mission", () => ({
   createMission: vi.fn(),
+  submitMission: vi.fn(),
   getMissions: vi.fn(),
   getMission: vi.fn(),
   getResources: vi.fn(),
@@ -59,10 +61,39 @@ describe("useMissions hooks", () => {
     vi.restoreAllMocks();
   });
 
+  describe("useSubmitMission", () => {
+    it("should submit the mission and invalidate mission queries", async () => {
+      vi.mocked(missionApi.submitMission).mockResolvedValue({ id: 1, status: "SUBMITTED", number: 3 } as MissionInterface);
+      const queryClient = new QueryClient();
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      );
+
+      const { result } = renderHook(() => useSubmitMission(), { wrapper });
+      result.current.mutate(1);
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(missionApi.submitMission).toHaveBeenCalledWith(1);
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: "mission" });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: "missions" });
+    });
+
+    it("should expose the error when the submission is rejected", async () => {
+      vi.mocked(missionApi.submitMission).mockRejectedValue(new Error("400"));
+
+      const { result } = renderHook(() => useSubmitMission(), { wrapper: createWrapper() });
+      result.current.mutate(1);
+
+      await waitFor(() => expect(result.current.isError).toBe(true));
+    });
+  });
+
   describe("useCreateMission", () => {
     const mockMission: MissionInterface = {
       id: 1,
       number: 1,
+      status: "SUBMITTED" as const,
       title: "Test Mission",
       fromDate: "2024-01-01",
       toDate: "2024-12-31",
@@ -183,6 +214,7 @@ describe("useMissions hooks", () => {
         {
           id: 1,
           number: 1,
+          status: "SUBMITTED" as const,
           title: "Test Mission",
           fromDate: "2024-01-01",
           toDate: "2024-12-31",
@@ -677,6 +709,7 @@ describe("useMissions hooks", () => {
     const mockMission: MissionInterface = {
       id: 1,
       number: 1,
+      status: "SUBMITTED" as const,
       title: "Test Mission",
       fromDate: "2024-01-01",
       toDate: "2024-12-31",

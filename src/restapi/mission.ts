@@ -8,13 +8,16 @@ import {
     Resource,
 } from "./types";
 import { restapi } from "./restapi";
-import moment from "moment";
 
 
 export function createMission(params: MissionInterface) {
-    const year: number = moment(params.toDate).year();
-    const paramsRefactored = { ...params, project: params.project.id, year: year, city: params.city.id, defaultCurrency: params.defaultCurrency?.iso3, resource: params.resource.id }
+    // year is not sent: the backend derives it from fromDate
+    const paramsRefactored = { ...params, project: params.project.id, city: params.city.id, defaultCurrency: params.defaultCurrency?.iso3, resource: params.resource.id }
     return restapi.post<MissionInterface>('missions/mission/', paramsRefactored)
+}
+
+export function submitMission(id: number): Promise<MissionInterface> {
+    return restapi.post<MissionInterface>(`missions/mission/${id}/submit/`).then(res => res.data);
 }
 
 export function getMissions(isStaff: boolean, resourceId?: number): Promise<Page<MissionInterface>> {

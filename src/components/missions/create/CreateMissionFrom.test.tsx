@@ -24,6 +24,7 @@ describe('CreateMissionFrom', () => {
             fromDate: "2025-01-01",
             id: 1,
             number: 1,
+            status: "SUBMITTED" as const,
             title: "some mission",
             project: {
                 id: 1,
