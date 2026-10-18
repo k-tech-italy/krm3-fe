@@ -48,13 +48,12 @@ CI ([.github/workflows/test.yml](.github/workflows/test.yml)) runs on every
 push and PR to `develop` and `master`:
 
 1. **test** — `yarn install --frozen-lockfile` and `yarn test:coverage`.
-2. **version-check** — runs [check_versions.sh](check_versions.sh), which
-   compares the `version` in `package.json` with the one in `HEAD~1` and fails
-   if it was not increased.
+2. **version-check** — only on `develop` → `master` PRs. Runs
+   [check_versions.sh](check_versions.sh), which compares the `version` in
+   `package.json` with the one on `master` and fails if it was not increased.
 
-> Because of the version check, **every PR into `develop` must bump the
-> version** in `package.json`, and so must the `develop` → `master` PR
-> (which it does if `develop` was bumped since the last release).
+Feature and fix PRs into `develop` do not need to bump the version; the bump
+is done once per release (see [Release process](#release-process)).
 
 ## Versioning
 
@@ -81,21 +80,26 @@ with `npm pkg get version`).
 ### 1. Merge the changes into `develop`
 
 1. Branch from `develop` (`feature/...`, `fix/...`).
-2. Commit your changes and bump `version` in `package.json`, usually as a
-   separate `chore(release): bump frontend version to X.Y.Z` commit.
-3. Open a PR to `develop`. CI must be green (tests + version check).
-4. Get it reviewed and merge it.
+2. Open a PR to `develop`. CI tests must be green.
+3. Get it reviewed and merge it.
 
-### 2. Promote `develop` to `master`
+### 2. Bump the version
+
+On `develop`, once everything to be released is merged, bump `version` in
+`package.json` according to the changes since the last release, and commit it
+as `chore(release): bump frontend version to X.Y.Z` (directly or via a PR to
+`develop`).
+
+### 3. Promote `develop` to `master`
 
 1. Open a PR from `develop` to `master`.
-2. Wait for CI to pass, then merge it. The merge commit on `master` is the
-   released frontend.
+2. Wait for CI to pass (tests + version check), then merge it. The merge
+   commit on `master` is the released frontend.
 
 No tag or GitHub release is created in this repository; the version in
 `package.json` on `master` identifies the release.
 
-### 3. Publish it through the backend
+### 4. Publish it through the backend
 
 The frontend reaches users only when the backend is released with an updated
 submodule pointer. In your `krm3` checkout, on the backend `develop` branch:
@@ -103,7 +107,7 @@ submodule pointer. In your `krm3` checkout, on the backend `develop` branch:
 ```bash
 cd krm3-fe
 git fetch origin
-git checkout origin/master        # the merge commit from step 2
+git checkout origin/master        # the merge commit from step 3
 cd ..
 git add krm3-fe
 git commit -m "chore: use krm3-fe X.Y.Z"
@@ -119,7 +123,7 @@ The backend **Build and Deploy** workflow checks out the submodule, runs
 `yarn install && yarn build`, writes `release.json` into `krm3-fe/dist`, and
 packages the result into the Docker image.
 
-### 4. Verify
+### 5. Verify
 
 After the backend is deployed, open the user menu in the app and check that
 the FE version, branch and commit in the release info match what you released.
