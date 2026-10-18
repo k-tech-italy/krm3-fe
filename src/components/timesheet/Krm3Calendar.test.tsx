@@ -84,7 +84,7 @@ describe("Krm3Calendar", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
+    vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(fixedDate);
     mockMutateSubmitTimesheet.mockClear();
     mockUseGetCurrentUser.mockReturnValue({
