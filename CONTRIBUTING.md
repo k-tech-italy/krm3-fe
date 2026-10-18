@@ -31,8 +31,34 @@ Use [Conventional Commits](https://www.conventionalcommits.org/) messages,
 e.g. `feat(contacts): ...`, `fix(Expense): ...`,
 `chore(release): bump frontend version to 1.5.0`.
 
-The `pre-commit` hook runs `lint-staged`, which formats staged files with
-Prettier and lints JS/TS files with ESLint.
+### Pre-commit hook
+
+Git hooks are managed with [husky](https://typicode.github.io/husky/) and live
+in [.husky/](.husky). The [pre-commit](.husky/pre-commit) hook runs
+`lint-staged`, which formats staged files with Prettier and lints staged
+JS/TS files with ESLint. If ESLint reports errors, the commit is aborted.
+
+The hook is installed automatically by `yarn install`: its `postinstall`
+script runs `husky`, which points this repository's `core.hooksPath` to
+`.husky/_`. To check that it is active:
+
+```bash
+git config core.hooksPath   # should print .husky/_
+```
+
+If it prints nothing (e.g. you installed with `--ignore-scripts`, or cloned
+the repo without running `yarn install`), install the hook manually:
+
+```bash
+yarn husky
+```
+
+This applies to the `krm3-fe` submodule inside the backend checkout too: run
+`yarn install` (or `yarn husky`) from inside `krm3-fe`.
+
+The hook needs `node` on the `PATH`. If commits from your IDE fail with
+`yarn: command not found`, make Node available to non-interactive shells,
+e.g. by loading nvm in `~/.config/husky/init.sh`.
 
 ## Checks
 
