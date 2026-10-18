@@ -21,7 +21,8 @@ export function MissionPage() {
   const [expenseFiltered, setExpenseFiltered] = useState<ExpenseInterface[] | undefined>();
   const [selectedExpense, setSelectedExpense] = useState<ExpenseInterface | null>();
   const [openModal, setOpenModal] = useState(false);
-  const { data: user } = useGetCurrentUser();
+  const { data: user, userCan } = useGetCurrentUser();
+  const canAddMission = userCan(["core.add_mission"]);
   const [activeTab, setActiveTab] = useState<string>("trasferte");
 
   function handleFilter(e: any) {
@@ -46,10 +47,11 @@ export function MissionPage() {
           <div>
             {activeTab === "trasferte" && (
               <>
-                {user?.isStaff && !isSmallScreen && (
+                {canAddMission && !isSmallScreen && (
                   <div className="flex justify-end mb-4">
                     <button
                       type="button"
+                      data-testid="add-mission-button"
                       className="bg-krm3-primary text-white px-4 py-2 rounded shadow hover:bg-yellow-400"
                       onClick={() => setOpenModal(true)}
                     >

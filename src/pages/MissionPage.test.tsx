@@ -14,11 +14,15 @@ vi.mock("../hooks/useMissions", () => ({
 vi.mock("../hooks/useExpense", () => ({
   useGetExpense: vi.fn(),
 }));
+const mockUserPermissions = vi.hoisted(() => ({ value: ["core.add_mission"] as string[] }));
 vi.mock("../hooks/useAuth", () => ({
-  useGetCurrentUser: () => ({ data: { isStaff: true } }),
+  useGetCurrentUser: () => ({
+    data: { isStaff: true },
+    userCan: (required: string[]) => required.every((p) => mockUserPermissions.value.includes(p)),
+  }),
 }));
 vi.mock("../hooks/useView", () => ({
-  useMediaQuery: vi.fn()
+  useMediaQuery: vi.fn(),
 }));
 vi.mock("../components/commons/LoadSpinner", () => ({
   default: () => <div>Loading...</div>,
@@ -94,9 +98,9 @@ const mockMissionData = {
       fromDate: "2023-01-01",
       toDate: "2023-01-05",
       title: "Test Mission",
-      resource: { firstName: "John", lastName: "Doe" }
-    }
-  ]
+      resource: { firstName: "John", lastName: "Doe" },
+    },
+  ],
 };
 
 const mockExpenseData = {
@@ -105,9 +109,9 @@ const mockExpenseData = {
       id: 100,
       day: "2023-01-02",
       mission: 1,
-      amountCurrency: "100 EUR"
-    }
-  ]
+      amountCurrency: "100 EUR",
+    },
+  ],
 };
 
 describe("MissionPage", () => {
@@ -124,6 +128,24 @@ describe("MissionPage", () => {
     } as UseQueryResult<any>);
 
     mockUseMediaQuery.mockReturnValue(false);
+    mockUserPermissions.value = ["core.add_mission"];
+  });
+
+  it("shows the add mission button to users with core.add_mission", () => {
+    render(<MissionPage />);
+    expect(screen.getByTestId("add-mission-button")).toBeInTheDocument();
+  });
+
+  it("hides the add mission button without core.add_mission, even for staff", () => {
+    mockUserPermissions.value = [];
+    render(<MissionPage />);
+    expect(screen.queryByTestId("add-mission-button")).not.toBeInTheDocument();
+  });
+
+  it("hides the add mission button on small screens", () => {
+    mockUseMediaQuery.mockReturnValue(true);
+    render(<MissionPage />);
+    expect(screen.queryByTestId("add-mission-button")).not.toBeInTheDocument();
   });
 
   it("renders loading state", () => {
@@ -164,7 +186,7 @@ describe("MissionPage", () => {
       id: 999,
       day: "2023-01-03",
       mission: 9999,
-      amountCurrency: "50 EUR"
+      amountCurrency: "50 EUR",
     };
 
     mockUseGetExpense.mockReturnValue({
@@ -181,26 +203,26 @@ describe("MissionPage", () => {
   });
 
   it("navigates to mission detail when clicking on mission row", () => {
-      const mockReplace = vi.fn();
-      Object.defineProperty(window, "location", {
-        value: { ...window.location, replace: mockReplace },
-        writable: true,
-      });
-      render(<MissionPage />);
-      fireEvent.click(screen.getByTestId("row-0"));
-      expect(mockReplace).toHaveBeenCalledWith("/trasferte/1");
-   });
+    const mockReplace = vi.fn();
+    Object.defineProperty(window, "location", {
+      value: { ...window.location, replace: mockReplace },
+      writable: true,
+    });
+    render(<MissionPage />);
+    fireEvent.click(screen.getByTestId("row-0"));
+    expect(mockReplace).toHaveBeenCalledWith("/trasferte/1");
+  });
 
   it("sets selected expense when clicking on expense row", () => {
-      render(<MissionPage />);
-      fireEvent.click(screen.getByText(/spese/i));
+    render(<MissionPage />);
+    fireEvent.click(screen.getByText(/spese/i));
 
-      fireEvent.click(screen.getByTestId("row-0"));
-      expect(screen.getByText("ExpenseEditModal")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("row-0"));
+    expect(screen.getByText("ExpenseEditModal")).toBeInTheDocument();
 
-      fireEvent.click(screen.getByText("Close Expense"));
-      expect(screen.queryByText("ExpenseEditModal")).not.toBeInTheDocument();
-    });
+    fireEvent.click(screen.getByText("Close Expense"));
+    expect(screen.queryByText("ExpenseEditModal")).not.toBeInTheDocument();
+  });
 
   it("calls setDataFiltered when mission filter is applied", () => {
     render(<MissionPage />);
