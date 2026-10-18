@@ -3,6 +3,7 @@ import type { AxiosError } from "axios";
 import { MissionInterface } from "../restapi/types";
 import {
   createMission,
+  submitMission,
   getMission,
   getMissions,
   getResources,
@@ -26,6 +27,16 @@ export function useCreateMission() {
   );
 }
 
+export function useSubmitMission() {
+  const queryClient = useQueryClient();
+  return useMutation<MissionInterface, AxiosError, number>((id: number) => submitMission(id), {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: "mission" });
+      queryClient.invalidateQueries({ queryKey: "missions" });
+    },
+  });
+}
+
 export function useGetMissions() {
   const { data } = useGetCurrentUser();
   const id = data?.resource?.id;
@@ -36,8 +47,8 @@ export function useGetMissions() {
   });
 }
 
-export function useGetResources() {
-  const resources = useQuery("resources", () => getResources());
+export function useGetResources(enabled = true) {
+  const resources = useQuery("resources", () => getResources(), { enabled });
   return resources.data;
 }
 

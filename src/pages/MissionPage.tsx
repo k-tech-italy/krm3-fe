@@ -10,22 +10,19 @@ import { useGetExpense } from "../hooks/useExpense";
 import ExpenseFilter from "../components/expense/ExpenseFilter";
 import Tabs from "../components/commons/TopTabs";
 import Krm3Table from "../components/commons/Krm3Table";
+import { missionDisplayTitle } from "../utils/mission";
 import { ExpenseEdit } from "../components/expense/edit/ExpenseEdit";
 
 export function MissionPage() {
   const { isLoading, data, isError } = useGetMissions();
   const isSmallScreen = useMediaQuery("(max-width: 767.98px)");
   const { data: exepenses } = useGetExpense();
-  const [dataFiltered, setDataFiltered] = useState<
-    MissionInterface[] | undefined
-  >();
-  const [expenseFiltered, setExpenseFiltered] = useState<
-    ExpenseInterface[] | undefined
-  >();
-  const [selectedExpense, setSelectedExpense] =
-    useState<ExpenseInterface | null>();
+  const [dataFiltered, setDataFiltered] = useState<MissionInterface[] | undefined>();
+  const [expenseFiltered, setExpenseFiltered] = useState<ExpenseInterface[] | undefined>();
+  const [selectedExpense, setSelectedExpense] = useState<ExpenseInterface | null>();
   const [openModal, setOpenModal] = useState(false);
-  const { data: user } = useGetCurrentUser();
+  const { data: user, userCan } = useGetCurrentUser();
+  const canAddMission = userCan(["core.add_mission"]);
   const [activeTab, setActiveTab] = useState<string>("trasferte");
 
   function handleFilter(e: any) {
@@ -50,10 +47,11 @@ export function MissionPage() {
           <div>
             {activeTab === "trasferte" && (
               <>
-                {user?.isStaff && !isSmallScreen && (
+                {canAddMission && !isSmallScreen && (
                   <div className="flex justify-end mb-4">
                     <button
                       type="button"
+                      data-testid="add-mission-button"
                       className="bg-krm3-primary text-white px-4 py-2 rounded shadow hover:bg-yellow-400"
                       onClick={() => setOpenModal(true)}
                     >
@@ -61,31 +59,27 @@ export function MissionPage() {
                     </button>
                   </div>
                 )}
-                <FilterResource
-                  handleFilter={handleFilter}
-                  data={data}
-                  isAdmin={user?.isStaff}
-                />
+                <FilterResource handleFilter={handleFilter} data={data} isAdmin={user?.isStaff} />
                 <Krm3Table
-                  onClickRow={(item) =>
-                    window.location.replace(`/trasferte/${item.id}`)
-                  }
+                  onClickRow={(item) => window.location.replace(`/trasferte/${item.id}`)}
                   columns={[
                     { accessorKey: "id", header: "Id" },
+                    { accessorKey: "number", header: "Number" },
+                    { accessorKey: "status", header: "Status" },
                     { accessorKey: "fromDate", header: "From" },
                     { accessorKey: "toDate", header: "To" },
                     { accessorKey: "title", header: "Title" },
                     { accessorKey: "resource", header: "Resource" },
                   ]}
-                  data={(dataFiltered ? dataFiltered : data.results).map(
-                    (item) => ({
-                      id: item.id,
-                      fromDate: item.fromDate,
-                      toDate: item.toDate,
-                      title: item.title,
-                      resource: `${item.resource.firstName} ${item.resource.lastName}`,
-                    })
-                  )}
+                  data={(dataFiltered ? dataFiltered : data.results).map((item) => ({
+                    id: item.id,
+                    number: item.number ?? "-",
+                    status: item.status,
+                    fromDate: item.fromDate,
+                    toDate: item.toDate,
+                    title: missionDisplayTitle(item),
+                    resource: `${item.resource.firstName} ${item.resource.lastName}`,
+                  }))}
                 />
               </>
             )}
@@ -94,13 +88,8 @@ export function MissionPage() {
         {!!exepenses && activeTab === "spese" && (
           <>
             <div className="bg-white p-4 shadow rounded mb-4">
-              <p className="text-2xl font-semibold mb-4">
-                Ultime Spese Aggiunte
-              </p>
-              <ExpenseFilter
-                handleFilter={handleFilterExpense}
-                data={exepenses.results}
-              />
+              <p className="text-2xl font-semibold mb-4">Ultime Spese Aggiunte</p>
+              <ExpenseFilter handleFilter={handleFilterExpense} data={exepenses.results} />
             </div>
             <Krm3Table
               onClickRow={(item) => {
@@ -114,24 +103,20 @@ export function MissionPage() {
                 { accessorKey: "resource", header: "Risorsa" },
                 { accessorKey: "amountCurrency", header: "Importo in EUR" },
               ]}
-              data={(expenseFiltered
-                ? expenseFiltered
-                : exepenses.results
-              ).map((item: ExpenseInterface) => ({
-                ...item,
-                mission_title:
-                  data?.results.filter((m) => m.id === item.mission).at(0)
-                    ?.title || "",
-                resource:
-                  data?.results.filter((m) => m.id === item.mission).at(0)
-                    ?.resource.firstName || "",
-              }))}
+              data={(expenseFiltered ? expenseFiltered : exepenses.results).map(
+                (item: ExpenseInterface) => ({
+                  ...item,
+                  mission_title:
+                    data?.results.filter((m) => m.id === item.mission).at(0)?.title || "",
+                  resource:
+                    data?.results.filter((m) => m.id === item.mission).at(0)?.resource.firstName ||
+                    "",
+                })
+              )}
             />
           </>
         )}
-        {openModal && (
-          <CreateMission show={openModal} onClose={() => setOpenModal(false)} />
-        )}
+        {openModal && <CreateMission show={openModal} onClose={() => setOpenModal(false)} />}
         {!!selectedExpense && (
           <ExpenseEdit
             expense={selectedExpense}

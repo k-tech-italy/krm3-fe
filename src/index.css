@@ -225,6 +225,8 @@ html.dark .submitted-timesheet {
 }
 
 html.dark {
+  /* render native controls (select popups, date inputs, scrollbars) with dark colours */
+  color-scheme: dark;
   --color-card-bg: #23272f;
   --color-app-bg: #1f2937;
   --color-body-text: #fff;
@@ -277,6 +279,14 @@ html.dark {
 }
 .bg-selector-focused {
   background-color: var(--color-selector-focused) !important;
+}
+
+/* native dropdown options don't inherit the page colours: without this they are
+   drawn white on white in dark mode */
+html.dark select,
+html.dark select option {
+  background-color: var(--color-selector-menu);
+  color: var(--color-body-text);
 }
 .bg-closed {
   background-color: var(--color-closed) !important;
