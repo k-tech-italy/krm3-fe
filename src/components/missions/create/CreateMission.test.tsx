@@ -1,6 +1,7 @@
 import * as useMissions from "../../../hooks/useMissions";
 import { vi } from "vitest";
 import * as useExpense from "../../../hooks/useExpense";
+import * as useAuth from "../../../hooks/useAuth";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { CreateMission } from "./CreateMission.tsx";
 describe("CreateMission", () => {
@@ -11,6 +12,10 @@ describe("CreateMission", () => {
   });
   const onCloseMock = vi.fn();
   beforeEach(() => {
+    vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
+      data: { resource: null },
+      userCan: () => true,
+    } as unknown as ReturnType<typeof useAuth.useGetCurrentUser>);
     vi.spyOn(useMissions, "useCreateMission").mockReturnValue({
       isError: false,
       mutate: createMissionMock,

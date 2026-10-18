@@ -10,6 +10,7 @@ import {
   useGetCitiess,
 } from "../../../hooks/useMissions";
 import { useGetCurrencies } from "../../../hooks/useExpense";
+import { useGetCurrentUser } from "../../../hooks/useAuth";
 import "react-datepicker/dist/react-datepicker.css";
 
 interface Props {
@@ -21,7 +22,10 @@ export function CreateMissionForm(props: Props) {
   const [mission, setMission] = useState<MissionInterface>(props.mission);
   const [error, setError] = useState<MissionError | undefined>(props.error);
   const [country, setCountry] = useState();
-  const resources = useGetResources();
+  const { data: currentUser, userCan } = useGetCurrentUser();
+  // only mission managers can create missions for other resources (same rule as the backend)
+  const canChooseResource = userCan(["core.manage_any_mission"]);
+  const resources = useGetResources(canChooseResource);
   const clients = useGetClients();
   const projects = useGetProjects();
   const countries = useGetCountries();
@@ -35,6 +39,13 @@ export function CreateMissionForm(props: Props) {
   useEffect(() => {
     setError((prev) => props.error);
   }, [props.error]);
+
+  useEffect(() => {
+    // non-managers create missions for themselves: the select is not rendered
+    if (!canChooseResource && currentUser?.resource) {
+      props.mission.resource = currentUser.resource;
+    }
+  }, [canChooseResource, currentUser?.resource?.id]);
 
   function handleChangeResource(e: any): void {
     if (resources) {
@@ -107,20 +118,28 @@ export function CreateMissionForm(props: Props) {
       <div className="flex flex-col sm:flex-row items-start sm:items-center">
         <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">Risorsa</label>
         <div className="sm:w-2/4 w-full">
-          <select
-            data-testid="first-name-select"
-            className={`w-full border rounded-md p-2 ${
-              error?.resource ? "border-red-500" : "border-gray-300"
-            } `}
-            value={mission?.resource?.id}
-            onChange={handleChangeResource}
-          >
-            {[{ id: 0, firstName: "Risorsa" }, ...(resources?.results || [])].map((res) => (
-              <option key={res.id} value={res.id}>
-                {res.firstName}
-              </option>
-            ))}
-          </select>
+          {canChooseResource ? (
+            <select
+              data-testid="first-name-select"
+              className={`w-full border rounded-md p-2 ${
+                error?.resource ? "border-red-500" : "border-gray-300"
+              } `}
+              value={mission?.resource?.id}
+              onChange={handleChangeResource}
+            >
+              {[{ id: 0, firstName: "Risorsa" }, ...(resources?.results || [])].map((res) => (
+                <option key={res.id} value={res.id}>
+                  {res.firstName}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <p data-testid="own-resource" className="p-2">
+              {currentUser?.resource
+                ? `${currentUser.resource.firstName} ${currentUser.resource.lastName}`
+                : "Nessuna risorsa associata al tuo utente"}
+            </p>
+          )}
           {!!error?.resource && <p className="text-red-500 text-sm mt-1">{error.resource}</p>}
         </div>
       </div>

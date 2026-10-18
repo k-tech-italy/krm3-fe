@@ -1,6 +1,7 @@
 import { vi } from "vitest";
 import * as useMissions from "../../../hooks/useMissions.tsx";
 import * as useExpense from "../../../hooks/useExpense.tsx";
+import * as useAuth from "../../../hooks/useAuth.tsx";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { CreateMissionForm } from "./CreateMissionForm.tsx";
 import {
@@ -11,6 +12,19 @@ import {
   Project,
   Resource,
 } from "../../../restapi/types.ts";
+
+function mockCurrentUser({
+  manager,
+  resource,
+}: {
+  manager: boolean;
+  resource?: Partial<Resource> | null;
+}) {
+  vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
+    data: { resource: resource ?? null },
+    userCan: (required: string[]) => manager && required.includes("core.manage_any_mission"),
+  } as unknown as ReturnType<typeof useAuth.useGetCurrentUser>);
+}
 
 describe("CreateMissionFrom", () => {
   const props = {
@@ -99,6 +113,7 @@ describe("CreateMissionFrom", () => {
     },
   };
   beforeEach(() => {
+    mockCurrentUser({ manager: true });
     vi.spyOn(useMissions, "useGetResources").mockReturnValue({
       count: 2,
       next: null,
@@ -244,5 +259,37 @@ describe("CreateMissionFrom", () => {
     expect(screen.queryByText("project error")).not.toBeInTheDocument();
     expect(screen.queryByText("city error")).not.toBeInTheDocument();
     expect(screen.queryByText("defaultCurrency error")).not.toBeInTheDocument();
+  });
+  it("shows the resource select to mission managers", () => {
+    render(<CreateMissionForm {...props} />);
+    expect(screen.getByTestId("first-name-select")).toBeInTheDocument();
+    expect(screen.queryByTestId("own-resource")).not.toBeInTheDocument();
+    expect(useMissions.useGetResources).toHaveBeenCalledWith(true);
+  });
+  it("uses the user's own resource without a select for non-managers", () => {
+    const own = { id: 7, firstName: "Ola", lastName: "Lis" };
+    mockCurrentUser({ manager: false, resource: own });
+    const mission = { ...props.mission, resource: undefined } as unknown as MissionInterface;
+
+    render(<CreateMissionForm {...props} mission={mission} />);
+
+    expect(screen.queryByTestId("first-name-select")).not.toBeInTheDocument();
+    expect(screen.getByTestId("own-resource")).toHaveTextContent("Ola Lis");
+    expect(mission.resource).toEqual(own);
+    expect(useMissions.useGetResources).toHaveBeenCalledWith(false);
+  });
+  it("tells non-managers without a resource that they cannot pick one", () => {
+    mockCurrentUser({ manager: false, resource: null });
+    const mission = { ...props.mission, resource: undefined } as unknown as MissionInterface;
+
+    // fresh error object: "clears errors" mutates props.error
+    const error = { ...props.error, resource: ["resource error"] };
+
+    render(<CreateMissionForm {...props} mission={mission} error={error} />);
+
+    expect(screen.getByTestId("own-resource")).toHaveTextContent(
+      "Nessuna risorsa associata al tuo utente"
+    );
+    expect(screen.getByText("resource error")).toBeInTheDocument();
   });
 });

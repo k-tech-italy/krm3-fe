@@ -47,8 +47,8 @@ export function useGetMissions() {
   });
 }
 
-export function useGetResources() {
-  const resources = useQuery("resources", () => getResources());
+export function useGetResources(enabled = true) {
+  const resources = useQuery("resources", () => getResources(), { enabled });
   return resources.data;
 }
 
