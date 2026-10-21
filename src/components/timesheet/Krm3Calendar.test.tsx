@@ -7,6 +7,7 @@ import { vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { DayEntry, Schedule } from "../../restapi/types.ts";
 import * as reactResponsive from "react-responsive";
+import { toast } from "react-toastify";
 
 vi.mock("../../hooks/useAuth");
 vi.mock("../../hooks/useTimesheet");
@@ -316,6 +317,41 @@ describe("Krm3Calendar", () => {
       endDate: "2025-07-31",
       resourceId: 1,
     });
+  });
+  test("submit displays the error returned by the current request", async () => {
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    fireEvent.click(await screen.findByRole("button", { name: /Submit Timesheet/i }));
+
+    const toastOptions = vi.mocked(toast.promise).mock.calls[0][1];
+    const errorRenderer = typeof toastOptions === "object" ? toastOptions.error : undefined;
+    const error = {
+      isAxiosError: true,
+      response: {
+        data: {
+          __all__: ["The timesheet for 2026-02 must be submitted first."],
+        },
+      },
+    };
+
+    if (typeof errorRenderer !== "object" || typeof errorRenderer.render !== "function") {
+      throw new Error("Expected the submit toast to provide an error renderer");
+    }
+
+    render(
+      <>
+        {errorRenderer.render({
+          data: error,
+          closeToast: vi.fn(),
+          isPaused: false,
+          toastProps: {} as never,
+        })}
+      </>
+    );
+
+    expect(
+      screen.getByText("The timesheet for 2026-02 must be submitted first.")
+    ).toBeInTheDocument();
   });
   test("bank hours should be rendered", () => {
     mockUseGetTimesheet.mockReturnValue({

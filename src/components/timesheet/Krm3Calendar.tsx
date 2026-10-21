@@ -66,7 +66,7 @@ export default function Krm3Calendar({
     }
   }, [currentWeekStart]);
   const { data, userCan } = useGetCurrentUser();
-  const { mutateAsync: mutateSubmitTimesheet, error: submitTimesheetError } = useSubmitTimesheet();
+  const { mutateAsync: mutateSubmitTimesheet } = useSubmitTimesheet();
   const effectiveResourceId = selectedResourceId ?? data?.resource?.id ?? null;
 
   const isEditViewAnotherUser = useMemo(() => {
@@ -187,7 +187,11 @@ export default function Krm3Calendar({
         {
           pending: "Submitting timesheet...",
           success: "Timesheet submitted successfully",
-          error: displayErrorMessage(submitTimesheetError),
+          error: {
+            render({ data }) {
+              return <div>{displayErrorMessage(data)}</div>;
+            },
+          },
         },
         {
           autoClose: 2000,
