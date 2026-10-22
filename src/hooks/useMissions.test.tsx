@@ -458,7 +458,7 @@ describe("useMissions hooks", () => {
 
     it("should fetch and return active resources", async () => {
       vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
-        data: { isSuperuser: true },
+        userCan: (permissions: string[]) => permissions.includes("core.view_any_timesheet"),
       } as unknown as CurrentUserResult);
       vi.mocked(missionApi.getActiveResources).mockResolvedValue(mockActiveResources);
 
@@ -475,7 +475,7 @@ describe("useMissions hooks", () => {
 
     it("should return undefined when active resources fetch fails", async () => {
       vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
-        data: { isSuperuser: true },
+        userCan: (permissions: string[]) => permissions.includes("core.view_any_timesheet"),
       } as unknown as CurrentUserResult);
       vi.mocked(missionApi.getActiveResources).mockRejectedValue(
         new Error("Failed to fetch active resources")
@@ -492,7 +492,7 @@ describe("useMissions hooks", () => {
 
     it("should return undefined initially before data loads", () => {
       vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
-        data: { isSuperuser: true },
+        userCan: (permissions: string[]) => permissions.includes("core.view_any_timesheet"),
       } as unknown as CurrentUserResult);
       vi.mocked(missionApi.getActiveResources).mockImplementation(() => new Promise(() => {}));
 
@@ -503,9 +503,26 @@ describe("useMissions hooks", () => {
       expect(result.current).toBeUndefined();
     });
 
-    it("does not fetch active resources for a regular user", async () => {
+    it("fetches active resources for a user who can manage other timesheets", async () => {
       vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
-        data: { isSuperuser: false },
+        userCan: (permissions: string[]) => permissions.includes("core.manage_any_timesheet"),
+      } as unknown as CurrentUserResult);
+      vi.mocked(missionApi.getActiveResources).mockResolvedValue(mockActiveResources);
+
+      const { result } = renderHook(() => useGetActiveResources(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current).toEqual(mockActiveResources);
+      });
+
+      expect(missionApi.getActiveResources).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not fetch active resources without permission", async () => {
+      vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
+        userCan: () => false,
       } as unknown as CurrentUserResult);
 
       renderHook(() => useGetActiveResources(), {

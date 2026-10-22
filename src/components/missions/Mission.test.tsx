@@ -4,6 +4,7 @@ import { vi } from "vitest";
 import * as useMissons from "../../hooks/useMissions";
 import * as useView from "../../hooks/useView";
 import * as useAuth from "../../hooks/useAuth";
+import { MemoryRouter } from "react-router-dom";
 
 vi.mock("../expense/edit/ExpenseEdit", () => {
   return { ExpenseEdit: vi.fn(() => <div>Mocked ExpenseEdit</div>) };
@@ -19,13 +20,21 @@ import {
   Resource,
 } from "../../restapi/types.ts";
 vi.mock("react-router-dom", async () => {
-  const actual: any = await vi.importActual("react-router-dom");
+  const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
   return {
     ...actual,
     useParams: () => ({ id: "1" }),
   };
 });
 describe("Mission", () => {
+  function renderMission() {
+    return render(
+      <MemoryRouter initialEntries={["/trasferte/1"]}>
+        <Mission />
+      </MemoryRouter>
+    );
+  }
+
   beforeEach(() => {
     vi.spyOn(useMissons, "useGetMission").mockReturnValue({
       dataUpdatedAt: 0,
@@ -151,13 +160,13 @@ describe("Mission", () => {
   }
 
   it("shows the status and hides submit for a submitted mission", () => {
-    render(<Mission />);
+    renderMission();
     expect(screen.getByTestId("mission-status")).toHaveTextContent("Submitted");
     expect(screen.queryByTestId("submit-mission-button")).not.toBeInTheDocument();
   });
   it("owner can submit a draft mission", () => {
     mockDraftMission();
-    render(<Mission />);
+    renderMission();
     expect(screen.getByTestId("mission-status")).toHaveTextContent("Draft");
     expect(screen.getByText("Number Mission: assigned on submission")).toBeInTheDocument();
     expect(screen.getByText("Warsaw 2025-01-01 - 2026-01-01")).toBeInTheDocument();
@@ -167,13 +176,13 @@ describe("Mission", () => {
   it("hides submit for a draft of another resource without manage permission", () => {
     mockDraftMission();
     mockCurrentUser({ resourceId: 99, perms: ["core.view_any_mission"] });
-    render(<Mission />);
+    renderMission();
     expect(screen.queryByTestId("submit-mission-button")).not.toBeInTheDocument();
   });
   it("mission manager can submit a draft of another resource", () => {
     mockDraftMission();
     mockCurrentUser({ resourceId: 99, perms: ["core.manage_any_mission"] });
-    render(<Mission />);
+    renderMission();
     expect(screen.getByTestId("submit-mission-button")).toBeInTheDocument();
   });
   it("shows submit errors", async () => {
@@ -184,14 +193,14 @@ describe("Mission", () => {
         response: { data: ["Cannot change status SUBMITTED to SUBMITTED"] },
       })
     );
-    render(<Mission />);
+    renderMission();
     fireEvent.click(screen.getByTestId("submit-mission-button"));
     expect(await screen.findByTestId("submit-mission-errors")).toHaveTextContent(
       "Cannot change status"
     );
   });
   it("renders correctly", () => {
-    render(<Mission />);
+    renderMission();
     expect(screen.getByText("Warsaw")).toBeInTheDocument();
     expect(screen.getByText("366 days")).toBeInTheDocument();
     expect(screen.getByText("example project")).toBeInTheDocument();
@@ -202,11 +211,11 @@ describe("Mission", () => {
   });
   it("does not render add expense button on small screen", () => {
     vi.spyOn(useView, "useMediaQuery").mockReturnValue(true);
-    render(<Mission />);
+    renderMission();
     expect(screen.queryByTestId("add-expense-button")).not.toBeInTheDocument();
   });
   it("click on expense should render ExpenseEdit with correct params", () => {
-    render(<Mission />);
+    renderMission();
     expect(screen.queryByText("Mocked ExpenseEdit")).not.toBeInTheDocument();
     fireEvent.click(screen.getByText("some payment type"));
     expect(screen.getByText("Mocked ExpenseEdit")).toBeInTheDocument();
@@ -233,7 +242,7 @@ describe("Mission", () => {
     );
   });
   it("clicking on add expense button opens ExpenseEdit with default parameters", () => {
-    render(<Mission />);
+    renderMission();
     expect(screen.queryByText("Mocked ExpenseEdit")).not.toBeInTheDocument();
     fireEvent.click(screen.getByTestId("add-expense-button"));
     expect(screen.getByText("Mocked ExpenseEdit")).toBeInTheDocument();

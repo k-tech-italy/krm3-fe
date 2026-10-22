@@ -36,6 +36,7 @@ interface Props {
   selectedWeekRange: WeekRange;
   setBankHours: (bankHours: number) => void;
   setIsSubmitted: (submitted: boolean) => void;
+  setHasTimesheet: (hasTimesheet: boolean) => void;
 }
 
 function buildCalendarDays(timesheet: Timesheet): Days {
@@ -80,6 +81,10 @@ export function TimeSheetTable(props: Readonly<Props>) {
     endScheduled,
     props.selectedResourceId
   );
+
+  useEffect(() => {
+    props.setHasTimesheet(!isLoadingTimesheet && Boolean(timesheet));
+  }, [isLoadingTimesheet, timesheet, props.setHasTimesheet]);
 
   useEffect(() => {
     if (!isLoadingTimesheet && timesheet) {
