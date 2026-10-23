@@ -41,6 +41,7 @@ export default function Krm3Calendar({
   const { isColumnView, setColumnView } = useColumnViewPreference();
   const [bankHours, setBankHours] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [hasTimesheet, setHasTimesheet] = useState(false);
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
 
@@ -65,7 +66,8 @@ export default function Krm3Calendar({
     }
   }, [currentWeekStart]);
   const { data, userCan } = useGetCurrentUser();
-  const { mutateAsync: mutateSubmitTimesheet, error: submitTimesheetError } = useSubmitTimesheet();
+  const { mutateAsync: mutateSubmitTimesheet } = useSubmitTimesheet();
+  const effectiveResourceId = selectedResourceId ?? data?.resource?.id ?? null;
 
   const isEditViewAnotherUser = useMemo(() => {
     return data?.resource?.id !== selectedResourceId;
@@ -173,9 +175,9 @@ export default function Krm3Calendar({
     setCurrentWeekStart(newDate);
   };
   async function handleSubmitTimesheet() {
-    if (data && scheduledDays.days) {
+    if (effectiveResourceId && scheduledDays.days.length > 0) {
       const promise = mutateSubmitTimesheet({
-        resourceId: selectedResourceId || data?.resource.id,
+        resourceId: effectiveResourceId,
         startDate: normalizeDate(scheduledDays.days[0]),
         endDate: normalizeDate(scheduledDays.days[scheduledDays.days.length - 1]),
       });
@@ -185,7 +187,11 @@ export default function Krm3Calendar({
         {
           pending: "Submitting timesheet...",
           success: "Timesheet submitted successfully",
-          error: displayErrorMessage(submitTimesheetError),
+          error: {
+            render({ data }) {
+              return <div>{displayErrorMessage(data)}</div>;
+            },
+          },
         },
         {
           autoClose: 2000,
@@ -198,10 +204,16 @@ export default function Krm3Calendar({
   }
 
   function disabledSubmitButtonText() {
-    if (isSubmitted) {
+    if (!effectiveResourceId) {
+      return "Select a resource first";
+    } else if (readOnly) {
+      return "You do not have permission to submit this timesheet";
+    } else if (isSubmitted) {
       return "Timesheet is already submitted";
     } else if (!isMonth) {
       return "Only available for month view";
+    } else if (!scheduledHoursCompleted()) {
+      return "Timesheet hours are incomplete";
     } else {
       return "";
     }
@@ -209,10 +221,17 @@ export default function Krm3Calendar({
 
   function scheduledHoursCompleted() {
     const hoursLeftToLog: Record<string, number> = {};
+    const dates = Object.keys(typeDays ?? {});
 
-    for (const date in typeDays) {
-      const scheduleKey = normalizeDate(date).replaceAll("-", "_");
-      hoursLeftToLog[normalizeDate(date)] = Number(schedule[scheduleKey]) || 0;
+    if (dates.length === 0 || Object.keys(schedule).length === 0) {
+      return false;
+    }
+
+    for (const date of dates) {
+      const normalizedDate = normalizeDate(date);
+      const legacyScheduleKey = normalizedDate.replaceAll("-", "_");
+      hoursLeftToLog[normalizedDate] =
+        Number(schedule[normalizedDate] ?? schedule[legacyScheduleKey]) || 0;
     }
 
     for (const dayEntry of dayEntries) {
@@ -352,16 +371,25 @@ export default function Krm3Calendar({
             setSchedule={setSchedule}
             setBankHours={setBankHours}
             setIsSubmitted={setIsSubmitted}
+            setHasTimesheet={setHasTimesheet}
           />
-          <div className="flex justify-end items-center mt-4">
-            <Krm3Button
-              onClick={() => handleSubmitTimesheet()}
-              style="primary"
-              label="Submit Timesheet"
-              disabled={!isMonth || isSubmitted || !scheduledHoursCompleted()}
-              disabledTooltipMessage={disabledSubmitButtonText()}
-            />
-          </div>
+          {hasTimesheet && (
+            <div className="flex justify-end items-center mt-4">
+              <Krm3Button
+                onClick={() => handleSubmitTimesheet()}
+                style="primary"
+                label="Submit Timesheet"
+                disabled={
+                  !effectiveResourceId ||
+                  readOnly ||
+                  !isMonth ||
+                  isSubmitted ||
+                  !scheduledHoursCompleted()
+                }
+                disabledTooltipMessage={disabledSubmitButtonText()}
+              />
+            </div>
+          )}
           {/* The entry modal is opened by drag and drop, which is covered by integration tests. */}
           {/* v8 ignore next 40 */}
           {isEntryModalOpen && (isDayEntry || selectedTask) && startDate && endDate && typeDays && (

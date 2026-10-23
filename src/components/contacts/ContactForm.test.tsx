@@ -135,7 +135,7 @@ describe("ContactForm", () => {
   });
 
   it("does not show email error after 'Create and add another' resets the form", async () => {
-    vi.useFakeTimers();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
       render(<ContactForm />);
       fillRequired();
@@ -208,7 +208,7 @@ describe("ContactForm", () => {
   });
 
   it("shows phone validation error after debounce", async () => {
-    vi.useFakeTimers();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
       render(<ContactForm />);
       fillRequired();
@@ -239,7 +239,7 @@ describe("ContactForm", () => {
   });
 
   it("shows email validation error after debounce", async () => {
-    vi.useFakeTimers();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
       render(<ContactForm />);
       fillRequired();

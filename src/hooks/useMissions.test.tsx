@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   useCreateMission,
+  useSubmitMission,
   useGetMissions,
   useGetResources,
   useGetActiveResources,
@@ -22,6 +23,7 @@ type CreateMissionResponse = Awaited<ReturnType<typeof missionApi.createMission>
 // Mock the mission API
 vi.mock("../restapi/mission", () => ({
   createMission: vi.fn(),
+  submitMission: vi.fn(),
   getMissions: vi.fn(),
   getMission: vi.fn(),
   getResources: vi.fn(),
@@ -59,10 +61,43 @@ describe("useMissions hooks", () => {
     vi.restoreAllMocks();
   });
 
+  describe("useSubmitMission", () => {
+    it("should submit the mission and invalidate mission queries", async () => {
+      vi.mocked(missionApi.submitMission).mockResolvedValue({
+        id: 1,
+        status: "SUBMITTED",
+        number: 3,
+      } as MissionInterface);
+      const queryClient = new QueryClient();
+      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      );
+
+      const { result } = renderHook(() => useSubmitMission(), { wrapper });
+      result.current.mutate(1);
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(missionApi.submitMission).toHaveBeenCalledWith(1);
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: "mission" });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: "missions" });
+    });
+
+    it("should expose the error when the submission is rejected", async () => {
+      vi.mocked(missionApi.submitMission).mockRejectedValue(new Error("400"));
+
+      const { result } = renderHook(() => useSubmitMission(), { wrapper: createWrapper() });
+      result.current.mutate(1);
+
+      await waitFor(() => expect(result.current.isError).toBe(true));
+    });
+  });
+
   describe("useCreateMission", () => {
     const mockMission: MissionInterface = {
       id: 1,
       number: 1,
+      status: "SUBMITTED" as const,
       title: "Test Mission",
       fromDate: "2024-01-01",
       toDate: "2024-12-31",
@@ -183,6 +218,7 @@ describe("useMissions hooks", () => {
         {
           id: 1,
           number: 1,
+          status: "SUBMITTED" as const,
           title: "Test Mission",
           fromDate: "2024-01-01",
           toDate: "2024-12-31",
@@ -422,7 +458,7 @@ describe("useMissions hooks", () => {
 
     it("should fetch and return active resources", async () => {
       vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
-        data: { isSuperuser: true },
+        userCan: (permissions: string[]) => permissions.includes("core.view_any_timesheet"),
       } as unknown as CurrentUserResult);
       vi.mocked(missionApi.getActiveResources).mockResolvedValue(mockActiveResources);
 
@@ -439,7 +475,7 @@ describe("useMissions hooks", () => {
 
     it("should return undefined when active resources fetch fails", async () => {
       vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
-        data: { isSuperuser: true },
+        userCan: (permissions: string[]) => permissions.includes("core.view_any_timesheet"),
       } as unknown as CurrentUserResult);
       vi.mocked(missionApi.getActiveResources).mockRejectedValue(
         new Error("Failed to fetch active resources")
@@ -456,7 +492,7 @@ describe("useMissions hooks", () => {
 
     it("should return undefined initially before data loads", () => {
       vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
-        data: { isSuperuser: true },
+        userCan: (permissions: string[]) => permissions.includes("core.view_any_timesheet"),
       } as unknown as CurrentUserResult);
       vi.mocked(missionApi.getActiveResources).mockImplementation(() => new Promise(() => {}));
 
@@ -467,9 +503,26 @@ describe("useMissions hooks", () => {
       expect(result.current).toBeUndefined();
     });
 
-    it("does not fetch active resources for a regular user", async () => {
+    it("fetches active resources for a user who can manage other timesheets", async () => {
       vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
-        data: { isSuperuser: false },
+        userCan: (permissions: string[]) => permissions.includes("core.manage_any_timesheet"),
+      } as unknown as CurrentUserResult);
+      vi.mocked(missionApi.getActiveResources).mockResolvedValue(mockActiveResources);
+
+      const { result } = renderHook(() => useGetActiveResources(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current).toEqual(mockActiveResources);
+      });
+
+      expect(missionApi.getActiveResources).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not fetch active resources without permission", async () => {
+      vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
+        userCan: () => false,
       } as unknown as CurrentUserResult);
 
       renderHook(() => useGetActiveResources(), {
@@ -677,6 +730,7 @@ describe("useMissions hooks", () => {
     const mockMission: MissionInterface = {
       id: 1,
       number: 1,
+      status: "SUBMITTED" as const,
       title: "Test Mission",
       fromDate: "2024-01-01",
       toDate: "2024-12-31",
