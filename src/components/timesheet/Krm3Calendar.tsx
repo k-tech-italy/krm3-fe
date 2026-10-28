@@ -1,5 +1,5 @@
 import { DayEntry, Days, Schedule, Task, TaskEntry, WeekRange } from "../../restapi/types";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Landmark } from "lucide-react";
 import Krm3Modal from "../commons/krm3Modal";
 import EditTaskEntry from "./edit-entry/EditTaskEntry";
@@ -30,6 +30,7 @@ export default function Krm3Calendar({
 }>) {
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
   const [taskEntries, setTaskEntries] = useState<TaskEntry[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [dayEntries, setDayEntries] = useState<DayEntry[]>([]);
   const [typeDays, setTypeDays] = useState<Days>();
   const [isEntryModalOpen, setIsEntryModalOpen] = useState<boolean>(false);
@@ -41,6 +42,8 @@ export default function Krm3Calendar({
   const { isColumnView, setColumnView } = useColumnViewPreference();
   const [bankHours, setBankHours] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
   const [hasTimesheet, setHasTimesheet] = useState(false);
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
@@ -175,7 +178,14 @@ export default function Krm3Calendar({
     setCurrentWeekStart(newDate);
   };
   async function handleSubmitTimesheet() {
-    if (effectiveResourceId && scheduledDays.days.length > 0) {
+    if (isSubmittingRef.current || !effectiveResourceId || scheduledDays.days.length === 0) {
+      return;
+    }
+
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
+
+    try {
       const promise = mutateSubmitTimesheet({
         resourceId: effectiveResourceId,
         startDate: normalizeDate(scheduledDays.days[0]),
@@ -200,6 +210,10 @@ export default function Krm3Calendar({
           draggable: true,
         }
       );
+      setIsSubmitted(true);
+    } finally {
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
     }
   }
 
@@ -212,6 +226,8 @@ export default function Krm3Calendar({
       return "Timesheet is already submitted";
     } else if (!isMonth) {
       return "Only available for month view";
+    } else if (isSubmitting) {
+      return "Timesheet submission is in progress";
     } else if (!scheduledHoursCompleted()) {
       return "Timesheet hours are incomplete";
     } else {
@@ -220,15 +236,31 @@ export default function Krm3Calendar({
   }
 
   function scheduledHoursCompleted() {
+    // Track the scheduled hours that still need to be covered for each required day.
     const hoursLeftToLog: Record<string, number> = {};
     const dates = Object.keys(typeDays ?? {});
 
-    if (dates.length === 0 || Object.keys(schedule).length === 0) {
+    if (dates.length === 0 || Object.keys(schedule).length === 0 || tasks.length === 0) {
       return false;
     }
 
     for (const date of dates) {
       const normalizedDate = normalizeDate(date);
+
+      // Only days covered by at least one task require the hours defined by the schedule.
+      // Task end dates are exclusive; tasks without an end date remain active indefinitely.
+      const isCoveredByTask = tasks.some((task) => {
+        const taskStartDate = normalizeDate(task.startDate);
+        const taskEndDate = task.endDate ? normalizeDate(task.endDate) : undefined;
+
+        return normalizedDate >= taskStartDate && (!taskEndDate || normalizedDate < taskEndDate);
+      });
+
+      if (!isCoveredByTask) {
+        continue;
+      }
+
+      // Support both the current date keys and the legacy underscore-separated keys.
       const legacyScheduleKey = normalizedDate.replaceAll("-", "_");
       hoursLeftToLog[normalizedDate] =
         Number(schedule[normalizedDate] ?? schedule[legacyScheduleKey]) || 0;
@@ -358,6 +390,7 @@ export default function Krm3Calendar({
             setIsEntryModalOpen={setIsEntryModalOpen}
             setSelectedTask={setSelectedTask}
             setTaskEntries={setTaskEntries}
+            setTasks={setTasks}
             setDayEntries={setDayEntries}
             setNoWorkingDay={setTypeDays}
             setIsDayEntry={setIsDayEntry}
@@ -373,7 +406,7 @@ export default function Krm3Calendar({
             setIsSubmitted={setIsSubmitted}
             setHasTimesheet={setHasTimesheet}
           />
-          {hasTimesheet && (
+          {hasTimesheet && tasks.length > 0 && (
             <div className="flex justify-end items-center mt-4">
               <Krm3Button
                 onClick={() => handleSubmitTimesheet()}
@@ -384,6 +417,7 @@ export default function Krm3Calendar({
                   readOnly ||
                   !isMonth ||
                   isSubmitted ||
+                  isSubmitting ||
                   !scheduledHoursCompleted()
                 }
                 disabledTooltipMessage={disabledSubmitButtonText()}

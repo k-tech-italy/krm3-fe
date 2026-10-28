@@ -121,7 +121,7 @@ export default function EditTaskEntry({
     if (normalizeDate(date) < normalizeDate(task.startDate)) {
       return false;
     }
-    if (!!task.endDate && normalizeDate(date) > normalizeDate(task.endDate)) {
+    if (!!task.endDate && normalizeDate(date) >= normalizeDate(task.endDate)) {
       return false;
     }
     return true;
