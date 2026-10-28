@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import Krm3Calendar from "./Krm3Calendar";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import { useGetTimesheet, useSubmitTimesheet } from "../../hooks/useTimesheet";
@@ -421,6 +421,29 @@ describe("Krm3Calendar", () => {
       endDate: "2025-07-31",
       resourceId: 1,
     });
+  });
+  test("prevents duplicate submissions while a request is in progress", async () => {
+    let resolveSubmit: () => void;
+    const submitPromise = new Promise<void>((resolve) => {
+      resolveSubmit = resolve;
+    });
+    mockMutateSubmitTimesheet.mockReturnValueOnce(submitPromise);
+    vi.mocked(toast.promise).mockImplementationOnce(() => submitPromise as never);
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    const submitButton = await screen.findByRole("button", {
+      name: /Submit Timesheet/i,
+    });
+
+    fireEvent.click(submitButton);
+    fireEvent.click(submitButton);
+
+    expect(mockMutateSubmitTimesheet).toHaveBeenCalledTimes(1);
+    expect(submitButton).toBeDisabled();
+
+    resolveSubmit!();
+
+    await waitFor(() => expect(submitButton).toBeDisabled());
   });
   test("submit displays the error returned by the current request", async () => {
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);

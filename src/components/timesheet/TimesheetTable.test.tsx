@@ -154,6 +154,20 @@ describe("TimeSheetTable", () => {
     expect(screen.getByText("No Data")).toBeInTheDocument();
   });
 
+  it("clears schedule and bank hours when no timesheet is available", async () => {
+    mockUseGetTimesheet.mockReturnValue({ data: undefined, isLoading: false } as ReturnType<
+      typeof useGetTimesheet
+    >);
+    const props = makeProps();
+
+    render(<TimeSheetTable {...props} />);
+
+    await waitFor(() => {
+      expect(props.setSchedule).toHaveBeenCalledWith({});
+      expect(props.setBankHours).toHaveBeenCalledWith(0);
+    });
+  });
+
   it("synchronizes timesheet data with its parent", async () => {
     const props = makeProps();
 
@@ -275,6 +289,7 @@ describe("TimeSheetTable", () => {
 
   it.each([
     ["before the task starts", { ...task, startDate: "2025-01-16" }, scheduledDays[0], timesheet],
+    ["on the task end date", { ...task, endDate: "2025-01-17" }, scheduledDays[2], timesheet],
     ["after the task ends", { ...task, endDate: "2025-01-16" }, scheduledDays[2], timesheet],
     [
       "on a closed day",

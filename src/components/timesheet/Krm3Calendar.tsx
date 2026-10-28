@@ -1,5 +1,5 @@
 import { DayEntry, Days, Schedule, Task, TaskEntry, WeekRange } from "../../restapi/types";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight, Landmark } from "lucide-react";
 import Krm3Modal from "../commons/krm3Modal";
 import EditTaskEntry from "./edit-entry/EditTaskEntry";
@@ -42,6 +42,8 @@ export default function Krm3Calendar({
   const { isColumnView, setColumnView } = useColumnViewPreference();
   const [bankHours, setBankHours] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
   const [hasTimesheet, setHasTimesheet] = useState(false);
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
@@ -176,7 +178,14 @@ export default function Krm3Calendar({
     setCurrentWeekStart(newDate);
   };
   async function handleSubmitTimesheet() {
-    if (effectiveResourceId && scheduledDays.days.length > 0) {
+    if (isSubmittingRef.current || !effectiveResourceId || scheduledDays.days.length === 0) {
+      return;
+    }
+
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
+
+    try {
       const promise = mutateSubmitTimesheet({
         resourceId: effectiveResourceId,
         startDate: normalizeDate(scheduledDays.days[0]),
@@ -201,6 +210,10 @@ export default function Krm3Calendar({
           draggable: true,
         }
       );
+      setIsSubmitted(true);
+    } finally {
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
     }
   }
 
@@ -213,6 +226,8 @@ export default function Krm3Calendar({
       return "Timesheet is already submitted";
     } else if (!isMonth) {
       return "Only available for month view";
+    } else if (isSubmitting) {
+      return "Timesheet submission is in progress";
     } else if (!scheduledHoursCompleted()) {
       return "Timesheet hours are incomplete";
     } else {
@@ -402,6 +417,7 @@ export default function Krm3Calendar({
                   readOnly ||
                   !isMonth ||
                   isSubmitted ||
+                  isSubmitting ||
                   !scheduledHoursCompleted()
                 }
                 disabledTooltipMessage={disabledSubmitButtonText()}
