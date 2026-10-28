@@ -25,6 +25,7 @@ interface Props {
   setStartDate: (date: Date) => void;
   setEndDate: (date: Date) => void;
   setTaskEntries: (entries: TaskEntry[]) => void;
+  setTasks: (tasks: Task[]) => void;
   setDayEntries: (entries: DayEntry[]) => void;
   setNoWorkingDay: (days: Days) => void;
   setSchedule: (schedule: Schedule) => void;
@@ -93,6 +94,7 @@ export function TimeSheetTable(props: Readonly<Props>) {
   }, [isLoadingTimesheet, timesheet, props.setNoWorkingDay]);
   useEffect(() => {
     props.setTaskEntries(timesheet?.taskEntries ?? []);
+    props.setTasks(timesheet?.tasks ?? []);
     props.setDayEntries(timesheet?.dayEntries ?? []);
     props.setIsSubmitted(timesheet?.submitted ?? false);
     if (timesheet?.schedule) {

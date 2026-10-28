@@ -95,6 +95,7 @@ function makeProps() {
     setStartDate: vi.fn(),
     setEndDate: vi.fn(),
     setTaskEntries: vi.fn(),
+    setTasks: vi.fn(),
     setDayEntries: vi.fn(),
     setNoWorkingDay: vi.fn(),
     setSchedule: vi.fn(),

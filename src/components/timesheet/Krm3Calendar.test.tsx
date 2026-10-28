@@ -31,6 +31,7 @@ describe("Krm3Calendar", () => {
   const mockUseColumnViewPreference = useColumnViewPreference as jest.Mock;
   const mockMutateSubmitTimesheet = vi.fn();
   const fixedDate = new Date("2025-07-01T00:00:00Z");
+  const fullMonthTask = { id: 1, title: "Task", startDate: "2025-07-01" };
   const createDayEntry = (day: string, overrides: Partial<DayEntry> = {}): DayEntry => ({
     id: Number(day.slice(-2)),
     day,
@@ -103,7 +104,7 @@ describe("Krm3Calendar", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
         submitted: false,
-        tasks: [],
+        tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries,
         days: Object.keys(days),
@@ -134,7 +135,7 @@ describe("Krm3Calendar", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
         submitted: false,
-        tasks: [],
+        tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries: [
           createDayEntry("2025-07-01", {
@@ -161,7 +162,7 @@ describe("Krm3Calendar", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
         submitted: false,
-        tasks: [],
+        tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries: [
           createDayEntry("2025-07-01", { dayHours: 0, onCallHours: 8 }),
@@ -188,7 +189,7 @@ describe("Krm3Calendar", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
         submitted: false,
-        tasks: [],
+        tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries: [],
         days: Object.keys(days),
@@ -202,6 +203,109 @@ describe("Krm3Calendar", () => {
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
 
     expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeDisabled();
+  });
+
+  test("submit button is hidden when there are no tasks", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        submitted: false,
+        tasks: [],
+        taskEntries: [],
+        dayEntries,
+        days: Object.keys(days),
+        schedule,
+        bankHours: 0,
+      },
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    expect(screen.queryByRole("button", { name: /Submit Timesheet/i })).not.toBeInTheDocument();
+  });
+
+  test("only requires scheduled hours on days covered by a task", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        submitted: false,
+        tasks: [{ ...fullMonthTask, startDate: "2025-07-15" }],
+        taskEntries: [],
+        dayEntries: dayEntries.slice(14),
+        days: Object.keys(days),
+        schedule,
+        bankHours: 0,
+      },
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeEnabled();
+  });
+
+  test("requires scheduled hours when a task-covered day is incomplete", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        submitted: false,
+        tasks: [{ ...fullMonthTask, startDate: "2025-07-15" }],
+        taskEntries: [],
+        dayEntries: [createDayEntry("2025-07-15", { dayHours: 4 }), ...dayEntries.slice(15)],
+        days: Object.keys(days),
+        schedule,
+        bankHours: 0,
+      },
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeDisabled();
+  });
+
+  test("does not require scheduled hours in gaps between tasks", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        submitted: false,
+        tasks: [
+          { ...fullMonthTask, endDate: "2025-07-10" },
+          { ...fullMonthTask, id: 2, startDate: "2025-07-20" },
+        ],
+        taskEntries: [],
+        dayEntries: [...dayEntries.slice(0, 9), ...dayEntries.slice(19)],
+        days: Object.keys(days),
+        schedule,
+        bankHours: 0,
+      },
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeEnabled();
+  });
+
+  test("does not count scheduled hours twice for overlapping tasks", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        submitted: false,
+        tasks: [fullMonthTask, { ...fullMonthTask, id: 2, startDate: "2025-07-15" }],
+        taskEntries: [],
+        dayEntries,
+        days: Object.keys(days),
+        schedule,
+        bankHours: 0,
+      },
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeEnabled();
   });
 
   test("submit button is hidden when no timesheet is available", () => {
@@ -267,7 +371,7 @@ describe("Krm3Calendar", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
         submitted: false,
-        tasks: [],
+        tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries: completedDayEntries,
         days: Object.keys(days),
@@ -288,7 +392,7 @@ describe("Krm3Calendar", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
         submitted: true,
-        tasks: [],
+        tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries,
         days: Object.keys(days),

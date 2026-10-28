@@ -30,6 +30,7 @@ export default function Krm3Calendar({
 }>) {
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
   const [taskEntries, setTaskEntries] = useState<TaskEntry[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [dayEntries, setDayEntries] = useState<DayEntry[]>([]);
   const [typeDays, setTypeDays] = useState<Days>();
   const [isEntryModalOpen, setIsEntryModalOpen] = useState<boolean>(false);
@@ -220,15 +221,31 @@ export default function Krm3Calendar({
   }
 
   function scheduledHoursCompleted() {
+    // Track the scheduled hours that still need to be covered for each required day.
     const hoursLeftToLog: Record<string, number> = {};
     const dates = Object.keys(typeDays ?? {});
 
-    if (dates.length === 0 || Object.keys(schedule).length === 0) {
+    if (dates.length === 0 || Object.keys(schedule).length === 0 || tasks.length === 0) {
       return false;
     }
 
     for (const date of dates) {
       const normalizedDate = normalizeDate(date);
+
+      // Only days covered by at least one task require the hours defined by the schedule.
+      // Task end dates are exclusive; tasks without an end date remain active indefinitely.
+      const isCoveredByTask = tasks.some((task) => {
+        const taskStartDate = normalizeDate(task.startDate);
+        const taskEndDate = task.endDate ? normalizeDate(task.endDate) : undefined;
+
+        return normalizedDate >= taskStartDate && (!taskEndDate || normalizedDate < taskEndDate);
+      });
+
+      if (!isCoveredByTask) {
+        continue;
+      }
+
+      // Support both the current date keys and the legacy underscore-separated keys.
       const legacyScheduleKey = normalizedDate.replaceAll("-", "_");
       hoursLeftToLog[normalizedDate] =
         Number(schedule[normalizedDate] ?? schedule[legacyScheduleKey]) || 0;
@@ -358,6 +375,7 @@ export default function Krm3Calendar({
             setIsEntryModalOpen={setIsEntryModalOpen}
             setSelectedTask={setSelectedTask}
             setTaskEntries={setTaskEntries}
+            setTasks={setTasks}
             setDayEntries={setDayEntries}
             setNoWorkingDay={setTypeDays}
             setIsDayEntry={setIsDayEntry}
@@ -373,7 +391,7 @@ export default function Krm3Calendar({
             setIsSubmitted={setIsSubmitted}
             setHasTimesheet={setHasTimesheet}
           />
-          {hasTimesheet && (
+          {hasTimesheet && tasks.length > 0 && (
             <div className="flex justify-end items-center mt-4">
               <Krm3Button
                 onClick={() => handleSubmitTimesheet()}
