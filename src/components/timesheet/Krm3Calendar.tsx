@@ -25,8 +25,11 @@ import { useMediaQuery } from "react-responsive";
 
 export default function Krm3Calendar({
   selectedResourceId,
+  onPeriodChange,
 }: Readonly<{
   selectedResourceId: number | null;
+  // receives the month(s) shown, from the first day of the first month to the last day of the last one
+  onPeriodChange?: (period: { from: string; to: string }) => void;
 }>) {
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
   const [taskEntries, setTaskEntries] = useState<TaskEntry[]>([]);
@@ -123,6 +126,19 @@ export default function Krm3Calendar({
     }
     return { days, numberOfDays };
   }, [currentWeekStart, isMonth]);
+
+  const shownMonths = useMemo(() => {
+    const first = scheduledDays.days[0];
+    const last = scheduledDays.days[scheduledDays.days.length - 1];
+    return {
+      from: normalizeDate(new Date(first.getFullYear(), first.getMonth(), 1)),
+      to: normalizeDate(new Date(last.getFullYear(), last.getMonth() + 1, 0)),
+    };
+  }, [scheduledDays]);
+
+  useEffect(() => {
+    onPeriodChange?.(shownMonths);
+  }, [shownMonths.from, shownMonths.to, onPeriodChange]);
 
   const isDesktop = useMediaQuery({ minWidth: 1024 });
 
