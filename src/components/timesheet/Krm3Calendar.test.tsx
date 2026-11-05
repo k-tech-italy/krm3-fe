@@ -205,7 +205,7 @@ describe("Krm3Calendar", () => {
     expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeDisabled();
   });
 
-  test("submit button is hidden when there are no tasks", () => {
+  test("submit button is enabled without tasks when all scheduled hours are covered", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
         submitted: false,
@@ -222,10 +222,30 @@ describe("Krm3Calendar", () => {
 
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
 
-    expect(screen.queryByRole("button", { name: /Submit Timesheet/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeEnabled();
   });
 
-  test("only requires scheduled hours on days covered by a task", () => {
+  test("submit button is disabled when all scheduled hours are zero", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        submitted: false,
+        tasks: [],
+        taskEntries: [],
+        dayEntries: [],
+        days: Object.keys(days),
+        schedule: Object.fromEntries(Object.keys(days).map((day) => [day, 0])),
+        bankHours: 0,
+      },
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeDisabled();
+  });
+
+  test("requires scheduled hours on days not covered by a task", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
         submitted: false,
@@ -242,7 +262,7 @@ describe("Krm3Calendar", () => {
 
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
 
-    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeDisabled();
   });
 
   test("requires scheduled hours when a task-covered day is incomplete", () => {
@@ -265,7 +285,7 @@ describe("Krm3Calendar", () => {
     expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeDisabled();
   });
 
-  test("does not require scheduled hours in gaps between tasks", () => {
+  test("requires scheduled hours in gaps between tasks", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
         submitted: false,
@@ -285,7 +305,7 @@ describe("Krm3Calendar", () => {
 
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
 
-    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeDisabled();
   });
 
   test("does not count scheduled hours twice for overlapping tasks", () => {
