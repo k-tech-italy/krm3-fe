@@ -52,13 +52,15 @@ export function useGetResources(enabled = true) {
   return resources.data;
 }
 
-export function useGetActiveResources() {
+export function useGetActiveResources(period?: { from: string; to: string }) {
   const { userCan } = useGetCurrentUser();
   const canViewOtherTimesheets =
     userCan(["core.view_any_timesheet"]) || userCan(["core.manage_any_timesheet"]);
-  const resources = useQuery("activeResources", () => getActiveResources(), {
-    enabled: canViewOtherTimesheets,
-  });
+  const resources = useQuery(
+    ["activeResources", period?.from, period?.to],
+    () => getActiveResources(period?.from, period?.to),
+    { enabled: canViewOtherTimesheets, keepPreviousData: true }
+  );
   return resources.data;
 }
 

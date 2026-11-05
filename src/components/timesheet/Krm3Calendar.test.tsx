@@ -698,6 +698,18 @@ describe("Krm3Calendar", () => {
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
     expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
+  it("reports the month shown, and the new one after navigating", () => {
+    const onPeriodChange = vi.fn();
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} onPeriodChange={onPeriodChange} />);
+    expect(onPeriodChange).toHaveBeenLastCalledWith({ from: "2025-07-01", to: "2025-07-31" });
+
+    fireEvent.click(document.getElementById("nav-next-btn")!);
+    expect(onPeriodChange).toHaveBeenLastCalledWith({ from: "2025-08-01", to: "2025-08-31" });
+
+    fireEvent.click(document.getElementById("nav-prev-btn")!);
+    fireEvent.click(document.getElementById("nav-prev-btn")!);
+    expect(onPeriodChange).toHaveBeenLastCalledWith({ from: "2025-06-01", to: "2025-06-30" });
+  });
   it("renders information for no data for timesheet table", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: undefined,
