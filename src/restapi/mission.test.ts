@@ -321,6 +321,14 @@ describe("mission API", () => {
       expect(result).toHaveLength(2);
     });
 
+    it("fetches the resources with a contract in the given period", async () => {
+      vi.mocked(restapi.get).mockResolvedValue({ data: [] });
+
+      await missionApi.getActiveResources("2026-10-01", "2026-10-31");
+
+      expect(restapi.get).toHaveBeenCalledWith("core/resource/active/2026-10-01/2026-10-31/");
+    });
+
     it("should return empty array on error", async () => {
       vi.mocked(restapi.get).mockRejectedValue(new Error("API Error"));
 

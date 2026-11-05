@@ -91,6 +91,20 @@ describe("EditTaskEntry", () => {
     expect(toast.promise).not.toHaveBeenCalled();
   });
 
+  it("excludes the task end date from the saved dates", async () => {
+    render(
+      <EditTaskEntry {...baseProps} task={{ ...baseProps.task, endDate: new Date("2024-06-02") }} />
+    );
+    fireEvent.change(document.getElementById("daytime-input")!, {
+      target: { value: "4" },
+    });
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() =>
+      expect(createTask).toHaveBeenCalledWith(expect.objectContaining({ dates: ["2024-06-01"] }))
+    );
+  });
+
   it("rejects working hours above those available after leave", () => {
     render(
       <EditTaskEntry

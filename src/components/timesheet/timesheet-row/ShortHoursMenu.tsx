@@ -35,6 +35,9 @@ interface HourOption {
   readonly value: number;
 }
 
+// same daytime limit as the backend; hours above the due hours are overtime
+const MAX_DAY_SHIFT_HOURS = 16;
+
 const QUICK_HOUR_OPTIONS: readonly HourOption[] = [
   { label: "2h", value: 2 },
   { label: "4h", value: 4 },
@@ -337,8 +340,13 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
 
   const handleHoursInputSubmit = useCallback(() => {
     const parsed = Number.parseFloat(hoursInput);
-    if (Number.isNaN(parsed) || parsed < 0.5 || parsed > 8 || parsed % 0.5 !== 0) {
-      setHoursError("Enter a value from 0.5 to 8 in 0.5 increments");
+    if (
+      Number.isNaN(parsed) ||
+      parsed < 0.5 ||
+      parsed > MAX_DAY_SHIFT_HOURS ||
+      parsed % 0.5 !== 0
+    ) {
+      setHoursError(`Enter a value from 0.5 to ${MAX_DAY_SHIFT_HOURS} in 0.5 increments`);
       return;
     }
     setHoursError("");
@@ -439,7 +447,7 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
                   <input
                     type="number"
                     min={0.5}
-                    max={8}
+                    max={MAX_DAY_SHIFT_HOURS}
                     step={0.5}
                     value={hoursInput}
                     onChange={(e) => {

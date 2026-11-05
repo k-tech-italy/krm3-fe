@@ -5,10 +5,13 @@ import { useGetActiveResources } from "../../hooks/useMissions";
 
 const SelectResourceComponent = ({
   setSelectedResourceId,
+  period,
 }: {
   setSelectedResourceId: (id: number | null) => void;
+  // the month shown in the timesheet: only resources with a contract in it are listed
+  period?: { from: string; to: string };
 }) => {
-  const resources = useGetActiveResources();
+  const resources = useGetActiveResources(period);
   const { data, userCan } = useGetCurrentUser();
   const canViewOtherTimesheets =
     userCan(["core.view_any_timesheet"]) || userCan(["core.manage_any_timesheet"]);

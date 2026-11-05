@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import Krm3Calendar from "./Krm3Calendar";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import { useGetTimesheet, useSubmitTimesheet } from "../../hooks/useTimesheet";
@@ -31,6 +31,7 @@ describe("Krm3Calendar", () => {
   const mockUseColumnViewPreference = useColumnViewPreference as jest.Mock;
   const mockMutateSubmitTimesheet = vi.fn();
   const fixedDate = new Date("2025-07-01T00:00:00Z");
+  const fullMonthTask = { id: 1, title: "Task", startDate: "2025-07-01" };
   const createDayEntry = (day: string, overrides: Partial<DayEntry> = {}): DayEntry => ({
     id: Number(day.slice(-2)),
     day,
@@ -103,7 +104,7 @@ describe("Krm3Calendar", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
         submitted: false,
-        tasks: [],
+        tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries,
         days: Object.keys(days),
@@ -134,7 +135,7 @@ describe("Krm3Calendar", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
         submitted: false,
-        tasks: [],
+        tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries: [
           createDayEntry("2025-07-01", {
@@ -161,7 +162,7 @@ describe("Krm3Calendar", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
         submitted: false,
-        tasks: [],
+        tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries: [
           createDayEntry("2025-07-01", { dayHours: 0, onCallHours: 8 }),
@@ -188,7 +189,7 @@ describe("Krm3Calendar", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
         submitted: false,
-        tasks: [],
+        tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries: [],
         days: Object.keys(days),
@@ -202,6 +203,129 @@ describe("Krm3Calendar", () => {
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
 
     expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeDisabled();
+  });
+
+  test("submit button is enabled without tasks when all scheduled hours are covered", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        submitted: false,
+        tasks: [],
+        taskEntries: [],
+        dayEntries,
+        days: Object.keys(days),
+        schedule,
+        bankHours: 0,
+      },
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeEnabled();
+  });
+
+  test("submit button is disabled when all scheduled hours are zero", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        submitted: false,
+        tasks: [],
+        taskEntries: [],
+        dayEntries: [],
+        days: Object.keys(days),
+        schedule: Object.fromEntries(Object.keys(days).map((day) => [day, 0])),
+        bankHours: 0,
+      },
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeDisabled();
+  });
+
+  test("requires scheduled hours on days not covered by a task", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        submitted: false,
+        tasks: [{ ...fullMonthTask, startDate: "2025-07-15" }],
+        taskEntries: [],
+        dayEntries: dayEntries.slice(14),
+        days: Object.keys(days),
+        schedule,
+        bankHours: 0,
+      },
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeDisabled();
+  });
+
+  test("requires scheduled hours when a task-covered day is incomplete", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        submitted: false,
+        tasks: [{ ...fullMonthTask, startDate: "2025-07-15" }],
+        taskEntries: [],
+        dayEntries: [createDayEntry("2025-07-15", { dayHours: 4 }), ...dayEntries.slice(15)],
+        days: Object.keys(days),
+        schedule,
+        bankHours: 0,
+      },
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeDisabled();
+  });
+
+  test("requires scheduled hours in gaps between tasks", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        submitted: false,
+        tasks: [
+          { ...fullMonthTask, endDate: "2025-07-10" },
+          { ...fullMonthTask, id: 2, startDate: "2025-07-20" },
+        ],
+        taskEntries: [],
+        dayEntries: [...dayEntries.slice(0, 9), ...dayEntries.slice(19)],
+        days: Object.keys(days),
+        schedule,
+        bankHours: 0,
+      },
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeDisabled();
+  });
+
+  test("does not count scheduled hours twice for overlapping tasks", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        submitted: false,
+        tasks: [fullMonthTask, { ...fullMonthTask, id: 2, startDate: "2025-07-15" }],
+        taskEntries: [],
+        dayEntries,
+        days: Object.keys(days),
+        schedule,
+        bankHours: 0,
+      },
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeEnabled();
   });
 
   test("submit button is hidden when no timesheet is available", () => {
@@ -267,7 +391,7 @@ describe("Krm3Calendar", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
         submitted: false,
-        tasks: [],
+        tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries: completedDayEntries,
         days: Object.keys(days),
@@ -288,7 +412,7 @@ describe("Krm3Calendar", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
         submitted: true,
-        tasks: [],
+        tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries,
         days: Object.keys(days),
@@ -317,6 +441,29 @@ describe("Krm3Calendar", () => {
       endDate: "2025-07-31",
       resourceId: 1,
     });
+  });
+  test("prevents duplicate submissions while a request is in progress", async () => {
+    let resolveSubmit: () => void;
+    const submitPromise = new Promise<void>((resolve) => {
+      resolveSubmit = resolve;
+    });
+    mockMutateSubmitTimesheet.mockReturnValueOnce(submitPromise);
+    vi.mocked(toast.promise).mockImplementationOnce(() => submitPromise as never);
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    const submitButton = await screen.findByRole("button", {
+      name: /Submit Timesheet/i,
+    });
+
+    fireEvent.click(submitButton);
+    fireEvent.click(submitButton);
+
+    expect(mockMutateSubmitTimesheet).toHaveBeenCalledTimes(1);
+    expect(submitButton).toBeDisabled();
+
+    resolveSubmit!();
+
+    await waitFor(() => expect(submitButton).toBeDisabled());
   });
   test("submit displays the error returned by the current request", async () => {
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
@@ -550,6 +697,18 @@ describe("Krm3Calendar", () => {
     });
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
     expect(screen.getByText("Loading...")).toBeInTheDocument();
+  });
+  it("reports the month shown, and the new one after navigating", () => {
+    const onPeriodChange = vi.fn();
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} onPeriodChange={onPeriodChange} />);
+    expect(onPeriodChange).toHaveBeenLastCalledWith({ from: "2025-07-01", to: "2025-07-31" });
+
+    fireEvent.click(document.getElementById("nav-next-btn")!);
+    expect(onPeriodChange).toHaveBeenLastCalledWith({ from: "2025-08-01", to: "2025-08-31" });
+
+    fireEvent.click(document.getElementById("nav-prev-btn")!);
+    fireEvent.click(document.getElementById("nav-prev-btn")!);
+    expect(onPeriodChange).toHaveBeenLastCalledWith({ from: "2025-06-01", to: "2025-06-30" });
   });
   it("renders information for no data for timesheet table", () => {
     mockUseGetTimesheet.mockReturnValue({

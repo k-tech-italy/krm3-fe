@@ -42,9 +42,15 @@ export function getResources(profile?: number): Promise<Page<Resource>> {
   return restapi.get<Page<Resource>>(`core/resource/`, { params }).then((res) => res.data);
 }
 
-export function getActiveResources(): Promise<Resource[]> {
+/**
+ * Resources with a contract in the period, or in the current month when no period is given.
+ * Dates are 'YYYY-MM-DD', both included.
+ */
+export function getActiveResources(dateFrom?: string, dateTo?: string): Promise<Resource[]> {
+  const url =
+    dateFrom && dateTo ? `core/resource/active/${dateFrom}/${dateTo}/` : `core/resource/active/`;
   return restapi
-    .get<Resource[]>(`core/resource/active/`)
+    .get<Resource[]>(url)
     .then((res) => res.data)
     .catch((): Resource[] => []);
 }

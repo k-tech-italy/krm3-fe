@@ -110,6 +110,11 @@ describe("SelectResource", () => {
       expect(setSelectedResourceMock).toHaveBeenCalledWith(2);
     });
   });
+  it("lists the resources with a contract in the given period", () => {
+    const period = { from: "2026-10-01", to: "2026-10-31" };
+    render(<SelectResource setSelectedResourceId={setSelectedResourceMock} period={period} />);
+    expect(useMissions.useGetActiveResources).toHaveBeenCalledWith(period);
+  });
   it("does not render select when there are no resources", () => {
     vi.spyOn(useMissions, "useGetActiveResources").mockReturnValue([]);
     render(<SelectResource setSelectedResourceId={setSelectedResourceMock} />);

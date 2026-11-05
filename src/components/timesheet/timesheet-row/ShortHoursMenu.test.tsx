@@ -59,6 +59,16 @@ describe("ShortHoursMenu", () => {
     await waitFor(() => expect(createTask).toHaveBeenCalled());
   });
 
+  it("accepts custom hours above the due hours as overtime", async () => {
+    renderMenu({ dayEntries: [{ ...dayEntry, dueHours: 8, leaveHours: 0, bank: 0 }] });
+    fireEvent.change(screen.getByPlaceholderText("e.g. 2.5"), { target: { value: "10" } });
+    fireEvent.click(screen.getByText("Add"));
+
+    await waitFor(() =>
+      expect(createTask).toHaveBeenCalledWith(expect.objectContaining({ dayShiftHours: 10 }))
+    );
+  });
+
   it("rejects a quick option above the hours available after leave", async () => {
     renderMenu({
       dayEntries: [
