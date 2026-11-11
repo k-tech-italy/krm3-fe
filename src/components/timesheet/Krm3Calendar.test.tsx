@@ -523,6 +523,47 @@ describe("Krm3Calendar", () => {
     expect(screen.getByTestId("bank-total")).toHaveTextContent("10.5h");
     expect(screen.getByTestId("bank-delta")).toHaveTextContent("-4h");
   });
+  test("updates bank values after browser translation mutates their text nodes", async () => {
+    const initialTimesheet = {
+      submitted: false,
+      tasks: [],
+      taskEntries: [],
+      dayEntries: [createDayEntry("2025-07-01", { bank: -4 })],
+      days: Object.keys(days),
+      schedule,
+      bankHours: 10.5,
+    };
+    mockUseGetTimesheet.mockReturnValue({
+      data: initialTimesheet,
+      isLoading: false,
+      isSuccess: true,
+    });
+    const { rerender } = renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+    const bankTotalValue = screen.getByTestId("bank-total-value");
+    const bankDeltaValue = screen.getByTestId("bank-delta-value");
+
+    for (const value of [bankTotalValue, bankDeltaValue]) {
+      const translatedText = document.createElement("font");
+      translatedText.textContent = value.textContent;
+      value.replaceChildren(translatedText);
+    }
+
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        ...initialTimesheet,
+        dayEntries: [createDayEntry("2025-07-01", { bank: 2 })],
+        bankHours: 12.25,
+      },
+      isLoading: false,
+      isSuccess: true,
+    });
+    rerender(<Krm3Calendar selectedResourceId={1} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("bank-total-value")).toHaveTextContent("12.25h");
+      expect(screen.getByTestId("bank-delta-value")).toHaveTextContent("(𝚫 = +2h)");
+    });
+  });
   test("navigate to next and prev month", () => {
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
     const navigateNextButton = document.getElementById("nav-next-btn") as HTMLElement;

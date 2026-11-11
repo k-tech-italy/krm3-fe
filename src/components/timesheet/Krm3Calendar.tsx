@@ -59,6 +59,10 @@ export default function Krm3Calendar({
   const bankDelta = dayEntries.reduce((total, dayEntry) => {
     return total + Number(dayEntry.bank);
   }, 0);
+  const bankHoursText = `${bankHours.toFixed(2).replace(/\.?0+$/, "")}h`;
+  const bankDeltaText = `(𝚫 = ${bankDelta >= 0 ? "+" : ""}${bankDelta
+    .toFixed(2)
+    .replace(/\.?0+$/, "")}h)`;
 
   const [selectedWeekRange, setSelectedWeekRange] = useState<WeekRange>(() => {
     const today = new Date();
@@ -340,14 +344,13 @@ export default function Krm3Calendar({
                   data-testid={"bank-total"}
                   className={`font-bold my-0 md:text-2xl ${bankHours >= 0 ? "text-green-500" : "text-red-500"}`}
                 >
-                  {bankHours.toFixed(2).replace(/\.?0+$/, "")}h
+                  <span data-testid="bank-total-value">{bankHoursText}</span>
                 </p>
                 <p
                   className={`font-bold ${bankDelta >= 0 ? "text-green-500" : "text-red-500 hidden md:block"}`}
                   data-testid={"bank-delta"}
                 >
-                  (𝚫 = {bankDelta >= 0 ? "+" : ""}
-                  {bankDelta.toFixed(2).replace(/\.?0+$/, "")}h)
+                  <span data-testid="bank-delta-value">{bankDeltaText}</span>
                 </p>
               </div>
             </div>

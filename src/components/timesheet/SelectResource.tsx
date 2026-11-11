@@ -48,6 +48,11 @@ const SelectResourceComponent = ({
             <Select
               onChange={handleResourceChange}
               options={getSelectOptions()}
+              formatOptionLabel={({ label }) => (
+                <span className="notranslate" translate="no">
+                  {label}
+                </span>
+              )}
               className="mt-2"
               styles={{
                 menu: (base) => ({

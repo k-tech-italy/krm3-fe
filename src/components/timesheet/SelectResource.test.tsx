@@ -43,6 +43,19 @@ describe("SelectResource", () => {
     render(<SelectResource setSelectedResourceId={setSelectedResourceMock} />);
     expect(screen.getByText("Kowal Jan")).toBeInTheDocument();
   });
+  it("prevents translation of the selected resource and dropdown options", async () => {
+    render(<SelectResource setSelectedResourceId={setSelectedResourceMock} />);
+    const selectedResource = screen.getByText("Kowal Jan");
+
+    expect(selectedResource).toHaveAttribute("translate", "no");
+    expect(selectedResource).toHaveClass("notranslate");
+
+    fireEvent.mouseDown(selectedResource);
+    const resourceOption = await screen.findByText("Nowak Anna");
+
+    expect(resourceOption).toHaveAttribute("translate", "no");
+    expect(resourceOption).toHaveClass("notranslate");
+  });
   it("shows the selector for a user who can view other timesheets", () => {
     vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
       data: {

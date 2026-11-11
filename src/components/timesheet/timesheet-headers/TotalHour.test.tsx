@@ -72,6 +72,15 @@ describe("TotalHourCell", () => {
     expect(screen.getByText(/8h/)).toBeInTheDocument();
   });
 
+  it("prevents translation of the total displayed in a header cell", () => {
+    render(<TotalHourCell day={baseDay} dayEntry={baseDayEntry} />);
+
+    const headerTotal = screen.getByTestId("header-total-hours");
+
+    expect(headerTotal).toHaveAttribute("translate", "no");
+    expect(headerTotal).toHaveClass("notranslate");
+  });
+
   it("adds withdrawn bank hours to the displayed total", () => {
     render(
       <TotalHourCell
