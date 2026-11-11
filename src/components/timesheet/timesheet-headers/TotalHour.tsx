@@ -40,7 +40,9 @@ export function TotalHourCell({ day, dayEntry, isMonthView, colorClassName }: Re
           ${colorClassName ?? ""}
         `}
       >
-        {totalHours}h
+        <span className="notranslate" data-testid="header-total-hours" translate="no">
+          {totalHours}h
+        </span>
         {totalHours > 0 && !isMonthView && (
           <Info size={18} color="gray" className="cursor-pointer mx-2" />
         )}
