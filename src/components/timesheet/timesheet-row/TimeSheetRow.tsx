@@ -106,7 +106,7 @@ export const TimeSheetRow: React.FC<TimeSheetRowProps> = ({
 
     const isLockedDay = dayEntry?.closed ?? false;
 
-    const isNoWorkDay = (schedule[formattedDay] ?? 0) === 0;
+    const isNoWorkDay = (schedule[formattedDay.replaceAll("-", "_")] ?? 0) === 0;
     const hasTaskEntriesForDay = Boolean(
       dayEntry && timesheet.taskEntries?.some((entry) => entry.dayEntry === dayEntry.id)
     );
