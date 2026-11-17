@@ -238,7 +238,7 @@ export interface TaskEntry {
   metadata: Record<string, unknown>;
 }
 export interface Timesheet {
-  submitted: boolean;
+  status?: TimesheetStatus | null;
   tasks: Task[];
   dayEntries?: DayEntry[];
   taskEntries?: TaskEntry[];
@@ -247,6 +247,7 @@ export interface Timesheet {
   bankHours: number;
   timesheetColors?: HeaderColors;
 }
+export type TimesheetStatus = "draft" | "pending" | "rejected" | "closed";
 export interface Phone {
   number: string;
   kind?: string;

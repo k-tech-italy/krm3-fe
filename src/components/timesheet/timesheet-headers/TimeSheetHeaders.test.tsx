@@ -32,7 +32,7 @@ const taskEntry = {
   metadata: {},
 } as TaskEntry;
 const timesheet: Timesheet = {
-  submitted: false,
+  status: null,
   tasks: [],
   days: ["2025-01-15"],
   dayEntries: [dayEntry],

@@ -7,6 +7,7 @@ interface Props {
   style?: "primary" | "secondary" | "danger";
   icon?: React.ReactNode;
   disabledTooltipMessage?: string;
+  disabledTooltipClassName?: string;
   label: string;
   mobileLabel?: string;
   additionalStyles?: string;
@@ -21,6 +22,7 @@ const Krm3Button = ({
   icon,
   label,
   disabledTooltipMessage,
+  disabledTooltipClassName,
   additionalStyles = "",
   mobileLabel,
   id,
@@ -73,7 +75,13 @@ const Krm3Button = ({
           label
         )}
       </button>
-      {disabled && <Tooltip id={`tooltip-${label}`} content={disabledTooltipMessage} />}
+      {disabled && (
+        <Tooltip
+          id={`tooltip-${label}`}
+          content={disabledTooltipMessage}
+          className={disabledTooltipClassName}
+        />
+      )}
     </>
   );
 };

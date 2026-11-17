@@ -103,7 +103,7 @@ describe("Krm3Calendar", () => {
     });
     mockUseGetTimesheet.mockReturnValue({
       data: {
-        submitted: false,
+        status: null,
         tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries,
@@ -134,7 +134,7 @@ describe("Krm3Calendar", () => {
     }
     mockUseGetTimesheet.mockReturnValue({
       data: {
-        submitted: false,
+        status: null,
         tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries: [
@@ -161,7 +161,7 @@ describe("Krm3Calendar", () => {
   test("submit button is disabled when a day has only on-call hours", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
-        submitted: false,
+        status: null,
         tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries: [
@@ -188,7 +188,7 @@ describe("Krm3Calendar", () => {
   test("submit button is disabled when the timesheet is empty", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
-        submitted: false,
+        status: null,
         tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries: [],
@@ -208,7 +208,7 @@ describe("Krm3Calendar", () => {
   test("submit button is enabled without tasks when all scheduled hours are covered", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
-        submitted: false,
+        status: null,
         tasks: [],
         taskEntries: [],
         dayEntries,
@@ -228,7 +228,7 @@ describe("Krm3Calendar", () => {
   test("submit button is disabled when all scheduled hours are zero", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
-        submitted: false,
+        status: null,
         tasks: [],
         taskEntries: [],
         dayEntries: [],
@@ -242,13 +242,13 @@ describe("Krm3Calendar", () => {
 
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
 
-    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Submit timesheet/i })).toBeDisabled();
   });
 
   test("requires scheduled hours on days not covered by a task", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
-        submitted: false,
+        status: null,
         tasks: [{ ...fullMonthTask, startDate: "2025-07-15" }],
         taskEntries: [],
         dayEntries: dayEntries.slice(14),
@@ -268,7 +268,7 @@ describe("Krm3Calendar", () => {
   test("requires scheduled hours when a task-covered day is incomplete", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
-        submitted: false,
+        status: null,
         tasks: [{ ...fullMonthTask, startDate: "2025-07-15" }],
         taskEntries: [],
         dayEntries: [createDayEntry("2025-07-15", { dayHours: 4 }), ...dayEntries.slice(15)],
@@ -288,7 +288,7 @@ describe("Krm3Calendar", () => {
   test("requires scheduled hours in gaps between tasks", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
-        submitted: false,
+        status: null,
         tasks: [
           { ...fullMonthTask, endDate: "2025-07-10" },
           { ...fullMonthTask, id: 2, startDate: "2025-07-20" },
@@ -311,7 +311,7 @@ describe("Krm3Calendar", () => {
   test("does not count scheduled hours twice for overlapping tasks", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
-        submitted: false,
+        status: null,
         tasks: [fullMonthTask, { ...fullMonthTask, id: 2, startDate: "2025-07-15" }],
         taskEntries: [],
         dayEntries,
@@ -390,7 +390,7 @@ describe("Krm3Calendar", () => {
     }
     mockUseGetTimesheet.mockReturnValue({
       data: {
-        submitted: false,
+        status: null,
         tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries: completedDayEntries,
@@ -411,7 +411,7 @@ describe("Krm3Calendar", () => {
   it("disables the submit button when the timesheet is already submitted", () => {
     mockUseGetTimesheet.mockReturnValue({
       data: {
-        submitted: true,
+        status: "closed",
         tasks: [fullMonthTask],
         taskEntries: [],
         dayEntries,
@@ -426,6 +426,46 @@ describe("Krm3Calendar", () => {
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
 
     expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeDisabled();
+  });
+
+  it("disables the submit button while the timesheet is pending review", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        status: "pending",
+        tasks: [fullMonthTask],
+        taskEntries: [],
+        dayEntries,
+        days: Object.keys(days),
+        schedule,
+        bankHours: 0,
+      },
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    expect(screen.getByRole("button", { name: /Pending review/i })).toBeDisabled();
+  });
+
+  it("enables the submit button after a rejected timesheet", () => {
+    mockUseGetTimesheet.mockReturnValue({
+      data: {
+        status: "rejected",
+        tasks: [fullMonthTask],
+        taskEntries: [],
+        dayEntries,
+        days: Object.keys(days),
+        schedule,
+        bankHours: 0,
+      },
+      isLoading: false,
+      isSuccess: true,
+    });
+
+    renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
+
+    expect(screen.getByRole("button", { name: /Submit Timesheet/i })).toBeEnabled();
   });
   test("mutateSubmitTimesheet should be called with proper parameters", async () => {
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
@@ -525,7 +565,7 @@ describe("Krm3Calendar", () => {
   });
   test("updates bank values after browser translation mutates their text nodes", async () => {
     const initialTimesheet = {
-      submitted: false,
+      status: null,
       tasks: [],
       taskEntries: [],
       dayEntries: [createDayEntry("2025-07-01", { bank: -4 })],

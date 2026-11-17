@@ -71,7 +71,7 @@ describe("useDragAndDrop", () => {
   };
 
   const mockTimesheet: Timesheet = {
-    submitted: false,
+    status: null,
     tasks: [mockTask],
     dayEntries: [mockDayEntry],
     taskEntries: [mockTaskEntry],

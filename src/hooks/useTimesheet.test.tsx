@@ -88,7 +88,7 @@ describe("timesheet hooks", () => {
 
   it("submits and fetches a timesheet", async () => {
     vi.mocked(timesheetApi.getTimesheet).mockResolvedValue({
-      submitted: false,
+      status: null,
       tasks: [],
       days: [],
       bankHours: 0,

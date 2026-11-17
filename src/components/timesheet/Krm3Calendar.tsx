@@ -1,6 +1,14 @@
-import { DayEntry, Days, Schedule, Task, TaskEntry, WeekRange } from "../../restapi/types";
+import {
+  DayEntry,
+  Days,
+  Schedule,
+  Task,
+  TaskEntry,
+  TimesheetStatus,
+  WeekRange,
+} from "../../restapi/types";
 import { useState, useMemo, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, Landmark } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock3, Landmark } from "lucide-react";
 import Krm3Modal from "../commons/krm3Modal";
 import EditTaskEntry from "./edit-entry/EditTaskEntry";
 import { TimeSheetTable } from "./TimesheetTable";
@@ -22,6 +30,7 @@ import Krm3Button from "../commons/Krm3Button";
 import { useSubmitTimesheet } from "../../hooks/useTimesheet";
 import { toast } from "react-toastify";
 import { useMediaQuery } from "react-responsive";
+import { useTranslation } from "react-i18next";
 
 export default function Krm3Calendar({
   selectedResourceId,
@@ -44,7 +53,7 @@ export default function Krm3Calendar({
   const [schedule, setSchedule] = useState<Schedule>({});
   const { isColumnView, setColumnView } = useColumnViewPreference();
   const [bankHours, setBankHours] = useState(0);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [timesheetStatus, setTimesheetStatus] = useState<TimesheetStatus | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
   const [hasTimesheet, setHasTimesheet] = useState(false);
@@ -76,6 +85,7 @@ export default function Krm3Calendar({
     }
   }, [currentWeekStart]);
   const { data, userCan } = useGetCurrentUser();
+  const { t } = useTranslation();
   const { mutateAsync: mutateSubmitTimesheet } = useSubmitTimesheet();
   const effectiveResourceId = selectedResourceId ?? data?.resource?.id ?? null;
 
@@ -230,7 +240,6 @@ export default function Krm3Calendar({
           draggable: true,
         }
       );
-      setIsSubmitted(true);
     } finally {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
@@ -242,7 +251,12 @@ export default function Krm3Calendar({
       return "Select a resource first";
     } else if (readOnly) {
       return "You do not have permission to submit this timesheet";
-    } else if (isSubmitted) {
+    } else if (timesheetStatus === "pending") {
+      return t(
+        "timesheet.submission.pendingReview.tooltip",
+        "This timesheet is pending review and cannot be edited until the review is complete."
+      );
+    } else if (timesheetStatus === "closed") {
       return "Timesheet is already submitted";
     } else if (!isMonth) {
       return "Only available for month view";
@@ -410,7 +424,7 @@ export default function Krm3Calendar({
             selectedWeekRange={selectedWeekRange}
             setSchedule={setSchedule}
             setBankHours={setBankHours}
-            setIsSubmitted={setIsSubmitted}
+            setTimesheetStatus={setTimesheetStatus}
             setHasTimesheet={setHasTimesheet}
           />
           {hasTimesheet && (
@@ -418,16 +432,23 @@ export default function Krm3Calendar({
               <Krm3Button
                 onClick={() => handleSubmitTimesheet()}
                 style="primary"
-                label="Submit Timesheet"
+                label={
+                  timesheetStatus === "pending"
+                    ? t("timesheet.submission.pendingReview.label", "Pending review")
+                    : "Submit Timesheet"
+                }
+                icon={timesheetStatus === "pending" ? <Clock3 size={16} /> : undefined}
                 disabled={
                   !effectiveResourceId ||
                   readOnly ||
                   !isMonth ||
-                  isSubmitted ||
+                  timesheetStatus === "pending" ||
+                  timesheetStatus === "closed" ||
                   isSubmitting ||
                   !scheduledHoursCompleted()
                 }
                 disabledTooltipMessage={disabledSubmitButtonText()}
+                disabledTooltipClassName="max-w-[280px] whitespace-normal text-center"
               />
             </div>
           )}

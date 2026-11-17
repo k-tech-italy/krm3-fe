@@ -70,7 +70,7 @@ const dayEntry = {
   isSick: false,
 } as DayEntry;
 const timesheet: Timesheet = {
-  submitted: false,
+  status: null,
   tasks: [task],
   taskEntries: [],
   dayEntries: [dayEntry],
@@ -106,7 +106,7 @@ function makeProps() {
     readOnly: false,
     selectedWeekRange: "whole" as const,
     setBankHours: vi.fn(),
-    setIsSubmitted: vi.fn(),
+    setTimesheetStatus: vi.fn(),
     setHasTimesheet: vi.fn(),
   };
 }
@@ -200,7 +200,7 @@ describe("TimeSheetTable", () => {
 
   it("marks every calendar day as closed when the timesheet is submitted", async () => {
     mockUseGetTimesheet.mockReturnValue({
-      data: { ...timesheet, submitted: true },
+      data: { ...timesheet, status: "closed" },
       isLoading: false,
     } as unknown as ReturnType<typeof useGetTimesheet>);
     const props = makeProps();
@@ -208,7 +208,7 @@ describe("TimeSheetTable", () => {
     render(<TimeSheetTable {...props} />);
 
     await waitFor(() => {
-      expect(props.setIsSubmitted).toHaveBeenCalledWith(true);
+      expect(props.setTimesheetStatus).toHaveBeenCalledWith("closed");
       expect(props.setNoWorkingDay).toHaveBeenCalledWith({
         "2025-01-15": { closed: true, hol: false, nwd: false },
         "2025-01-16": { closed: true, hol: false, nwd: true },

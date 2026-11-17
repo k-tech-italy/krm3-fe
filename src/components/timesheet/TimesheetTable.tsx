@@ -7,6 +7,7 @@ import {
   TaskEntry,
   Days,
   Timesheet,
+  TimesheetStatus,
   WeekRange,
   DayType,
 } from "../../restapi/types";
@@ -36,7 +37,7 @@ interface Props {
   readOnly: boolean;
   selectedWeekRange: WeekRange;
   setBankHours: (bankHours: number) => void;
-  setIsSubmitted: (submitted: boolean) => void;
+  setTimesheetStatus: (status: TimesheetStatus | null) => void;
   setHasTimesheet: (hasTimesheet: boolean) => void;
 }
 
@@ -57,7 +58,10 @@ function buildCalendarDays(timesheet: Timesheet): Days {
       return [
         normalizedDate,
         {
-          closed: timesheet.submitted || (dayEntry?.closed ?? false),
+          closed:
+            timesheet.status === "pending" ||
+            timesheet.status === "closed" ||
+            (dayEntry?.closed ?? false),
           hol: Boolean(dayEntry?.isHoliday || dayEntry?.askedHoliday),
           nwd: Number(scheduledHours) === 0,
         },
@@ -96,7 +100,7 @@ export function TimeSheetTable(props: Readonly<Props>) {
     props.setTaskEntries(timesheet?.taskEntries ?? []);
     props.setTasks(timesheet?.tasks ?? []);
     props.setDayEntries(timesheet?.dayEntries ?? []);
-    props.setIsSubmitted(timesheet?.submitted ?? false);
+    props.setTimesheetStatus(timesheet?.status ?? null);
     props.setSchedule(timesheet?.schedule ?? {});
     props.setBankHours(Number(timesheet?.bankHours ?? 0));
   }, [timesheet]);

@@ -1,3 +1,11 @@
 {
-  "Welcome": "Benvenuta"
+  "Welcome": "Benvenuta",
+  "timesheet": {
+    "submission": {
+      "pendingReview": {
+        "label": "In attesa di revisione",
+        "tooltip": "Questo timesheet è in attesa di revisione e non può essere modificato finché la revisione non è completata."
+      }
+    }
+  }
 }
