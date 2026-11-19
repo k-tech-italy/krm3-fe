@@ -342,11 +342,11 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
     const parsed = Number.parseFloat(hoursInput);
     if (
       Number.isNaN(parsed) ||
-      parsed < 0.5 ||
+      parsed < 0.25 ||
       parsed > MAX_DAY_SHIFT_HOURS ||
-      parsed % 0.5 !== 0
+      parsed % 0.25 !== 0
     ) {
-      setHoursError(`Enter a value from 0.5 to ${MAX_DAY_SHIFT_HOURS} in 0.5 increments`);
+      setHoursError(`Enter a value from 0.25 to ${MAX_DAY_SHIFT_HOURS} in 0.25 increments`);
       return;
     }
     setHoursError("");
@@ -446,9 +446,9 @@ export const ShortHoursMenu = React.memo<ShortHoursMenuProps>((props) => {
                 <div className="flex items-center justify-center gap-2">
                   <input
                     type="number"
-                    min={0.5}
+                    min={0.25}
                     max={MAX_DAY_SHIFT_HOURS}
-                    step={0.5}
+                    step={0.25}
                     value={hoursInput}
                     onChange={(e) => {
                       setHoursInput(e.target.value);
