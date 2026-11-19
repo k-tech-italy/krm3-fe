@@ -175,7 +175,7 @@ export interface User {
 }
 
 export const enum FlagsType {
-  TRASFERTE_ENABLED = "trasferteEnabled",
+  MISSIONS_ENABLED = "missionsEnabled",
   TIMESHEET_ENABLED = "timesheetEnabled",
 }
 
