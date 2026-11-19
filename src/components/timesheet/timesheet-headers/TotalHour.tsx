@@ -1,4 +1,4 @@
-import { DoorOpen, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import { DayEntry, TaskEntry } from "../../../restapi/types";
 import { normalizeDate } from "../utils/dates";
 
@@ -27,13 +27,19 @@ export function TotalHourCell({ day, dayEntry, isMonthView, colorClassName }: Re
   const formattedDay = normalizeDate(day);
   const totalHours = calculateDayEntryTotal(dayEntry);
   const tooltipId = `tooltip-hours-${formattedDay}`;
-  const hasLeave = Number(dayEntry?.leaveHours) > 0 || Number(dayEntry?.specialLeaveHours) > 0;
+  const hasOtherHours = [
+    dayEntry?.nightHours,
+    dayEntry?.onCallHours,
+    dayEntry?.travelHours,
+    dayEntry?.leaveHours,
+    dayEntry?.specialLeaveHours,
+    dayEntry?.restHours,
+    Math.abs(Number(dayEntry?.bank)),
+  ].some((hours) => Number(hours) > 0);
 
   return (
     <div className="relative flex justify-center items-center h-full w-full">
       <div
-        data-tooltip-id={tooltipId}
-        data-tooltip-hidden={totalHours === 0}
         className={`items-center font-semibold ${
           isMonthView ? "text-sm" : "text-md"
         } flex justify-center  h-full w-full 
@@ -43,11 +49,17 @@ export function TotalHourCell({ day, dayEntry, isMonthView, colorClassName }: Re
         <span className="notranslate" data-testid="header-total-hours" translate="no">
           {totalHours}h
         </span>
-        {totalHours > 0 && !isMonthView && (
-          <Info size={18} color="gray" className="cursor-pointer mx-2" />
-        )}
-        {hasLeave && (
-          <DoorOpen data-testid={`leave-icon-${formattedDay}`} size={isMonthView ? 14 : 20} />
+        {hasOtherHours && (
+          <button
+            type="button"
+            aria-label="Show hours breakdown"
+            data-tooltip-id={tooltipId}
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
+            className={`inline-flex items-center justify-center cursor-pointer shrink-0 p-1 ${isMonthView ? "mx-0" : "mx-1"}`}
+          >
+            <Info size={isMonthView ? 14 : 18} color="gray" />
+          </button>
         )}
       </div>
     </div>

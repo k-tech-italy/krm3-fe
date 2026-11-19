@@ -58,6 +58,55 @@ describe("TotalHourCell", () => {
     expect(screen.getByText(/0h/)).toBeInTheDocument();
   });
 
+  describe.each([true, false])("info indicator with isMonthView=%s", (isMonthView) => {
+    const dayShiftEntry = {
+      ...baseDayEntry,
+      dayHours: 8,
+      nightHours: 0,
+      travelHours: 0,
+    };
+
+    it.each([undefined, { ...dayShiftEntry, dayHours: 0 }, dayShiftEntry])(
+      "hides the indicator and tooltip without other hours (%j)",
+      (dayEntry) => {
+        render(<TotalHourCell day={baseDay} dayEntry={dayEntry} isMonthView={isMonthView} />);
+
+        expect(screen.queryByTestId("info-icon")).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole("button", { name: "Show hours breakdown" })
+        ).not.toBeInTheDocument();
+      }
+    );
+
+    it.each([
+      { leaveHours: 2 },
+      { specialLeaveHours: 2 },
+      { restHours: 2 },
+      { bank: 2 },
+      { bank: -2 },
+      { nightHours: 2 },
+      { onCallHours: 2 },
+      { travelHours: 2 },
+      { leaveHours: "2.00" },
+      { bank: "-2.00" },
+      { bank: 8 },
+      { dayHours: 0, onCallHours: 2 },
+    ])("shows the indicator and enables the tooltip for %j", (hours) => {
+      render(
+        <TotalHourCell
+          day={baseDay}
+          dayEntry={{ ...dayShiftEntry, ...hours }}
+          isMonthView={isMonthView}
+        />
+      );
+
+      expect(screen.getByTestId("info-icon")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Show hours breakdown" })).toHaveAttribute(
+        "data-tooltip-id"
+      );
+    });
+  });
+
   it("renders 8h if total hours are 8h", () => {
     render(
       <TotalHourCell
@@ -114,7 +163,7 @@ describe("TotalHourCell", () => {
     expect(screen.getByText(/Task: Test Task/)).toBeInTheDocument();
   });
 
-  it("renders the door icon when leave exists", () => {
+  it("shows only the info indicator when leave exists", () => {
     render(
       <TotalHourCell
         day={baseDay}
@@ -125,10 +174,11 @@ describe("TotalHourCell", () => {
       />
     );
 
-    expect(screen.getByTestId("door-icon")).toBeInTheDocument();
+    expect(screen.queryByTestId("door-icon")).not.toBeInTheDocument();
+    expect(screen.getByTestId("info-icon")).toBeInTheDocument();
   });
 
-  it("renders the door icon when special leave exists", () => {
+  it("shows only the info indicator when special leave exists", () => {
     render(
       <TotalHourCell
         day={baseDay}
@@ -139,7 +189,8 @@ describe("TotalHourCell", () => {
       />
     );
 
-    expect(screen.getByTestId("door-icon")).toBeInTheDocument();
+    expect(screen.queryByTestId("door-icon")).not.toBeInTheDocument();
+    expect(screen.getByTestId("info-icon")).toBeInTheDocument();
   });
 
   it("does not render the door icon without leave", () => {
