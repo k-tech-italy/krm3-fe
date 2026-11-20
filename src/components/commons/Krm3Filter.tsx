@@ -23,6 +23,10 @@ export type FilterField =
       type: "autocomplete";
       options: FilterOption[];
       placeholder?: string;
+      /** Characters to type before suggestions are shown. */
+      minQueryLength?: number;
+      /** Milliseconds without typing before the suggestions follow the query. */
+      debounceMs?: number;
     };
 
 /** Field types whose value is a list. */
@@ -128,6 +132,8 @@ export default function Krm3Filter({
             value={Array.isArray(value) ? value : []}
             onChange={(selected) => setField(field.name, selected)}
             placeholder={field.placeholder}
+            minQueryLength={field.minQueryLength}
+            debounceMs={field.debounceMs}
           />
         </div>
       );

@@ -1,5 +1,6 @@
 import { KeyboardEvent, useId, useMemo, useState } from "react";
 import { X } from "lucide-react";
+import useDebounce from "../../hooks/useDebounce";
 
 export interface AutocompleteOption {
   value: string;
@@ -15,6 +16,10 @@ interface Props {
   placeholder?: string;
   /** Most suggestions shown at once. */
   maxSuggestions?: number;
+  /** Characters to type before any suggestion is shown. */
+  minQueryLength?: number;
+  /** Milliseconds without typing before the suggestions follow the query. */
+  debounceMs?: number;
 }
 
 /** Every typed word must appear in the label, in any order, ignoring case. */
@@ -39,6 +44,8 @@ export default function Krm3Autocomplete({
   onChange,
   placeholder,
   maxSuggestions = 50,
+  minQueryLength = 0,
+  debounceMs = 0,
 }: Props) {
   const listId = useId();
   const [query, setQuery] = useState("");
@@ -46,12 +53,21 @@ export default function Krm3Autocomplete({
   const [highlighted, setHighlighted] = useState(0);
 
   const labels = useMemo(() => new Map(options.map((o) => [o.value, o.label])), [options]);
+  const debouncedQuery = useDebounce(query, debounceMs);
+  const tooShort = (q: string) => q.trim().length < minQueryLength;
+  // a query too short to search (e.g. emptied by a pick) acts at once; a longer one waits for the debounce
+  const waiting = debounceMs > 0 && query.trim() !== "" && !tooShort(query);
+  const searchQuery = waiting ? debouncedQuery : query;
+  const noSearch =
+    tooShort(query) || (waiting && (debouncedQuery.trim() === "" || tooShort(debouncedQuery)));
   const suggestions = useMemo(
     () =>
-      options
-        .filter((o) => !value.includes(o.value) && matchesQuery(o.label, query))
-        .slice(0, maxSuggestions),
-    [options, value, query, maxSuggestions]
+      noSearch
+        ? []
+        : options
+            .filter((o) => !value.includes(o.value) && matchesQuery(o.label, searchQuery))
+            .slice(0, maxSuggestions),
+    [options, value, searchQuery, maxSuggestions, noSearch]
   );
   const showList = listOpen && suggestions.length > 0;
 

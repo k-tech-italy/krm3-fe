@@ -313,14 +313,30 @@ describe("MissionPage", () => {
     expect(mockUseGetResources).toHaveBeenLastCalledWith(false);
   });
 
-  it("filters missions by resource for mission viewers", () => {
+  it("filters missions by resource for mission viewers", async () => {
     mockUserPermissions.value = ["core.view_any_mission"];
     renderPage();
     fireEvent.click(screen.getByTestId("mission-filter-button"));
     fireEvent.change(screen.getByLabelText("Resource"), { target: { value: "jan" } });
-    fireEvent.mouseDown(screen.getByRole("option", { name: "Jane Roe" }));
+    fireEvent.mouseDown(await screen.findByRole("option", { name: "Jane Roe" }));
     fireEvent.click(screen.getByTestId("mission-filter-submit"));
     expect(lastMissionParams()).toMatchObject({ resource: "5" });
+  });
+
+  it("suggests resources from the third character and keeps the filter open while picking", async () => {
+    mockUserPermissions.value = ["core.view_any_mission"];
+    renderPage();
+    fireEvent.click(screen.getByTestId("mission-filter-button"));
+    fireEvent.change(screen.getByLabelText("Resource"), { target: { value: "ja" } });
+    await new Promise((resolve) => setTimeout(resolve, 450));
+    expect(screen.queryByRole("option")).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Resource"), { target: { value: "jan" } });
+    // the suggestions follow the typing after the 0.4 s debounce
+    expect(screen.queryByRole("option")).not.toBeInTheDocument();
+    fireEvent.mouseDown(await screen.findByRole("option", { name: "Jane Roe" }));
+    expect(screen.getByTestId("mission-filter-panel")).toBeInTheDocument();
+    expect(screen.getByLabelText("Remove Jane Roe")).toBeInTheDocument();
+    expect(screen.queryByRole("option")).not.toBeInTheDocument();
   });
 
   it("hides the Id column by default and shows it from the column chooser", () => {

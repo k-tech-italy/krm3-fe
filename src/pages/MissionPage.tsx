@@ -17,6 +17,10 @@ import Krm3ColumnChooser from "../components/commons/Krm3ColumnChooser";
 import { useColumnVisibility } from "../hooks/useColumnVisibility";
 
 const PAGE_SIZE = 25;
+// the resource autocomplete suggests nothing until this many characters are typed, and follows the
+// typing only after a pause
+const RESOURCE_MIN_QUERY_LENGTH = 3;
+const RESOURCE_DEBOUNCE_MS = 400;
 
 /** Shown when the status filter is empty: cancelled missions are hidden unless asked for. */
 export const DEFAULT_MISSION_STATUSES = ["DRAFT", "SUBMITTED"];
@@ -88,7 +92,9 @@ function MissionList() {
               label: "Resource",
               type: "autocomplete",
               options: resourceOptions,
-              placeholder: "Type a name",
+              placeholder: "Type at least 3 characters",
+              minQueryLength: RESOURCE_MIN_QUERY_LENGTH,
+              debounceMs: RESOURCE_DEBOUNCE_MS,
             } as FilterField,
           ]
         : []),
@@ -187,7 +193,9 @@ function ExpenseList() {
               label: "Resource",
               type: "autocomplete",
               options: resourceOptions,
-              placeholder: "Type a name",
+              placeholder: "Type at least 3 characters",
+              minQueryLength: RESOURCE_MIN_QUERY_LENGTH,
+              debounceMs: RESOURCE_DEBOUNCE_MS,
             } as FilterField,
           ]
         : []),

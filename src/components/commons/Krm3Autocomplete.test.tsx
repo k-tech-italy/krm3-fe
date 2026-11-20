@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import Krm3Autocomplete, { matchesQuery } from "./Krm3Autocomplete";
@@ -9,7 +9,7 @@ const options = [
   { value: "3", label: "Alba Bianchi" },
 ];
 
-function Harness({ initial = [] as string[], onChange = vi.fn() }) {
+function Harness({ initial = [] as string[], onChange = vi.fn(), debounceMs = 0 }) {
   const [value, setValue] = useState(initial);
   return (
     <>
@@ -23,6 +23,7 @@ function Harness({ initial = [] as string[], onChange = vi.fn() }) {
           onChange(v);
         }}
         placeholder="Type a name"
+        debounceMs={debounceMs}
       />
     </>
   );
@@ -101,5 +102,54 @@ describe("Krm3Autocomplete", () => {
     fireEvent.keyDown(input(), { key: "Escape" });
     expect(outer).toHaveBeenCalledTimes(1);
     document.removeEventListener("keydown", outer);
+  });
+
+  it("suggests nothing until minQueryLength characters are typed", () => {
+    render(
+      <Krm3Autocomplete
+        id="ac"
+        options={options}
+        value={[]}
+        onChange={vi.fn()}
+        minQueryLength={3}
+      />
+    );
+    fireEvent.focus(input());
+    expect(optionNames()).toEqual([]);
+    type("al");
+    expect(optionNames()).toEqual([]);
+    expect(input()).toHaveAttribute("aria-expanded", "false");
+    fireEvent.keyDown(input(), { key: "ArrowDown" });
+    expect(optionNames()).toEqual([]);
+    type("  a ");
+    expect(optionNames()).toEqual([]);
+    type("alb");
+    expect(optionNames()).toEqual(["Alba Bianchi"]);
+  });
+
+  it("updates the suggestions after debounceMs without typing", () => {
+    vi.useFakeTimers();
+    try {
+      render(<Harness debounceMs={400} />);
+      type("bia");
+      expect(optionNames()).toEqual([]);
+      act(() => vi.advanceTimersByTime(399));
+      expect(optionNames()).toEqual([]);
+      act(() => vi.advanceTimersByTime(1));
+      expect(optionNames()).toEqual(["Bob Bianchi", "Alba Bianchi"]);
+
+      // still the old suggestions while typing, the new ones after the pause
+      type("bob");
+      act(() => vi.advanceTimersByTime(200));
+      expect(optionNames()).toEqual(["Bob Bianchi", "Alba Bianchi"]);
+      act(() => vi.advanceTimersByTime(200));
+      expect(optionNames()).toEqual(["Bob Bianchi"]);
+
+      // picking empties the query, which acts at once: no stale suggestions for "bob"
+      fireEvent.mouseDown(screen.getByRole("option", { name: "Bob Bianchi" }));
+      expect(optionNames()).toEqual(["Alice Rossi", "Alba Bianchi"]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

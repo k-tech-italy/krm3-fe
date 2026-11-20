@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * Open/close state of a popover anchored to a button.
  *
  * When it opens, the first focusable element of the panel gets the focus. Escape closes it and gives the
- * focus back to the button; a click outside the container closes it.
+ * focus back to the button; a mousedown outside the container closes it.
  */
 export function usePopover() {
   const [open, setOpen] = useState(false);
@@ -25,7 +25,10 @@ export function usePopover() {
       if (e.key === "Escape") close();
     }
     function onMouseDown(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      // composedPath(), not contains(e.target): the path is fixed when the event is dispatched, while the
+      // target may already be detached (e.g. a picked autocomplete suggestion, removed by the re-render
+      // React flushes before this listener runs)
+      if (containerRef.current && !e.composedPath().includes(containerRef.current)) {
         setOpen(false);
       }
     }
