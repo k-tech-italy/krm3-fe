@@ -88,7 +88,7 @@ describe('UserMenu', () => {
 
         const profileLink = screen.getByRole('link', { name: /profile/i })
         expect(profileLink).toBeInTheDocument()
-        expect(profileLink).toHaveAttribute('href', 'be/resource/123/')
+        expect(profileLink).toHaveAttribute('href', 'be/profile/123/')
 
         const documentsLink = screen.getByRole('link', { name: /documents/i })
         expect(documentsLink).toBeInTheDocument()
