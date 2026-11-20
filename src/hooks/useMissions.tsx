@@ -5,7 +5,7 @@ import {
   createMission,
   submitMission,
   getMission,
-  getMissions,
+  listMissions,
   getResources,
   getActiveResources,
   getClients,
@@ -37,13 +37,10 @@ export function useSubmitMission() {
   });
 }
 
-export function useGetMissions() {
-  const { data } = useGetCurrentUser();
-  const id = data?.resource?.id;
-  const isStaff = data?.isStaff;
-
-  return useQuery(["missions", data?.id, data?.isStaff], () => {
-    return getMissions(isStaff || false, id);
+/** A page of missions for the given list parameters (see `toApiParams`). */
+export function useMissionList(params: Record<string, string | number>) {
+  return useQuery(["missions", "list", params], () => listMissions(params), {
+    keepPreviousData: true,
   });
 }
 

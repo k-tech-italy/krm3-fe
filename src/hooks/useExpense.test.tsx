@@ -7,7 +7,7 @@ import {
   useGetCurrencies,
   useGetTypeOfPayment,
   useGetDocumentType,
-  useGetExpense,
+  useExpenseList,
   useEditExpense,
   useGetBudgetLimit,
 } from "./useExpense";
@@ -29,7 +29,7 @@ vi.mock("../restapi/expense", () => ({
   getCurrencies: vi.fn(),
   getTypeOfPayment: vi.fn(),
   getTypeOfDocument: vi.fn(),
-  getExpenses: vi.fn(),
+  listExpenses: vi.fn(),
   saveExpense: vi.fn(),
   getBudgetLimit: vi.fn(),
 }));
@@ -73,18 +73,11 @@ describe("useExpense hooks", () => {
       });
 
       expect(result.current.data).toBe(mockConversionResult);
-      expect(expenseApi.convertCurrencyTo).toHaveBeenCalledWith(
-        "2024-01-01",
-        "USD",
-        "100",
-        "EUR"
-      );
+      expect(expenseApi.convertCurrencyTo).toHaveBeenCalledWith("2024-01-01", "USD", "100", "EUR");
     });
 
     it("should handle conversion error", async () => {
-      vi.mocked(expenseApi.convertCurrencyTo).mockRejectedValue(
-        new Error("Conversion failed")
-      );
+      vi.mocked(expenseApi.convertCurrencyTo).mockRejectedValue(new Error("Conversion failed"));
 
       const { result } = renderHook(
         () => useGetConvertCurrencyTo("2024-01-01", "USD", "100", "EUR"),
@@ -217,9 +210,7 @@ describe("useExpense hooks", () => {
     });
 
     it("should return undefined initially before data loads", () => {
-      vi.mocked(expenseApi.getCurrencies).mockImplementation(
-        () => new Promise(() => {})
-      );
+      vi.mocked(expenseApi.getCurrencies).mockImplementation(() => new Promise(() => {}));
 
       const { result } = renderHook(() => useGetCurrencies(), {
         wrapper: createWrapper(),
@@ -279,9 +270,7 @@ describe("useExpense hooks", () => {
     });
 
     it("should return undefined initially before data loads", () => {
-      vi.mocked(expenseApi.getTypeOfPayment).mockImplementation(
-        () => new Promise(() => {})
-      );
+      vi.mocked(expenseApi.getTypeOfPayment).mockImplementation(() => new Promise(() => {}));
 
       const { result } = renderHook(() => useGetTypeOfPayment(), {
         wrapper: createWrapper(),
@@ -341,9 +330,7 @@ describe("useExpense hooks", () => {
     });
 
     it("should return undefined initially before data loads", () => {
-      vi.mocked(expenseApi.getTypeOfDocument).mockImplementation(
-        () => new Promise(() => {})
-      );
+      vi.mocked(expenseApi.getTypeOfDocument).mockImplementation(() => new Promise(() => {}));
 
       const { result } = renderHook(() => useGetDocumentType(), {
         wrapper: createWrapper(),
@@ -353,94 +340,17 @@ describe("useExpense hooks", () => {
     });
   });
 
-  describe("useGetExpense", () => {
-    const mockExpenses: Page<ExpenseInterface> = {
-      count: 1,
-      next: null,
-      previous: null,
-      results: [
-        {
-          id: 1,
-          day: "2024-01-15",
-          amountCurrency: "100",
-          amountBase: "100",
-          amountReimbursement: "100",
-          detail: "Business lunch",
-          documentType: {
-            active: true,
-            default: true,
-            id: 1,
-            title: "Invoice",
-          },
-          image: "path/to/image.jpg",
-          createdTs: "2024-01-15T10:00:00Z",
-          modifiedTs: "2024-01-15T10:00:00Z",
-          category: {
-            active: true,
-            id: 1,
-            str: "Vitto",
-            title: "Meal",
-          },
-          paymentType: {
-            active: true,
-            id: 1,
-            title: "Cash",
-            str: "cash",
-          },
-          currency: "USD",
-          mission: 1,
-          reimbursement: 100,
-        },
-      ],
-    };
+  describe("useExpenseList", () => {
+    it("fetches the page of expenses for the parameters", async () => {
+      const page: Page<ExpenseInterface> = { count: 0, next: null, previous: null, results: [] };
+      vi.mocked(expenseApi.listExpenses).mockResolvedValue(page);
 
-    it("should fetch and return expenses", async () => {
-      vi.mocked(expenseApi.getExpenses).mockResolvedValue(mockExpenses);
+      const params = { page: 1, pageSize: 25, resource: "5" };
+      const { result } = renderHook(() => useExpenseList(params), { wrapper: createWrapper() });
 
-      const { result } = renderHook(() => useGetExpense(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true);
-      });
-
-      expect(result.current.data).toEqual(mockExpenses);
-      expect(expenseApi.getExpenses).toHaveBeenCalledTimes(1);
-    });
-
-    it("should handle error when fetching expenses", async () => {
-      vi.mocked(expenseApi.getExpenses).mockRejectedValue(
-        new Error("Failed to fetch expenses")
-      );
-
-      const { result } = renderHook(() => useGetExpense(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => {
-        expect(result.current.isError).toBe(true);
-      });
-
-      expect(result.current.data).toBeUndefined();
-    });
-
-    it("should call onError callback when fetch fails", async () => {
-      vi.mocked(expenseApi.getExpenses).mockRejectedValue(
-        new Error("Failed to fetch expenses")
-      );
-
-      const { result } = renderHook(() => useGetExpense(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => {
-        expect(result.current.isError).toBe(true);
-      });
-
-      // The onError in the hook returns 'error' but doesn't do anything with it
-      // Just verify the hook handles the error gracefully
-      expect(result.current.error).toBeTruthy();
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(expenseApi.listExpenses).toHaveBeenCalledWith(params);
+      expect(result.current.data).toEqual(page);
     });
   });
 
@@ -479,7 +389,7 @@ describe("useExpense hooks", () => {
     };
 
     it("should save expense successfully", async () => {
-      vi.mocked(expenseApi.saveExpense).mockResolvedValue({ data: mockExpense } as any);
+      vi.mocked(expenseApi.saveExpense).mockResolvedValue({ data: mockExpense } as never);
 
       const { result } = renderHook(() => useEditExpense(), {
         wrapper: createWrapper(),
@@ -495,9 +405,7 @@ describe("useExpense hooks", () => {
     });
 
     it("should handle save expense error", async () => {
-      vi.mocked(expenseApi.saveExpense).mockRejectedValue(
-        new Error("Failed to save expense")
-      );
+      vi.mocked(expenseApi.saveExpense).mockRejectedValue(new Error("Failed to save expense"));
 
       const { result } = renderHook(() => useEditExpense(), {
         wrapper: createWrapper(),
@@ -513,7 +421,7 @@ describe("useExpense hooks", () => {
     });
 
     it("should invalidate mission queries on success", async () => {
-      vi.mocked(expenseApi.saveExpense).mockResolvedValue({ data: mockExpense } as any);
+      vi.mocked(expenseApi.saveExpense).mockResolvedValue({ data: mockExpense } as never);
 
       const queryClient = new QueryClient();
       const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
@@ -552,14 +460,14 @@ describe("useExpense hooks", () => {
     });
 
     it("should pass correct parameters for creating new expense", async () => {
-      const newExpense = { ...mockExpense, id: undefined as any };
-      vi.mocked(expenseApi.saveExpense).mockResolvedValue({ data: newExpense } as any);
+      const newExpense = { ...mockExpense, id: undefined as unknown as number };
+      vi.mocked(expenseApi.saveExpense).mockResolvedValue({ data: newExpense } as never);
 
       const { result } = renderHook(() => useEditExpense(), {
         wrapper: createWrapper(),
       });
 
-      result.current.mutate({ id: undefined as any, params: newExpense });
+      result.current.mutate({ id: undefined as unknown as number, params: newExpense });
 
       await waitFor(() => {
         expect(result.current.isSuccess).toBe(true);

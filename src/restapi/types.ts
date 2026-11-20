@@ -79,6 +79,8 @@ export interface ExpenseInterface {
   category: Category;
   paymentType: TypeOfPayment;
   reimbursement: number;
+  missionTitle?: string | null;
+  resourceName?: string;
 }
 export interface LimitBudget {
   vitto: number;
