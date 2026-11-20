@@ -4,7 +4,7 @@ import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   useCreateMission,
   useSubmitMission,
-  useGetMissions,
+  useMissionList,
   useGetResources,
   useGetActiveResources,
   useGetClients,
@@ -24,7 +24,7 @@ type CreateMissionResponse = Awaited<ReturnType<typeof missionApi.createMission>
 vi.mock("../restapi/mission", () => ({
   createMission: vi.fn(),
   submitMission: vi.fn(),
-  getMissions: vi.fn(),
+  listMissions: vi.fn(),
   getMission: vi.fn(),
   getResources: vi.fn(),
   getActiveResources: vi.fn(),
@@ -209,170 +209,17 @@ describe("useMissions hooks", () => {
     });
   });
 
-  describe("useGetMissions", () => {
-    const mockMissions: Page<MissionInterface> = {
-      count: 1,
-      next: null,
-      previous: null,
-      results: [
-        {
-          id: 1,
-          number: 1,
-          status: "SUBMITTED" as const,
-          title: "Test Mission",
-          fromDate: "2024-01-01",
-          toDate: "2024-12-31",
-          year: 2024,
-          city: {
-            id: 1,
-            name: "Warsaw",
-            country: 1,
-          },
-          defaultCurrency: {
-            iso3: "USD",
-            title: "US Dollar",
-            symbol: "$",
-            fractionalUnit: "cent",
-            base: 100,
-            active: true,
-          },
-          project: {
-            id: 1,
-            name: "Test Project",
-            notes: "Test notes",
-            client: 1,
-          },
-          resource: {
-            id: 1,
-            firstName: "John",
-            lastName: "Doe",
-            profile: {
-              id: 1,
-              picture: "path/to/picture.jpg",
-              user: 1,
-            },
-          },
-          expenses: [],
-        },
-      ],
-    };
+  describe("useMissionList", () => {
+    it("fetches the page of missions for the parameters", async () => {
+      const page: Page<MissionInterface> = { count: 0, next: null, previous: null, results: [] };
+      vi.mocked(missionApi.listMissions).mockResolvedValue(page);
 
-    it("should fetch missions for regular user with resource", async () => {
-      vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
-        data: {
-          id: 1,
-          resource: { id: 1, firstName: "John", lastName: "Doe" } as Resource,
-          isStaff: false,
-        },
-      } as unknown as CurrentUserResult);
+      const params = { page: 1, pageSize: 25, search: "rome" };
+      const { result } = renderHook(() => useMissionList(params), { wrapper: createWrapper() });
 
-      vi.mocked(missionApi.getMissions).mockResolvedValue(mockMissions);
-
-      const { result } = renderHook(() => useGetMissions(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true);
-      });
-
-      expect(result.current.data).toEqual(mockMissions);
-      expect(missionApi.getMissions).toHaveBeenCalledWith(false, 1);
-    });
-
-    it("should fetch missions for staff user", async () => {
-      vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
-        data: {
-          id: 2,
-          resource: { id: 2, firstName: "Jane", lastName: "Admin" } as Resource,
-          isStaff: true,
-        },
-      } as unknown as CurrentUserResult);
-
-      vi.mocked(missionApi.getMissions).mockResolvedValue(mockMissions);
-
-      const { result } = renderHook(() => useGetMissions(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true);
-      });
-
-      expect(result.current.data).toEqual(mockMissions);
-      expect(missionApi.getMissions).toHaveBeenCalledWith(true, 2);
-    });
-
-    it("should fetch missions for user without resource", async () => {
-      vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
-        data: {
-          id: 3,
-          resource: null,
-          isStaff: false,
-        },
-      } as unknown as CurrentUserResult);
-
-      vi.mocked(missionApi.getMissions).mockResolvedValue(mockMissions);
-
-      const { result } = renderHook(() => useGetMissions(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true);
-      });
-
-      expect(result.current.data).toEqual(mockMissions);
-      expect(missionApi.getMissions).toHaveBeenCalledWith(false, undefined);
-    });
-
-    it("should handle error when fetching missions", async () => {
-      vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
-        data: {
-          id: 1,
-          resource: { id: 1, firstName: "John", lastName: "Doe" } as Resource,
-          isStaff: false,
-        },
-      } as unknown as CurrentUserResult);
-
-      vi.mocked(missionApi.getMissions).mockRejectedValue(new Error("Failed to fetch missions"));
-
-      const { result } = renderHook(() => useGetMissions(), {
-        wrapper: createWrapper(),
-      });
-
-      await waitFor(() => {
-        expect(result.current.isError).toBe(true);
-      });
-
-      expect(result.current.data).toBeUndefined();
-    });
-
-    it("should use correct query key with user data", async () => {
-      vi.mocked(useAuth.useGetCurrentUser).mockReturnValue({
-        data: {
-          id: 5,
-          resource: { id: 5, firstName: "Test", lastName: "User" } as Resource,
-          isStaff: false,
-        },
-      } as unknown as CurrentUserResult);
-
-      vi.mocked(missionApi.getMissions).mockResolvedValue(mockMissions);
-
-      const queryClient = new QueryClient();
-      const wrapper = ({ children }: { children: React.ReactNode }) => (
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-      );
-
-      const { result } = renderHook(() => useGetMissions(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true);
-      });
-
-      // Verify the query is cached with the correct key
-      const cachedData = queryClient.getQueryData(["missions", 5, false]);
-      expect(cachedData).toEqual(mockMissions);
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(missionApi.listMissions).toHaveBeenCalledWith(params);
+      expect(result.current.data).toEqual(page);
     });
   });
 

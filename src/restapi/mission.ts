@@ -17,14 +17,10 @@ export function submitMission(id: number): Promise<MissionInterface> {
   return restapi.post<MissionInterface>(`missions/mission/${id}/submit/`).then((res) => res.data);
 }
 
-export function getMissions(
-  isStaff: boolean,
-  resourceId?: number
+/** One page of the missions list, filtered and ordered server-side (see `useListParams`). */
+export function listMissions(
+  params: Record<string, string | number>
 ): Promise<Page<MissionInterface>> {
-  let params = {};
-  if (resourceId !== undefined) {
-    params = { resource_id: resourceId, is_staff: isStaff };
-  }
   return restapi
     .get<Page<MissionInterface>>("missions/mission/", { params })
     .then((res) => res.data);
