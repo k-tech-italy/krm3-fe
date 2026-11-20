@@ -9,10 +9,13 @@ Make sure you have [Node.js](https://nodejs.org/) installed and use the correct 
 Activate venv
 
 If you have direvn:
+
 ```bash
 direnv allow
 ```
+
 else
+
 ```bash
 nvm use
 ```
@@ -61,5 +64,17 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 
 We use FontAwesome icons and Fontastic to produce a web font.
 
-[Fontastic](https://app.fontastic.me/)  
+[Fontastic](https://app.fontastic.me/)
 
+# License
+
+The KRM3 frontend is source-available under the
+[PolyForm Noncommercial License 1.0.0](https://github.com/k-tech-italy/krm3-fe/blob/develop/LICENSE.md),
+like the [KRM3 backend](https://github.com/k-tech-italy/krm3):
+
+- **Noncommercial use is free**: personal study, research, hobby projects, and use by charities,
+  educational institutions, public research organizations and government institutions.
+- **Commercial use needs a commercial license**, including a company using KRM3 in its products,
+  services or internal systems. Write to K-Tech s.r.l. at <info@k-tech.it>.
+
+Versions up to 1.5.6 were released without a license file.
