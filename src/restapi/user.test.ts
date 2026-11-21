@@ -8,6 +8,7 @@ import { User, FlagsType } from "./types";
 vi.mock("./restapi", () => ({
   restapi: {
     get: vi.fn(),
+    patch: vi.fn(),
   },
 }));
 
@@ -424,6 +425,18 @@ describe("user API", () => {
       });
 
       await expect(userApi.logout()).resolves.not.toThrow();
+    });
+  });
+
+  describe("patchUserPreferredLanguage", () => {
+    it("should update the preferred language of the logged-in user", async () => {
+      vi.mocked(restapi.patch).mockResolvedValue({ data: undefined });
+
+      await userApi.patchUserPreferredLanguage("it");
+
+      expect(restapi.patch).toHaveBeenCalledWith("/core/user/me/preferred-language/", {
+        language_code: "it",
+      });
     });
   });
 });
