@@ -2,6 +2,12 @@ import {ExpenseCard} from "./ExpenseCard.tsx";
 import {render, screen} from "@testing-library/react";
 import {vi} from "vitest"
 import {ExpenseInterface} from "../../restapi/types.ts";
+
+// The converted amount is set asynchronously after the first render: tests wait for it so the update happens in act()
+vi.mock("../../restapi/expense", () => ({
+    convertCurrencyTo: vi.fn().mockResolvedValue("42.00"),
+}));
+
 describe('ExpenseCard', () => {
     const props = {
         expense: {
@@ -40,18 +46,21 @@ describe('ExpenseCard', () => {
         },
         ShowIdCard: vi.fn()
     }
-    it('renders correctly', () => {
+    it('renders correctly', async () => {
         render(<ExpenseCard {...props}/>);
+        expect(await screen.findByText("Importo EUR 42.00")).toBeInTheDocument();
         expect(screen.getByText("some category title")).toBeInTheDocument();
         expect(screen.getByText("2025-01-05")).toBeInTheDocument();
         expect(screen.getByText("id: 123")).toBeInTheDocument();
         expect(screen.getByText("Importo PLN 101")).toBeInTheDocument();
     })
-    it('renders border when amountReimbursement < 1', () => {
+    it('renders border when amountReimbursement < 1', async () => {
         render(<ExpenseCard {...props} expense={{...props.expense, amountReimbursement: "0" }}/>);
+        await screen.findByText("Importo EUR 42.00");
         expect(screen.getByTestId("expense-card")).toHaveClass("border border-red-500")
     })
-    it('renders default amountCurrency when there is no amountCurrency in props', () => {
+    it('renders default amountCurrency when there is no amountCurrency in props', async () => {
         render(<ExpenseCard {...props} expense={{...props.expense, amountCurrency: "0" }}/>);
+        await screen.findByText("Importo EUR 42.00");
     })
 })

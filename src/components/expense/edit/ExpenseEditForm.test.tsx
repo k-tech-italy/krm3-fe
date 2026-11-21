@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from "@testing-library/react";
+import {act, fireEvent, render, screen} from "@testing-library/react";
 import {ExpenseEditForm} from "./ExpenseEditForm.tsx";
 import {vi} from "vitest"
 import * as useExpense from "../../../hooks/useExpense.tsx";
@@ -79,7 +79,7 @@ describe('ExpenseEditForm', () => {
         expect(screen.getByText("currencyError")).toBeInTheDocument()
         expect(screen.getByText("categoryError")).toBeInTheDocument()
     })
-    it('resets errors', () => {
+    it('resets errors', async () => {
         const errors = {
             amountCurrency: "amountCurrencyError",
             paymentType: "paymentTypeError",
@@ -88,11 +88,14 @@ describe('ExpenseEditForm', () => {
             currency: "currencyError",
         }
         render(<ExpenseEditForm expense={expense} error={errors as any}/>)
-        fireEvent.change(screen.getByTestId("currency-select"), { target: { value: "EURO" }})
-        fireEvent.change(screen.getByTestId("category-select"), { target: { value: "2" }})
-        fireEvent.change(screen.getByTestId("document-type-select"), { target: { value: "3" }})
-        fireEvent.change(screen.getByTestId("payment-type-select"), { target: { value: "2" }})
-        fireEvent.input(screen.getByTestId("currency-amount-input"), { target: { value: "222" }})
+        // changing the currency or the amount converts it asynchronously and then updates the form state
+        await act(async () => {
+            fireEvent.change(screen.getByTestId("currency-select"), { target: { value: "EURO" }})
+            fireEvent.change(screen.getByTestId("category-select"), { target: { value: "2" }})
+            fireEvent.change(screen.getByTestId("document-type-select"), { target: { value: "3" }})
+            fireEvent.change(screen.getByTestId("payment-type-select"), { target: { value: "2" }})
+            fireEvent.input(screen.getByTestId("currency-amount-input"), { target: { value: "222" }})
+        })
         expect(screen.queryByText("documentTypeError")).not.toBeInTheDocument()
         expect(screen.queryByText("paymentTypeError")).not.toBeInTheDocument()
         expect(screen.queryByText("currencyError")).not.toBeInTheDocument()

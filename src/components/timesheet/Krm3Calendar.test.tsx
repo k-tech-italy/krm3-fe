@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import Krm3Calendar from "./Krm3Calendar";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import { useGetTimesheet, useSubmitTimesheet } from "../../hooks/useTimesheet";
@@ -435,7 +435,10 @@ describe("Krm3Calendar", () => {
     });
 
     expect(submitButton).toBeEnabled();
-    fireEvent.click(submitButton);
+    // the submission completes asynchronously and then updates the calendar state
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
     expect(mockMutateSubmitTimesheet).toBeCalledWith({
       startDate: "2025-07-01",
       endDate: "2025-07-31",
@@ -468,7 +471,11 @@ describe("Krm3Calendar", () => {
   test("submit displays the error returned by the current request", async () => {
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
 
-    fireEvent.click(await screen.findByRole("button", { name: /Submit Timesheet/i }));
+    const submitButton = await screen.findByRole("button", { name: /Submit Timesheet/i });
+    // the submission completes asynchronously and then updates the calendar state
+    await act(async () => {
+      fireEvent.click(submitButton);
+    });
 
     const toastOptions = vi.mocked(toast.promise).mock.calls[0][1];
     const errorRenderer = typeof toastOptions === "object" ? toastOptions.error : undefined;
@@ -607,7 +614,7 @@ describe("Krm3Calendar", () => {
     expect(within(dateRangeDisplay).getByText("Jul 6")).toBeInTheDocument();
     expect(mockUseGetTimesheet).toHaveBeenNthCalledWith(6, "2025-06-30", "2025-07-06", 1);
   });
-  test("switching to week on current month should select actual week", () => {
+  test("switching to week on current month should select actual week", async () => {
     renderWithProviders(<Krm3Calendar selectedResourceId={1} />);
     const navigateNextButton = document.getElementById("nav-next-btn") as HTMLElement;
     const dateRangeDisplay = document.getElementById("date-range-display") as HTMLElement;
@@ -622,7 +629,10 @@ describe("Krm3Calendar", () => {
     fireEvent.click(monthWeekSwitch);
     expect(within(dateRangeDisplay).getByText("July 2025")).toBeInTheDocument();
 
-    fireEvent.click(monthWeekSwitch);
+    // the tooltips of the re-rendered days compute their position asynchronously
+    await act(async () => {
+      fireEvent.click(monthWeekSwitch);
+    });
     expect(within(dateRangeDisplay).getByText("Jun 30")).toBeInTheDocument();
     expect(within(dateRangeDisplay).getByText("Jul 6")).toBeInTheDocument();
   });

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { act, render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { MissionPage } from "./MissionPage";
 import { vi } from "vitest";
@@ -328,7 +328,8 @@ describe("MissionPage", () => {
     renderPage();
     fireEvent.click(screen.getByTestId("mission-filter-button"));
     fireEvent.change(screen.getByLabelText("Resource"), { target: { value: "ja" } });
-    await new Promise((resolve) => setTimeout(resolve, 450));
+    // the debounce timer updates the autocomplete state: let it fire inside act()
+    await act(() => new Promise((resolve) => setTimeout(resolve, 450)));
     expect(screen.queryByRole("option")).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Resource"), { target: { value: "jan" } });
     // the suggestions follow the typing after the 0.4 s debounce
