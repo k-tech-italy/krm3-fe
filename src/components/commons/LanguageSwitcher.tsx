@@ -17,8 +17,7 @@ export default function LanguageSwitcher() {
     {
       items: languages.map(({ languageCode, language }) => ({
         label: language,
-        onClick: () =>
-          changeLanguage({ language_code: languageCode, resourceId: user.resource.id }),
+        onClick: () => changeLanguage({ language_code: languageCode }),
         disabled: isLoading || languageCode === currentLanguage,
         active: languageCode === currentLanguage,
       })),

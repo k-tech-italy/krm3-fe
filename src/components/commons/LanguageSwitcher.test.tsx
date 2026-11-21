@@ -63,7 +63,6 @@ describe("LanguageSwitcher", () => {
 
     expect(mockChangeLanguage).toHaveBeenCalledWith({
       language_code: "it",
-      resourceId: 42,
     });
   });
 

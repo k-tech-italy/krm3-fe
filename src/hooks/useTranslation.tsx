@@ -2,19 +2,18 @@ import { useMutation, useQuery } from "react-query";
 import { AxiosError } from "axios";
 import { getSupportedLanguages, setDjangoLanguage } from "../restapi/translation.ts";
 import i18n from "../i18n.ts";
-import { patchResourcePreferredLanguage } from "../restapi/resource.ts";
+import { patchUserPreferredLanguage } from "../restapi/user.ts";
 
 type ChangeLanguageVariables = {
   language_code: string;
-  resourceId: number;
 };
 
 export function useChangeLanguage() {
   return useMutation<void, AxiosError, ChangeLanguageVariables>(
-    async ({ language_code, resourceId }) => {
+    async ({ language_code }) => {
       await Promise.all([
         setDjangoLanguage(language_code),
-        patchResourcePreferredLanguage(language_code, resourceId),
+        patchUserPreferredLanguage(language_code),
       ]);
     },
     {
