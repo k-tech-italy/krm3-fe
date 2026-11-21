@@ -7,6 +7,10 @@ export function getCurrentUser(): Promise<User> {
   });
 }
 
+export function patchUserPreferredLanguage(languageCode: string): Promise<void> {
+  return restapi.patch(`/core/user/me/preferred-language/`, { language_code: languageCode });
+}
+
 export function logout(): Promise<void> {
   return restapi.get(`/core/user/logout/`);
 }

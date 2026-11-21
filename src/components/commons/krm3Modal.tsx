@@ -2,6 +2,10 @@ import { useEffect } from "react";
 import Modal from "react-modal";
 import { X } from "lucide-react";
 
+// No close animation under Vitest: react-modal removes the portal in a timer that can fire
+// after the jsdom environment is torn down ("document is not defined" unhandled error).
+const CLOSE_TIMEOUT_MS = import.meta.env.MODE === "test" ? 0 : 300;
+
 interface Krm3ModalProps {
   open: boolean;
   onClose: () => void;
@@ -58,7 +62,7 @@ export default function Krm3Modal({ open, onClose, children, title, width }: Krm
       onRequestClose={onClose}
       style={customStyles}
       contentLabel={title || "Modal"}
-      closeTimeoutMS={300}
+      closeTimeoutMS={CLOSE_TIMEOUT_MS}
       ariaHideApp={false}
     >
       <div className="relative flex flex-col bg-card">

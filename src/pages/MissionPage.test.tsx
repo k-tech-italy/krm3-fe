@@ -1,30 +1,25 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { act, render, screen, fireEvent } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { MissionPage } from "./MissionPage";
 import { vi } from "vitest";
-import { useGetMissions } from "../hooks/useMissions";
-import { useGetExpense } from "../hooks/useExpense";
+import { useGetResources, useMissionList } from "../hooks/useMissions";
+import { useExpenseList } from "../hooks/useExpense";
 import { useMediaQuery } from "../hooks/useView";
-
-type FilterResourceMockProps = {
-  handleFilter: (data: Record<string, unknown>[]) => void;
-  data: { results: Record<string, unknown>[] };
-};
 
 type TableRow = {
   id: number;
-  mission_title?: string;
+  missionTitle?: string;
   resource?: string;
   amountCurrency?: string;
 };
 
 type TableMockProps = {
   data: TableRow[];
+  columns: { accessorKey: string; header: string }[];
   onClickRow: (row: TableRow) => void;
-};
-
-type ExpenseFilterMockProps = {
-  handleFilter: (data: Record<string, unknown>[]) => void;
-  data: Record<string, unknown>[];
+  ordering?: string | null;
+  onOrderingChange?: (ordering: string | null) => void;
+  pagination?: { page: number; pageCount: number; onPageChange: (page: number) => void };
 };
 
 type ModalMockProps = {
@@ -36,17 +31,23 @@ const { mockNavigate } = vi.hoisted(() => ({
   mockNavigate: vi.fn(),
 }));
 
-// Mock the modules to return mock functions
 vi.mock("../hooks/useMissions", () => ({
-  useGetMissions: vi.fn(),
+  useMissionList: vi.fn(),
+  useGetResources: vi.fn(),
 }));
 
-vi.mock("react-router-dom", () => ({
+vi.mock("react-router-dom", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("react-router-dom")>()),
   useNavigate: () => mockNavigate,
 }));
 
 vi.mock("../hooks/useExpense", () => ({
-  useGetExpense: vi.fn(),
+  useExpenseList: vi.fn(),
+}));
+// the filters save and list saved filters through the API: no saved filters here
+vi.mock("../hooks/useSavedFilters", () => ({
+  useSavedFilters: () => ({ data: [] }),
+  useSaveFilter: () => ({ mutate: vi.fn(), isLoading: false }),
 }));
 const mockUserPermissions = vi.hoisted(() => ({ value: ["core.add_mission"] as string[] }));
 vi.mock("../hooks/useAuth", () => ({
@@ -61,37 +62,39 @@ vi.mock("../hooks/useView", () => ({
 vi.mock("../components/commons/LoadSpinner", () => ({
   default: () => <div>Loading...</div>,
 }));
-vi.mock("../components/missions/filter", () => ({
-  default: ({ handleFilter, data }: FilterResourceMockProps) => (
-    <div>
-      FilterResource
-      <button onClick={() => handleFilter([data.results[0]])}>Apply Filter</button>
-    </div>
-  ),
-}));
 
 vi.mock("../components/commons/Krm3Table", () => ({
-  default: ({ data, onClickRow }: TableMockProps) => (
+  default: ({
+    data,
+    columns,
+    onClickRow,
+    ordering,
+    onOrderingChange,
+    pagination,
+  }: TableMockProps) => (
     <table>
+      <thead>
+        <tr>
+          <th data-testid="columns">{columns.map((c) => c.accessorKey).join(",")}</th>
+          <th data-testid="ordering">{ordering ?? ""}</th>
+          <th>
+            <button onClick={() => onOrderingChange?.("-fromDate")}>Sort</button>
+            <button onClick={() => pagination?.onPageChange(2)}>Page 2</button>
+            <span data-testid="page-count">{pagination?.pageCount}</span>
+          </th>
+        </tr>
+      </thead>
       <tbody>
         {data.map((row, i) => (
           <tr key={row.id} onClick={() => onClickRow(row)} data-testid={`row-${i}`}>
             <td data-testid={`id-${i}`}>{row.id}</td>
-            <td data-testid={`mission-title-${i}`}>{row.mission_title}</td>
+            <td data-testid={`mission-title-${i}`}>{row.missionTitle}</td>
             <td data-testid={`resource-${i}`}>{row.resource}</td>
             <td data-testid={`amount-${i}`}>{row.amountCurrency}</td>
           </tr>
         ))}
       </tbody>
     </table>
-  ),
-}));
-vi.mock("../components/expense/ExpenseFilter", () => ({
-  default: ({ handleFilter, data }: ExpenseFilterMockProps) => (
-    <div>
-      ExpenseFilter
-      <button onClick={() => handleFilter([data[0]])}>Apply Expense Filter</button>
-    </div>
   ),
 }));
 vi.mock("../components/expense/edit/ExpenseEdit", () => ({
@@ -112,13 +115,13 @@ vi.mock("../components/missions/create/CreateMission", () => ({
     ) : null,
 }));
 
-// Create mock references for all hooks
-const mockUseGetMissions = vi.mocked(useGetMissions);
-const mockUseGetExpense = vi.mocked(useGetExpense);
+const mockUseMissionList = vi.mocked(useMissionList);
+const mockUseExpenseList = vi.mocked(useExpenseList);
+const mockUseGetResources = vi.mocked(useGetResources);
 const mockUseMediaQuery = vi.mocked(useMediaQuery);
 
-// Mock data
 const mockMissionData = {
+  count: 60,
   results: [
     {
       id: 1,
@@ -131,114 +134,126 @@ const mockMissionData = {
 };
 
 const mockExpenseData = {
+  count: 1,
   results: [
     {
       id: 100,
       day: "2023-01-02",
       mission: 1,
+      missionTitle: "Test Mission",
+      resourceName: "John Doe",
       amountCurrency: "100 EUR",
     },
   ],
 };
 
+function renderPage(url = "/trasferte") {
+  return render(
+    <MemoryRouter initialEntries={[url]}>
+      <MissionPage />
+    </MemoryRouter>
+  );
+}
+
+function lastMissionParams() {
+  return mockUseMissionList.mock.lastCall?.[0];
+}
+
+function lastExpenseParams() {
+  return mockUseExpenseList.mock.lastCall?.[0];
+}
+
 describe("MissionPage", () => {
   beforeEach(() => {
-    mockNavigate.mockClear();
+    vi.clearAllMocks();
+    localStorage.clear();
 
-    // Set default mock return values
-    mockUseGetMissions.mockReturnValue({
+    mockUseMissionList.mockReturnValue({
       isLoading: false,
       isError: false,
       data: mockMissionData,
-    } as ReturnType<typeof useGetMissions>);
+    } as unknown as ReturnType<typeof useMissionList>);
 
-    mockUseGetExpense.mockReturnValue({
+    mockUseExpenseList.mockReturnValue({
       data: mockExpenseData,
-    } as ReturnType<typeof useGetExpense>);
+    } as unknown as ReturnType<typeof useExpenseList>);
+
+    mockUseGetResources.mockReturnValue({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [{ id: 5, firstName: "Jane", lastName: "Roe" }],
+    } as ReturnType<typeof useGetResources>);
 
     mockUseMediaQuery.mockReturnValue(false);
     mockUserPermissions.value = ["core.add_mission"];
   });
 
   it("shows the add mission button to users with core.add_mission", () => {
-    render(<MissionPage />);
+    renderPage();
     expect(screen.getByTestId("add-mission-button")).toBeInTheDocument();
   });
 
   it("hides the add mission button without core.add_mission, even for staff", () => {
     mockUserPermissions.value = [];
-    render(<MissionPage />);
+    renderPage();
     expect(screen.queryByTestId("add-mission-button")).not.toBeInTheDocument();
   });
 
   it("hides the add mission button on small screens", () => {
     mockUseMediaQuery.mockReturnValue(true);
-    render(<MissionPage />);
+    renderPage();
     expect(screen.queryByTestId("add-mission-button")).not.toBeInTheDocument();
   });
 
   it("renders loading state", () => {
-    mockUseGetMissions.mockReturnValueOnce({
+    mockUseMissionList.mockReturnValue({
       isLoading: true,
-    } as ReturnType<typeof useGetMissions>);
-    render(<MissionPage />);
+    } as ReturnType<typeof useMissionList>);
+    renderPage();
     expect(screen.getByText(/loading/i)).toBeInTheDocument();
   });
 
   it("renders error state", () => {
-    mockUseGetMissions.mockReturnValueOnce({
+    mockUseMissionList.mockReturnValue({
       isLoading: false,
       isError: true,
-    } as ReturnType<typeof useGetMissions>);
-    render(<MissionPage />);
+    } as ReturnType<typeof useMissionList>);
+    renderPage();
     expect(screen.getByText(/errore/i)).toBeInTheDocument();
   });
 
   it("renders tabs and switches tab", () => {
-    render(<MissionPage />);
+    renderPage();
+    expect(screen.getByTestId("mission-filter-button")).toBeInTheDocument();
     fireEvent.click(screen.getByText(/spese/i));
-    expect(screen.getByText(/expensefilter/i)).toBeInTheDocument();
+    expect(screen.getByTestId("expense-filter-button")).toBeInTheDocument();
     fireEvent.click(screen.getByText(/trasferte/i));
-    expect(screen.getByText(/filterresource/i)).toBeInTheDocument();
+    expect(screen.getByTestId("mission-filter-button")).toBeInTheDocument();
   });
 
-  it("correctly maps mission title and resource for expenses", () => {
-    render(<MissionPage />);
+  it("opens the expenses tab from the URL", () => {
+    renderPage("/trasferte?tab=spese");
+    expect(screen.getByTestId("expense-filter-button")).toBeInTheDocument();
+  });
+
+  it("shows mission title and resource of expenses from the API", () => {
+    renderPage();
     fireEvent.click(screen.getByText(/spese/i));
 
     expect(screen.getByTestId("mission-title-0")).toHaveTextContent("Test Mission");
-    expect(screen.getByTestId("resource-0")).toHaveTextContent("John");
-  });
-
-  it("handles expenses with non-existent mission IDs", () => {
-    const expenseWithInvalidMission = {
-      id: 999,
-      day: "2023-01-03",
-      mission: 9999,
-      amountCurrency: "50 EUR",
-    };
-
-    mockUseGetExpense.mockReturnValue({
-      data: { results: [expenseWithInvalidMission] },
-    } as ReturnType<typeof useGetExpense>);
-
-    render(<MissionPage />);
-    fireEvent.click(screen.getByText(/spese/i));
-
-    expect(screen.getByTestId("id-0")).toHaveTextContent("999");
-    expect(screen.getByTestId("mission-title-0")).toHaveTextContent("");
-    expect(screen.getByTestId("resource-0")).toHaveTextContent("");
-    expect(screen.getByTestId("amount-0")).toHaveTextContent("50 EUR");
+    expect(screen.getByTestId("resource-0")).toHaveTextContent("John Doe");
+    expect(screen.getByTestId("amount-0")).toHaveTextContent("100 EUR");
   });
 
   it("navigates to mission detail when clicking on mission row", () => {
-    render(<MissionPage />);
+    renderPage();
     fireEvent.click(screen.getByTestId("row-0"));
     expect(mockNavigate).toHaveBeenCalledWith("/trasferte/1");
   });
 
   it("sets selected expense when clicking on expense row", () => {
-    render(<MissionPage />);
+    renderPage();
     fireEvent.click(screen.getByText(/spese/i));
 
     fireEvent.click(screen.getByTestId("row-0"));
@@ -248,16 +263,127 @@ describe("MissionPage", () => {
     expect(screen.queryByText("ExpenseEditModal")).not.toBeInTheDocument();
   });
 
-  it("calls setDataFiltered when mission filter is applied", () => {
-    render(<MissionPage />);
-    fireEvent.click(screen.getByText("Apply Filter"));
-    expect(screen.getByTestId("id-0")).toBeInTheDocument();
+  it("hides cancelled missions when no status is selected", () => {
+    renderPage();
+    expect(lastMissionParams()).toEqual({ page: 1, pageSize: 25, status: "DRAFT,SUBMITTED" });
   });
 
-  it("calls setExpenseFiltered when expense filter is applied", () => {
-    render(<MissionPage />);
+  it("sends the filters, ordering and page from the URL to the API", () => {
+    renderPage("/trasferte?status=CANCELLED&search=rome&year=2025&ordering=-toDate&page=2");
+    expect(lastMissionParams()).toEqual({
+      page: 2,
+      pageSize: 25,
+      status: "CANCELLED",
+      search: "rome",
+      year: "2025",
+      ordering: "-toDate",
+    });
+    expect(screen.getByTestId("ordering")).toHaveTextContent("-toDate");
+    expect(screen.getByTestId("mission-filter-badge")).toHaveTextContent("3");
+  });
+
+  it("computes the page count from the API count", () => {
+    renderPage();
+    expect(screen.getByTestId("page-count")).toHaveTextContent("3");
+  });
+
+  it("applies the filter form and goes back to the first page", () => {
+    renderPage("/trasferte?page=3");
+    fireEvent.click(screen.getByTestId("mission-filter-button"));
+    fireEvent.change(screen.getByLabelText("Search"), { target: { value: "audit" } });
+    fireEvent.click(screen.getByLabelText("Cancelled"));
+    fireEvent.click(screen.getByTestId("mission-filter-submit"));
+
+    expect(screen.queryByTestId("mission-filter-panel")).not.toBeInTheDocument();
+    expect(lastMissionParams()).toEqual({
+      page: 1,
+      pageSize: 25,
+      search: "audit",
+      status: "CANCELLED",
+    });
+  });
+
+  it("changes ordering and page through the table", () => {
+    renderPage();
+    fireEvent.click(screen.getByText("Page 2"));
+    expect(lastMissionParams()).toMatchObject({ page: 2 });
+    fireEvent.click(screen.getByText("Sort"));
+    expect(lastMissionParams()).toMatchObject({ page: 1, ordering: "-fromDate" });
+  });
+
+  it("offers the resource filter only to users who can see other people's missions", () => {
+    renderPage();
+    fireEvent.click(screen.getByTestId("mission-filter-button"));
+    expect(screen.queryByText("Resource")).not.toBeInTheDocument();
+    expect(mockUseGetResources).toHaveBeenLastCalledWith(false);
+  });
+
+  it("filters missions by resource for mission viewers", async () => {
+    mockUserPermissions.value = ["core.view_any_mission"];
+    renderPage();
+    fireEvent.click(screen.getByTestId("mission-filter-button"));
+    fireEvent.change(screen.getByLabelText("Resource"), { target: { value: "jan" } });
+    fireEvent.mouseDown(await screen.findByRole("option", { name: "Jane Roe" }));
+    fireEvent.click(screen.getByTestId("mission-filter-submit"));
+    expect(lastMissionParams()).toMatchObject({ resource: "5" });
+  });
+
+  it("suggests resources from the third character and keeps the filter open while picking", async () => {
+    mockUserPermissions.value = ["core.view_any_mission"];
+    renderPage();
+    fireEvent.click(screen.getByTestId("mission-filter-button"));
+    fireEvent.change(screen.getByLabelText("Resource"), { target: { value: "ja" } });
+    // the debounce timer updates the autocomplete state: let it fire inside act()
+    await act(() => new Promise((resolve) => setTimeout(resolve, 450)));
+    expect(screen.queryByRole("option")).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Resource"), { target: { value: "jan" } });
+    // the suggestions follow the typing after the 0.4 s debounce
+    expect(screen.queryByRole("option")).not.toBeInTheDocument();
+    fireEvent.mouseDown(await screen.findByRole("option", { name: "Jane Roe" }));
+    expect(screen.getByTestId("mission-filter-panel")).toBeInTheDocument();
+    expect(screen.getByLabelText("Remove Jane Roe")).toBeInTheDocument();
+    expect(screen.queryByRole("option")).not.toBeInTheDocument();
+  });
+
+  it("hides the Id column by default and shows it from the column chooser", () => {
+    renderPage();
+    expect(screen.getByTestId("columns")).toHaveTextContent(
+      "number,status,fromDate,toDate,title,resource"
+    );
+
+    fireEvent.click(screen.getByTestId("mission-columns-button"));
+    fireEvent.click(screen.getByLabelText("Id"));
+    fireEvent.click(screen.getByLabelText("Status"));
+    expect(screen.getByTestId("columns")).toHaveTextContent(
+      "id,number,fromDate,toDate,title,resource"
+    );
+  });
+
+  it("chooses the expense columns separately", () => {
+    renderPage("/trasferte?tab=spese");
+    expect(screen.getByTestId("columns")).toHaveTextContent(
+      "day,mission,missionTitle,resource,amountCurrency"
+    );
+    fireEvent.click(screen.getByTestId("expense-columns-button"));
+    fireEvent.click(screen.getByLabelText("Id"));
+    expect(screen.getByTestId("columns")).toHaveTextContent(
+      "id,day,mission,missionTitle,resource,amountCurrency"
+    );
+  });
+
+  it("filters expenses through the API, keeping the tab", () => {
+    renderPage("/trasferte?tab=spese");
+    fireEvent.click(screen.getByTestId("expense-filter-button"));
+    fireEvent.change(screen.getByLabelText("From"), { target: { value: "2023-01-01" } });
+    fireEvent.click(screen.getByTestId("expense-filter-submit"));
+
+    expect(screen.getByTestId("expense-filter-button")).toBeInTheDocument();
+    expect(lastExpenseParams()).toEqual({ page: 1, pageSize: 25, dateFrom: "2023-01-01" });
+  });
+
+  it("switching tab drops the other tab's filters", () => {
+    renderPage("/trasferte?search=rome");
     fireEvent.click(screen.getByText(/spese/i));
-    fireEvent.click(screen.getByText("Apply Expense Filter"));
-    expect(screen.getByTestId("id-0")).toBeInTheDocument();
+    expect(lastExpenseParams()).toEqual({ page: 1, pageSize: 25 });
   });
 });

@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from "@testing-library/react";
+import {act, fireEvent, render, screen} from "@testing-library/react";
 import {Login} from "./Login.tsx";
 import {vi, Mock} from "vitest"
 import * as useAuth from "../../hooks/useAuth.tsx";
@@ -42,7 +42,7 @@ describe('Login', () => {
         expect(screen.getByText("Password")).toBeInTheDocument()
         expect(screen.getByText("Forgot your password?")).toBeInTheDocument()
     })
-    it('login click sends api call', () => {
+    it('login click sends api call', async () => {
         const loginMock =
             vi.spyOn(oauth, "loginUser").mockResolvedValue({
             refresh: "fake-refresh",
@@ -51,7 +51,10 @@ describe('Login', () => {
         render(<Login/>)
         fireEvent.change(screen.getByTestId("username-input"), { target: { value: "some_username" }})
         fireEvent.change(screen.getByTestId("password-input"), { target: { value: "some_password" }})
-        fireEvent.click(screen.getByTestId("login-submit-button"))
+        // the login request resolves asynchronously and then updates the loading state
+        await act(async () => {
+            fireEvent.click(screen.getByTestId("login-submit-button"))
+        })
         expect(loginMock).toBeCalled()
     })
     it('try to log in without username', () => {
@@ -73,14 +76,16 @@ describe('Login', () => {
         fireEvent.click(screen.getByTestId("login-submit-button"))
         expect(screen.getByText("Please enter a valid email address"))
     })
-    it('try to log in with google', () => {
+    it('try to log in with google', async () => {
         const googleLoginMock =
             vi.spyOn(oauth, 'loginGoogle').mockResolvedValue({} as any)
         render(<Login/>)
-        fireEvent.click(screen.getByTestId("google-login-button"))
+        await act(async () => {
+            fireEvent.click(screen.getByTestId("google-login-button"))
+        })
         expect(googleLoginMock).toBeCalled()
     })
-    it('google authenticate' , () => {
+    it('google authenticate' , async () => {
         (useLocation as Mock).mockReturnValue({
             pathname: "",
             search: "?state=abc&code=123",
@@ -90,7 +95,10 @@ describe('Login', () => {
         });
         const googleAuthMock =
             vi.spyOn(oauth, 'googleAuthenticate').mockResolvedValue({} as any)
-        render(<Login/>)
+        // the authentication request resolves asynchronously and then updates the loading state
+        await act(async () => {
+            render(<Login/>)
+        })
         expect(googleAuthMock).toBeCalled()
     })
     it('google login error display', async () => {

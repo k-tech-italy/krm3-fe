@@ -79,6 +79,8 @@ export interface ExpenseInterface {
   category: Category;
   paymentType: TypeOfPayment;
   reimbursement: number;
+  missionTitle?: string | null;
+  resourceName?: string;
 }
 export interface LimitBudget {
   vitto: number;
@@ -175,7 +177,7 @@ export interface User {
 }
 
 export const enum FlagsType {
-  TRASFERTE_ENABLED = "trasferteEnabled",
+  MISSIONS_ENABLED = "missionsEnabled",
   TIMESHEET_ENABLED = "timesheetEnabled",
 }
 

@@ -57,7 +57,7 @@ describe("mission API", () => {
 
       await missionApi.createMission(mockMissionParams);
 
-      const callArgs = vi.mocked(restapi.post).mock.calls[0][1] as any;
+      const callArgs = vi.mocked(restapi.post).mock.calls[0][1] as Record<string, unknown>;
       expect(callArgs).not.toHaveProperty("year");
     });
 
@@ -67,7 +67,7 @@ describe("mission API", () => {
 
       await missionApi.createMission(mockMissionParams);
 
-      const callArgs = vi.mocked(restapi.post).mock.calls[0][1] as any;
+      const callArgs = vi.mocked(restapi.post).mock.calls[0][1] as Record<string, unknown>;
       expect(callArgs.project).toBe(10);
       expect(callArgs.city).toBe(1);
       expect(callArgs.resource).toBe(5);
@@ -82,9 +82,9 @@ describe("mission API", () => {
       const mockResponse = { data: missionWithoutCurrency };
       vi.mocked(restapi.post).mockResolvedValue(mockResponse);
 
-      await missionApi.createMission(missionWithoutCurrency as any);
+      await missionApi.createMission(missionWithoutCurrency as unknown as MissionInterface);
 
-      const callArgs = vi.mocked(restapi.post).mock.calls[0][1] as any;
+      const callArgs = vi.mocked(restapi.post).mock.calls[0][1] as Record<string, unknown>;
       expect(callArgs.defaultCurrency).toBeUndefined();
     });
 
@@ -99,7 +99,7 @@ describe("mission API", () => {
 
       await missionApi.createMission(missionWithExtraProps);
 
-      const callArgs = vi.mocked(restapi.post).mock.calls[0][1] as any;
+      const callArgs = vi.mocked(restapi.post).mock.calls[0][1] as Record<string, unknown>;
       expect(callArgs).toHaveProperty("description", "Test mission");
       expect(callArgs).toHaveProperty("status", "SUBMITTED");
     });
@@ -117,80 +117,16 @@ describe("mission API", () => {
     });
   });
 
-  describe("getMissions", () => {
-    const mockMissions: Page<MissionInterface> = {
-      count: 2,
-      next: null,
-      previous: null,
-      results: [
-        {
-          id: 1,
-          project: { id: 10, name: "Project A" } as Project,
-          city: { id: 1, name: "Rome" } as City,
-        } as MissionInterface,
-        {
-          id: 2,
-          project: { id: 20, name: "Project B" } as Project,
-          city: { id: 2, name: "Milan" } as City,
-        } as MissionInterface,
-      ],
-    };
+  describe("listMissions", () => {
+    it("fetches a page of missions with the list parameters", async () => {
+      const page = { count: 0, next: null, previous: null, results: [] };
+      vi.mocked(restapi.get).mockResolvedValue({ data: page });
 
-    it("should fetch missions without parameters when resourceId is undefined", async () => {
-      vi.mocked(restapi.get).mockResolvedValue({ data: mockMissions });
+      const params = { page: 2, pageSize: 25, status: "DRAFT,SUBMITTED", ordering: "-fromDate" };
+      const result = await missionApi.listMissions(params);
 
-      const result = await missionApi.getMissions(false);
-
-      expect(restapi.get).toHaveBeenCalledWith("missions/mission/", {
-        params: {},
-      });
-      expect(result).toEqual(mockMissions);
-    });
-
-    it("should fetch missions with resourceId and isStaff parameters", async () => {
-      vi.mocked(restapi.get).mockResolvedValue({ data: mockMissions });
-
-      const result = await missionApi.getMissions(true, 5);
-
-      expect(restapi.get).toHaveBeenCalledWith("missions/mission/", {
-        params: { resource_id: 5, is_staff: true },
-      });
-      expect(result).toEqual(mockMissions);
-    });
-
-    it("should handle isStaff as false with resourceId", async () => {
-      vi.mocked(restapi.get).mockResolvedValue({ data: mockMissions });
-
-      await missionApi.getMissions(false, 10);
-
-      expect(restapi.get).toHaveBeenCalledWith("missions/mission/", {
-        params: { resource_id: 10, is_staff: false },
-      });
-    });
-
-    it("should handle empty missions list", async () => {
-      const mockEmptyPage: Page<MissionInterface> = {
-        count: 0,
-        next: null,
-        previous: null,
-        results: [],
-      };
-      vi.mocked(restapi.get).mockResolvedValue({ data: mockEmptyPage });
-
-      const result = await missionApi.getMissions(true, 1);
-
-      expect(result.results).toHaveLength(0);
-      expect(result.count).toBe(0);
-    });
-
-    it("should handle resourceId of 0", async () => {
-      vi.mocked(restapi.get).mockResolvedValue({ data: mockMissions });
-
-      await missionApi.getMissions(true, 0);
-
-      expect(restapi.get).toHaveBeenCalledWith("missions/mission/", {
-        params: { resource_id: 0, is_staff: true },
-      });
+      expect(restapi.get).toHaveBeenCalledWith("missions/mission/", { params });
+      expect(result).toEqual(page);
     });
   });
 

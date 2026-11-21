@@ -1,23 +1,29 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { MissionPage } from "./pages/MissionPage";
-import { Mission } from "./components/missions/Mission";
 import { Navbar } from "./components/commons/Navbar";
 import { Login } from "./components/commons/Login";
 import { LogoutPage } from "./pages/Logout";
 import { useGetCurrentUser } from "./hooks/useAuth";
-import Timesheet from "./pages/Timesheet";
 import LoadSpinner from "./components/commons/LoadSpinner";
 import { ToastContainer } from "react-toastify";
 import "./index.css";
 import { Welcome } from "./pages/Welcome";
-import React from "react";
-import Contacts from "./pages/Contacts.tsx";
-import ContactDetailsPage from "./pages/ContactDetailsPage.tsx";
+import React, { Suspense } from "react";
 import { AuthProvider } from "./components/commons/AuthContext.tsx";
 import { LanguageProvider } from "./components/commons/LanguageContext.tsx";
 import { CookiesProvider } from "react-cookie";
 import EnvironmentBanner from "./components/commons/EnvironmentBanner";
+
+// Each module page is a separate chunk, downloaded the first time its route is opened
+const MissionPage = React.lazy(() =>
+  import("./pages/MissionPage").then((m) => ({ default: m.MissionPage }))
+);
+const Mission = React.lazy(() =>
+  import("./components/missions/Mission").then((m) => ({ default: m.Mission }))
+);
+const Timesheet = React.lazy(() => import("./pages/Timesheet"));
+const Contacts = React.lazy(() => import("./pages/Contacts.tsx"));
+const ContactDetailsPage = React.lazy(() => import("./pages/ContactDetailsPage.tsx"));
 
 const queryClient = new QueryClient();
 
@@ -107,11 +113,13 @@ function AuthenticatedRoutes() {
           </AuthProvider>
         </CookiesProvider>
         <div className="pb-16">
-          <Routes>
-            {routeGuards.map((routeGuard, idx) => (
-              <React.Fragment key={idx}>{routeGuard.guard && routeGuard.route}</React.Fragment>
-            ))}
-          </Routes>
+          <Suspense fallback={<LoadSpinner />}>
+            <Routes>
+              {routeGuards.map((routeGuard, idx) => (
+                <React.Fragment key={idx}>{routeGuard.guard && routeGuard.route}</React.Fragment>
+              ))}
+            </Routes>
+          </Suspense>
         </div>
       </div>
     </div>

@@ -3,6 +3,10 @@ import {ExpenseCard} from "./ExpenseCard.tsx";
 import {render, screen} from "@testing-library/react";
 import {ExpenseTable} from "./ExpenseTable.tsx";
 
+// The converted amount is set asynchronously after the first render: tests wait for it so the update happens in act()
+vi.mock("../../restapi/expense", () => ({
+    convertCurrencyTo: vi.fn().mockResolvedValue("42.00"),
+}));
 
 describe('ExpenseTable', () => {
     const props = {
@@ -42,8 +46,9 @@ describe('ExpenseTable', () => {
         },
         ShowIdCard: vi.fn()
     }
-    it('renders correctly', () => {
+    it('renders correctly', async () => {
         render(<ExpenseTable {...props}/>);
+        expect(await screen.findByText("42.00")).toBeInTheDocument();
         expect(screen.getByText("some category title")).toBeInTheDocument();
         expect(screen.getByText("2025-01-05")).toBeInTheDocument();
         expect(screen.getByText("123")).toBeInTheDocument();
@@ -52,8 +57,9 @@ describe('ExpenseTable', () => {
         expect(screen.getByText("PLN 101")).toBeInTheDocument();
         expect(screen.getByText("PAID")).toBeInTheDocument();
     })
-    it('renders correct class when amountReimbursement < 1', () => {
+    it('renders correct class when amountReimbursement < 1', async () => {
         render(<ExpenseTable {...props} expense={{...props.expense, amountReimbursement: "0" }}/>);
+        await screen.findByText("42.00");
         expect(screen.getByTestId("reimbursement-amount")).toHaveClass("text-danger")
     })
 })

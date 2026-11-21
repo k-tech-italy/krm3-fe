@@ -36,7 +36,7 @@ export default function UserMenu() {
       items: [
         {
           label: "Profile",
-          href: user?.id ? `be/resource/${user.id}/` : undefined,
+          href: user?.id ? `be/profile/${user.id}/` : undefined,
         },
         {
           label: "Documents",

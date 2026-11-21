@@ -27,12 +27,7 @@ describe("expense API", () => {
 
   describe("convertCurrencyTo", () => {
     it("should return hardcoded value of '10'", async () => {
-      const result = await expenseApi.convertCurrencyTo(
-        "2024-01-01",
-        "USD",
-        "100",
-        "EUR"
-      );
+      const result = await expenseApi.convertCurrencyTo("2024-01-01", "USD", "100", "EUR");
 
       expect(result).toBe("10");
     });
@@ -44,52 +39,16 @@ describe("expense API", () => {
     });
   });
 
-  describe("getExpenses", () => {
-    it("should fetch expenses list", async () => {
-      const mockExpenses: Page<ExpenseInterface> = {
-        count: 2,
-        next: null,
-        previous: null,
-        results: [
-          {
-            id: 1,
-            amount: 100,
-            category: { id: 1, title: "Food", active: true, str: "food" } as Category,
-            documentType: { id: 1, title: "Receipt", active: true, default: false } as TypeOfDocument,
-            paymentType: { id: 1, title: "Cash", active: true, str: "cash" } as TypeOfPayment,
-          } as unknown as ExpenseInterface,
-          {
-            id: 2,
-            amount: 200,
-            category: { id: 2, title: "Travel", active: true, str: "travel" } as Category,
-            documentType: { id: 2, title: "Invoice", active: true, default: false } as TypeOfDocument,
-            paymentType: { id: 2, title: "Card", active: true, str: "card" } as TypeOfPayment,
-          } as unknown as ExpenseInterface,
-        ],
-      };
+  describe("listExpenses", () => {
+    it("fetches a page of expenses with the list parameters", async () => {
+      const page = { count: 0, next: null, previous: null, results: [] };
+      vi.mocked(restapi.get).mockResolvedValue({ data: page });
 
-      vi.mocked(restapi.get).mockResolvedValue({ data: mockExpenses });
+      const params = { page: 1, pageSize: 25, dateFrom: "2024-01-01" };
+      const result = await expenseApi.listExpenses(params);
 
-      const result = await expenseApi.getExpenses();
-
-      expect(restapi.get).toHaveBeenCalledWith("missions/expense/");
-      expect(result).toEqual(mockExpenses);
-    });
-
-    it("should handle empty expenses list", async () => {
-      const mockEmptyPage: Page<ExpenseInterface> = {
-        count: 0,
-        next: null,
-        previous: null,
-        results: [],
-      };
-
-      vi.mocked(restapi.get).mockResolvedValue({ data: mockEmptyPage });
-
-      const result = await expenseApi.getExpenses();
-
-      expect(result.results).toHaveLength(0);
-      expect(result.count).toBe(0);
+      expect(restapi.get).toHaveBeenCalledWith("missions/expense/", { params });
+      expect(result).toEqual(page);
     });
   });
 
@@ -169,9 +128,30 @@ describe("expense API", () => {
         next: null,
         previous: null,
         results: [
-          { iso3: "USD", title: "US Dollar", symbol: "$", fractionalUnit: "cent", base: 1, active: true } as Currency,
-          { iso3: "EUR", title: "Euro", symbol: "€", fractionalUnit: "cent", base: 1, active: true } as Currency,
-          { iso3: "GBP", title: "Pound Sterling", symbol: "£", fractionalUnit: "penny", base: 1, active: true } as Currency,
+          {
+            iso3: "USD",
+            title: "US Dollar",
+            symbol: "$",
+            fractionalUnit: "cent",
+            base: 1,
+            active: true,
+          } as Currency,
+          {
+            iso3: "EUR",
+            title: "Euro",
+            symbol: "€",
+            fractionalUnit: "cent",
+            base: 1,
+            active: true,
+          } as Currency,
+          {
+            iso3: "GBP",
+            title: "Pound Sterling",
+            symbol: "£",
+            fractionalUnit: "penny",
+            base: 1,
+            active: true,
+          } as Currency,
         ],
       };
 
@@ -272,7 +252,7 @@ describe("expense API", () => {
       const mockResponse = { data: mockExpenseParams };
       vi.mocked(restapi.post).mockResolvedValue(mockResponse);
 
-      await expenseApi.saveExpense(undefined as any, mockExpenseParams);
+      await expenseApi.saveExpense(undefined as unknown as number, mockExpenseParams);
 
       expect(restapi.post).toHaveBeenCalledWith("missions/expense/", {
         ...mockExpenseParams,
@@ -311,10 +291,7 @@ describe("expense API", () => {
         paymentType: 2,
       };
 
-      expect(restapi.patch).toHaveBeenCalledWith(
-        "missions/expense/10/",
-        expectedParams
-      );
+      expect(restapi.patch).toHaveBeenCalledWith("missions/expense/10/", expectedParams);
     });
 
     it("should handle expense with different IDs", async () => {
@@ -329,7 +306,7 @@ describe("expense API", () => {
       const mockResponse = { data: differentExpense };
       vi.mocked(restapi.post).mockResolvedValue(mockResponse);
 
-      await expenseApi.saveExpense(undefined as any, differentExpense);
+      await expenseApi.saveExpense(undefined as unknown as number, differentExpense);
 
       expect(restapi.post).toHaveBeenCalledWith("missions/expense/", {
         ...differentExpense,
@@ -380,10 +357,7 @@ describe("expense API", () => {
 
       const result = await expenseApi.uploadImage(1, mockExpense);
 
-      expect(restapi.patch).toHaveBeenCalledWith(
-        "missions/expense/1/",
-        mockExpense
-      );
+      expect(restapi.patch).toHaveBeenCalledWith("missions/expense/1/", mockExpense);
       expect(result).toEqual(mockResponse);
     });
 
@@ -402,10 +376,7 @@ describe("expense API", () => {
 
       await expenseApi.uploadImage(42, mockExpense);
 
-      expect(restapi.patch).toHaveBeenCalledWith(
-        "missions/expense/42/",
-        mockExpense
-      );
+      expect(restapi.patch).toHaveBeenCalledWith("missions/expense/42/", mockExpense);
     });
 
     it("should not refactor params like saveExpense does", async () => {
@@ -425,7 +396,12 @@ describe("expense API", () => {
       // Verify that the entire object is passed, not refactored
       const callArgs = vi.mocked(restapi.patch).mock.calls[0][1] as ExpenseInterface;
       expect(callArgs.category).toEqual({ id: 5, title: "Food", active: true, str: "food" });
-      expect(callArgs.documentType).toEqual({ id: 3, title: "Receipt", active: true, default: false });
+      expect(callArgs.documentType).toEqual({
+        id: 3,
+        title: "Receipt",
+        active: true,
+        default: false,
+      });
       expect(callArgs.paymentType).toEqual({ id: 2, title: "Cash", active: true, str: "cash" });
     });
   });

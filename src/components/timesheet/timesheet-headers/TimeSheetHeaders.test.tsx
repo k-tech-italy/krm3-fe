@@ -1,11 +1,7 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { DayEntry, TaskEntry, Timesheet } from "../../../restapi/types";
 import TimeSheetHeaders from "./TimeSheetHeaders";
-
-vi.mock("react-tooltip", () => ({
-  Tooltip: ({ children }: { children?: React.ReactNode }) => children,
-}));
 
 const day = new Date("2025-01-15T12:00:00");
 const dayEntry = {
@@ -54,6 +50,19 @@ const baseProps = {
 };
 
 describe("TimeSheetHeaders", () => {
+  beforeAll(() => {
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      }
+    );
+  });
+
+  afterAll(() => vi.unstubAllGlobals());
+
   it("renders a header from day and task entries", () => {
     render(<TimeSheetHeaders {...baseProps} />);
     expect(screen.getByTestId("header-2025-01-15")).toBeInTheDocument();
@@ -93,6 +102,45 @@ describe("TimeSheetHeaders", () => {
     render(<TimeSheetHeaders {...baseProps} onHeaderClick={onHeaderClick} />);
     fireEvent.click(screen.getByTestId("header-2025-01-15"));
     expect(onHeaderClick).toHaveBeenCalledWith(day);
+  });
+
+  it.each([true, false])(
+    "opens hours details on tap without opening the editor (isMonthView=%s)",
+    async (isMonthView) => {
+      const onHeaderClick = vi.fn();
+      render(
+        <TimeSheetHeaders
+          {...baseProps}
+          isMonthView={isMonthView}
+          onHeaderClick={onHeaderClick}
+          timesheet={{ ...timesheet, dayEntries: [{ ...dayEntry, leaveHours: 2 }] }}
+        />
+      );
+
+      const icon = screen.getByTestId("header-2025-01-15").querySelector(".lucide-info")!;
+      fireEvent.pointerDown(icon);
+      fireEvent.click(icon);
+
+      expect(onHeaderClick).not.toHaveBeenCalled();
+      const tooltip = await screen.findByRole("tooltip");
+      expect(within(tooltip).getByText("Leave:")).toBeInTheDocument();
+
+      await waitFor(() => expect(tooltip).toHaveClass("react-tooltip__show"));
+      fireEvent.click(document.body);
+      await waitFor(() => expect(screen.queryByRole("tooltip")).not.toBeInTheDocument());
+    }
+  );
+
+  it("still opens hours details on hover", async () => {
+    render(
+      <TimeSheetHeaders
+        {...baseProps}
+        timesheet={{ ...timesheet, dayEntries: [{ ...dayEntry, leaveHours: 2 }] }}
+      />
+    );
+
+    fireEvent.mouseOver(screen.getByRole("button", { name: "Show hours breakdown" }));
+    expect(within(await screen.findByRole("tooltip")).getByText("Leave:")).toBeInTheDocument();
   });
 
   it("disables days outside the selected week", () => {

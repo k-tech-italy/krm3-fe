@@ -113,7 +113,13 @@ function TimeSheetHeaders({
                 </div>
               </Draggable>
             </Droppable>
-            <Tooltip id={`tooltip-hours-${formattedDay}`} className="z-50">
+            <Tooltip
+              id={`tooltip-hours-${formattedDay}`}
+              className="z-50"
+              openEvents={{ mouseover: true, focus: true, click: true }}
+              closeEvents={{ mouseout: true, blur: true }}
+              globalCloseEvents={{ escape: true, clickOutsideAnchor: true, scroll: true }}
+            >
               <div>
                 {dayEntry && <TotalHourForDay dayEntry={dayEntry} />}
                 {timesheet.taskEntries

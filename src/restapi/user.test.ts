@@ -1,12 +1,14 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import * as userApi from "./user";
 import { restapi } from "./restapi";
-import { User, Resource, ProfileInterface, FlagsType } from "./types";
+import type { InternalAxiosRequestConfig } from "axios";
+import { User, FlagsType } from "./types";
 
 // Mock the restapi module
 vi.mock("./restapi", () => ({
   restapi: {
     get: vi.fn(),
+    patch: vi.fn(),
   },
 }));
 
@@ -31,12 +33,10 @@ describe("user API", () => {
         permissions: ["view_dashboard", "edit_profile"],
         flags: {
           [FlagsType.TIMESHEET_ENABLED]: true,
-          [FlagsType.TRASFERTE_ENABLED]: false,
+          [FlagsType.MISSIONS_ENABLED]: false,
         },
         config: {
-          modules: [
-            { flag: "timesheet", url: "/timesheet", label: "Timesheet" },
-          ],
+          modules: [{ flag: "timesheet", url: "/timesheet", label: "Timesheet" }],
           defaultModule: "timesheet",
         },
         resource: {
@@ -79,7 +79,7 @@ describe("user API", () => {
         permissions: ["view_dashboard"],
         flags: {
           [FlagsType.TIMESHEET_ENABLED]: true,
-          [FlagsType.TRASFERTE_ENABLED]: true,
+          [FlagsType.MISSIONS_ENABLED]: true,
         },
         config: {
           modules: [
@@ -128,15 +128,10 @@ describe("user API", () => {
         isStaff: true,
         isActive: true,
         lastLogin: "2025-01-15T12:00:00Z",
-        permissions: [
-          "view_dashboard",
-          "edit_profile",
-          "manage_users",
-          "admin_access",
-        ],
+        permissions: ["view_dashboard", "edit_profile", "manage_users", "admin_access"],
         flags: {
           [FlagsType.TIMESHEET_ENABLED]: true,
-          [FlagsType.TRASFERTE_ENABLED]: true,
+          [FlagsType.MISSIONS_ENABLED]: true,
         },
         config: {
           modules: [
@@ -187,7 +182,7 @@ describe("user API", () => {
         permissions: null,
         flags: {
           [FlagsType.TIMESHEET_ENABLED]: false,
-          [FlagsType.TRASFERTE_ENABLED]: false,
+          [FlagsType.MISSIONS_ENABLED]: false,
         },
         config: {
           modules: [],
@@ -315,9 +310,7 @@ describe("user API", () => {
           [FlagsType.TIMESHEET_ENABLED]: true,
         },
         config: {
-          modules: [
-            { flag: "timesheet", url: "/timesheet", label: "Timesheet" },
-          ],
+          modules: [{ flag: "timesheet", url: "/timesheet", label: "Timesheet" }],
         },
         resource: {
           id: 60,
@@ -342,9 +335,7 @@ describe("user API", () => {
 
       const result = await userApi.getCurrentUser();
 
-      expect(result.profile.socialProfile).toBe(
-        "https://linkedin.com/in/socialuser"
-      );
+      expect(result.profile.socialProfile).toBe("https://linkedin.com/in/socialuser");
     });
 
     it("should call correct endpoint", async () => {
@@ -430,10 +421,22 @@ describe("user API", () => {
         status: 200,
         statusText: "OK",
         headers: {},
-        config: {} as any,
+        config: {} as InternalAxiosRequestConfig,
       });
 
       await expect(userApi.logout()).resolves.not.toThrow();
+    });
+  });
+
+  describe("patchUserPreferredLanguage", () => {
+    it("should update the preferred language of the logged-in user", async () => {
+      vi.mocked(restapi.patch).mockResolvedValue({ data: undefined });
+
+      await userApi.patchUserPreferredLanguage("it");
+
+      expect(restapi.patch).toHaveBeenCalledWith("/core/user/me/preferred-language/", {
+        language_code: "it",
+      });
     });
   });
 });

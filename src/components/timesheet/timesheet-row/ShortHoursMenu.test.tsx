@@ -69,6 +69,30 @@ describe("ShortHoursMenu", () => {
     );
   });
 
+  it.each(["0.25", "1.25", "2.75"])(
+    "accepts custom hours in 0.25 increments (%s)",
+    async (value) => {
+      renderMenu();
+      fireEvent.change(screen.getByPlaceholderText("e.g. 2.5"), { target: { value } });
+      fireEvent.click(screen.getByText("Add"));
+
+      await waitFor(() =>
+        expect(createTask).toHaveBeenCalledWith(
+          expect.objectContaining({ dayShiftHours: Number(value) })
+        )
+      );
+    }
+  );
+
+  it.each(["0", "0.1", "1.3"])("rejects custom hours not in 0.25 increments (%s)", (value) => {
+    renderMenu();
+    fireEvent.change(screen.getByPlaceholderText("e.g. 2.5"), { target: { value } });
+    fireEvent.click(screen.getByText("Add"));
+
+    expect(screen.getByText(/in 0.25 increments/)).toBeInTheDocument();
+    expect(createTask).not.toHaveBeenCalled();
+  });
+
   it("rejects a quick option above the hours available after leave", async () => {
     renderMenu({
       dayEntries: [
