@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { useGetCurrentUser, useLogout } from "./useAuth";
@@ -208,7 +208,10 @@ describe("useGetCurrentUser", () => {
       const updatedUser = { ...mockUser, firstName: "Jane" };
       vi.mocked(userApi.getCurrentUser).mockResolvedValue(updatedUser);
 
-      await result.current.refreshUser();
+      // the refetch updates the query state: run it inside act()
+      await act(async () => {
+        await result.current.refreshUser();
+      });
 
       await waitFor(() => {
         expect(result.current.data?.firstName).toBe("Jane");

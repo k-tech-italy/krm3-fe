@@ -3,6 +3,12 @@ import * as useAuth from "../../hooks/useAuth.tsx";
 import {fireEvent, render, screen, waitFor} from "@testing-library/react";
 import UserMenu from "./UserMenu.tsx";
 import {AuthProvider} from "./AuthContext.tsx";
+// UserMenu fetches the release info on mount: wait for it so the state update happens inside act()
+async function renderAndWaitForRelease(ui = <UserMenu />) {
+    render(ui);
+    await screen.findByText(/v0\.1\.23/);
+}
+
 describe('UserMenu', () => {
     const logoutFunction = vi.fn()
     beforeEach(() => {
@@ -42,7 +48,7 @@ describe('UserMenu', () => {
             expect(dropDown).toHaveTextContent('FE: v1.2.22');
         });
     })
-    it('does not render profile picture if url format is not correct', () => {
+    it('does not render profile picture if url format is not correct', async () => {
         vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
             data: {
                 email: "test@test.com",
@@ -50,7 +56,7 @@ describe('UserMenu', () => {
                 profile: { picture: "incorrect-url" },
             },
         } as any);
-        render(<UserMenu />);
+        await renderAndWaitForRelease();
         expect(screen.queryByTestId("user-profile-picture")).not.toBeInTheDocument();
         expect(screen.queryByTestId("user-default-picture")).toBeInTheDocument();
     })
@@ -65,25 +71,25 @@ describe('UserMenu', () => {
         expect(screen.getByText("Version info unavailable")).toBeInTheDocument();
     })
     it('logout button calls logout function', async () => {
-        render(<UserMenu />);
+        await renderAndWaitForRelease();
         fireEvent.click(screen.getByTestId('logout-button'))
         expect(logoutFunction).toBeCalled()
     })
-    it('check toggle menu', () => {
-        render(<UserMenu />);
+    it('check toggle menu', async () => {
+        await renderAndWaitForRelease();
         expect(screen.getByTestId('user-menu')).toHaveClass("opacity-0")
         fireEvent.click(screen.getByTestId('toggle-menu-button'))
         expect(screen.getByTestId('user-menu')).toHaveClass("opacity-100")
     })
-    it('user menu should disappear when mouse leaves it', () => {
-        render(<UserMenu />);
+    it('user menu should disappear when mouse leaves it', async () => {
+        await renderAndWaitForRelease();
         fireEvent.click(screen.getByTestId('toggle-menu-button'))
         expect(screen.getByTestId('user-menu')).toHaveClass("opacity-100")
         fireEvent.mouseLeave(screen.getByTestId('user-menu'))
         expect(screen.getByTestId('user-menu')).toHaveClass("opacity-0")
     })
-    it('renders Profile, Documents and Sign Out links', () => {
-        render(<AuthProvider><UserMenu /></AuthProvider>);
+    it('renders Profile, Documents and Sign Out links', async () => {
+        await renderAndWaitForRelease(<AuthProvider><UserMenu /></AuthProvider>);
         fireEvent.click(screen.getByTestId('toggle-menu-button'))
 
         const profileLink = screen.getByRole('link', { name: /profile/i })
