@@ -58,3 +58,48 @@ describe("toApiParams", () => {
     ).toEqual({ page: 2, pageSize: 25, status: "A,B", search: "x", ordering: "-day" });
   });
 });
+
+describe("toApiParams with a Last period", () => {
+  const periodFields: FilterField[] = [
+    { name: "dateFrom", label: "From", type: "date" },
+    { name: "dateTo", label: "To", type: "date" },
+    {
+      name: "last",
+      label: "Last",
+      type: "relativePeriod",
+      fromField: "dateFrom",
+      toField: "dateTo",
+    },
+  ];
+  const today = new Date(2025, 4, 31);
+  const list = (filters: Record<string, string>) => ({ filters, ordering: null, page: 1 });
+
+  it("sends the period as from/to dates ending today", () => {
+    expect(toApiParams(list({ last: "3m" }), 10, periodFields, today)).toEqual({
+      page: 1,
+      pageSize: 10,
+      dateFrom: "2025-02-28",
+      dateTo: "2025-05-31",
+    });
+  });
+
+  it("replaces the dates of the URL", () => {
+    const params = toApiParams(
+      list({ dateFrom: "2020-01-01", dateTo: "2020-12-31", last: "1a" }),
+      10,
+      periodFields,
+      today
+    );
+    expect(params).toMatchObject({ dateFrom: "2024-05-31", dateTo: "2025-05-31" });
+  });
+
+  it("ignores an invalid period and keeps the dates", () => {
+    const params = toApiParams(
+      list({ dateFrom: "2020-01-01", last: "soon" }),
+      10,
+      periodFields,
+      today
+    );
+    expect(params).toEqual({ page: 1, pageSize: 10, dateFrom: "2020-01-01" });
+  });
+});

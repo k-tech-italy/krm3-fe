@@ -2,6 +2,8 @@ import { FormEvent, useState } from "react";
 import { Funnel } from "lucide-react";
 import { usePopover } from "../../hooks/usePopover";
 import Krm3Autocomplete from "./Krm3Autocomplete";
+import { DefaultFilterLoader, SavedFilterPicker, SaveFilterAs } from "./Krm3SavedFilters";
+import { normalizeRelativePeriod, parseRelativePeriod } from "./relativePeriod";
 
 export type FilterValue = string | string[];
 export type FilterValues = Record<string, FilterValue>;
@@ -27,7 +29,31 @@ export type FilterField =
       minQueryLength?: number;
       /** Milliseconds without typing before the suggestions follow the query. */
       debounceMs?: number;
+    }
+  /**
+   * "Last ...": a period ending today, e.g. "30d", "3m", "1a" (see relativePeriod.ts). When set, it replaces
+   * the values of the `fromField` and `toField` date fields.
+   */
+  | {
+      name: string;
+      label: string;
+      type: "relativePeriod";
+      fromField: string;
+      toField: string;
+      placeholder?: string;
     };
+
+/** A "Last ..." field for the given from/to date fields. */
+export function lastPeriodField(fromField = "dateFrom", toField = "dateTo"): FilterField {
+  return {
+    name: "last",
+    label: "Last",
+    type: "relativePeriod",
+    fromField,
+    toField,
+    placeholder: "e.g. 30d, 3m, 1a",
+  };
+}
 
 /** Field types whose value is a list. */
 export function isMultiValueField(field: FilterField): boolean {
@@ -38,10 +64,18 @@ interface Props {
   fields: FilterField[];
   /** The applied values, e.g. read from the URL. */
   values: FilterValues;
-  /** Called with the non-empty values when the form is submitted, or with {} when it is cleared. */
-  onSubmit: (values: FilterValues) => void;
+  /**
+   * Called with the non-empty values when the form is submitted, or with {} when it is cleared.
+   * `replace` is set when the values are applied without a user action (the default filter of the page).
+   */
+  onSubmit: (values: FilterValues, options?: { replace?: boolean }) => void;
   title?: string;
   testId?: string;
+  /**
+   * The page or table the filter belongs to, e.g. "missions": when set, the user can save the filter
+   * with a name ("Save as") and apply the filters saved for the page.
+   */
+  savedFiltersPage?: string;
 }
 
 export function isEmptyFilterValue(value: FilterValue | undefined): boolean {
@@ -52,15 +86,46 @@ export function countActiveFilters(fields: FilterField[], values: FilterValues):
   return fields.filter((field) => !isEmptyFilterValue(values[field.name])).length;
 }
 
-function compact(fields: FilterField[], values: FilterValues): FilterValues {
+/**
+ * The values of the given fields, without empty ones and with text values trimmed.
+ * A "Last ..." period is written in its canonical form and replaces its from/to dates.
+ */
+export function compact(fields: FilterField[], values: FilterValues): FilterValues {
   const result: FilterValues = {};
   for (const field of fields) {
     const value = values[field.name];
     if (!isEmptyFilterValue(value)) {
-      result[field.name] = Array.isArray(value) ? value : value.trim();
+      if (Array.isArray(value)) result[field.name] = value;
+      else
+        result[field.name] =
+          field.type === "relativePeriod" ? normalizeRelativePeriod(value) : value.trim();
+    }
+  }
+  for (const field of fields) {
+    if (field.type === "relativePeriod" && result[field.name] !== undefined) {
+      delete result[field.fromField];
+      delete result[field.toField];
     }
   }
   return result;
+}
+
+/** Error messages of the fields whose value is not valid, by field name. */
+export function validateFilter(
+  fields: FilterField[],
+  values: FilterValues
+): Record<string, string> {
+  const errors: Record<string, string> = {};
+  for (const field of fields) {
+    const value = values[field.name];
+    if (field.type === "relativePeriod" && typeof value === "string" && value.trim() !== "") {
+      if (!parseRelativePeriod(value)) {
+        errors[field.name] =
+          "Use a number followed by d (days), m (months) or a (years), e.g. 30d.";
+      }
+    }
+  }
+  return errors;
 }
 
 const inputClass =
@@ -78,22 +143,46 @@ export default function Krm3Filter({
   onSubmit,
   title = "Filters",
   testId = "filter",
+  savedFiltersPage,
 }: Props) {
   const { open, setOpen, close, containerRef, buttonRef, panelRef } = usePopover();
   const [draft, setDraft] = useState<FilterValues>(values);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const active = countActiveFilters(fields, values);
+  // date fields replaced by a "Last ..." period being edited
+  const replacedDates = new Set(
+    fields.flatMap((field) =>
+      field.type === "relativePeriod" && !isEmptyFilterValue(draft[field.name])
+        ? [field.fromField, field.toField]
+        : []
+    )
+  );
 
   function toggle() {
     if (open) {
       close();
     } else {
       setDraft(values);
+      setErrors({});
       setOpen(true);
     }
   }
 
   function setField(name: string, value: FilterValue) {
     setDraft((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => {
+      if (!(name in prev)) return prev;
+      const rest = { ...prev };
+      delete rest[name];
+      return rest;
+    });
+  }
+
+  /** Show the errors of the draft; true when it can be applied or saved. */
+  function checkDraft(): boolean {
+    const found = validateFilter(fields, draft);
+    setErrors(found);
+    return Object.keys(found).length === 0;
   }
 
   function toggleOption(name: string, option: string) {
@@ -107,7 +196,13 @@ export default function Krm3Filter({
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (!checkDraft()) return;
     onSubmit(compact(fields, draft));
+    close();
+  }
+
+  function apply(values: FilterValues) {
+    onSubmit(values);
     close();
   }
 
@@ -183,12 +278,29 @@ export default function Krm3Filter({
         ) : (
           <input
             id={id}
-            type={field.type}
-            className={inputClass}
+            type={field.type === "relativePeriod" ? "text" : field.type}
+            className={`${inputClass} disabled:opacity-50`}
             placeholder={field.placeholder}
             value={stringValue}
+            disabled={replacedDates.has(field.name)}
+            aria-invalid={field.name in errors}
+            aria-describedby={field.name in errors ? `${id}-error` : undefined}
             onChange={(e) => setField(field.name, e.target.value)}
           />
+        )}
+        {replacedDates.has(field.name) && (
+          <p className="text-xs text-app opacity-70 mt-1">
+            Replaced by the &quot;Last&quot; period.
+          </p>
+        )}
+        {errors[field.name] && (
+          <p
+            id={`${id}-error`}
+            role="alert"
+            className="text-xs text-red-600 dark:text-red-400 mt-1"
+          >
+            {errors[field.name]}
+          </p>
         )}
       </div>
     );
@@ -196,6 +308,14 @@ export default function Krm3Filter({
 
   return (
     <div ref={containerRef} className="relative inline-block">
+      {savedFiltersPage && (
+        <DefaultFilterLoader
+          page={savedFiltersPage}
+          fields={fields}
+          values={values}
+          onApply={(defaultValues) => onSubmit(defaultValues, { replace: true })}
+        />
+      )}
       <button
         ref={buttonRef}
         type="button"
@@ -229,7 +349,25 @@ export default function Krm3Filter({
         >
           <form onSubmit={handleSubmit}>
             <p className="text-base font-semibold text-app mb-3">{title}</p>
+            {savedFiltersPage && (
+              <SavedFilterPicker
+                page={savedFiltersPage}
+                fields={fields}
+                testId={testId}
+                onApply={apply}
+              />
+            )}
             {fields.map(renderField)}
+            {savedFiltersPage && (
+              <SaveFilterAs
+                page={savedFiltersPage}
+                fields={fields}
+                testId={testId}
+                draft={draft}
+                isValid={checkDraft}
+                onSaved={apply}
+              />
+            )}
             <div className="flex justify-between gap-2 mt-4">
               <button
                 type="button"
