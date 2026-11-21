@@ -9,7 +9,11 @@ import { useGetCurrentUser } from "../hooks/useAuth";
 import { useExpenseList } from "../hooks/useExpense";
 import Tabs from "../components/commons/TopTabs";
 import Krm3Table from "../components/commons/Krm3Table";
-import Krm3Filter, { FilterField, FilterOption } from "../components/commons/Krm3Filter";
+import Krm3Filter, {
+  FilterField,
+  FilterOption,
+  lastPeriodField,
+} from "../components/commons/Krm3Filter";
 import { missionDisplayTitle } from "../utils/mission";
 import { ExpenseEdit } from "../components/expense/edit/ExpenseEdit";
 import { toApiParams, useListParams } from "../hooks/useListParams";
@@ -100,13 +104,14 @@ function MissionList() {
         : []),
       { name: "dateFrom", label: "From", type: "date" },
       { name: "dateTo", label: "To", type: "date" },
+      lastPeriodField(),
       { name: "year", label: "Year", type: "number", placeholder: "e.g. 2025" },
       { name: "number", label: "Number", type: "number" },
     ],
     [canSeeOthers, resourceOptions]
   );
   const list = useListParams(fields);
-  const apiParams = toApiParams(list, PAGE_SIZE);
+  const apiParams = toApiParams(list, PAGE_SIZE, fields);
   if (!apiParams.status) apiParams.status = DEFAULT_MISSION_STATUSES.join(",");
   const { isLoading, data, isError } = useMissionList(apiParams);
   const columns = useColumnVisibility("missions", MISSION_COLUMNS, ["id"]);
@@ -127,6 +132,7 @@ function MissionList() {
         <Krm3Filter
           testId="mission-filter"
           title="Filter missions"
+          savedFiltersPage="missions"
           fields={fields}
           values={list.filters}
           onSubmit={list.setFilters}
@@ -202,11 +208,12 @@ function ExpenseList() {
       { name: "mission", label: "Mission id", type: "number" },
       { name: "dateFrom", label: "From", type: "date" },
       { name: "dateTo", label: "To", type: "date" },
+      lastPeriodField(),
     ],
     [canSeeOthers, resourceOptions]
   );
   const list = useListParams(fields);
-  const { data, isError } = useExpenseList(toApiParams(list, PAGE_SIZE));
+  const { data, isError } = useExpenseList(toApiParams(list, PAGE_SIZE, fields));
   const columns = useColumnVisibility("expenses", EXPENSE_COLUMNS, ["id"]);
 
   return (
@@ -217,6 +224,7 @@ function ExpenseList() {
           <Krm3Filter
             testId="expense-filter"
             title="Filter expenses"
+            savedFiltersPage="expenses"
             fields={fields}
             values={list.filters}
             onSubmit={list.setFilters}

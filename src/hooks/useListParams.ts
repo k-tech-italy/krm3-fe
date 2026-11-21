@@ -6,6 +6,7 @@ import {
   isEmptyFilterValue,
   isMultiValueField,
 } from "../components/commons/Krm3Filter";
+import { parseRelativePeriod, resolveRelativePeriod } from "../components/commons/relativePeriod";
 
 export interface ListParams {
   filters: FilterValues;
@@ -39,29 +40,20 @@ export function useListParams(fields: FilterField[]) {
   }, [fields, searchParams]);
 
   const update = useCallback(
-    (change: (next: URLSearchParams) => void) => {
+    (change: (next: URLSearchParams) => void, options?: { replace?: boolean }) => {
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
         change(next);
         return next;
-      });
+      }, options);
     },
     [setSearchParams]
   );
 
+  /** `replace` changes the URL without adding a history entry (e.g. for the default filter). */
   const setFilters = useCallback(
-    (values: FilterValues) =>
-      update((next) => {
-        for (const field of fields) {
-          const value = values[field.name];
-          if (isEmptyFilterValue(value)) {
-            next.delete(field.name);
-          } else {
-            next.set(field.name, Array.isArray(value) ? value.join(",") : value);
-          }
-        }
-        next.delete("page");
-      }),
+    (values: FilterValues, options?: { replace?: boolean }) =>
+      update((next) => applyFilters(next, fields, values), options),
     [fields, update]
   );
 
@@ -87,15 +79,50 @@ export function useListParams(fields: FilterField[]) {
   return { ...params, setFilters, setOrdering, setPage };
 }
 
-/** Query parameters for a list endpoint: multi-value filters are joined with commas. */
+/**
+ * Write the filter values into query parameters as `useListParams` reads them, going back to the first page.
+ * Parameters that are not filters (e.g. a tab) are kept.
+ */
+export function applyFilters(
+  params: URLSearchParams,
+  fields: FilterField[],
+  values: FilterValues
+): void {
+  for (const field of fields) {
+    const value = values[field.name];
+    if (isEmptyFilterValue(value)) {
+      params.delete(field.name);
+    } else {
+      params.set(field.name, Array.isArray(value) ? value.join(",") : value);
+    }
+  }
+  params.delete("page");
+}
+
+/**
+ * Query parameters for a list endpoint: multi-value filters are joined with commas.
+ * A "Last ..." period among `fields` is sent as its from/to dates, ending `today`; an invalid one is ignored.
+ */
 export function toApiParams(
   { filters, ordering, page }: ListParams,
-  pageSize: number
+  pageSize: number,
+  fields: FilterField[] = [],
+  today: Date = new Date()
 ): Record<string, string | number> {
   const result: Record<string, string | number> = { page, pageSize };
   for (const [name, value] of Object.entries(filters)) {
     if (!isEmptyFilterValue(value)) {
       result[name] = Array.isArray(value) ? value.join(",") : value;
+    }
+  }
+  for (const field of fields) {
+    if (field.type !== "relativePeriod" || result[field.name] === undefined) continue;
+    const period = parseRelativePeriod(String(result[field.name]));
+    delete result[field.name];
+    if (period) {
+      const { from, to } = resolveRelativePeriod(period, today);
+      result[field.fromField] = from;
+      result[field.toField] = to;
     }
   }
   if (ordering) result.ordering = ordering;

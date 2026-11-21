@@ -44,6 +44,11 @@ vi.mock("react-router-dom", async (importOriginal) => ({
 vi.mock("../hooks/useExpense", () => ({
   useExpenseList: vi.fn(),
 }));
+// the filters save and list saved filters through the API: no saved filters here
+vi.mock("../hooks/useSavedFilters", () => ({
+  useSavedFilters: () => ({ data: [] }),
+  useSaveFilter: () => ({ mutate: vi.fn(), isLoading: false }),
+}));
 const mockUserPermissions = vi.hoisted(() => ({ value: ["core.add_mission"] as string[] }));
 vi.mock("../hooks/useAuth", () => ({
   useGetCurrentUser: () => ({
