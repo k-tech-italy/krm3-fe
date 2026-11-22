@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import { Funnel } from "lucide-react";
 import { usePopover } from "../../hooks/usePopover";
 import Krm3Autocomplete from "./Krm3Autocomplete";
+import Krm3DateInput from "./Krm3DateInput";
 import { DefaultFilterLoader, SavedFilterPicker, SaveFilterAs } from "./Krm3SavedFilters";
 import { normalizeRelativePeriod, parseRelativePeriod } from "./relativePeriod";
 
@@ -275,6 +276,16 @@ export default function Krm3Filter({
               </option>
             ))}
           </select>
+        ) : field.type === "date" ? (
+          <Krm3DateInput
+            id={id}
+            className={`${inputClass} disabled:opacity-50`}
+            value={stringValue}
+            disabled={replacedDates.has(field.name)}
+            invalid={field.name in errors}
+            describedBy={field.name in errors ? `${id}-error` : undefined}
+            onChange={(date) => setField(field.name, date)}
+          />
         ) : (
           <input
             id={id}
