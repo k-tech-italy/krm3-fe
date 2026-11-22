@@ -21,6 +21,7 @@ export function Mission() {
   const { isLoading, data, isError } = useGetMission(id);
   const { data: currentUser, userCan } = useGetCurrentUser();
   const submitMission = useSubmitMission();
+  const baseCurrency = currentUser?.config?.baseCurrency;
   const [submitErrors, setSubmitErrors] = useState<string[]>([]);
   const today = new Date();
 
@@ -88,8 +89,8 @@ export function Mission() {
               { accessorKey: "id", header: "Id" },
               { accessorKey: "day", header: "Data" },
               { accessorKey: "category_title", header: "Categoria" },
-              { accessorKey: "amountCurrency", header: "Importo in valuta" },
-              { accessorKey: "amountBase", header: "Importo in EUR" },
+              { accessorKey: "amountCurrency_label", header: "Importo in valuta" },
+              { accessorKey: "amountBase", header: `Importo in ${baseCurrency?.iso3 ?? "EUR"}` },
               { accessorKey: "amountReimbursement", header: "Importo rimborso" },
               { accessorKey: "paymentType_title", header: "Tipo di pagamento" },
               { accessorKey: "documentType_title", header: "Tipo di documento" },
@@ -99,6 +100,7 @@ export function Mission() {
                 ? data.expenses.slice(0).map((item) => {
                     return {
                       ...item,
+                      amountCurrency_label: `${item.amountCurrency} ${item.currencySymbol ?? item.currency}`,
                       category_title: item.category.title,
                       paymentType_title: item.paymentType.title,
                       documentType_title: item.documentType.title,
@@ -108,7 +110,9 @@ export function Mission() {
             }
             onClickRow={(item) => setSelectedExpense(item)}
           />
-          {!isSmallScreen && <TotalsExpense mission={data} />}
+          {!isSmallScreen && (
+            <TotalsExpense mission={data} currencySymbol={baseCurrency?.symbol ?? "EUR"} />
+          )}
           {selectedExpense && (
             <ExpenseEdit
               show={true}

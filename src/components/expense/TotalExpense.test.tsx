@@ -81,10 +81,26 @@ describe("TotalExpense", () => {
           reimbursement: 0,
         },
       ],
+      totals: { refund: "150.00", anticipated: "0.00", total: "150.00" },
     },
   };
   // TODO update test when component is finished
   it("renders correctly", () => {
-    render(<TotalsExpense {...props} />);
+    render(<TotalsExpense {...props} currencySymbol="€" />);
+  });
+  it("shows the totals in the given base currency", () => {
+    render(<TotalsExpense {...props} currencySymbol="£" />);
+    expect(screen.getAllByText(/ £$/)).toHaveLength(3);
+    expect(screen.queryByText(/\$/)).not.toBeInTheDocument();
+  });
+  it("shows the totals computed by the backend", () => {
+    render(<TotalsExpense {...props} currencySymbol="€" />);
+    expect(screen.getByText("Total Refund").nextSibling).toHaveTextContent("150.00 €");
+    expect(screen.getByText("Total Anticipated").nextSibling).toHaveTextContent("0.00 €");
+    expect(screen.getByText("Totals").nextSibling).toHaveTextContent("150.00 €");
+  });
+  it("shows zero totals when the backend sends none", () => {
+    render(<TotalsExpense mission={{ ...props.mission, totals: undefined }} currencySymbol="€" />);
+    expect(screen.getAllByText("0.00 €")).toHaveLength(3);
   });
 });
