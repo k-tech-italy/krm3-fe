@@ -76,6 +76,8 @@ export interface ExpenseInterface {
   modifiedTs: string;
   mission: number;
   currency: string;
+  // read-only, sent by the mission detail API
+  currencySymbol?: string;
   category: Category;
   paymentType: TypeOfPayment;
   reimbursement: number;
@@ -116,6 +118,14 @@ export interface MissionInterface {
   toDate: string;
   year: number;
   expenses: ExpenseInterface[];
+  // read-only expense totals in the base currency, sent by the mission detail API
+  totals?: MissionTotals;
+}
+
+export interface MissionTotals {
+  refund: string;
+  anticipated: string;
+  total: string;
 }
 
 export interface Resource {
@@ -173,6 +183,7 @@ export interface User {
   config: {
     modules: module[];
     defaultModule?: string;
+    baseCurrency?: { iso3: string; symbol: string };
   };
 }
 

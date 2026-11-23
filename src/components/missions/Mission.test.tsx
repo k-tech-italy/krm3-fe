@@ -99,6 +99,7 @@ describe("Mission", () => {
             active: true,
             id: 123,
             currency: "PLN",
+            currencySymbol: "zł",
             title: "Example title",
             amountCurrency: "101",
             amountReimbursement: "102",
@@ -146,7 +147,10 @@ describe("Mission", () => {
 
   function mockCurrentUser({ resourceId, perms = [] }: { resourceId?: number; perms?: string[] }) {
     vi.spyOn(useAuth, "useGetCurrentUser").mockReturnValue({
-      data: { resource: resourceId ? { id: resourceId } : null },
+      data: {
+        resource: resourceId ? { id: resourceId } : null,
+        config: { modules: [], baseCurrency: { iso3: "GBP", symbol: "£" } },
+      },
       userCan: (required: string[]) => required.every((p) => perms.includes(p)),
     } as unknown as ReturnType<typeof useAuth.useGetCurrentUser>);
   }
@@ -208,6 +212,15 @@ describe("Mission", () => {
     expect(screen.getByText("Number Mission: 1")).toBeInTheDocument();
     expect(screen.getByText("some mission")).toBeInTheDocument();
     expect(screen.queryByTestId("add-expense-button")).toBeInTheDocument();
+  });
+  it("shows the amount in currency followed by the currency symbol", () => {
+    renderMission();
+    expect(screen.getByText("101 zł")).toBeInTheDocument();
+  });
+  it("shows the base amount header and the totals in the base currency", () => {
+    renderMission();
+    expect(screen.getByText("Importo in GBP")).toBeInTheDocument();
+    expect(screen.getAllByText(/ £$/)).toHaveLength(3);
   });
   it("does not render add expense button on small screen", () => {
     vi.spyOn(useView, "useMediaQuery").mockReturnValue(true);
