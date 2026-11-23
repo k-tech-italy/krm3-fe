@@ -10,6 +10,12 @@ vi.mock("./LimitBudget", () => {
     }
 })
 
+/** Picks an option of a react-select autocomplete, found by its aria-label. */
+function pickOption(field: string, label: string) {
+    fireEvent.keyDown(screen.getByLabelText(field), { key: "ArrowDown" })
+    fireEvent.click(screen.getByText(label))
+}
+
 describe('ExpenseEdit', () => {
     const onCloseMock = vi.fn()
     const props = {
@@ -92,7 +98,7 @@ describe('ExpenseEdit', () => {
         render(<ExpenseEdit {...props}/>);
         expect(screen.getByText("Close")).toBeInTheDocument();
         expect(screen.getByText("Save")).toBeInTheDocument();
-        expect(screen.getByText("Mocked LimitBudget")).toBeInTheDocument()
+        expect(screen.queryByText("Mocked LimitBudget")).not.toBeInTheDocument()
         expect(screen.getByText("Data spesa")).toBeInTheDocument()
         expect(screen.getByText("Tipo Documento")).toBeInTheDocument()
         expect(screen.getByText("Importo")).toBeInTheDocument()
@@ -121,9 +127,9 @@ describe('ExpenseEdit', () => {
         render(<ExpenseEdit {...props}/>);
         const image = new File(["some/path"], "filename.png", { type: "image/png" });
         fireEvent.change(screen.getByTestId("currency-select"), { target: { value: "EURO" }})
-        fireEvent.change(screen.getByTestId("category-select"), { target: { value: "2" }})
-        fireEvent.change(screen.getByTestId("document-type-select"), { target: { value: "3" }})
-        fireEvent.change(screen.getByTestId("payment-type-select"), { target: { value: "2" }})
+        pickOption("Categoria", "Travel")
+        pickOption("Tipo Documento", "doc_type_3")
+        pickOption("Tipo di Pagamento", "cash")
         fireEvent.input(screen.getByTestId("currency-amount-input"), { target: { value: "222" }})
         fireEvent.input(screen.getByTestId("detail-input"), { target: { value: "some details" }})
         fireEvent.input(screen.getByTestId("amount-reimbursement-input"), { target: { value: "525" }})

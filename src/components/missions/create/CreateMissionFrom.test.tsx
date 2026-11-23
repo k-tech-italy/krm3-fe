@@ -26,6 +26,12 @@ function mockCurrentUser({
   } as unknown as ReturnType<typeof useAuth.useGetCurrentUser>);
 }
 
+/** Picks a resource in the autocomplete (react-select) by its label. */
+function pickResource(label: string) {
+  fireEvent.keyDown(screen.getByLabelText("Risorsa"), { key: "ArrowDown" });
+  fireEvent.click(screen.getByText(label));
+}
+
 describe("CreateMissionFrom", () => {
   const props = {
     mission: {
@@ -248,7 +254,7 @@ describe("CreateMissionFrom", () => {
     render(<CreateMissionForm {...props} />);
 
     fireEvent.change(screen.getByTestId("title-input"), { target: { value: "changed title" } });
-    fireEvent.change(screen.getByTestId("first-name-select"), { target: { value: "2" } });
+    pickResource("Anna Nowak");
     fireEvent.change(screen.getByTestId("project-select"), { target: { value: "2" } });
     fireEvent.change(screen.getByTestId("country-select"), { target: { value: "2" } });
     fireEvent.change(screen.getByTestId("city-select"), { target: { value: "3" } });
@@ -291,5 +297,78 @@ describe("CreateMissionFrom", () => {
       "Nessuna risorsa associata al tuo utente"
     );
     expect(screen.getByText("resource error")).toBeInTheDocument();
+  });
+
+  describe("projects of the resource", () => {
+    // fresh copies: other tests mutate props.mission and props.error
+    const freshMission = () =>
+      ({
+        ...props.mission,
+        resource: { id: 1, firstName: "Jan", lastName: "Kowal" },
+        project: { id: 1, name: "example project", notes: "", client: 1 },
+      }) as MissionInterface;
+    const noErrors = {} as typeof props.error;
+
+    it("lists only the projects of the chosen resource and clears the project when it changes", () => {
+      const mission = freshMission();
+      render(<CreateMissionForm mission={mission} error={noErrors} />);
+
+      expect(useMissions.useGetProjects).toHaveBeenLastCalledWith(1, true);
+      expect(screen.getByTestId("project-select")).toHaveValue("1");
+
+      pickResource("Anna Nowak");
+
+      expect(useMissions.useGetProjects).toHaveBeenLastCalledWith(2, true);
+      expect(screen.getByTestId("project-select")).toHaveValue("0");
+      expect(mission.resource.id).toBe(2);
+      expect(mission.project).toBeUndefined();
+    });
+
+    it("lists the projects of the user's own resource for non-managers", () => {
+      mockCurrentUser({ manager: false, resource: { id: 7, firstName: "Ola", lastName: "Lis" } });
+      const mission = { ...freshMission(), resource: undefined } as unknown as MissionInterface;
+
+      render(<CreateMissionForm mission={mission} error={noErrors} />);
+
+      expect(useMissions.useGetProjects).toHaveBeenLastCalledWith(7, true);
+      expect(screen.getByTestId("project-select")).toBeEnabled();
+    });
+
+    it("asks for the resource before the project", () => {
+      const mission = {
+        ...freshMission(),
+        resource: undefined,
+        project: undefined,
+      } as unknown as MissionInterface;
+
+      render(<CreateMissionForm mission={mission} error={noErrors} />);
+
+      expect(useMissions.useGetProjects).toHaveBeenLastCalledWith(undefined, false);
+      expect(screen.getByTestId("project-select")).toBeDisabled();
+      expect(screen.getByText("Scegli prima la risorsa")).toBeInTheDocument();
+    });
+
+    it("tells when the resource has no current or future project", () => {
+      vi.spyOn(useMissions, "useGetProjects").mockReturnValue({
+        count: 0,
+        next: null,
+        previous: null,
+        results: [],
+      });
+      const mission = { ...freshMission(), project: undefined } as unknown as MissionInterface;
+
+      render(<CreateMissionForm mission={mission} error={noErrors} />);
+
+      expect(screen.getByText("Nessun progetto attivo per la risorsa")).toBeInTheDocument();
+    });
+
+    it("finds resources by typing part of the name", () => {
+      render(<CreateMissionForm mission={freshMission()} error={noErrors} />);
+
+      fireEvent.change(screen.getByLabelText("Risorsa"), { target: { value: "nowak" } });
+
+      expect(screen.getByText("Anna Nowak")).toBeInTheDocument();
+      expect(screen.queryByRole("option", { name: "Jan Kowal" })).not.toBeInTheDocument();
+    });
   });
 });

@@ -431,5 +431,13 @@ describe("mission API", () => {
 
       expect(restapi.get).toHaveBeenCalledWith("core/project/");
     });
+
+    it("should only fetch the projects the resource is involved in", async () => {
+      vi.mocked(restapi.get).mockResolvedValue({ data: { results: [] } });
+
+      await missionApi.getProjects(5);
+
+      expect(restapi.get).toHaveBeenCalledWith("core/project/", { params: { resource: 5 } });
+    });
   });
 });

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import Select, { SingleValue } from "react-select";
 import { useGetCurrentUser } from "../../hooks/useAuth";
 import { useGetActiveResources } from "../../hooks/useMissions";
+import { krm3SelectStyles } from "../commons/selectStyles";
 
 const SelectResourceComponent = ({
   setSelectedResourceId,
@@ -54,33 +55,7 @@ const SelectResourceComponent = ({
                 </span>
               )}
               className="mt-2"
-              styles={{
-                menu: (base) => ({
-                  ...base,
-                  backgroundColor: "var(--color-selector-menu)",
-                }),
-                option: (base, state) => ({
-                  ...base,
-                  backgroundColor: state.isSelected
-                    ? "var(--color-selector-selected)"
-                    : state.isFocused
-                      ? "var(--color-selector-focused)"
-                      : "",
-                }),
-                control: (base) => ({
-                  ...base,
-                  color: "var(--color-body-text)",
-                  backgroundColor: "var(--color-selector-controller)",
-                }),
-                singleValue: (base) => ({
-                  ...base,
-                  color: "var(--color-body-text)",
-                }),
-                placeholder: (base) => ({
-                  ...base,
-                  color: "var(--color-body-text)",
-                }),
-              }}
+              styles={krm3SelectStyles<{ value: number; label: string }>()}
               isClearable
               placeholder="Select a resource"
               id="resource-select"

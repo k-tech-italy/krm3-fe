@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
+import Select, { SingleValue } from "react-select";
 import moment from "moment";
 import { MissionError, MissionInterface, Project } from "../../../restapi/types";
 import {
@@ -11,7 +12,13 @@ import {
 } from "../../../hooks/useMissions";
 import { useGetCurrencies } from "../../../hooks/useExpense";
 import { useGetCurrentUser } from "../../../hooks/useAuth";
+import { krm3SelectStyles } from "../../commons/selectStyles";
 import "react-datepicker/dist/react-datepicker.css";
+
+interface ResourceOption {
+  value: number;
+  label: string;
+}
 
 interface Props {
   mission: MissionInterface;
@@ -27,7 +34,10 @@ export function CreateMissionForm(props: Props) {
   const canChooseResource = userCan(["core.manage_any_mission"]);
   const resources = useGetResources(canChooseResource);
   const clients = useGetClients();
-  const projects = useGetProjects();
+  // non-managers always use their own resource
+  const resourceId = canChooseResource ? mission?.resource?.id : currentUser?.resource?.id;
+  // only the projects the resource is involved in today or later (same rule as the backend)
+  const projects = useGetProjects(resourceId, !!resourceId);
   const countries = useGetCountries();
   const cities = useGetCitiess();
   const currencies = useGetCurrencies();
@@ -47,15 +57,14 @@ export function CreateMissionForm(props: Props) {
     }
   }, [canChooseResource, currentUser?.resource?.id]);
 
-  function handleChangeResource(e: any): void {
-    if (resources) {
-      const selected =
-        resources.results.filter((res) => res.id === Number(e.target.value)).at(0) ||
-        props.mission.resource;
-      props.mission.resource = selected;
-      delete error?.resource;
-      setMission({ ...mission, resource: selected });
-    }
+  function handleChangeResource(option: SingleValue<ResourceOption>): void {
+    const selected = resources?.results.find((res) => res.id === option?.value);
+    if (!selected || selected.id === mission?.resource?.id) return;
+    props.mission.resource = selected;
+    // the project list depends on the resource: the chosen project may not be valid anymore
+    props.mission.project = undefined as unknown as Project;
+    delete error?.resource;
+    setMission({ ...mission, resource: selected, project: undefined as unknown as Project });
   }
 
   function handleChangeProject(e: any): void {
@@ -95,6 +104,16 @@ export function CreateMissionForm(props: Props) {
     }
   }
 
+  const resourceOptions: ResourceOption[] = (resources?.results || []).map((res) => ({
+    value: res.id,
+    label: `${res.firstName} ${res.lastName}`,
+  }));
+  const projectPlaceholder = !resourceId
+    ? "Scegli prima la risorsa"
+    : projects && projects.results.length === 0
+      ? "Nessun progetto attivo per la risorsa"
+      : "progetto";
+
   return (
     <form className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center">
@@ -119,20 +138,24 @@ export function CreateMissionForm(props: Props) {
         <label className="sm:w-1/4 font-semibold mb-2 sm:mb-0">Risorsa</label>
         <div className="sm:w-2/4 w-full">
           {canChooseResource ? (
-            <select
-              data-testid="first-name-select"
-              className={`w-full border rounded-md p-2 ${
-                error?.resource ? "border-red-500" : "border-gray-300"
-              } `}
-              value={mission?.resource?.id}
-              onChange={handleChangeResource}
-            >
-              {[{ id: 0, firstName: "Risorsa" }, ...(resources?.results || [])].map((res) => (
-                <option key={res.id} value={res.id}>
-                  {res.firstName}
-                </option>
-              ))}
-            </select>
+            <div data-testid="first-name-select">
+              <Select<ResourceOption>
+                inputId="create-mission-resource"
+                aria-label="Risorsa"
+                placeholder="Cerca risorsa..."
+                noOptionsMessage={() => "Nessuna risorsa trovata"}
+                isSearchable
+                options={resourceOptions}
+                value={resourceOptions.find((o) => o.value === mission?.resource?.id) ?? null}
+                onChange={handleChangeResource}
+                formatOptionLabel={({ label }) => (
+                  <span className="notranslate" translate="no">
+                    {label}
+                  </span>
+                )}
+                styles={krm3SelectStyles<ResourceOption>(!!error?.resource)}
+              />
+            </div>
           ) : (
             <p data-testid="own-resource" className="p-2">
               {currentUser?.resource
@@ -152,14 +175,19 @@ export function CreateMissionForm(props: Props) {
             className={`w-full border rounded-md p-2 ${
               error?.project ? "border-red-500" : "border-gray-300"
             } `}
-            value={mission?.project?.id}
+            value={mission?.project?.id ?? 0}
             onChange={handleChangeProject}
+            disabled={!resourceId}
           >
-            {[{ id: 0, name: "progetto" } as Project, ...(projects?.results || [])].map((res) => (
-              <option key={res.id} value={res.id}>
-                {res.name} ({clients?.results.filter((c) => c.id === res.client).at(0)?.name})
-              </option>
-            ))}
+            {[{ id: 0, name: projectPlaceholder } as Project, ...(projects?.results || [])].map(
+              (res) => (
+                <option key={res.id} value={res.id}>
+                  {res.id
+                    ? `${res.name} (${clients?.results.filter((c) => c.id === res.client).at(0)?.name})`
+                    : res.name}
+                </option>
+              )
+            )}
           </select>
           {!!error?.project && <p className="text-red-500 text-sm mt-1">{error.project}</p>}
         </div>

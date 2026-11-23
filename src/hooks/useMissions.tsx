@@ -76,9 +76,10 @@ export function useGetCitiess() {
   return resources.data;
 }
 
-export function useGetProjects() {
-  const resources = useQuery("projects", () => getProjects());
-  return resources.data;
+/** All projects, or with a resource only those it is involved in today or later. */
+export function useGetProjects(resourceId?: number, enabled = true) {
+  const projects = useQuery(["projects", resourceId], () => getProjects(resourceId), { enabled });
+  return projects.data;
 }
 
 export function useGetMission(id: number) {
