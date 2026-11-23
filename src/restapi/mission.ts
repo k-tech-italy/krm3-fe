@@ -63,6 +63,11 @@ export function getCities(): Promise<Page<City>> {
   return restapi.get<Page<City>>(`core/city/`).then((res) => res.data);
 }
 
-export function getProjects(): Promise<Page<Project>> {
-  return restapi.get<Page<Project>>(`core/project/`).then((res) => res.data);
+/** With a resource, only the projects it is involved in today or later (via its tasks). */
+export function getProjects(resourceId?: number): Promise<Page<Project>> {
+  const request =
+    resourceId !== undefined
+      ? restapi.get<Page<Project>>(`core/project/`, { params: { resource: resourceId } })
+      : restapi.get<Page<Project>>(`core/project/`);
+  return request.then((res) => res.data);
 }

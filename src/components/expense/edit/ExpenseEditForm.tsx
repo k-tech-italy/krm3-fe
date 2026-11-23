@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import moment from "moment";
 import DatePicker from "react-datepicker";
+import Select, { SingleValue } from "react-select";
 import { ExpenseError, ExpenseInterface } from "../../../restapi/types";
 import {
   useGetCategories,
@@ -8,10 +9,14 @@ import {
   useGetDocumentType,
   useGetTypeOfPayment,
 } from "../../../hooks/useExpense";
-import { convertCurrencyTo } from "../../../restapi/expense";
-import LimitBudget from "./LimitBudget";
+import { krm3SelectStyles } from "../../commons/selectStyles";
 import "react-datepicker/dist/react-datepicker.css";
 import "../expense.css";
+
+interface Option {
+  value: number;
+  label: string;
+}
 
 interface Props {
   expense: ExpenseInterface;
@@ -21,8 +26,6 @@ interface Props {
 export function ExpenseEditForm(props: Props) {
   const [expenseEdit, setExpenseEdit] = useState<ExpenseInterface>(props.expense);
   const [error, setError] = useState<ExpenseError | undefined>(props.error);
-  const [amountError, setAmountError] = useState(false);
-  const [amountBase, setAmountBase] = useState("");
   const [progressBar, setProgressBar] = useState({ now: 0, max: 100 });
   const [, setShowProgressBar] = useState(false);
 
@@ -40,16 +43,8 @@ export function ExpenseEditForm(props: Props) {
   }, [props.error]);
 
   function handleCurrencyAmount(e: React.ChangeEvent<HTMLInputElement>) {
-    //convert currency and check error refund < amount
-    convertCurrencyTo("2023-08-23", props.expense.currency, e.target.value, "EUR")
-      .then((res) => {
-        setAmountBase(res);
-        setAmountError(false);
-      })
-      .catch(() => setAmountError(true));
-
+    // the amount in the base currency is computed by the backend
     props.expense.amountCurrency = e.target.value;
-    props.expense.amountBase = amountBase;
     delete error?.amountCurrency;
     setExpenseEdit({ ...expenseEdit, amountCurrency: e.target.value });
     /*if (parseInt(e.target.value) > parseInt(props.expense?.amountReimbursement || '')) {
@@ -59,54 +54,34 @@ export function ExpenseEditForm(props: Props) {
         }*/
   }
 
-  function handleSelectTypeOfPayment(e: React.ChangeEvent<HTMLSelectElement>) {
-    if (typeOfPaymentList) {
-      const selected =
-        typeOfPaymentList.results
-          .filter((payment) => payment.id === Number(e.target.value))
-          .at(0) || props.expense.paymentType;
-      props.expense.paymentType = selected;
-      delete error?.paymentType;
-      setExpenseEdit({ ...expenseEdit, paymentType: selected });
-    }
+  function handleSelectTypeOfPayment(option: SingleValue<Option>) {
+    const selected = typeOfPaymentList?.results.find((payment) => payment.id === option?.value);
+    if (!selected) return;
+    props.expense.paymentType = selected;
+    delete error?.paymentType;
+    setExpenseEdit({ ...expenseEdit, paymentType: selected });
   }
 
-  function handleSelectTypeOfDocument(e: React.ChangeEvent<HTMLSelectElement>) {
-    if (typeOfDocumentList) {
-      const selected =
-        typeOfDocumentList.results
-          .filter((document) => document.id === Number(e.target.value))
-          .at(0) || props.expense.documentType;
-      props.expense.documentType = selected; // { id: selected.id } as TypeOfDocument
-      delete error?.documentType;
-      setExpenseEdit({ ...expenseEdit, documentType: selected });
-    }
+  function handleSelectTypeOfDocument(option: SingleValue<Option>) {
+    const selected = typeOfDocumentList?.results.find((document) => document.id === option?.value);
+    if (!selected) return;
+    props.expense.documentType = selected;
+    delete error?.documentType;
+    setExpenseEdit({ ...expenseEdit, documentType: selected });
   }
 
-  function handleSelectCategory(e: React.ChangeEvent<HTMLSelectElement>) {
-    if (categoryList) {
-      const selected =
-        categoryList.results.filter((category) => category.id === Number(e.target.value)).at(0) ||
-        props.expense.category;
-      props.expense.category = selected;
-      delete error?.category;
-      setExpenseEdit({ ...expenseEdit, category: selected });
-    }
+  function handleSelectCategory(option: SingleValue<Option>) {
+    const selected = categoryList?.results.find((category) => category.id === option?.value);
+    if (!selected) return;
+    props.expense.category = selected;
+    delete error?.category;
+    setExpenseEdit({ ...expenseEdit, category: selected });
   }
 
   function handleCurrency(e: React.ChangeEvent<HTMLSelectElement>) {
     props.expense.currency = e.target.value;
     delete error?.currency;
     setExpenseEdit({ ...expenseEdit, currency: e.target.value });
-    if (props.expense.amountCurrency) {
-      convertCurrencyTo("2023-08-23", e.target.value, props.expense.amountCurrency, "EUR")
-        .then((res) => {
-          props.expense.amountBase = res;
-          setAmountBase(res);
-          setAmountError(false);
-        })
-        .catch(() => setAmountError(true));
-    }
   }
 
   function handleUploadImage(e: React.ChangeEvent<HTMLInputElement>): void {
@@ -134,6 +109,19 @@ export function ExpenseEditForm(props: Props) {
     };
   }
 
+  const categoryOptions: Option[] = (categoryList?.results || []).map((c) => ({
+    value: c.id,
+    label: c.title,
+  }));
+  const documentTypeOptions: Option[] = (typeOfDocumentList?.results || []).map((d) => ({
+    value: d.id,
+    label: d.title,
+  }));
+  const paymentTypeOptions: Option[] = (typeOfPaymentList?.results || []).map((p) => ({
+    value: p.id,
+    label: p.title,
+  }));
+
   return (
     <form className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
@@ -159,54 +147,41 @@ export function ExpenseEditForm(props: Props) {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
         <label className="font-semibold">Categoria</label>
-        <div>
-          <select
-            className={`w-full border rounded-md p-2 ${
-              error?.category ? "border-red-500" : "border-gray-300"
-            }`}
-            onChange={handleSelectCategory}
-            value={expenseEdit.category?.id}
-            data-testid="category-select"
-          >
-            {[{ id: 0, title: "Scegli la categoria" }, ...(categoryList?.results || [])].map(
-              (category) => (
-                <option key={category.id} value={category.id}>
-                  {category?.title}
-                </option>
-              )
-            )}
-          </select>
-          {!!error?.category && <div className="text-red-500 text-sm mt-1">{error.category}</div>}
-        </div>
-        {!!categoryList && (
-          <div className="text-center">
-            <LimitBudget
-              amountCurrency={Number(expenseEdit.amountCurrency)}
-              category={expenseEdit.category}
-              categoryList={categoryList?.results}
+        <div className="sm:col-span-2">
+          <div data-testid="category-select">
+            <Select<Option>
+              inputId="expense-edit-form-category"
+              aria-label="Categoria"
+              placeholder="Scegli la categoria"
+              noOptionsMessage={() => "Nessuna categoria trovata"}
+              isSearchable
+              options={categoryOptions}
+              value={categoryOptions.find((o) => o.value === expenseEdit.category?.id) ?? null}
+              onChange={handleSelectCategory}
+              styles={krm3SelectStyles<Option>(!!error?.category)}
             />
           </div>
-        )}
+          {!!error?.category && <div className="text-red-500 text-sm mt-1">{error.category}</div>}
+        </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
         <label className="font-semibold">Tipo Documento</label>
         <div className="sm:col-span-2">
-          <select
-            data-testid="document-type-select"
-            className={`w-full border rounded-md p-2 ${
-              error?.documentType ? "border-red-500" : "border-gray-300"
-            }`}
-            onChange={handleSelectTypeOfDocument}
-            value={expenseEdit.documentType?.id || 0}
-          >
-            {[{ id: 0, title: "Scegli un documento" }, ...(typeOfDocumentList?.results || [])].map(
-              (doc) => (
-                <option key={doc.id} value={doc.id}>
-                  {doc?.title}
-                </option>
-              )
-            )}
-          </select>
+          <div data-testid="document-type-select">
+            <Select<Option>
+              inputId="expense-edit-form-document-type"
+              aria-label="Tipo Documento"
+              placeholder="Scegli un documento"
+              noOptionsMessage={() => "Nessun tipo documento trovato"}
+              isSearchable
+              options={documentTypeOptions}
+              value={
+                documentTypeOptions.find((o) => o.value === expenseEdit.documentType?.id) ?? null
+              }
+              onChange={handleSelectTypeOfDocument}
+              styles={krm3SelectStyles<Option>(!!error?.documentType)}
+            />
+          </div>
           {!!error?.documentType && (
             <div className="text-red-500 text-sm mt-1">{error.documentType}</div>
           )}
@@ -229,23 +204,21 @@ export function ExpenseEditForm(props: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
         <label className="font-semibold">Tipo di Pagamento</label>
         <div className="sm:col-span-2">
-          <select
-            data-testid="payment-type-select"
-            className={`w-full border rounded-md p-2 ${
-              error?.paymentType ? "border-red-500" : "border-gray-300"
-            }`}
-            onChange={handleSelectTypeOfPayment}
-            value={expenseEdit.paymentType?.id}
-          >
-            {[
-              { id: 0, title: "Scegli il tipo di pagamento" },
-              ...(typeOfPaymentList?.results || []),
-            ].map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.title || ""}
-              </option>
-            ))}
-          </select>
+          <div data-testid="payment-type-select">
+            <Select<Option>
+              inputId="expense-edit-form-payment-type"
+              aria-label="Tipo di Pagamento"
+              placeholder="Scegli il tipo di pagamento"
+              noOptionsMessage={() => "Nessun tipo di pagamento trovato"}
+              isSearchable
+              options={paymentTypeOptions}
+              value={
+                paymentTypeOptions.find((o) => o.value === expenseEdit.paymentType?.id) ?? null
+              }
+              onChange={handleSelectTypeOfPayment}
+              styles={krm3SelectStyles<Option>(!!error?.paymentType)}
+            />
+          </div>
           {!!error?.paymentType && (
             <div className="text-red-500 text-sm mt-1">{error.paymentType}</div>
           )}
@@ -283,24 +256,6 @@ export function ExpenseEditForm(props: Props) {
         {!!error?.currency && <div className="text-red-500 text-sm mt-1">{error.currency}</div>}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
-        <label className="font-semibold">Importo in €</label>
-        <div>
-          <input
-            disabled
-            type="number"
-            step="0.01"
-            className="w-full border border-gray-300 rounded-md p-2 text-right"
-            value={amountBase || 0}
-          />
-        </div>
-        {amountError && (
-          <div className="text-red-500 text-sm flex items-center">
-            <i className="kt-icon-warning mr-2" />
-            Massimale superato
-          </div>
-        )}
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
         <label className="font-semibold">Importo rimborso in €</label>
         <div>
           <input
@@ -326,12 +281,6 @@ export function ExpenseEditForm(props: Props) {
         >
           Azienda {props.expense.amountReimbursement ? expenseEdit.amountReimbursement : ""} €
         </label>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
-        <div className="sm:col-span-3 flex items-center space-x-2">
-          <input type="checkbox" className="form-checkbox h-5 w-5 text-blue-600" />
-          <label className="font-semibold">Approvazione</label>
-        </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center mb-4">
         <label className="font-semibold mb-2 block" htmlFor="inputGroupFile04">

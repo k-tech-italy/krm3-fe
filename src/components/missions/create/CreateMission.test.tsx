@@ -4,6 +4,12 @@ import * as useExpense from "../../../hooks/useExpense";
 import * as useAuth from "../../../hooks/useAuth";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { CreateMission } from "./CreateMission.tsx";
+/** Picks a resource in the autocomplete (react-select) by its label. */
+function pickResource(label: string) {
+  fireEvent.keyDown(screen.getByLabelText("Risorsa"), { key: "ArrowDown" });
+  fireEvent.click(screen.getByText(label));
+}
+
 describe("CreateMission", () => {
   const createMissionMock = vi.fn((_variables, options?: { onSuccess?: () => void }) => {
     if (options && options.onSuccess) {
@@ -163,7 +169,7 @@ describe("CreateMission", () => {
   it("changes data and saves", async () => {
     render(<CreateMission {...props} />);
     fireEvent.change(screen.getByTestId("title-input"), { target: { value: "changed title" } });
-    fireEvent.change(screen.getByTestId("first-name-select"), { target: { value: "2" } });
+    pickResource("Anna Nowak");
     fireEvent.change(screen.getByTestId("project-select"), { target: { value: "2" } });
     fireEvent.change(screen.getByTestId("country-select"), { target: { value: "2" } });
     fireEvent.change(screen.getByTestId("city-select"), { target: { value: "3" } });

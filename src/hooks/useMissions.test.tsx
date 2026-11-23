@@ -550,6 +550,26 @@ describe("useMissions hooks", () => {
       expect(missionApi.getProjects).toHaveBeenCalledTimes(1);
     });
 
+    it("should fetch the projects of a resource, only when enabled", async () => {
+      vi.mocked(missionApi.getProjects).mockResolvedValue(mockProjects);
+
+      const { result, rerender } = renderHook(
+        ({ resourceId, enabled }) => useGetProjects(resourceId, enabled),
+        {
+          wrapper: createWrapper(),
+          initialProps: { resourceId: undefined as number | undefined, enabled: false },
+        }
+      );
+      expect(missionApi.getProjects).not.toHaveBeenCalled();
+
+      rerender({ resourceId: 5, enabled: true });
+
+      await waitFor(() => {
+        expect(result.current).toEqual(mockProjects);
+      });
+      expect(missionApi.getProjects).toHaveBeenCalledWith(5);
+    });
+
     it("should return undefined when projects fetch fails", async () => {
       vi.mocked(missionApi.getProjects).mockRejectedValue(new Error("Failed to fetch projects"));
 
